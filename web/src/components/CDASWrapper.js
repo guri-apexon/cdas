@@ -1,6 +1,7 @@
 import { Route, Switch, withRouter, Redirect } from "react-router";
 import { lazy, Suspense } from "react";
 import Loader from "apollo-react/components/Loader";
+import { useEffect } from "react";
 const Auth = lazy(() => import("../pages/Auth"));
 const LandingScreen = lazy(() => import("../pages/LandingScreen"));
 const DashBoard = lazy(() => import("../pages/DashBoard"));
@@ -15,15 +16,20 @@ const CDASWrapper = ({ match }) => {
   const auth = {
     authSuccess: false
   };
+  useEffect(() => {
+    console.log(window.location.href)
+  }, [])
 
   return (
+    
     <Suspense fallback={<Loader isInner></Loader>}>
       {auth.authSuccess ? (
         <>
           <LandingScreen></LandingScreen>
           <Switch>
             <Route
-              path={`${getUrlPath('/dashboard')}`}
+              path={`/dashboard`}
+              // path={`${getUrlPath('/dashboard')}`}
               exact
               render={() => <DashBoard />}
             />
@@ -33,7 +39,7 @@ const CDASWrapper = ({ match }) => {
         </>
       ) : (
         <Switch>
-          <Route path={`${getUrlPath('/new')}`} exact render={() => <Auth />} />
+          <Route path={`/auth`} exact render={() => <Auth />} />
           <Redirect from="/" to="/auth" />
         </Switch>
       )}
