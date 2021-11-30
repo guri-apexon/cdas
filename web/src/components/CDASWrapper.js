@@ -1,29 +1,35 @@
 import { Route, Switch, withRouter, Redirect } from "react-router";
+import { useHistory } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import Loader from "apollo-react/components/Loader";
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
+const UnAuth = lazy(() => import("../pages/UnAuth"));
 const Auth = lazy(() => import("../pages/Auth"));
 const LandingScreen = lazy(() => import("../pages/LandingScreen"));
 const DashBoard = lazy(() => import("../pages/DashBoard"));
 
 const CDASWrapper = ({ match }) => {
+  const [loggedIn, setLoggedIn] = useState(false);
+
   const getUrlPath = (route) => {
     // console.log(`${match.url}${route}`);
     // return `${match.url}${route}`;
     return `\test`
   };
-
-  const auth = {
-    authSuccess: false
-  };
+  let userData = JSON.parse(localStorage.getItem('userDetails'));
   useEffect(() => {
-    console.log(window.location.href)
-  }, [])
+    // console.log(window.location.href);
+    if(userData && userData.code){
+      setLoggedIn(true);
+    }
+    console.log(userData)
+  }, [userData])
+
 
   return (
     
     <Suspense fallback={<Loader isInner></Loader>}>
-      {auth.authSuccess ? (
+      {loggedIn ? (
         <>
           <LandingScreen></LandingScreen>
           <Switch>
@@ -39,8 +45,9 @@ const CDASWrapper = ({ match }) => {
         </>
       ) : (
         <Switch>
-          <Route path={`/auth`} exact render={() => <Auth />} />
-          <Redirect from="/" to="/auth" />
+          <Route path={`/unauth`} exact render={() => <UnAuth />} />
+          <Route path={`/oauth2client`} render={() => <Auth />} />
+          <Redirect from="/" to="/unauth" />
         </Switch>
       )}
     </Suspense>
