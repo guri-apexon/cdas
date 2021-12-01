@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 const UnAuth = lazy(() => import("../pages/UnAuth"));
 const Auth = lazy(() => import("../pages/Auth"));
 const LandingScreen = lazy(() => import("../pages/LandingScreen"));
-const DashBoard = lazy(() => import("../pages/DashBoard"));
+const LaunchPad = lazy(() => import("../pages/LaunchPad"));
 const Analytics = lazy(() => import("../pages/Analytics"));
 
 const CDASWrapper = ({ match }) => {
@@ -37,17 +37,17 @@ const CDASWrapper = ({ match }) => {
           <TopNavbar />
           <Switch>
             <Route
-              path={`/dashboard`}
+              path={`/launchpad`}
               // path={`${getUrlPath('/dashboard')}`}
               exact
-              render={() => <DashBoard />}
+              render={() => <LaunchPad />}
             />
             <Route
               path={`${getUrlPath('/analytics')}`}
               exact
               render={() => <Analytics />}
             />
-            <Redirect from="/" to="/dashboard" />
+            <Redirect from="/" to="/launchpad" />
           </Switch>
           {/* <CommonBanner></CommonBanner> */}
         </>
