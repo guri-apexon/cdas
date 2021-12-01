@@ -1,5 +1,4 @@
 import { Route, Switch, withRouter, Redirect } from "react-router";
-import { lazy, Suspense } from "react";
 import Loader from "apollo-react/components/Loader";
 import NavigationBar from 'apollo-react/components/NavigationBar';
 import makeStyles from '@material-ui/core/styles/makeStyles';
@@ -7,7 +6,11 @@ import { neutral7 } from 'apollo-react/colors';
 import Typography from 'apollo-react/components/Typography';
 import App from 'apollo-react-icons/App';
 import { Link } from "@material-ui/core";
-import { createMemoryHistory } from 'history';
+import IconMenuButton from 'apollo-react/components/IconButton';
+import DashboardIcon from 'apollo-react-icons/Dashboard';
+import Question from 'apollo-react-icons/Question';
+import moment from 'moment';
+import Button from "apollo-react/components/Button";
 
 
 const styles = {
@@ -42,7 +45,7 @@ const styles = {
         height: 333,
         minWidth: 300,
     },
-    logoContainer: {
+    centerAligned: {
         display: 'flex',
         alignItems: 'center'
     },
@@ -50,6 +53,9 @@ const styles = {
         fontSize: 24,
         color: '#fff',
         cursor: 'pointer',
+    },
+    helpIcon: {
+
     },
     navLogo: {
         color: 'white',
@@ -61,6 +67,9 @@ const styles = {
     },
     nav: {
         overflow: 'hidden',
+    },
+    fullNavHeight: {
+        height: '100%',
     },
 };
 
@@ -103,12 +112,31 @@ const useStyles = makeStyles(styles);
 const TopNavbar = ({ history, location: { pathname } }) => {
     const classes = useStyles();
     // const history = createMemoryHistory();
-
+    const profileMenuProps = {
+        name: 'Oliver Queen',
+        title: 'Sales Rep',
+        email: 'oliver.queen@iqvia.com',
+        logoutButtonProps: { pathname: '/logout' },
+        menuItems: [
+        ],
+      };
+      
+const notificationsMenuProps = {
+    newNotifications: true,
+    notifications: [
+      {
+        icon: DashboardIcon,
+        header: 'Header',
+        details: 'Lorem ipsum dolor sit ame. Lorem ipsum dolor sit ame.',
+        timestamp: moment(),
+      },
+    ],
+  };
     return (
         <div>
             <NavigationBar
                 LogoComponent={() => (
-                    <div className={classes.logoContainer}>
+                    <div className={classes.centerAligned}>
                     <Link>
                         <App className={classes.appIcon} />
                     </Link>
@@ -119,6 +147,7 @@ const TopNavbar = ({ history, location: { pathname } }) => {
                 )}
                 position="static"
                 menuItems={menuItems}
+                profileMenuProps={profileMenuProps}
                 onClick={({ pathname }) => history.push(pathname)}
                 checkIsActive={(item) =>
                   item.pathname
@@ -126,6 +155,14 @@ const TopNavbar = ({ history, location: { pathname } }) => {
                     : item.menuItems.some((item) => item.pathname === pathname)
                 }
                 waves
+                notificationsMenuProps={notificationsMenuProps}
+                otherButtons={
+                    <div className={classes.centerAligned}>
+                        <Button onClick={() => history.push('help')} className={classes.fullNavHeight}>
+                        <Question className={classes.appIcon} />
+                        </Button>
+                    </div>
+                }
                 className={classes.nav}
             />
         </div>
