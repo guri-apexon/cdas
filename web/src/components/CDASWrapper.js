@@ -1,33 +1,39 @@
 import { Route, Switch, withRouter, Redirect } from "react-router";
 import { lazy, Suspense } from "react";
 import Loader from "apollo-react/components/Loader";
+import TopNavbar from "./TopNavbar";
 const Auth = lazy(() => import("../pages/Auth"));
 const LandingScreen = lazy(() => import("../pages/LandingScreen"));
 const DashBoard = lazy(() => import("../pages/DashBoard"));
+const Analytics = lazy(() => import("../pages/Analytics"));
 
 const CDASWrapper = ({ match }) => {
   const getUrlPath = (route) => {
     // console.log(`${match.url}${route}`);
-    // return `${match.url}${route}`;
-    return `\test`
+    return `${route}`;
   };
 
   const auth = {
-    authSuccess: false
+    authSuccess: true
   };
 
   return (
     <Suspense fallback={<Loader isInner></Loader>}>
       {auth.authSuccess ? (
         <>
-          <LandingScreen></LandingScreen>
+          <TopNavbar />
           <Switch>
             <Route
               path={`${getUrlPath('/dashboard')}`}
               exact
               render={() => <DashBoard />}
             />
-            <Redirect from="/" to="/dashboard" />
+            <Route
+              path={`${getUrlPath('/analytics')}`}
+              exact
+              render={() => <Analytics />}
+            />
+            {/* <Redirect from="/" to="/dashboard" /> */}
           </Switch>
           {/* <CommonBanner></CommonBanner> */}
         </>
