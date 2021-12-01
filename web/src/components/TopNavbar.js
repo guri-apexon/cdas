@@ -86,20 +86,7 @@ const menuItems = [
             },
             {
                 text: 'Security Admin',
-                menuItems: [
-                    {
-                        text: 'Policies',
-                        pathname: '/policies',
-                    },
-                    {
-                        text: 'Roles',
-                        pathname: '/roles',
-                    },
-                    {
-                        text: 'Groups',
-                        pathname: '/groups',
-                    },
-                ],
+                pathname: '/security-admin',
             },
             {
                 text: 'System Admin',

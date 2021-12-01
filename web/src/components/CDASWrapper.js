@@ -33,7 +33,7 @@ const CDASWrapper = ({ match }) => {
               exact
               render={() => <Analytics />}
             />
-            {/* <Redirect from="/" to="/dashboard" /> */}
+            <Redirect from="/" to="/dashboard" />
           </Switch>
           {/* <CommonBanner></CommonBanner> */}
         </>
