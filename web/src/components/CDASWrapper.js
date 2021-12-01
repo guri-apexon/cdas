@@ -16,7 +16,9 @@ const CDASWrapper = ({ match }) => {
     // return `${match.url}${route}`;
     return `\test`
   };
+  
   let userData = JSON.parse(localStorage.getItem('userDetails'));
+
   useEffect(() => {
     // console.log(window.location.href);
     if(userData && userData.code){

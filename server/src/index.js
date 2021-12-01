@@ -3,9 +3,10 @@ const express = require("express");
 const cors = require("cors");
 const fs = require("fs");
 const path = require("path");
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 443;
 const app = express();
 let dir = "./public/exports";
+const auth = require("./controller/auth");
 const Logger = require("./config/logger");
 const shouldCompress = (req, res) => {
   if (req.headers["x-no-compression"]) {
@@ -18,7 +19,6 @@ const shouldCompress = (req, res) => {
 app.use(
   compression({
     filter: shouldCompress,
-
     threshold: 0,
   })
 );
@@ -30,6 +30,8 @@ app.use(
     parameterLimit: 500000000,
   })
 );
+
+app.all("/sda", auth.authHandler);
 app.use("/public", express.static("public"));
 
 if (!fs.existsSync(dir)) {
