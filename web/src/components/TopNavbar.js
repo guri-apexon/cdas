@@ -76,7 +76,7 @@ const styles = {
 const menuItems = [
     {
         text: 'Launchpad',
-        pathname: '/dashboard',
+        pathname: '/launchpad',
     },
     {
         text: 'Analytics',
