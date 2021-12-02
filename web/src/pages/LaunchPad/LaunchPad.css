@@ -1,0 +1,26 @@
+.header{
+    background-image: url("./bg-image.png"), linear-gradient(#C61138, #7B2883);
+    height: 480px;
+    width: 100%;
+    color: #F6F7FB;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background-position: center;
+    background-size: cover;
+}
+.header p{
+    margin: 0px;
+    font-size: 24px;
+    line-height: 29px;
+}
+.header h2{
+    font-weight: 400;
+    font-size: 36px;
+    line-height: 43px;
+}
+
+.productBox{
+    background: linear-gradient(#999999, #595959);
+}
