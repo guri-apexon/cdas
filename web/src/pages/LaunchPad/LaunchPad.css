@@ -24,11 +24,21 @@
 }
 
 .productBox{
-    background: linear-gradient(#999999, #595959);
+    background: linear-gradient(to right, #595959, #999999);
+    box-shadow: 0 5px 10px 1px rgb(0 0 0 / 20%);
+    cursor: pointer;
+}
+
+.productBox.haveAccess{
+    background: linear-gradient(to left, #0768FD, #0F2252);
 }
 
 .products{
     margin: 0px 65px;
+    position: absolute;
+    width: calc(100% - 130px);
+    z-index: 1;
+    top: 490px;
 }
 
 .gridContainer{
@@ -36,6 +46,7 @@
   grid-template-columns: repeat(5, 1fr);
   gap: 64px;
   grid-auto-rows: minmax(196px, auto);
+  position: relative;
 }
 
 .productBox{
@@ -43,9 +54,15 @@
     text-align: center;
 }
 
-.productBox p{
+.productBox img{
+    margin: 20px 0px;
+}
+
+.productBox h4{
     color: #FFFFFF;
-    font-size: 16px;
-    line-height: 24px;
-    font-weight: 600;
+    /* font-size: 16px;
+    line-height: 24px; */
+    font-weight: 500; 
+    margin: 0px 0px 25px 0px;
+    padding: 0px 20px;
 }

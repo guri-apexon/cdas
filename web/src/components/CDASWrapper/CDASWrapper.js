@@ -5,6 +5,7 @@ import Loader from "apollo-react/components/Loader";
 import { useState, useEffect } from "react";
 
 import TopNavbar from "../TopNavbar/TopNavbar";
+import AppFooter from "../AppFooter/AppFooter";
 const UnAuth = lazy(() => import("../../pages/UnAuth/UnAuth"));
 const Auth = lazy(() => import("../../pages/Auth/Auth"));
 const LandingScreen = lazy(() => import("../../pages/LandingScreen/LandingScreen"));
@@ -48,8 +49,34 @@ const CDASWrapper = ({ match }) => {
               exact
               render={() => <Analytics />}
             />
+            <Route
+              path={`${getUrlPath('/cdi')}`}
+              exact
+              render={() => <Analytics />}
+            />
+            <Route
+              path={`${getUrlPath('/cdm')}`}
+              exact
+              render={() => <Analytics />}
+            />
+            <Route
+              path={`${getUrlPath('/cdr')}`}
+              exact
+              render={() => <Analytics />}
+            />
+            <Route
+              path={`${getUrlPath('/ca')}`}
+              exact
+              render={() => <Analytics />}
+            />
+            <Route
+              path={`${getUrlPath('/dsw')}`}
+              exact
+              render={() => <Analytics />}
+            />
             <Redirect from="/" to="/launchpad" />
           </Switch>
+          <AppFooter />
           {/* <CommonBanner></CommonBanner> */}
         </>
       ) : (

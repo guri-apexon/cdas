@@ -4,8 +4,8 @@ import Typography from 'apollo-react/components/Typography';
 
 function Analytics() {
     return (
-        <div>
-            <Typography>Analytics</Typography>
+        <div style={{ textAlign: 'center' }}>
+            <Typography>Default Page</Typography>
         </div>
     )
 }

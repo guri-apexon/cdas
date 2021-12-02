@@ -110,7 +110,7 @@ const TopNavbar = ({ history, location: { pathname } }) => {
                     <Link>
                         <App className={classes.appIcon} />
                     </Link>
-                    <Typography className={classes.navLogo} onClick={() => history.push('dashboard')}>
+                    <Typography className={classes.navLogo} onClick={() => history.push('launchpad')}>
                         {'IQVIA™'} <span className={classes.bold}>{'Clinical Data Analytics Suite'}</span>
                     </Typography>
                     </div>
