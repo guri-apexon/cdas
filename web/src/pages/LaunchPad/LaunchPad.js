@@ -57,13 +57,11 @@ function LaunchPad() {
           </div>
           <Tooltip
             variant="light"
+            title="Clinical Analytics"
+            subtitle="A data visualization platform that allows users to spot trends and anomalies across their study data in order to more quickly make decisions related to data cleanliness, operational efficiency, and drug safety."
             extraLabels={[
-              {title: "Clinical Analytics"},
-              {  subtitle: "A data visualization platform that allows users to spot trends and anomalies across their study data in order to more quickly make decisions related to data cleanliness, operational efficiency, and drug safety."},
               { title: "Contact your System Administrator for access" },
             ]}
-            // title="Clinical Analytics"
-            // subtitle="A data visualization platform that allows users to spot trends and anomalies across their study data in order to more quickly make decisions related to data cleanliness, operational efficiency, and drug safety."
             placement="bottom"
           >
             <div className="productBox" onClick={() => history.push("ca")}>

@@ -8,7 +8,6 @@ import TopNavbar from "../TopNavbar/TopNavbar";
 import AppFooter from "../AppFooter/AppFooter";
 const UnAuth = lazy(() => import("../../pages/UnAuth/UnAuth"));
 const Auth = lazy(() => import("../../pages/Auth/Auth"));
-const LandingScreen = lazy(() => import("../../pages/LandingScreen/LandingScreen"));
 const LaunchPad = lazy(() => import("../../pages/LaunchPad/LaunchPad"));
 const Analytics = lazy(() => import("../../pages/Analytics/Analytics"));
 
@@ -82,7 +81,6 @@ const CDASWrapper = ({ match }) => {
             <Redirect from="/" to="/launchpad" />
           </Switch>
           <AppFooter />
-          {/* <CommonBanner></CommonBanner> */}
         </>
       ) : (
         <Switch>
