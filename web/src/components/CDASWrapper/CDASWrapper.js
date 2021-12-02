@@ -74,6 +74,11 @@ const CDASWrapper = ({ match }) => {
               exact
               render={() => <Analytics />}
             />
+            <Route
+              path={`${getUrlPath('/study-admin')}`}
+              exact
+              render={() => <Analytics />}
+            />
             <Redirect from="/" to="/launchpad" />
           </Switch>
           <AppFooter />
