@@ -16,7 +16,7 @@ function LaunchPad() {
   let history = useHistory();
 
   return (
-    <div style={{minHeight: 'calc(100vh - 184px)' }}>
+    <div style={{ height: 'calc(100vh - 184px)', minHeight: 800 }}>
       <div className="header">
         <div>
           <p>Welcome, Oliver Queen</p>
@@ -25,9 +25,9 @@ function LaunchPad() {
             variant="secondary"
             icon={ArrowRight}
             style={{ marginRight: 10 }}
+            onClick={() => history.push("study-admin")}
           >
-            {" "}
-            Quick Link to Study Admin{" "}
+            Quick Link to Study Admin
           </Button>
         </div>
       </div>

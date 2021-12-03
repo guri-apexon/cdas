@@ -109,8 +109,6 @@ const menuItems = [
 
 const useStyles = makeStyles(styles);
 
-
-
 const TopNavbar = ({ history, location: { pathname } }) => {
     const classes = useStyles();
     const [panelOpen, setpanelOpen] = useState(true);
