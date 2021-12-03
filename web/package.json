@@ -1,20 +1,45 @@
 {
-  "name": "web",
+  "name": "cdas-web",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@testing-library/jest-dom": "^5.15.1",
+    "@material-ui/core": "^4.11.2",
+    "@material-ui/icons": "^4.11.2",
+    "@testing-library/jest-dom": "^5.12.0",
     "@testing-library/react": "^11.2.7",
     "@testing-library/user-event": "^12.8.3",
+    "@wojtekmaj/enzyme-adapter-react-17": "^0.6.2",
+    "@wojtekmaj/react-daterange-picker": "^3.3.2",
+    "apollo-react": "https://imshealth.myget.org/F/apollo/auth/368c2ce5-6e29-4066-b6cc-1459725faafe/npm/apollo-react/-/3.19.0",
+    "apollo-react-icons": "https://imshealth.myget.org/F/apollo/auth/368c2ce5-6e29-4066-b6cc-1459725faafe/npm/apollo-react-icons/-/1.0.0-beta.7",
+    "axios": "^0.21.1",
+    "babel-plugin-emotion": "^11.0.0",
+    "create-emotion": "^11.0.0",
+    "create-emotion-styled": "^9.2.8",
+    "emotion": "9.2.6",
+    "enzyme": "^3.11.0",
+    "immer": "^9.0.6",
+    "lodash": "^4.17.21",
+    "moment-timezone": "^0.5.33",
+    "node-sass": "^6.0.1",
     "react": "^17.0.2",
+    "react-cookie": "^4.1.1",
     "react-dom": "^17.0.2",
+    "react-emotion": "9.2.6",
+    "react-recompose": "^0.31.1",
+    "react-redux": "^7.2.4",
+    "react-router": "^5.2.0",
+    "react-router-dom": "^5.2.0",
     "react-scripts": "4.0.3",
+    "redux": "^4.1.0",
+    "redux-saga": "^1.1.3",
     "web-vitals": "^1.1.2"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test",
+    "test": "react-scripts test --detectOpenHandles --updateSnapshot --watchAll=false",
+    "coverage": "react-scripts test --detectOpenHandles --watchAll=false --coverage",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
@@ -34,5 +59,9 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "chokidar": "^3.5.2",
+    "prettier": "2.4.1"
   }
 }

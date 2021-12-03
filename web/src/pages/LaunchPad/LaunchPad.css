@@ -1,0 +1,68 @@
+.header{
+    background-image: url("./bg-image.png"), linear-gradient(#C61138, #7B2883);
+    height: 480px;
+    width: 100%;
+    color: #F6F7FB;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background-position: center;
+    background-size: cover;
+}
+
+.header p{
+    margin: 0px;
+    font-size: 24px;
+    line-height: 29px;
+}
+
+.header h2{
+    font-weight: 400;
+    font-size: 36px;
+    line-height: 43px;
+}
+
+.productBox{
+    background: linear-gradient(to right, #595959, #999999);
+    box-shadow: 0 5px 10px 1px rgb(0 0 0 / 20%);
+    cursor: pointer;
+}
+
+.productBox.haveAccess{
+    background: linear-gradient(to left, #0768FD, #0F2252);
+}
+
+.products{
+    margin: 0px 65px;
+    position: absolute;
+    width: calc(100% - 130px);
+    z-index: 1;
+    top: 490px;
+}
+
+.gridContainer{
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 64px;
+  grid-auto-rows: minmax(196px, auto);
+  position: relative;
+}
+
+.productBox{
+    border-radius: 31px;
+    text-align: center;
+}
+
+.productBox img{
+    margin: 20px 0px;
+}
+
+.productBox h4{
+    color: #FFFFFF;
+    /* font-size: 16px;
+    line-height: 24px; */
+    font-weight: 500; 
+    margin: 0px 0px 25px 0px;
+    padding: 0px 20px;
+}
