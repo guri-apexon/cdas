@@ -85,19 +85,27 @@ const menuItems = [
         pathname: '/analytics',
     },
     {
+        text: 'Study Setup',
+        pathname: '/study-setup',
+    },
+    {
+        text: 'User Management',
+        pathname: '/user-management',
+    },
+    {
         text: 'Admin',
         menuItems: [
             {
-                text: 'Study Admin',
-                pathname: '/study-admin',
+                text: 'Policy Management',
+                pathname: '/policy-management',
             },
             {
-                text: 'User Setup',
-                pathname: '/user-setup',
+                text: 'Role Management',
+                pathname: '/role-management',
             },
             {
-                text: 'Security Admin',
-                pathname: '/security-admin',
+                text: 'Group Management',
+                pathname: '/group-management',
             },
             {
                 text: 'System Admin',
