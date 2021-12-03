@@ -122,9 +122,9 @@ const TopNavbar = ({ history, location: { pathname } }) => {
     const [panelOpen, setpanelOpen] = useState(true);
     // const history = createMemoryHistory();
     const profileMenuProps = {
-        name: 'Oliver Queen',
-        title: 'Sales Rep',
-        email: 'oliver.queen@iqvia.com',
+        name: 'Gurpreet Singh',
+        title: 'Sr. Software Engineer',
+        email: 'gurpreet.singh@iqvia.com',
         logoutButtonProps: { pathname: '/logout' },
         menuItems: [
         ],
