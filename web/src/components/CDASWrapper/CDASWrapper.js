@@ -6,6 +6,8 @@ import { useState, useEffect } from "react";
 
 import TopNavbar from "../TopNavbar/TopNavbar";
 import AppFooter from "../AppFooter/AppFooter";
+import StudySetup from "../../pages/StudySetup/StudySetup";
+import UserManagement from "../../pages/UserManagement/UserManagement";
 const UnAuth = lazy(() => import("../../pages/UnAuth/UnAuth"));
 const Auth = lazy(() => import("../../pages/Auth/Auth"));
 const LaunchPad = lazy(() => import("../../pages/LaunchPad/LaunchPad"));
@@ -52,6 +54,16 @@ const CDASWrapper = ({ match }) => {
               path={`${getUrlPath('/cdi')}`}
               exact
               render={() => <Analytics />}
+            />
+            <Route
+              path={`${getUrlPath('/user-management')}`}
+              exact
+              render={() => <UserManagement />}
+            />
+            <Route
+              path={`${getUrlPath('/study-setup')}`}
+              exact
+              render={() => <StudySetup />}
             />
             <Route
               path={`${getUrlPath('/cdm')}`}
