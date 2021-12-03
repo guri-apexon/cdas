@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 // import { useDispatch } from "react-redux";
 import { CookiesProvider, useCookies } from "react-cookie";
 
-import "./App.css";
+import "./App.scss";
 import { ErrorBoundary } from "./components/ErrorBoundary/ErrorBoundary";
 import CDASWrapper from "./components/CDASWrapper/CDASWrapper";
 
