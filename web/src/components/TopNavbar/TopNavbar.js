@@ -11,6 +11,8 @@ import DashboardIcon from 'apollo-react-icons/Dashboard';
 import Question from 'apollo-react-icons/Question';
 import moment from 'moment';
 import Button from "apollo-react/components/Button";
+import NavigationPanel from "../NavigationPanel/NavigationPanel";
+import { useState } from "react";
 
 
 const styles = {
@@ -60,13 +62,13 @@ const styles = {
     navLogo: {
         color: 'white',
         marginRight: 24,
-        marginLeft: 10,
         cursor: 'pointer',
         zIndex: 2,
         whiteSpace: 'nowrap',
     },
     nav: {
         overflow: 'hidden',
+        marginLeft: -12
     },
     fullNavHeight: {
         height: '100%',
@@ -109,6 +111,7 @@ const useStyles = makeStyles(styles);
 
 const TopNavbar = ({ history, location: { pathname } }) => {
     const classes = useStyles();
+    const [panelOpen, setpanelOpen] = useState(true);
     // const history = createMemoryHistory();
     const profileMenuProps = {
         name: 'Oliver Queen',
@@ -117,30 +120,36 @@ const TopNavbar = ({ history, location: { pathname } }) => {
         logoutButtonProps: { pathname: '/logout' },
         menuItems: [
         ],
-      };
-      
-const notificationsMenuProps = {
-    newNotifications: true,
-    notifications: [
-      {
-        icon: DashboardIcon,
-        header: 'Header',
-        details: 'Lorem ipsum dolor sit ame. Lorem ipsum dolor sit ame.',
-        timestamp: moment(),
-      },
-    ],
-  };
+    };
+
+    const notificationsMenuProps = {
+        newNotifications: true,
+        notifications: [
+            {
+                icon: DashboardIcon,
+                header: 'Header',
+                details: 'Lorem ipsum dolor sit ame. Lorem ipsum dolor sit ame.',
+                timestamp: moment(),
+            },
+        ],
+    };
+    const toggleMenu = () => {
+        setpanelOpen(panelOpen => !panelOpen);
+    }
+    const onPanelClose = () => {
+        setpanelOpen(false);
+    }
     return (
         <div>
             <NavigationBar
                 LogoComponent={() => (
                     <div className={classes.centerAligned}>
-                    <Link>
-                        <App className={classes.appIcon} />
-                    </Link>
-                    <Typography className={classes.navLogo} onClick={() => history.push('launchpad')}>
-                        {'IQVIA™'} <span className={classes.bold}>{'Clinical Data Analytics Suite'}</span>
-                    </Typography>
+                        <Button onClick={toggleMenu} className={classes.fullNavHeight}>
+                            <App className={classes.appIcon} />
+                        </Button>
+                        <Typography className={classes.navLogo} onClick={() => history.push('launchpad')}>
+                            {'IQVIA™'} <span className={classes.bold}>{'Clinical Data Analytics Suite'}</span>
+                        </Typography>
                     </div>
                 )}
                 position="static"
@@ -148,21 +157,22 @@ const notificationsMenuProps = {
                 profileMenuProps={profileMenuProps}
                 onClick={({ pathname }) => history.push(pathname)}
                 checkIsActive={(item) =>
-                  item.pathname
-                    ? item.pathname === pathname
-                    : item.menuItems.some((item) => item.pathname === pathname)
+                    item.pathname
+                        ? item.pathname === pathname
+                        : item.menuItems.some((item) => item.pathname === pathname)
                 }
                 waves
                 notificationsMenuProps={notificationsMenuProps}
                 otherButtons={
                     <div className={classes.centerAligned}>
                         <Button onClick={() => history.push('help')} className={classes.fullNavHeight}>
-                        <Question className={classes.appIcon} />
+                            <Question className={classes.appIcon} />
                         </Button>
                     </div>
                 }
                 className={classes.nav}
             />
+            <NavigationPanel open={panelOpen} onClose={onPanelClose} />
         </div>
     );
 };
