@@ -45,26 +45,39 @@
 }
 
 .gridContainer{
-  display: grid;
+  display: flex;
   grid-template-columns: repeat(5, 1fr);
-  gap: 64px;
   grid-auto-rows: minmax(196px, auto);
   position: relative;
+  justify-content: space-between;
+}
+
+.gridContainer *{
+    box-sizing: border-box;
+}
+.full-width{
+    width: 100%;
 }
 
 .productBox{
+    display: flex;
+    align-items: center;
+    justify-content: center;
     border-radius: 31px;
     text-align: center;
+    width: 15vw;
+    height: 15vw;
+    padding: 1.5rem;
 }
 
 .productBox img{
     margin: 20px 0px;
+    width: 50%;
 }
 
 .productBox h4{
     color: #FFFFFF;
-    /* font-size: 16px;
-    line-height: 24px; */
+    font-size: 1.2vw;
     font-weight: 500; 
     margin: 0px 0px 25px 0px;
     padding: 0px 20px;
