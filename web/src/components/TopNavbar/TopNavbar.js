@@ -68,7 +68,6 @@ const styles = {
     },
     nav: {
         overflow: 'hidden',
-        marginLeft: -12
     },
     fullNavHeight: {
         height: '100%',
@@ -148,7 +147,7 @@ const TopNavbar = ({ history, location: { pathname } }) => {
         setpanelOpen(false);
     }
     return (
-        <div>
+        <div id="topNavbar">
             <NavigationBar
                 LogoComponent={() => (
                     <div className={classes.centerAligned}>

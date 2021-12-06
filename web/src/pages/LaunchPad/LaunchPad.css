@@ -1,6 +1,11 @@
+.lauchpad-wrapper{
+    background: #F6F7FB;
+    min-height: calc(100vh - 184px);
+    /* min-height: 800px; */
+}
 .header{
     background-image: url("./bg-image.png"), linear-gradient(#C61138, #7B2883);
-    height: 480px;
+    padding: 12vh 0;
     width: 100%;
     color: #F6F7FB;
     text-align: center;
@@ -15,12 +20,15 @@
     margin: 0px;
     font-size: 24px;
     line-height: 29px;
+    font-weight: 600;
+    margin-bottom: 24px;
 }
 
 .header h2{
-    font-weight: 400;
     font-size: 36px;
-    line-height: 43px;
+    font-weight: 600;
+    margin-top: 0;
+    margin-bottom: 32px;
 }
 
 .productBox{
@@ -34,34 +42,51 @@
 }
 
 .products{
-    margin: 0px 65px;
-    position: absolute;
-    width: calc(100% - 130px);
+    padding: 0px 65px;
+    padding: 0px 5vw;
+    width: 100%;
     z-index: 1;
-    top: 490px;
+    /* top: 490px;  */
+    margin-top: -3.5vw;
+    padding-bottom: 20px;
 }
 
 .gridContainer{
-  display: grid;
+  display: flex;
   grid-template-columns: repeat(5, 1fr);
-  gap: 64px;
   grid-auto-rows: minmax(196px, auto);
   position: relative;
+  justify-content: space-between;
+}
+
+.gridContainer *{
+    box-sizing: border-box;
+}
+.full-width{
+    width: 100%;
 }
 
 .productBox{
+    display: flex;
+    align-items: center;
+    justify-content: center;
     border-radius: 31px;
     text-align: center;
+    width: 16%;
+    width: 15vw;
+    height: 15vw;
+    padding: 1.5rem;
 }
 
 .productBox img{
-    margin: 20px 0px;
+    margin-bottom: 20px;
+    margin-bottom: 1vw;
+    width: 50%;
 }
 
 .productBox h4{
     color: #FFFFFF;
-    /* font-size: 16px;
-    line-height: 24px; */
+    font-size: 1.2vw;
     font-weight: 500; 
     margin: 0px 0px 25px 0px;
     padding: 0px 20px;

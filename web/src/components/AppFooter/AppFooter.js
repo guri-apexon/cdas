@@ -3,7 +3,7 @@ import { withRouter } from "react-router";
 
 const AppFooter = () => {
   return (
-    <div style={{ position: "absolute", width: "100%" }}>
+    <div style={wrapperStyle}>
       <Footer
         buttonProps={[
           {
@@ -22,5 +22,11 @@ const AppFooter = () => {
     </div>
   );
 };
+
+const wrapperStyle = {
+  background: '#F6F7FB',
+  position: "absolute", 
+  width: "100%",
+}
 
 export default withRouter(AppFooter);
