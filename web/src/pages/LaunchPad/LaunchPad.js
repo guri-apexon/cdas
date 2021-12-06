@@ -69,15 +69,13 @@ function LaunchPad() {
       <div className="products">
         <div className="gridContainer">
           {productArr.map((product, i)=>{
-            const productBox = (<div className="full-width"
-              onClick={() => history.push(product.url)}
-            >
+            const productBox = (<div className="full-width">
               <img src={product.imgUrl} alt={product.title} />
               <Typography variant="title2" darkMode>
                 {product.title}
               </Typography>
             </div>);
-            return (<div key={i}
+            return (<div key={i} onClick={() => history.push(product.url)}
               className={'productBox ' +(product.haveAccess ? 'haveAccess' : '')}>
               {!product.haveAccess ? (<Tooltip
             variant="light"

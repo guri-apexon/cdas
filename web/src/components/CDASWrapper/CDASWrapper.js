@@ -68,22 +68,22 @@ const CDASWrapper = ({ match }) => {
             <Route
               path={`${getUrlPath('/cdm')}`}
               exact
-              render={() => <Analytics />}
+              render={() => <div>CDM</div>}
             />
             <Route
               path={`${getUrlPath('/cdr')}`}
               exact
-              render={() => <Analytics />}
+              render={() => <div>CDR</div>}
             />
             <Route
               path={`${getUrlPath('/ca')}`}
               exact
-              render={() => <Analytics />}
+              render={() => <div>CA</div>}
             />
             <Route
               path={`${getUrlPath('/dsw')}`}
               exact
-              render={() => <Analytics />}
+              render={() => <div>DSW</div>}
             />
             <Route
               path={`${getUrlPath('/study-admin')}`}
