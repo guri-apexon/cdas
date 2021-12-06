@@ -53,7 +53,7 @@ const CDASWrapper = ({ match }) => {
             <Route
               path={`${getUrlPath('/cdi')}`}
               exact
-              render={() => <Analytics />}
+              render={() => <div>CDI</div>}
             />
             <Route
               path={`${getUrlPath('/user-management')}`}
