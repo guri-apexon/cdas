@@ -12,6 +12,39 @@ import DSWIcon from "./DSW_ICON_96x96.svg";
 
 import "./LaunchPad.css";
 
+const productArr = [
+  {
+    title: 'Clinical Data Ingestion',
+    haveAccess: true,
+    imgUrl: CDIIcon,
+    url: 'cdi'
+  },
+  {
+    title: 'Clinical Data Mapper',
+    haveAccess: false,
+    imgUrl: CDMIcon,
+    url: 'cdm'
+  },
+  {
+    title: 'Clinical Data Review',
+    haveAccess: false,
+    imgUrl: CDRIcon,
+    url: 'cdr'
+  },
+  {
+    title: 'Clinical Analytics',
+    haveAccess: false,
+    imgUrl: CAIcon,
+    url: 'ca'
+  },
+  {
+    title: 'Data Science Workbench',
+    haveAccess: false,
+    imgUrl: DSWIcon,
+    url: 'dsw'
+  },
+];
+
 function LaunchPad() {
   let history = useHistory();
 
@@ -19,7 +52,9 @@ function LaunchPad() {
     <div style={{ height: 'calc(100vh - 184px)', minHeight: 800 }}>
       <div className="header">
         <div>
-          <p>Welcome, Oliver Queen</p>
+        <Typography gutterBottom darkMode>
+        Welcome, Oliver Queen
+        </Typography>
           <h2>Harness the power of your clinical data</h2>
           <Button
             variant="secondary"
@@ -33,50 +68,34 @@ function LaunchPad() {
       </div>
       <div className="products">
         <div className="gridContainer">
-          <div
-            className="productBox haveAccess"
-            onClick={() => history.push("cdi")}
-          >
-            <img src={CDIIcon} alt="CDI Icon" />
-            <Typography variant="title2" darkMode>
-              Clinical Data Ingestion
-            </Typography>
-          </div>
-
-          <div className="productBox" onClick={() => history.push("cdm")}>
-            <img src={CDMIcon} alt="CDI Icon" />
-            <Typography variant="title2" darkMode>
-              Clinical Data Mapper
-            </Typography>
-          </div>
-          <div className="productBox" onClick={() => history.push("cdr")}>
-            <img src={CDRIcon} alt="CDI Icon" />
-            <Typography variant="title2" darkMode>
-              Clinical Data Review
-            </Typography>
-          </div>
-          <Tooltip
+          {productArr.map((product, i)=>{
+            const productBox = (<div
+              onClick={() => history.push(product.url)}
+            >
+              <img src={product.imgUrl} alt={product.title} />
+              <Typography variant="title2" darkMode>
+                {product.title}
+              </Typography>
+            </div>);
+            return (<div key={i}
+              className={'productBox ' +(product.haveAccess && 'haveAccess')}>
+              {!product.haveAccess ? (<Tooltip
             variant="light"
-            title="Clinical Analytics"
+            title={product.title}
             subtitle="A data visualization platform that allows users to spot trends and anomalies across their study data in order to more quickly make decisions related to data cleanliness, operational efficiency, and drug safety."
             extraLabels={[
               { title: "Contact your System Administrator for access" },
             ]}
             placement="bottom"
           >
-            <div className="productBox" onClick={() => history.push("ca")}>
-              <img src={CAIcon} alt="CDI Icon" />
-              <Typography variant="title2" darkMode>
-                Clinical Analytics
-              </Typography>
-            </div>
-          </Tooltip>
-          <div className="productBox" onClick={() => history.push("dsw")}>
-            <img src={DSWIcon} alt="CDI Icon" />
-            <Typography variant="title2" darkMode>
-              Data Science Workbench
-            </Typography>
-          </div>
+            {productBox}
+          </Tooltip>) :
+            productBox}
+            </div>)
+          })}
+          
+
+          
         </div>
       </div>
     </div>

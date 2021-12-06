@@ -16,6 +16,13 @@
 .left-align{
   align-items: flex-start;
 }
+#topNavbar{
+  header div.MuiToolbar-regular{
+    width: 100%;
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+}
 
 .navigation-panel{
   .waves{
