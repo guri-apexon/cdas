@@ -27,6 +27,7 @@ const wrapperStyle = {
   background: '#F6F7FB',
   position: "absolute", 
   width: "100%",
+  bottom: 0,
 }
 
 export default withRouter(AppFooter);
