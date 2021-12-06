@@ -53,7 +53,7 @@ function LaunchPad() {
       <div className="header">
         <div>
         <Typography gutterBottom darkMode>
-        Welcome, Oliver Queen
+        Welcome, Gurpreet Singh
         </Typography>
           <h2>Harness the power of your clinical data</h2>
           <Button
