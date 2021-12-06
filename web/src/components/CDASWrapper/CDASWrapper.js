@@ -36,7 +36,7 @@ const CDASWrapper = ({ match }) => {
     
     <Suspense fallback={<Loader isInner></Loader>}>
       {loggedIn ? (
-        <>
+        <div className="page-wrapper">
           <TopNavbar />
           <Switch>
             <Route
@@ -93,7 +93,7 @@ const CDASWrapper = ({ match }) => {
             <Redirect from="/" to="/launchpad" />
           </Switch>
           <AppFooter />
-        </>
+        </div>
       ) : (
         <Switch>
           <Route path={`/unauth`} exact render={() => <UnAuth />} />

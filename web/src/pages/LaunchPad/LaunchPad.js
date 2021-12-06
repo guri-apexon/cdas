@@ -49,7 +49,7 @@ function LaunchPad() {
   let history = useHistory();
 
   return (
-    <div style={{ height: 'calc(100vh - 184px)', minHeight: 800 }}>
+    <div className="lauchpad-wrapper">
       <div className="header">
         <div>
         <Typography gutterBottom darkMode>

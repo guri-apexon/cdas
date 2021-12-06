@@ -1,6 +1,11 @@
+.lauchpad-wrapper{
+    background: #F6F7FB;
+    min-height: calc(100vh - 184px);
+    /* min-height: 800px; */
+}
 .header{
     background-image: url("./bg-image.png"), linear-gradient(#C61138, #7B2883);
-    height: 480px;
+    padding: 12vh 0;
     width: 100%;
     color: #F6F7FB;
     text-align: center;
@@ -37,11 +42,13 @@
 }
 
 .products{
-    margin: 0px 65px;
-    position: absolute;
-    width: calc(100% - 130px);
+    padding: 0px 65px;
+    padding: 0px 5vw;
+    width: 100%;
     z-index: 1;
-    top: 490px;
+    /* top: 490px;  */
+    margin-top: -3.5vw;
+    padding-bottom: 20px;
 }
 
 .gridContainer{
@@ -65,13 +72,15 @@
     justify-content: center;
     border-radius: 31px;
     text-align: center;
+    width: 16%;
     width: 15vw;
     height: 15vw;
     padding: 1.5rem;
 }
 
 .productBox img{
-    margin: 20px 0px;
+    margin-bottom: 20px;
+    margin-bottom: 1vw;
     width: 50%;
 }
 
