@@ -5,7 +5,7 @@
 }
 .header{
     background-image: url("./bg-image.png"), linear-gradient(#C61138, #7B2883);
-    padding: 12vh 0;
+    padding: 16vh 0;
     width: 100%;
     color: #F6F7FB;
     text-align: center;
@@ -33,7 +33,7 @@
 
 .productBox{
     background: linear-gradient(to right, #595959, #999999);
-    box-shadow: 0 5px 10px 1px rgb(0 0 0 / 20%);
+    box-shadow: 0 5px 10px 1px rgba(0, 0, 0, .20);
     cursor: pointer;
 }
 
@@ -73,21 +73,20 @@
     border-radius: 31px;
     text-align: center;
     width: 16%;
-    width: 15vw;
-    height: 15vw;
+    width: 13.5vw;
+    height: 13.5vw;
     padding: 1.5rem;
 }
 
 .productBox img{
-    margin-bottom: 20px;
-    margin-bottom: 1vw;
-    width: 50%;
+    margin-bottom: 6px;
+    width: 64%;
 }
 
 .productBox h4{
     color: #FFFFFF;
-    font-size: 1.2vw;
+    font-size: 1.1vw;
     font-weight: 500; 
-    margin: 0px 0px 25px 0px;
+    margin: 0px 0px 10px 0px;
     padding: 0px 20px;
 }

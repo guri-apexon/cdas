@@ -65,7 +65,7 @@ const CDASWrapper = ({ match }) => {
             <Route
               path={`${getUrlPath("/cdi")}`}
               exact
-              render={() => <div>CDI</div>}
+              render={() => <Redirect to="/launchpad" />}
             />
             <Route
               path={`${getUrlPath("/user-management")}`}
@@ -80,27 +80,27 @@ const CDASWrapper = ({ match }) => {
             <Route
               path={`${getUrlPath("/cdm")}`}
               exact
-              render={() => <div>CDM</div>}
+              render={() => <Redirect to="/launchpad" />}
             />
             <Route
               path={`${getUrlPath("/cdr")}`}
               exact
-              render={() => <div>CDR</div>}
+              render={() => <Redirect to="/launchpad" />}
             />
             <Route
               path={`${getUrlPath("/ca")}`}
               exact
-              render={() => <div>CA</div>}
+              render={() => <Redirect to="/launchpad" />}
             />
             <Route
               path={`${getUrlPath("/dsw")}`}
               exact
-              render={() => <div>DSW</div>}
+              render={() => <Redirect to="/launchpad" />}
             />
             <Route
               path={`${getUrlPath("/study-admin")}`}
               exact
-              render={() => <Analytics />}
+              render={() => <Redirect to="/launchpad" />}
             />
             <Redirect from="/" to="/launchpad" />
           </Switch>

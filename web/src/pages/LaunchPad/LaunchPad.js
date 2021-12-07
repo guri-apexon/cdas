@@ -10,7 +10,7 @@ import CDMIcon from "./CDM_ICON_96x96.svg";
 import CDRIcon from "./CDR_ICON_96x96.svg";
 import DSWIcon from "./DSW_ICON_96x96.svg";
 
-import "./LaunchPad.css";
+import "./LaunchPad.scss";
 
 const productArr = [
   {
@@ -75,7 +75,7 @@ function LaunchPad() {
                 {product.title}
               </Typography>
             </div>);
-            return (<div key={i} onClick={() => history.push(product.url)}
+            return (<div key={i} onClick={() => product.haveAccess && history.push(product.url)}
               className={'productBox ' +(product.haveAccess ? 'haveAccess' : '')}>
               {!product.haveAccess ? (<Tooltip
             variant="light"

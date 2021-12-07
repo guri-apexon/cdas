@@ -39,26 +39,31 @@ const linksArr = [
   {
     title: "Clinical Data Ingestion",
     imgUrl: "assets/svg/CDI_ICON_96x96.svg",
+    haveAccess: true,
     url: "cdi",
   },
   {
     title: "Clinical Data Mapper",
     imgUrl: "assets/svg/CDM_ICON_96x96.svg",
+    haveAccess: false,
     url: "cdm",
   },
   {
     title: "Clinical Data Review",
     imgUrl: "assets/svg/CDR_ICON_96x96.svg",
+    haveAccess: false,
     url: "cdr",
   },
   {
     title: "Clinical Anaytics",
     imgUrl: "assets/svg/CA_ICON_96x96.svg",
+    haveAccess: false,
     url: "ca",
   },
   {
     title: "Data Science Workbench",
     imgUrl: "assets/svg/DSW_ICON_96x96.svg",
+    haveAccess: false,
     url: "dsw",
   },
 ];
@@ -130,7 +135,7 @@ const NavigationPanel = ({
               <Button
                 darkMode
                 variant="text"
-                onClick={() => history.push(link.url)}
+                onClick={() => link.haveAccess && history.push(link.url)}
               >
                 <img src={link.imgUrl} />
                 {link.title}
@@ -138,7 +143,7 @@ const NavigationPanel = ({
             );
             return (
               <div key={i}>
-                {i > 0 ? (
+                {!link.haveAccess ? (
                   <Tooltip
                     variant="dark"
                     title="Contact your System Administrator for access"
