@@ -3,6 +3,7 @@ import { Route, Switch, withRouter, Redirect } from "react-router";
 import { lazy, Suspense } from "react";
 import Loader from "apollo-react/components/Loader";
 import { useState, useEffect } from "react";
+import axios from "axios";
 
 import TopNavbar from "../TopNavbar/TopNavbar";
 import AppFooter from "../AppFooter/AppFooter";
@@ -20,20 +21,31 @@ const CDASWrapper = ({ match }) => {
     // console.log(`${match.url}${route}`);
     return `${route}`;
   };
-  
-  let userData = JSON.parse(localStorage.getItem('userDetails'));
+
+  let userData = JSON.parse(localStorage.getItem("userDetails"));
 
   useEffect(() => {
     // console.log(window.location.href);
-    if(userData && userData.code){
+    if (userData && userData.code) {
       setLoggedIn(true);
     }
-    console.log(userData)
-  }, [userData])
+    console.log(userData);
+  }, [userData]);
 
+  useEffect(() => {
+    if (loggedIn) {
+      axios
+        .get(`http://localhost:4000/sda?code=${userData.code}`)
+        .then((res) => {
+          console.log("response", res);
+        })
+        .catch((err) => {
+          console.log("Error :", err);
+        });
+    }
+  }, [loggedIn]);
 
   return (
-    
     <Suspense fallback={<Loader isInner></Loader>}>
       {loggedIn ? (
         <div className="page-wrapper">
@@ -46,47 +58,47 @@ const CDASWrapper = ({ match }) => {
               render={() => <LaunchPad />}
             />
             <Route
-              path={`${getUrlPath('/analytics')}`}
+              path={`${getUrlPath("/analytics")}`}
               exact
               render={() => <Analytics />}
             />
             <Route
-              path={`${getUrlPath('/cdi')}`}
+              path={`${getUrlPath("/cdi")}`}
               exact
               render={() => <div>CDI</div>}
             />
             <Route
-              path={`${getUrlPath('/user-management')}`}
+              path={`${getUrlPath("/user-management")}`}
               exact
               render={() => <UserManagement />}
             />
             <Route
-              path={`${getUrlPath('/study-setup')}`}
+              path={`${getUrlPath("/study-setup")}`}
               exact
               render={() => <StudySetup />}
             />
             <Route
-              path={`${getUrlPath('/cdm')}`}
+              path={`${getUrlPath("/cdm")}`}
               exact
               render={() => <div>CDM</div>}
             />
             <Route
-              path={`${getUrlPath('/cdr')}`}
+              path={`${getUrlPath("/cdr")}`}
               exact
               render={() => <div>CDR</div>}
             />
             <Route
-              path={`${getUrlPath('/ca')}`}
+              path={`${getUrlPath("/ca")}`}
               exact
               render={() => <div>CA</div>}
             />
             <Route
-              path={`${getUrlPath('/dsw')}`}
+              path={`${getUrlPath("/dsw")}`}
               exact
               render={() => <div>DSW</div>}
             />
             <Route
-              path={`${getUrlPath('/study-admin')}`}
+              path={`${getUrlPath("/study-admin")}`}
               exact
               render={() => <Analytics />}
             />
@@ -97,7 +109,7 @@ const CDASWrapper = ({ match }) => {
       ) : (
         <Switch>
           <Route path={`/unauth`} exact render={() => <UnAuth />} />
-          <Route path={`/oauth2client`} render={() => <Auth />} />
+          <Route path={`/sda`} render={() => <Auth />} />
           <Redirect from="/" to="/unauth" />
         </Switch>
       )}
@@ -105,4 +117,4 @@ const CDASWrapper = ({ match }) => {
   );
 };
 
-export default CDASWrapper
+export default CDASWrapper;
