@@ -68,11 +68,6 @@ const authHandler = async (req, res) => {
     res.cookie("user.email", resp.data.email);
     res.cookie("user.current_login_ts", moment().unix());
 
-
-
-    
-
-
     // Prepare for an Upsert
     const userDetails = {
       first_name: resp.data.given_name,

@@ -23,7 +23,6 @@ const CDASWrapper = ({ match }) => {
   };
 
   useEffect(() => {
-
     const userId = getCookie("user.id");
     console.log(userId);
     if(userId){
