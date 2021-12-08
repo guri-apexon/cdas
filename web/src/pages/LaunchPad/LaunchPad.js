@@ -45,7 +45,7 @@ const productArr = [
   },
 ];
 
-function LaunchPad() {
+const LaunchPad = () => {
   let history = useHistory();
 
   return (
