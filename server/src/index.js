@@ -9,10 +9,10 @@ const app = express();
 dotenv.config();
 const PORT = process.env.PORT;
 let dir = "./public/exports";
-
-
 const auth = require("./controller/auth");
+
 const Logger = require("./config/logger");
+
 const shouldCompress = (req, res) => {
   if (req.headers["x-no-compression"]) {
     // Will not compress responses, if this header is present
@@ -43,6 +43,6 @@ if (!fs.existsSync(dir)) {
   fs.mkdirSync(dir, { recursive: true });
 }
 app.listen(PORT, () => {
-  console.log(`app started on port ${PORT}`);
-  //   Logger.info({ message: `app started on port ${PORT}` });
+  // console.log(`app started on port ${PORT}`);
+    Logger.info({ message: `app started on port ${PORT}` });
 });
