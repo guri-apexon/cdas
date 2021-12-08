@@ -4,8 +4,9 @@
   "description": "Clinical Data Analytics Suite Server",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon src/index.js"
+    "start": "nodemon src/index.js",
+    "start:local": "npm install && node -r dotenv/config src/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
@@ -24,5 +25,9 @@
     "pg": "^8.7.1",
     "request": "^2.88.2",
     "winston": "^3.3.3"
+  },
+  "devDependencies": {
+    "dotenv": "^9.0.0",
+    "nodemon": "^2.0.7"
   }
 }

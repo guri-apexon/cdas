@@ -63,6 +63,15 @@ const authHandler = async (req, res) => {
     // Set the cookies
     res.cookie("user.token", response.id_token);
     res.cookie("user.id", resp.data.userid);
+    res.cookie("user.first_name", resp.data.given_name);
+    res.cookie("user.last_name", resp.data.family_name);
+    res.cookie("user.email", resp.data.email);
+    res.cookie("user.current_login_ts", moment().unix());
+
+
+
+    
+
 
     // Prepare for an Upsert
     const userDetails = {
@@ -74,6 +83,8 @@ const authHandler = async (req, res) => {
       created_by: "SYS",
       current_login_ts: moment().unix(),
     };
+
+    // res.cookie("userDetails", userDetails);
 
     console.debug(userDetails);
     // Do the upsert if it fails do not stop.
@@ -93,7 +104,7 @@ const authHandler = async (req, res) => {
     //     console.error(err);
     //   }
 
-    res.redirect("/?loggedin=true");
+    res.redirect("http://localhost:3000/launchpad");
   } catch (e) {
     console.error(e);
   }

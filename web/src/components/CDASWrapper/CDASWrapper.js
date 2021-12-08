@@ -1,50 +1,41 @@
 import { Route, Switch, withRouter, Redirect } from "react-router";
-// import { useHistory } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import Loader from "apollo-react/components/Loader";
 import { useState, useEffect } from "react";
-import axios from "axios";
 
+import { getCookie } from "../../utils";
 import TopNavbar from "../TopNavbar/TopNavbar";
 import AppFooter from "../AppFooter/AppFooter";
 import StudySetup from "../../pages/StudySetup/StudySetup";
 import UserManagement from "../../pages/UserManagement/UserManagement";
-const UnAuth = lazy(() => import("../../pages/UnAuth/UnAuth"));
+import NotAuthenticated from "../../pages/NotAuthenticated/NotAuthenticated";
 const Auth = lazy(() => import("../../pages/Auth/Auth"));
 const LaunchPad = lazy(() => import("../../pages/LaunchPad/LaunchPad"));
 const Analytics = lazy(() => import("../../pages/Analytics/Analytics"));
 
 const CDASWrapper = ({ match }) => {
   const [loggedIn, setLoggedIn] = useState(false);
+  let history = useHistory();
 
   const getUrlPath = (route) => {
-    // console.log(`${match.url}${route}`);
     return `${route}`;
   };
 
-  let userData = JSON.parse(localStorage.getItem("userDetails"));
-
   useEffect(() => {
-    // console.log(window.location.href);
-    if (userData && userData.code) {
+
+    const userId = getCookie("user.id");
+    console.log(userId);
+    if(userId){
+      history.push("/launchpad");
       setLoggedIn(true);
+    } else {
+      history.push("/not-authenticated")
+      setLoggedIn(false);
     }
-    console.log(userData);
-  }, [userData]);
+  }, []);
 
-  useEffect(() => {
-    if (loggedIn) {
-      axios
-        .get(`http://localhost:4000/sda?code=${userData.code}`)
-        .then((res) => {
-          console.log("response", res);
-        })
-        .catch((err) => {
-          console.log("Error :", err);
-        });
-    }
-  }, [loggedIn]);
-
+ 
   return (
     <Suspense fallback={<Loader isInner></Loader>}>
       {loggedIn ? (
@@ -57,6 +48,7 @@ const CDASWrapper = ({ match }) => {
               exact
               render={() => <LaunchPad />}
             />
+            
             <Route
               path={`${getUrlPath("/analytics")}`}
               exact
@@ -102,19 +94,21 @@ const CDASWrapper = ({ match }) => {
               exact
               render={() => <Redirect to="/launchpad" />}
             />
+            
             <Redirect from="/" to="/launchpad" />
+
           </Switch>
           <AppFooter />
         </div>
       ) : (
         <Switch>
-          <Route path={`/unauth`} exact render={() => <UnAuth />} />
-          <Route path={`/sda`} render={() => <Auth />} />
-          <Redirect from="/" to="/unauth" />
+          <Route path={`/checkAuth`} exact render={() => <Auth />} />
+          <Route path={`/not-authenticated`} render={() => <NotAuthenticated />} />
+          <Redirect from="/" to="/checkAuth" />
         </Switch>
       )}
     </Suspense>
   );
 };
 
-export default CDASWrapper;
+export default withRouter(CDASWrapper);
