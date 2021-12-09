@@ -17,31 +17,36 @@ const productArr = [
     title: 'Clinical Data Ingestion',
     haveAccess: true,
     imgUrl: CDIIcon,
-    url: 'cdi'
+    url: 'cdi',
+    tooltipText: 'Business friendly technology to accelerate the setup and management of clinical study data ingestion acquisition from any source, for any data type, for any data type.'
   },
   {
     title: 'Clinical Data Mapper',
     haveAccess: false,
     imgUrl: CDMIcon,
-    url: 'cdm'
+    url: 'cdm',
+    tooltipText: 'Intelligent data transformation tool to harmonize study data into standardized datasets.'
   },
   {
     title: 'Clinical Data Review',
     haveAccess: false,
     imgUrl: CDRIcon,
-    url: 'cdr'
+    url: 'cdr',
+    tooltipText: 'An end-to-end data review experience that enables cross team collaboration and empowerment for a more effective, accelerated, and personalized review experience.'
   },
   {
     title: 'Clinical Analytics',
     haveAccess: false,
     imgUrl: CAIcon,
-    url: 'ca'
+    url: 'ca',
+    tooltipText: 'Business Intelligence and visualization capabilities enabling data-driven decision making related to data quality, operational efficiency, and drug safety.'
   },
   {
     title: 'Data Science Workbench',
     haveAccess: false,
     imgUrl: DSWIcon,
-    url: 'dsw'
+    url: 'dsw',
+    tooltipText: 'Programming toolkit providing self-service data science and statistical programming.'
   },
 ];
 
@@ -77,18 +82,17 @@ function LaunchPad() {
             </div>);
             return (<div key={i} onClick={() => product.haveAccess && history.push(product.url)}
               className={'productBox ' +(product.haveAccess ? 'haveAccess' : '')}>
-              {!product.haveAccess ? (<Tooltip
+                <Tooltip
             variant="light"
             title={product.title}
-            subtitle="A data visualization platform that allows users to spot trends and anomalies across their study data in order to more quickly make decisions related to data cleanliness, operational efficiency, and drug safety."
-            extraLabels={[
+            subtitle={product.tooltipText}
+            extraLabels={product.haveAccess ? null : [
               { title: "Contact your System Administrator for access" },
             ]}
             placement="bottom"
           >
             {productBox}
-          </Tooltip>) :
-            productBox}
+          </Tooltip>
             </div>)
           })}
           
