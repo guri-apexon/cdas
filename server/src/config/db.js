@@ -21,3 +21,21 @@ pool.connect((err) => {
   }
   console.log("Connected to db...");
 });
+
+const executeQuery = (query, arrayParams) => {
+  return new Promise((resolve, reject) => {
+    try {
+      pool.query(query, arrayParams, (err, data) => {
+        if (err) {
+          console.log("error executing the query");
+          reject(err);
+        }
+        resolve(data);
+      });
+    } catch (err) {
+      reject(err);
+    }
+  });
+};
+
+module.exports = { executeQuery };
