@@ -1,4 +1,4 @@
-import { Route, Switch, withRouter, Redirect } from "react-router";
+import { Route, Switch, Redirect } from "react-router";
 import { useHistory } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import Loader from "apollo-react/components/Loader";
@@ -16,6 +16,7 @@ const Analytics = lazy(() => import("../../pages/Analytics/Analytics"));
 
 const CDASWrapper = ({ match }) => {
   const [loggedIn, setLoggedIn] = useState(false);
+  const [checkedOnce, setCheckedOnce] = useState(false);
   let history = useHistory();
 
   const getUrlPath = (route) => {
@@ -29,8 +30,13 @@ const CDASWrapper = ({ match }) => {
       history.push("/launchpad");
       setLoggedIn(true);
     } else {
-      history.push("/not-authenticated")
-      setLoggedIn(false);
+      if(!checkedOnce){
+        history.push("/checkAuth")
+        setCheckedOnce(true);
+      } else {
+        history.push("/not-authenticated")
+        setLoggedIn(false);
+      }
     }
   }, []);
 
@@ -110,4 +116,4 @@ const CDASWrapper = ({ match }) => {
   );
 };
 
-export default withRouter(CDASWrapper);
+export default CDASWrapper;

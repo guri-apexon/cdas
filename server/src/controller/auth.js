@@ -3,6 +3,8 @@ const request = require("request");
 const axios = require("axios");
 const btoa = require("btoa");
 
+const Logger = require("../config/logger");
+
 const getToken = (code, clientId, clientSecret, callbackUrl, ssoUrl) => {
   return new Promise((resolve, reject) => {
     const base64 = btoa(`${clientId}:${clientSecret}`);
@@ -20,7 +22,6 @@ const getToken = (code, clientId, clientSecret, callbackUrl, ssoUrl) => {
         redirect_uri: callbackUrl,
       },
     };
-    console.log('opt', options)
     request(options, (error, response) => {
       if (!error && response.statusCode === 200) {
         resolve(response.body);
@@ -98,10 +99,16 @@ const authHandler = async (req, res) => {
     //   } catch (err) {
     //     console.error(err);
     //   }
+    Logger.info({
+      message: "authHandler"
+    });
 
     res.redirect("http://localhost:3000/launchpad");
+    localStorage.setItem('userDetails', userDetails);
+
   } catch (e) {
-    console.error(e);
+    // console.error(e);
+    Logger.error(e)
   }
 };
 
