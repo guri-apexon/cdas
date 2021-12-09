@@ -67,7 +67,7 @@ function LaunchPad() {
             style={{ marginRight: 10 }}
             onClick={() => history.push("study-admin")}
           >
-            Quick Link to Study Admin
+            Quick Link to Study Setup
           </Button>
         </div>
       </div>
