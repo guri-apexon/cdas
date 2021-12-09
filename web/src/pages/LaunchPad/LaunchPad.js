@@ -11,6 +11,8 @@ import CDRIcon from "./CDR_ICON_96x96.svg";
 import DSWIcon from "./DSW_ICON_96x96.svg";
 
 import "./LaunchPad.scss";
+import { useState } from "react";
+import AddStudyModal from "../../components/AddStudyModal/AddStudyModal";
 
 const productArr = [
   {
@@ -52,6 +54,7 @@ const productArr = [
 
 const LaunchPad = () => {
   let history = useHistory();
+  const [addStudyOpen, setAddStudyOpen] = useState(false);
 
   return (
     <div className="lauchpad-wrapper">
@@ -65,10 +68,11 @@ const LaunchPad = () => {
             variant="secondary"
             icon={ArrowRight}
             style={{ marginRight: 10 }}
-            onClick={() => history.push("study-admin")}
+            onClick={() => setAddStudyOpen(!addStudyOpen)/*history.push("study-admin")*/}
           >
             Quick Link to Study Setup
           </Button>
+          <AddStudyModal open={addStudyOpen} onClose={() => setAddStudyOpen(false)} />
         </div>
       </div>
       <div className="products">
