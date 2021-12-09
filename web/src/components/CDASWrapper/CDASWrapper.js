@@ -1,39 +1,47 @@
-import { Route, Switch, withRouter, Redirect } from "react-router";
-// import { useHistory } from "react-router-dom";
+import { Route, Switch, Redirect } from "react-router";
+import { useHistory } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import Loader from "apollo-react/components/Loader";
 import { useState, useEffect } from "react";
 
+import { getCookie } from "../../utils";
 import TopNavbar from "../TopNavbar/TopNavbar";
 import AppFooter from "../AppFooter/AppFooter";
 import StudySetup from "../../pages/StudySetup/StudySetup";
 import UserManagement from "../../pages/UserManagement/UserManagement";
-const UnAuth = lazy(() => import("../../pages/UnAuth/UnAuth"));
+import NotAuthenticated from "../../pages/NotAuthenticated/NotAuthenticated";
 const Auth = lazy(() => import("../../pages/Auth/Auth"));
 const LaunchPad = lazy(() => import("../../pages/LaunchPad/LaunchPad"));
 const Analytics = lazy(() => import("../../pages/Analytics/Analytics"));
 
 const CDASWrapper = ({ match }) => {
   const [loggedIn, setLoggedIn] = useState(false);
+  const [checkedOnce, setCheckedOnce] = useState(false);
+  let history = useHistory();
 
   const getUrlPath = (route) => {
-    // console.log(`${match.url}${route}`);
     return `${route}`;
   };
-  
-  let userData = JSON.parse(localStorage.getItem('userDetails'));
 
   useEffect(() => {
-    // console.log(window.location.href);
-    if(userData && userData.code){
+    const userId = getCookie("user.id");
+    console.log(userId);
+    if(userId){
+      history.push("/launchpad");
       setLoggedIn(true);
+    } else {
+      if(!checkedOnce){
+        history.push("/checkAuth")
+        setCheckedOnce(true);
+      } else {
+        history.push("/not-authenticated")
+        setLoggedIn(false);
+      }
     }
-    console.log(userData)
-  }, [userData])
+  }, []);
 
-
+ 
   return (
-    
     <Suspense fallback={<Loader isInner></Loader>}>
       {loggedIn ? (
         <div className="page-wrapper">
@@ -45,64 +53,67 @@ const CDASWrapper = ({ match }) => {
               exact
               render={() => <LaunchPad />}
             />
+            
             <Route
-              path={`${getUrlPath('/analytics')}`}
+              path={`${getUrlPath("/analytics")}`}
               exact
               render={() => <Analytics />}
             />
             <Route
-              path={`${getUrlPath('/cdi')}`}
+              path={`${getUrlPath("/cdi")}`}
               exact
               render={() => <Redirect to="/launchpad" />}
             />
             <Route
-              path={`${getUrlPath('/user-management')}`}
+              path={`${getUrlPath("/user-management")}`}
               exact
               render={() => <UserManagement />}
             />
             <Route
-              path={`${getUrlPath('/study-setup')}`}
+              path={`${getUrlPath("/study-setup")}`}
               exact
               render={() => <StudySetup />}
             />
             <Route
-              path={`${getUrlPath('/cdm')}`}
+              path={`${getUrlPath("/cdm")}`}
               exact
               render={() => <Redirect to="/launchpad" />}
             />
             <Route
-              path={`${getUrlPath('/cdr')}`}
+              path={`${getUrlPath("/cdr")}`}
               exact
               render={() => <Redirect to="/launchpad" />}
             />
             <Route
-              path={`${getUrlPath('/ca')}`}
+              path={`${getUrlPath("/ca")}`}
               exact
               render={() => <Redirect to="/launchpad" />}
             />
             <Route
-              path={`${getUrlPath('/dsw')}`}
+              path={`${getUrlPath("/dsw")}`}
               exact
               render={() => <Redirect to="/launchpad" />}
             />
             <Route
-              path={`${getUrlPath('/study-admin')}`}
+              path={`${getUrlPath("/study-admin")}`}
               exact
               render={() => <Redirect to="/launchpad" />}
             />
+            
             <Redirect from="/" to="/launchpad" />
+
           </Switch>
           <AppFooter />
         </div>
       ) : (
         <Switch>
-          <Route path={`/unauth`} exact render={() => <UnAuth />} />
-          <Route path={`/oauth2client`} render={() => <Auth />} />
-          <Redirect from="/" to="/unauth" />
+          <Route path={`/checkAuth`} exact render={() => <Auth />} />
+          <Route path={`/not-authenticated`} render={() => <NotAuthenticated />} />
+          <Redirect from="/" to="/checkAuth" />
         </Switch>
       )}
     </Suspense>
   );
 };
 
-export default CDASWrapper
+export default CDASWrapper;
