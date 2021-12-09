@@ -1,0 +1,12 @@
+#addStudyModal{
+    div[class^='MuiFormControl-root-']{
+        margin-top: 0;
+    }
+    .custom-modal{
+        // max-width: 624px;
+        margin: 0;
+        .modal-content{
+            width: 548px;
+        }
+    }
+}
