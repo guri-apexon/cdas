@@ -55,7 +55,7 @@ const linksArr = [
     url: "cdr",
   },
   {
-    title: "Clinical Anaytics",
+    title: "Clinical Analytics",
     imgUrl: "assets/svg/CA_ICON_96x96.svg",
     haveAccess: false,
     url: "ca",
