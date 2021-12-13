@@ -4,6 +4,8 @@ const cors = require("cors");
 const fs = require("fs");
 const path = require("path");
 const dotenv = require("dotenv");
+var apiRouter = require("./route/api");
+
 
 const app = express();
 dotenv.config();
@@ -46,3 +48,6 @@ app.listen(PORT, () => {
   console.log(`app started on port ${PORT}`);
     // Logger.info({ message: `app started on port ${PORT}` });
 });
+
+//Route Prefixes
+app.use("/api/", apiRouter);
