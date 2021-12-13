@@ -100,7 +100,7 @@ const CDASWrapper = ({ match }) => {
               render={() => <Redirect to="/launchpad" />}
             />
             
-            <Redirect from="/" to="/launchpad" />
+            {/* <Redirect from="/" to="/launchpad" /> */}
 
           </Switch>
           <AppFooter />

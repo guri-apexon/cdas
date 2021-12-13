@@ -109,6 +109,7 @@ const authHandler = async (req, res) => {
   } catch (e) {
     // console.error(e);
     Logger.error(e)
+    res.redirect("http://localhost:3000/not-authenticated");
   }
 };
 

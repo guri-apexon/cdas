@@ -6,7 +6,7 @@ function StudySetup() {
     return (
         <div style={{ textAlign: 'center', height: 'calc(100vh - 184px)', minHeight: 800 }}>
             <Typography>StudySetup</Typography>
-            <Redirect to="/launchpad" />
+            {/* <Redirect to="/launchpad" /> */}
         </div>
     )
 }
