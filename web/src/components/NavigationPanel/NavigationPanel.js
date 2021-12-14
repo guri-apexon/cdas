@@ -88,10 +88,14 @@ const NavigationPanel = ({
   useEffect(() => {
     setOpenPanel(open);
   }, [open]);
-  useEffect(() => {
-    setOpenPanel(false);
-    onClose();
-  }, [onClose, pathname]);
+  useEffect(
+    () => {
+      setOpenPanel(false);
+      onClose();
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [pathname]
+  );
   return (
     <>
       <Blade

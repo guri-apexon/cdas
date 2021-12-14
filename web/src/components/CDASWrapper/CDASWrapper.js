@@ -10,7 +10,7 @@ import StudySetup from "../../pages/StudySetup/StudySetup";
 import UserManagement from "../../pages/UserManagement/UserManagement";
 import NotAuthenticated from "../../pages/NotAuthenticated/NotAuthenticated";
 
-const Auth = lazy(() => import("../../pages/Auth/Auth"));
+// const Auth = lazy(() => import("../Auth/Auth"));
 const LaunchPad = lazy(() => import("../../pages/LaunchPad/LaunchPad"));
 const Analytics = lazy(() => import("../../pages/Analytics/Analytics"));
 
@@ -32,7 +32,8 @@ const CDASWrapper = ({ match }) => {
     } else {
       // eslint-disable-next-line no-lonely-if
       if (!checkedOnce) {
-        history.push("/checkAuth");
+        window.location.href = `${process.env.REACT_APP_LAUNCH_URL}`;
+        console.log("dotenv :", process.env.REACT_APP_LAUNCH_URL);
         setCheckedOnce(true);
       } else {
         history.push("/not-authenticated");
@@ -105,12 +106,12 @@ const CDASWrapper = ({ match }) => {
         </div>
       ) : (
         <Switch>
-          <Route path="/checkAuth" exact render={() => <Auth />} />
+          {/* <Route path="/checkAuth" exact render={() => <Auth />} /> */}
           <Route
             path="/not-authenticated"
             render={() => <NotAuthenticated />}
           />
-          <Redirect from="/" to="/checkAuth" />
+          <Redirect from="/" to="/" />
         </Switch>
       )}
     </Suspense>
