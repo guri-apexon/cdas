@@ -1,5 +1,5 @@
 import axios from "axios";
-import getCookie from "../js/common/util/cookie";
+import getCookie from "./index";
 
 export default function tokenInterceptors() {
   if (process.env.REACT_APP_ENV !== "local") {

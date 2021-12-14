@@ -1,6 +1,13 @@
 import Footer from "apollo-react/components/Footer";
 import { withRouter } from "react-router";
 
+const wrapperStyle = {
+  background: "#F6F7FB",
+  position: "absolute",
+  width: "100%",
+  bottom: 0,
+};
+
 const AppFooter = () => {
   return (
     <div style={wrapperStyle}>
@@ -17,17 +24,10 @@ const AppFooter = () => {
             target: "_blank",
           },
         ]}
-        maxWidth={"100%"}
+        maxWidth="100%"
       />
     </div>
   );
 };
-
-const wrapperStyle = {
-  background: '#F6F7FB',
-  position: "absolute", 
-  width: "100%",
-  bottom: 0,
-}
 
 export default withRouter(AppFooter);

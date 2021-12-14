@@ -1,13 +1,12 @@
 import withStyles from "@material-ui/core/styles/withStyles";
 import React, { useEffect, useState } from "react";
 
-import { neutral8 } from "apollo-react/colors";
+import { neutral8, gradientHorizontal } from "apollo-react/colors";
 import Blade from "apollo-react/components/Blade";
 import Button from "apollo-react/components/Button";
 import Typography from "apollo-react/components/Typography";
 import makeStyles from "@material-ui/core/styles/makeStyles";
 import { withRouter } from "react-router";
-import { gradientHorizontal } from "apollo-react/colors";
 import Box from "apollo-react/components/Box";
 import Arrow2Down from "apollo-react-icons/Arrow2Down";
 import App from "apollo-react-icons/App";
@@ -92,7 +91,7 @@ const NavigationPanel = ({
   useEffect(() => {
     setOpenPanel(false);
     onClose();
-  }, [pathname]);
+  }, [onClose, pathname]);
   return (
     <>
       <Blade
@@ -119,11 +118,12 @@ const NavigationPanel = ({
             variant="body2"
             gutterBottom
           >
-            To Launchpad <Arrow2Down className={classes.toLauchpad} />
+            To Launchpad
+            <Arrow2Down className={classes.toLauchpad} />
           </Typography>
         </Box>
 
-        <div className={classes.line}></div>
+        <div className={classes.line} />
         <Box display="flex" m={1} mt={3}>
           <Typography gutterBottom darkMode>
             Modules
@@ -137,11 +137,12 @@ const NavigationPanel = ({
                 variant="text"
                 onClick={() => link.haveAccess && history.push(link.url)}
               >
-                <img src={link.imgUrl} alt={link.title}/>
+                <img src={link.imgUrl} alt={link.title} />
                 {link.title}
               </Button>
             );
             return (
+              // eslint-disable-next-line react/no-array-index-key
               <div key={i}>
                 {!link.haveAccess ? (
                   <Tooltip

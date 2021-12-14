@@ -1,6 +1,6 @@
-
 export const getUrl = (apiPath) => {
   return (
+    // eslint-disable-next-line prefer-template
     window.location.protocol +
     "//" +
     window.location.hostname +
@@ -9,11 +9,10 @@ export const getUrl = (apiPath) => {
   );
 };
 
- 
 export const getCookie = (key) => {
   const b = document.cookie.match(`(^|;)\\s*${key}\\s*=\\s*([^;]+)`);
   return b ? b.pop() : "";
-}
+};
 
 // URL Related
 export function getQueryParams(query) {

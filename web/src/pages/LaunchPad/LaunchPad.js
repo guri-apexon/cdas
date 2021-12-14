@@ -1,3 +1,5 @@
+/* eslint-disable jsx-a11y/no-static-element-interactions */
+/* eslint-disable react/no-array-index-key */
 import React from "react";
 import ArrowRight from "apollo-react-icons/ArrowRight";
 import Button from "apollo-react/components/Button";
@@ -14,47 +16,47 @@ import "./LaunchPad.scss";
 
 const productArr = [
   {
-    title: 'Clinical Data Ingestion',
+    title: "Clinical Data Ingestion",
     haveAccess: true,
     imgUrl: CDIIcon,
-    url: 'cdi'
+    url: "cdi",
   },
   {
-    title: 'Clinical Data Mapper',
+    title: "Clinical Data Mapper",
     haveAccess: false,
     imgUrl: CDMIcon,
-    url: 'cdm'
+    url: "cdm",
   },
   {
-    title: 'Clinical Data Review',
+    title: "Clinical Data Review",
     haveAccess: false,
     imgUrl: CDRIcon,
-    url: 'cdr'
+    url: "cdr",
   },
   {
-    title: 'Clinical Analytics',
+    title: "Clinical Analytics",
     haveAccess: false,
     imgUrl: CAIcon,
-    url: 'ca'
+    url: "ca",
   },
   {
-    title: 'Data Science Workbench',
+    title: "Data Science Workbench",
     haveAccess: false,
     imgUrl: DSWIcon,
-    url: 'dsw'
+    url: "dsw",
   },
 ];
 
 const LaunchPad = () => {
-  let history = useHistory();
+  const history = useHistory();
 
   return (
     <div className="lauchpad-wrapper">
       <div className="header">
         <div>
-        <Typography gutterBottom darkMode>
-        Welcome, Gurpreet Singh
-        </Typography>
+          <Typography gutterBottom darkMode>
+            Welcome, Gurpreet Singh
+          </Typography>
           <h2>Harness the power of your clinical data</h2>
           <Button
             variant="secondary"
@@ -68,36 +70,46 @@ const LaunchPad = () => {
       </div>
       <div className="products">
         <div className="gridContainer">
-          {productArr.map((product, i)=>{
-            const productBox = (<div className="full-width">
-              <img src={product.imgUrl} alt={product.title} />
-              <Typography variant="title2" darkMode>
-                {product.title}
-              </Typography>
-            </div>);
-            return (<div key={i} onClick={() => product.haveAccess && history.push(product.url)}
-              className={'productBox ' +(product.haveAccess ? 'haveAccess' : '')}>
-              {!product.haveAccess ? (<Tooltip
-            variant="light"
-            title={product.title}
-            subtitle="A data visualization platform that allows users to spot trends and anomalies across their study data in order to more quickly make decisions related to data cleanliness, operational efficiency, and drug safety."
-            extraLabels={[
-              { title: "Contact your System Administrator for access" },
-            ]}
-            placement="bottom"
-          >
-            {productBox}
-          </Tooltip>) :
-            productBox}
-            </div>)
+          {productArr.map((product, i) => {
+            const productBox = (
+              <div className="full-width">
+                <img src={product.imgUrl} alt={product.title} />
+                <Typography variant="title2" darkMode>
+                  {product.title}
+                </Typography>
+              </div>
+            );
+            return (
+              // eslint-disable-next-line jsx-a11y/click-events-have-key-events
+              <div
+                key={i}
+                onClick={() => product.haveAccess && history.push(product.url)}
+                className={`productBox ${
+                  product.haveAccess ? "haveAccess" : ""
+                }`}
+              >
+                {!product.haveAccess ? (
+                  <Tooltip
+                    variant="light"
+                    title={product.title}
+                    subtitle="A data visualization platform that allows users to spot trends and anomalies across their study data in order to more quickly make decisions related to data cleanliness, operational efficiency, and drug safety."
+                    extraLabels={[
+                      { title: "Contact your System Administrator for access" },
+                    ]}
+                    placement="bottom"
+                  >
+                    {productBox}
+                  </Tooltip>
+                ) : (
+                  productBox
+                )}
+              </div>
+            );
           })}
-          
-
-          
         </div>
       </div>
     </div>
   );
-}
+};
 
 export default LaunchPad;

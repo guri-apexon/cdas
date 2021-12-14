@@ -1,5 +1,6 @@
+/* eslint-disable no-shadow */
 import { withRouter } from "react-router";
-
+import { useState } from "react";
 import NavigationBar from "apollo-react/components/NavigationBar";
 import makeStyles from "@material-ui/core/styles/makeStyles";
 import { neutral7 } from "apollo-react/colors";
@@ -9,8 +10,8 @@ import DashboardIcon from "apollo-react-icons/Dashboard";
 import Question from "apollo-react-icons/Question";
 import moment from "moment";
 import Button from "apollo-react/components/Button";
+
 import NavigationPanel from "../NavigationPanel/NavigationPanel";
-import { useState } from "react";
 
 const styles = {
   root: {
@@ -134,6 +135,7 @@ const TopNavbar = ({ history, location: { pathname } }) => {
     ],
   };
   const toggleMenu = () => {
+    // eslint-disable-next-line no-shadow
     setpanelOpen((panelOpen) => !panelOpen);
   };
   const onPanelClose = () => {
@@ -151,9 +153,9 @@ const TopNavbar = ({ history, location: { pathname } }) => {
               className={classes.navLogo}
               onClick={() => history.push("launchpad")}
             >
-              {"IQVIA™"}{" "}
+              IQVIA™
               <span className={classes.bold}>
-                {"Clinical Data Analytics Suite"}
+                Clinical Data Analytics Suite
               </span>
             </Typography>
           </div>
@@ -161,6 +163,7 @@ const TopNavbar = ({ history, location: { pathname } }) => {
         position="static"
         menuItems={menuItems}
         profileMenuProps={profileMenuProps}
+        // eslint-disable-next-line no-shadow
         onClick={({ pathname }) => history.push(pathname)}
         checkIsActive={(item) =>
           item.pathname
@@ -170,6 +173,7 @@ const TopNavbar = ({ history, location: { pathname } }) => {
         waves
         notificationsMenuProps={notificationsMenuProps}
         otherButtons={
+          // eslint-disable-next-line react/jsx-wrap-multilines
           <div className={classes.centerAligned}>
             <Button
               onClick={() => history.push("help")}
