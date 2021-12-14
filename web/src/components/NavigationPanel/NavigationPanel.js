@@ -55,7 +55,7 @@ const linksArr = [
     url: "cdr",
   },
   {
-    title: "Clinical Anaytics",
+    title: "Clinical Analytics",
     imgUrl: "assets/svg/CA_ICON_96x96.svg",
     haveAccess: false,
     url: "ca",
@@ -76,9 +76,9 @@ const NavigationPanel = ({
   const [openPanel, setOpenPanel] = useState(open);
   const useStyles = makeStyles(styles);
   const classes = useStyles();
-  const onOpen = () => {
-    setOpenPanel(true);
-  };
+  // const onOpen = () => {
+  //   setOpenPanel(true);
+  // };
   const closePanel = () => {
     setOpenPanel(false);
     onClose();
@@ -104,7 +104,7 @@ const NavigationPanel = ({
         title=""
       >
         <div className="waves">
-          <img src="assets/svg/waves.svg" />
+          <img src="assets/svg/waves.svg" alt="waves" />
         </div>
         <App onClick={closePanel} className="close-panel" />
         <Box display="flex" m={1} mt={5}>
@@ -137,7 +137,7 @@ const NavigationPanel = ({
                 variant="text"
                 onClick={() => link.haveAccess && history.push(link.url)}
               >
-                <img src={link.imgUrl} />
+                <img src={link.imgUrl} alt={link.title}/>
                 {link.title}
               </Button>
             );
