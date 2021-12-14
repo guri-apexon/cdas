@@ -1,6 +1,7 @@
 #addStudyModal{
     div[class^='MuiFormControl-root-']{
         margin-top: 0;
+        margin-bottom: 24px;
     }
     .custom-modal{
         // max-width: 624px;
@@ -8,5 +9,35 @@
         .modal-content{
             width: 548px;
         }
+        .loader-container{
+            min-height: 40vh;
+            align-items: center;
+            justify-content: center;
+        }
+        tr{
+            cursor: pointer !important;
+        }
+        .back-btn{
+            margin-bottom: 20px;
+        }
+        .detail-list{
+            .title{
+                font-size: 500;
+            }
+            margin-top: 30px;
+            padding-left: 10px;
+            .label{
+                font-weight: 600;
+                color: #444444;
+            }
+            .value{
+                font-weight: 700;
+                // color: #444444;
+            }
+        }
+    }
+    .MuiDialogActions-root{
+        margin-top: 20px;
+        justify-content: flex-start;
     }
 }
