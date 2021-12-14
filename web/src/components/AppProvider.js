@@ -7,7 +7,7 @@ const AppProvider = ({ children }) => {
     id: "",
     name: "",
     username: "",
-    user_id: "",
+    lastlogin: "",
     token: null,
     actions: "",
   });
@@ -17,7 +17,7 @@ const AppProvider = ({ children }) => {
       id: userData.id,
       name: userData.name,
       username: userData.username,
-      user_id: userData.id,
+      lastlogin: userData.lastlogin,
       token: userData.token,
       actions: userData.actions,
     });
