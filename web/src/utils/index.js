@@ -1,3 +1,4 @@
+import moment from 'moment'
 
 export const getUrl = (apiPath) => {
   return (
@@ -33,4 +34,10 @@ export function getPathnameAndSearch(path) {
     pathname: arr[0],
     search: `?${arr[1]}`,
   };
+}
+
+export function getLastLogin() {
+  const current_login = getCookie('user.current_login_ts')
+  const local_date = moment.unix(current_login).local();
+  return local_date.format("DD-MMM-YYYY hh:mm A"); 
 }

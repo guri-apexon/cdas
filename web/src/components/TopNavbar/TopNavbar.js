@@ -11,7 +11,7 @@ import moment from "moment";
 import Button from "apollo-react/components/Button";
 import NavigationPanel from "../NavigationPanel/NavigationPanel";
 import { useState } from "react";
-
+import { getCookie, getLastLogin } from "../../utils";
 const styles = {
   root: {
     display: "flex",
@@ -114,10 +114,12 @@ const useStyles = makeStyles(styles);
 const TopNavbar = ({ history, location: { pathname } }) => {
   const classes = useStyles();
   const [panelOpen, setpanelOpen] = useState(true);
+  const user_email = decodeURIComponent(getCookie('user.email'))
+  const last_login = getLastLogin();
   const profileMenuProps = {
-    name: "Gurpreet Singh",
-    title: "Sr. Software Engineer",
-    email: "gurpreet.singh@iqvia.com",
+    name: getCookie('user.first_name') + " " +getCookie('user.last_name'), 
+    title: user_email,
+    email: `Last Login: ${last_login}`,
     logoutButtonProps: { pathname: "/logout" },
     menuItems: [],
   };
