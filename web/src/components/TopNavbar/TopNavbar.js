@@ -1,5 +1,4 @@
-import { withRouter } from "react-router";
-
+import { withRouter, useHistory, Redirect } from "react-router";
 import NavigationBar from "apollo-react/components/NavigationBar";
 import makeStyles from "@material-ui/core/styles/makeStyles";
 import { neutral7 } from "apollo-react/colors";
@@ -11,7 +10,8 @@ import moment from "moment";
 import Button from "apollo-react/components/Button";
 import NavigationPanel from "../NavigationPanel/NavigationPanel";
 import { useState } from "react";
-import { getCookie, getLastLogin } from "../../utils";
+import { getCookie, getLastLogin, deleteAllCookies } from "../../utils";
+import { userLogOut } from "../../services/ApiServices";
 const styles = {
   root: {
     display: "flex",
@@ -113,6 +113,7 @@ const useStyles = makeStyles(styles);
 
 const TopNavbar = ({ history, location: { pathname } }) => {
   const classes = useStyles();
+  const histr = useHistory();
   const [panelOpen, setpanelOpen] = useState(true);
   const user_email = decodeURIComponent(getCookie('user.email'))
   const last_login = getLastLogin();
@@ -120,9 +121,19 @@ const TopNavbar = ({ history, location: { pathname } }) => {
     name: getCookie('user.first_name') + " " +getCookie('user.last_name'), 
     title: user_email,
     email: <span style={{ fontSize: '13px' }}>Last Login: {last_login}</span>,
-    logoutButtonProps: { pathname: "/logout" },
+    logoutButtonProps: { onClick:  () => LogOut() },
     menuItems: [],
   };
+
+  const LogOut = async () => {
+    const isLogout = await userLogOut();
+    if(isLogout) {
+      const deleted = await deleteAllCookies()
+      if(deleted) {
+        histr.push("/logout");
+      }
+    }
+  }
 
   const notificationsMenuProps = {
     newNotifications: true,

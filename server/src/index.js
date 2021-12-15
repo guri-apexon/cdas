@@ -39,6 +39,7 @@ app.use(
 );
 
 app.all("/sda", auth.authHandler);
+app.all("/logout", auth.logoutHandler);
 app.use("/public", express.static("public"));
 
 if (!fs.existsSync(dir)) {
