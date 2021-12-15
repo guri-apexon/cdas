@@ -3,9 +3,9 @@ import { withRouter } from "react-router";
 
 const wrapperStyle = {
   background: "#F6F7FB",
-  position: "absolute",
+  // position: "absolute",
   width: "100%",
-  bottom: 0,
+  // bottom: 0,
 };
 
 const footerStyle = {

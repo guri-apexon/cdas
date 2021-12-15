@@ -16,7 +16,7 @@ const Analytics = lazy(() => import("../../pages/Analytics/Analytics"));
 
 const Empty = () => <></>;
 
-const CDASWrapper = (props) => {
+const CDASWrapper = () => {
   const [loggedIn, setLoggedIn] = useState(false);
   const [checkedOnce, setCheckedOnce] = useState(false);
   const history = useHistory();
@@ -33,7 +33,7 @@ const CDASWrapper = (props) => {
     } else {
       setLoggedIn(false);
     }
-  }, [props]);
+  }, [history]);
 
   useEffect(() => {
     const userId = getCookie("user.id");
@@ -70,7 +70,6 @@ const CDASWrapper = (props) => {
               exact
               render={() => <LaunchPad />}
             />
-
             <Route
               path={`${getUrlPath("/analytics")}`}
               exact
@@ -122,14 +121,14 @@ const CDASWrapper = (props) => {
         </div>
       ) : (
         <Switch>
-          <Route path="/auth" exact render={() => <Empty />} />
+          <Route path="/checkAuthentication" exact render={() => <Empty />} />
           <Route
             path="/not-authenticated"
             exact
             render={() => <NotAuthenticated />}
           />
           <Route path="/logout" render={() => <Logout />} />
-          <Redirect from="/" to="/auth" />
+          <Redirect from="/" to="/checkAuthentication" />
         </Switch>
       )}
     </Suspense>

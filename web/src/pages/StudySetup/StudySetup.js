@@ -4,13 +4,13 @@ import Typography from "apollo-react/components/Typography";
 import PlusIcon from "apollo-react-icons/Plus";
 import FileAccountPlan from "apollo-react-icons/FileAccountPlan";
 import Button from "apollo-react/components/Button";
-import Container from "apollo-react/components/Container";
 
-import StudyNotOnboarded from "../../components/StudySetup/StudyNotOnboarded";
+// import StudyNotOnboarded from "./StudyNotOnboarded";x`
+import StudyTable from "./StudyTable";
 
 const StudySetup = () => {
   return (
-    <Container>
+    <div className="study-setup-wrapper">
       <div className="header-section">
         <div className="header-title">
           <FileAccountPlan style={{ marginRight: "18px" }} />
@@ -25,8 +25,9 @@ const StudySetup = () => {
           Add New Study
         </Button>
       </div>
-      <StudyNotOnboarded />
-    </Container>
+      {/* <StudyNotOnboarded /> */}
+      <StudyTable />
+    </div>
   );
 };
 

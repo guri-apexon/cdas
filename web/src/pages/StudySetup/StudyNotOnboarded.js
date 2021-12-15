@@ -17,6 +17,7 @@ const StudyNotOnboarded = () => {
     padding: "45px 15px",
     textAlign: "center",
     width: 216,
+    margin: "auto",
   };
   return (
     <div className="studies-not-onboarded">
