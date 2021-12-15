@@ -13,7 +13,7 @@ import moment from "moment";
 import Button from "apollo-react/components/Button";
 import NavigationPanel from "../NavigationPanel/NavigationPanel";
 import { useState } from "react";
-import { getCookie, getLastLogin, deleteAllCookies } from "../../utils";
+import { getUserInfo, deleteAllCookies } from "../../utils";
 import { userLogOut } from "../../services/ApiServices";
 const styles = {
   root: {
@@ -120,12 +120,11 @@ const TopNavbar = ({ history, location: { pathname } }) => {
   const [panelOpen, setpanelOpen] = useState(true);
   const [notLoggedOutErr, setNotLoggedOutErr] = useState(false);
   const [open, setOpen] = useState(false);
-  const user_email = decodeURIComponent(getCookie('user.email'))
-  const last_login = getLastLogin();
+  const userInfo = getUserInfo();
   const profileMenuProps = {
-    name: getCookie('user.first_name') + " " +getCookie('user.last_name'), 
-    title: user_email,
-    email: <span style={{ fontSize: '13px' }}>Last Login: {last_login}</span>,
+    name: userInfo.full_name, 
+    title: userInfo.user_email,
+    email: <span style={{ fontSize: '13px' }}>Last Login: {userInfo.last_login}</span>,
     logoutButtonProps: { onClick:  () => LogOut() },
     menuItems: [],
   };

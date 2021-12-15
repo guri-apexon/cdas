@@ -53,3 +53,11 @@ export function deleteAllCookies() {
   }
   return true;
 }
+
+export function getUserInfo() {
+  return {
+    full_name : getCookie('user.first_name') + " " +getCookie('user.last_name'),
+    user_email : decodeURIComponent(getCookie('user.email')),
+    last_login : getLastLogin()
+  }
+}
