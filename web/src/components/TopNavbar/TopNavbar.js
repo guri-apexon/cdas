@@ -11,7 +11,7 @@ import moment from "moment";
 import Button from "apollo-react/components/Button";
 import NavigationPanel from "../NavigationPanel/NavigationPanel";
 import { useState } from "react";
-
+import { getUserInfo } from "../../utils";
 const styles = {
   root: {
     display: "flex",
@@ -114,10 +114,11 @@ const useStyles = makeStyles(styles);
 const TopNavbar = ({ history, location: { pathname } }) => {
   const classes = useStyles();
   const [panelOpen, setpanelOpen] = useState(true);
+  const userInfo = getUserInfo();
   const profileMenuProps = {
-    name: "Gurpreet Singh",
-    title: "Sr. Software Engineer",
-    email: "gurpreet.singh@iqvia.com",
+    name: userInfo.full_name, 
+    title: userInfo.user_email,
+    email: <span style={{ fontSize: '13px' }}>Last Login: {userInfo.last_login}</span>,
     logoutButtonProps: { pathname: "/logout" },
     menuItems: [],
   };
