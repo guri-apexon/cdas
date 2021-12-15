@@ -33,3 +33,103 @@ export function getPathnameAndSearch(path) {
     search: `?${arr[1]}`,
   };
 }
+
+export const getHeaderValue = (accessor) => {
+  switch (accessor) {
+    case "ProtocolNumber":
+      return "Protocol Number";
+    case "SponsorName":
+      return "Sponsor Name";
+    case "Phase":
+      return "Phase";
+    case "ProtocolStatus":
+      return "Protocol Status";
+    case "DateAdded":
+      return "Date Added";
+    case "DateEdited":
+      return "Date Edited";
+    case "OnboardingProgress":
+      return "Onboarding Progress";
+    case "AssignmentCount":
+      return "Assignment Count";
+    case "TherapeuticArea":
+      return "Therapeutic Area";
+    case "ProjectCode":
+      return "Project Code";
+    default:
+      return "";
+  }
+};
+
+export const columns = [
+  {
+    header: "Protocol Number",
+    accessor: "ProtocolNumber",
+    frozen: false,
+    order: 1,
+    isSelected: true,
+  },
+  {
+    header: "Sponsor Name",
+    accessor: "SponsorName",
+    frozen: false,
+    order: 2,
+    isSelected: true,
+  },
+  {
+    header: "Phase",
+    accessor: "Phase",
+    frozen: false,
+    order: 3,
+    isSelected: true,
+  },
+  {
+    header: "Protocol Status",
+    accessor: "ProtocolStatus",
+    frozen: false,
+    order: 4,
+    isSelected: true,
+  },
+  {
+    header: "Date Added",
+    accessor: "DateAdded",
+    frozen: false,
+    order: 5,
+    isSelected: true,
+  },
+  {
+    header: "Date Edited",
+    accessor: "DateEdited",
+    frozen: false,
+    order: 6,
+    isSelected: true,
+  },
+  {
+    header: "Onboarding Progress",
+    accessor: "OnboardingProgress",
+    frozen: false,
+    order: 7,
+    isSelected: true,
+  },
+  {
+    header: "Assignment Count",
+    accessor: "AssignmentCount",
+    frozen: false,
+    order: 8,
+    isSelected: true,
+  },
+  {
+    header: "Therapeutic Area",
+    accessor: "TherapeuticArea",
+    frozen: false,
+    order: 9,
+    isSelected: true,
+  },
+  {
+    header: "Project Code",
+    accessor: "ProjectCode",
+    frozen: false,
+    order: 10,
+    isSelected: true,
+  },
+];

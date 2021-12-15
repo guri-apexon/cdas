@@ -7,16 +7,15 @@ const dotenv = require("dotenv");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const session = require("express-session");
-var apiRouter = require("./route/api");
 
 
 const app = express();
 dotenv.config();
 const PORT = process.env.PORT;
 let dir = "./public/exports";
-const search = require("./route/routes");
+const apiRoutes = require("./route/routes");
 
-const Logger = require("./config/logger");
+// const Logger = require("./config/logger");
 
 const shouldCompress = (req, res) => {
   if (req.headers["x-no-compression"]) {
@@ -43,7 +42,10 @@ app.use(
   })
 );
 app.use(express.json({ limit: "50mb" }));
-app.use("/", search);
+
+//Route Prefixes
+app.use("/", apiRoutes);
+
 app.use(
   express.urlencoded({
     extended: true,
@@ -60,6 +62,3 @@ app.listen(PORT, () => {
   console.log(`app started on port ${PORT}`);
   // Logger.info({ message: `app started on port ${PORT}` });
 });
-
-//Route Prefixes
-app.use("/api/", apiRouter);
