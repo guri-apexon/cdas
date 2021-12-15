@@ -119,7 +119,7 @@ const TopNavbar = ({ history, location: { pathname } }) => {
   const profileMenuProps = {
     name: getCookie('user.first_name') + " " +getCookie('user.last_name'), 
     title: user_email,
-    email: `Last Login: ${last_login}`,
+    email: <span style={{ fontSize: '13px' }}>Last Login: {last_login}</span>,
     logoutButtonProps: { pathname: "/logout" },
     menuItems: [],
   };
@@ -181,7 +181,7 @@ const TopNavbar = ({ history, location: { pathname } }) => {
             </Button>
           </div>
         }
-        className={classes.nav}
+        className={[classes.nav, "deepk"]}
       />
       <NavigationPanel open={panelOpen} onClose={onPanelClose} />
     </div>
