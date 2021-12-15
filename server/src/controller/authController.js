@@ -35,12 +35,11 @@ const getToken = (code, clientId, clientSecret, callbackUrl, ssoUrl) => {
 };
 
 // Handler for the /sda path
-const authHandler = async (req, res) => {
-  // read the code from the request
-  const { code } = req.query;
-
+exports.authHandler = async (req, res) => {
   // Get the token
   try {
+    // read the code from the request
+    const { code } = req.query;
     const CLIENT_ID = process.env.SDA_CLIENT_ID;
     const CLIENT_SECRET = process.env.SDA_CLIENT_SECRET;
     const CALLBACK_URL = process.env.SDA_CALLBACK_URL;
@@ -84,15 +83,36 @@ const authHandler = async (req, res) => {
 
     console.debug(userDetails);
     Logger.info({
-      message: "authHandler"
+      message: "authHandler",
     });
 
     res.redirect("http://localhost:3000/launchpad");
   } catch (e) {
     // console.error(e);
-    Logger.error(e)
+    Logger.error(e);
     res.redirect("http://localhost:3000/not-authenticated");
   }
 };
 
-exports.authHandler = authHandler;
+exports.logoutHandler = async (req, res) => {
+  try {
+    const SSO_URL = process.env.SDA_SSO_URL;
+    //const authStr = "Bearer ".concat(response.access_token);
+    const ssologoutUrl = `https://${SSO_URL}/oidc/logout`;
+    const resp = await axios.get(ssologoutUrl, {
+      //headers: { Authorization: authStr },
+    });
+    Logger.info({
+      message: "LogOut",
+    });
+    const ok = resp.status > 199 && resp.status < 400;
+    if (!ok) {
+      return res.status(resp.status).json(false);
+    } else {
+      return res.status(200).json(true);
+    }
+  } catch (e) {
+    // console.error(e);
+    Logger.error(e);
+  }
+};

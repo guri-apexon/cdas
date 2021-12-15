@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-one-expression-per-line */
 /* eslint-disable prettier/prettier */
 /* eslint-disable no-shadow */
-import { withRouter } from "react-router";
+import { withRouter, useHistory } from "react-router";
 import { useState } from "react";
 import NavigationBar from "apollo-react/components/NavigationBar";
 import makeStyles from "@material-ui/core/styles/makeStyles";
@@ -14,7 +14,9 @@ import moment from "moment";
 import Button from "apollo-react/components/Button";
 
 import NavigationPanel from "../NavigationPanel/NavigationPanel";
-import { getUserInfo } from "../../utils";
+import { getCookie, deleteAllCookies } from "../../utils";
+// eslint-disable-next-line import/named
+import { userLogOut } from "../../services/ApiServices";
 
 const styles = {
   root: {
@@ -117,18 +119,29 @@ const useStyles = makeStyles(styles);
 
 const TopNavbar = ({ history, location: { pathname } }) => {
   const classes = useStyles();
+  const histr = useHistory();
   const [panelOpen, setpanelOpen] = useState(true);
-  const userInfo = getUserInfo();
   const profileMenuProps = {
-    name: userInfo.fullName,
-    title: userInfo.userEmail,
+    name: `${getCookie("user.first_name")} ${getCookie("user.last_name")}`,
+    title: getCookie("user.user_email"),
     email: (
       <span style={{ fontSize: "13px" }}>
-        Last Login: {userInfo.lastLogin}
+        Last Login: {getCookie("user.last_login")}
       </span>
     ),
-    logoutButtonProps: { pathname: "/logout" },
+    // eslint-disable-next-line no-use-before-define
+    logoutButtonProps: { onClick: () => LogOut() },
     menuItems: [],
+  };
+
+  const LogOut = async () => {
+    const isLogout = await userLogOut();
+    if (isLogout) {
+      const deleted = await deleteAllCookies();
+      if (deleted) {
+        histr.push("/logout");
+      }
+    }
   };
 
   const notificationsMenuProps = {

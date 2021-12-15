@@ -9,6 +9,7 @@ import AppFooter from "../AppFooter/AppFooter";
 import StudySetup from "../../pages/StudySetup/StudySetup";
 import UserManagement from "../../pages/UserManagement/UserManagement";
 import NotAuthenticated from "../../pages/NotAuthenticated/NotAuthenticated";
+import Logout from "../../pages/Logout/Logout";
 
 const LaunchPad = lazy(() => import("../../pages/LaunchPad/LaunchPad"));
 const Analytics = lazy(() => import("../../pages/Analytics/Analytics"));
@@ -115,7 +116,7 @@ const CDASWrapper = (props) => {
               exact
               render={() => <Redirect to="/launchpad" />}
             />
-            {/* <Redirect from="/" to="/launchpad" /> */}
+            <Redirect from="/" to="/launchpad" />
           </Switch>
           <AppFooter />
         </div>
@@ -127,6 +128,7 @@ const CDASWrapper = (props) => {
             exact
             render={() => <NotAuthenticated />}
           />
+          <Route path="/logout" render={() => <Logout />} />
           <Redirect from="/" to="/auth" />
         </Switch>
       )}

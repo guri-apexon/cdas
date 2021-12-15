@@ -14,3 +14,14 @@ const searchStudy = async (searchQuery = "") => {
 };
 
 export default searchStudy;
+
+export const userLogOut = () => {
+  return axios
+    .get(`${baseUrl}/logout`)
+    .then((res) => {
+      return res.data || false;
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+};
