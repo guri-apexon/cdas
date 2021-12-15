@@ -1,3 +1,5 @@
+import moment from "moment";
+
 export const getUrl = (apiPath) => {
   return (
     // eslint-disable-next-line prefer-template
@@ -133,3 +135,18 @@ export const columns = [
     isSelected: true,
   },
 ];
+
+export function getLastLogin() {
+  const currentLogin = getCookie("user.current_login_ts");
+  const localDate = moment.unix(currentLogin).local();
+  return localDate.format("DD-MMM-YYYY hh:mm A");
+}
+
+export function getUserInfo() {
+  return {
+    // eslint-disable-next-line prefer-template
+    fullName: getCookie("user.first_name") + " " + getCookie("user.last_name"),
+    userEmail: decodeURIComponent(getCookie("user.email")),
+    lastLogin: getLastLogin(),
+  };
+}

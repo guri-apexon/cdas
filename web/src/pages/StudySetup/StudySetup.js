@@ -1,27 +1,33 @@
-import React, { useState, useEffect } from "react";
-import Typography from "apollo-react/components/Typography";
-import { withRouter } from "react-router";
-import Modal from "apollo-react/components/Modal";
+import React from "react";
 import "./StudySetup.scss";
-import Search from "apollo-react/components/Search";
-import Table from "apollo-react/components/Table";
-import Box from "apollo-react/components/Box";
+import Typography from "apollo-react/components/Typography";
+import PlusIcon from "apollo-react-icons/Plus";
+import FileAccountPlan from "apollo-react-icons/FileAccountPlan";
 import Button from "apollo-react/components/Button";
-import ChevronLeft from "apollo-react-icons/ChevronLeft";
-import ApolloProgress from "apollo-react/components/ApolloProgress";
+import Container from "apollo-react/components/Container";
 
-function StudySetup() {
+import StudyNotOnboarded from "../../components/StudySetup/StudyNotOnboarded";
+
+const StudySetup = () => {
   return (
-    <div
-      style={{
-        textAlign: "center",
-        height: "calc(100vh - 184px)",
-        minHeight: 800,
-      }}
-    >
-      <Typography>StudySetup</Typography>
-    </div>
+    <Container>
+      <div className="header-section">
+        <div className="header-title">
+          <FileAccountPlan style={{ marginRight: "18px" }} />
+          <Typography variant="title1">Study Setup</Typography>
+        </div>
+        <Button
+          variant="primary"
+          icon={<PlusIcon />}
+          size="small"
+          style={{ float: "right" }}
+        >
+          Add New Study
+        </Button>
+      </div>
+      <StudyNotOnboarded />
+    </Container>
   );
-}
+};
 
 export default StudySetup;
