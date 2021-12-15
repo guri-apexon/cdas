@@ -38,6 +38,12 @@
     }
     .MuiDialogActions-root{
         margin-top: 20px;
-        justify-content: flex-start;
+        >div{
+            width: 100%;
+            justify-content: flex-end;
+        }
+        button.cancel-btn{
+            margin-right: auto;
+        }
     }
 }
