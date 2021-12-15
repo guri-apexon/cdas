@@ -1,4 +1,4 @@
-import { withRouter, useHistory, Redirect } from "react-router";
+import { withRouter, useHistory } from "react-router";
 import NavigationBar from "apollo-react/components/NavigationBar";
 import makeStyles from "@material-ui/core/styles/makeStyles";
 import { neutral7 } from "apollo-react/colors";
