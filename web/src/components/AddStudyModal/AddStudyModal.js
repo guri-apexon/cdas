@@ -41,7 +41,7 @@ const AddStudyModal = ({ history, location: { pathname }, open, onClose }) => {
   const FormatCell = ({ row, column: { accessor } }) => {
     return (
       // eslint-disable-next-line jsx-a11y/click-events-have-key-events
-      <div onClick={() => setDetail(row)}>
+      <div onClick={() => setDetail(row)} role="menu" tabIndex={0}>
         <Highlighted text={row[accessor]} highlight={searchTxt} />
       </div>
     );
