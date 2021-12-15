@@ -7,6 +7,8 @@ const dotenv = require("dotenv");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const session = require("express-session");
+var apiRouter = require("./route/api");
+
 
 const app = express();
 dotenv.config();
@@ -58,3 +60,6 @@ app.listen(PORT, () => {
   console.log(`app started on port ${PORT}`);
   // Logger.info({ message: `app started on port ${PORT}` });
 });
+
+//Route Prefixes
+app.use("/api/", apiRouter);

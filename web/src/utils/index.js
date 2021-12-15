@@ -33,3 +33,4 @@ export function getPathnameAndSearch(path) {
     search: `?${arr[1]}`,
   };
 }
+
