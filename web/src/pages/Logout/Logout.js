@@ -13,8 +13,8 @@ const Logout = () => {
         onClose={() => setIsError(false)}
         title="Logged Out"
         message="Thank you for using the Clinical Data Analytics Suite. You are now logged out."
-        buttonProps={[]}
-        id="error"
+        buttonProps={[{label:'Cancel'}]}
+        id="errorLogout"
       />
     </div>
   );
