@@ -57,16 +57,19 @@ const AddStudyModal = ({ history, location: { pathname }, open, onClose }) => {
       header: "Protocol Number",
       accessor: "prot_nbr",
       customCell: FormatCell,
+      width: '34%'
     },
     {
       header: "Sponsor",
       accessor: "spnsr_nm",
       customCell: FormatCell,
+      width: '41%'
     },
     {
       header: "Project Code",
       accessor: "project_code",
       customCell: FormatCell,
+      width: '25%'
     },
   ];
   const handleClose = () => {
