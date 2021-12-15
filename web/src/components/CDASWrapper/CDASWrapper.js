@@ -27,7 +27,7 @@ const CDASWrapper = (props) => {
 
   useEffect(() => {
     const userId = getCookie("user.id");
-    console.log("Wrapper-props:", JSON.stringify(props));
+    // console.log("Wrapper-props:", JSON.stringify(props));
     if (userId) {
       setLoggedIn(true);
     } else {

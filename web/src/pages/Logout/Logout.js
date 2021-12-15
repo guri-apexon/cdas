@@ -5,6 +5,7 @@ import "./Logout.scss";
 
 const Logout = () => {
   const [isError, setIsError] = useState(true);
+
   return (
     <div className="wrapper">
       <Modal

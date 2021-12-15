@@ -27,7 +27,7 @@ const Value = ({ children }) => {
     </Typography>
   );
 };
-const AddStudyModal = ({ history, location: { pathname }, open, onClose }) => {
+const AddStudyModal = ({ open, onClose }) => {
   const [openModal, setOpenModal] = useState(open);
   const [searchTxt, setSearchTxt] = useState("");
   const [studies, setStudies] = useState([]);

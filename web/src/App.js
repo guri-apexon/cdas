@@ -6,9 +6,8 @@ import CDASWrapper from "./components/CDASWrapper/CDASWrapper";
 import AppProvider from "./components/AppProvider";
 import MessageProvider from "./components/MessageProvider";
 
-const App = (props) => {
+const App = () => {
   const history = useHistory();
-  // console.log("App-props:", JSON.stringify(props));
   return (
     <>
       <AppProvider>
