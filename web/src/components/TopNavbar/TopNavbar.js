@@ -181,7 +181,7 @@ const TopNavbar = ({ history, location: { pathname } }) => {
             </Button>
           </div>
         }
-        className={[classes.nav, "deepk"]}
+        className={classes.nav}
       />
       <NavigationPanel open={panelOpen} onClose={onPanelClose} />
     </div>
