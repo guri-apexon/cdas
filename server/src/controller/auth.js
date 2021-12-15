@@ -83,29 +83,11 @@ const authHandler = async (req, res) => {
     // res.cookie("userDetails", userDetails);
 
     console.debug(userDetails);
-    // Do the upsert if it fails do not stop.
-    //   try {
-    //     const unpwAdminCfg = `${process.env.MULE_ADMINCFG_BASIC_AUTH_USERNAME}:${process.env.MULE_ADMINCFG_BASIC_AUTH_PASSWORD}`;
-    //     const base64Encoded = btoa(unpwAdminCfg);
-    //     const userAddUpdUrl = `${process.env.ADMINCFGAPI_ENDPOINT}/api/admin/users/${resp.data.userid}`;
-    //     const url = new URL(userAddUpdUrl);
-    //     const userAddUpd = await axios.post(userAddUpdUrl, userDetails, {
-    //       headers: {
-    //         Authorization: `Basic ${base64Encoded}`,
-    //         tid: resp.data.userid + url.pathname + moment().unix(),
-    //       },
-    //     });
-    //     // console.info(userAddUpd);
-    //   } catch (err) {
-    //     console.error(err);
-    //   }
     Logger.info({
       message: "authHandler"
     });
 
     res.redirect("http://localhost:3000/launchpad");
-    localStorage.setItem('userDetails', userDetails);
-
   } catch (e) {
     // console.error(e);
     Logger.error(e)

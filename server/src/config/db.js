@@ -1,4 +1,5 @@
 const { Pool, Client } = require("pg");
+const confg = require("./dbconstant.json");
 
 const pool = new Pool({
   user: confg.DB_USER,

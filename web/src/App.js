@@ -1,17 +1,21 @@
 import React from "react";
-import "./App.scss";
+import { BrowserRouter, useHistory } from "react-router-dom";
 
+import "./App.scss";
 import CDASWrapper from "./components/CDASWrapper/CDASWrapper";
 import AppProvider from "./components/AppProvider";
 import MessageProvider from "./components/MessageProvider";
 
 const App = (props) => {
-  console.log(`props: ${props}`);
+  const history = useHistory();
+  // console.log("App-props:", JSON.stringify(props));
   return (
     <>
       <AppProvider>
         <MessageProvider>
-          <CDASWrapper />
+          <BrowserRouter basename="/" history={history}>
+            <CDASWrapper />
+          </BrowserRouter>
         </MessageProvider>
       </AppProvider>
     </>

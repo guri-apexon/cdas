@@ -8,6 +8,10 @@ const wrapperStyle = {
   bottom: 0,
 };
 
+const footerStyle = {
+  maxWidth: "100%",
+};
+
 const AppFooter = () => {
   return (
     <div style={wrapperStyle}>
@@ -24,7 +28,7 @@ const AppFooter = () => {
             target: "_blank",
           },
         ]}
-        maxWidth="100%"
+        style={footerStyle}
       />
     </div>
   );

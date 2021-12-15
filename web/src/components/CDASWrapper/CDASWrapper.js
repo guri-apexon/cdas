@@ -10,11 +10,12 @@ import StudySetup from "../../pages/StudySetup/StudySetup";
 import UserManagement from "../../pages/UserManagement/UserManagement";
 import NotAuthenticated from "../../pages/NotAuthenticated/NotAuthenticated";
 
-// const Auth = lazy(() => import("../Auth/Auth"));
 const LaunchPad = lazy(() => import("../../pages/LaunchPad/LaunchPad"));
 const Analytics = lazy(() => import("../../pages/Analytics/Analytics"));
 
-const CDASWrapper = ({ match }) => {
+const Empty = () => <></>;
+
+const CDASWrapper = (props) => {
   const [loggedIn, setLoggedIn] = useState(false);
   const [checkedOnce, setCheckedOnce] = useState(false);
   const history = useHistory();
@@ -25,22 +26,36 @@ const CDASWrapper = ({ match }) => {
 
   useEffect(() => {
     const userId = getCookie("user.id");
+    console.log("Wrapper-props:", JSON.stringify(props));
+    if (userId) {
+      setLoggedIn(true);
+    } else {
+      setLoggedIn(false);
+    }
+  }, [props]);
+
+  useEffect(() => {
+    const userId = getCookie("user.id");
     console.log(userId);
     if (userId) {
       history.push("/launchpad");
-      setLoggedIn(true);
     } else {
       // eslint-disable-next-line no-lonely-if
       if (!checkedOnce) {
         window.location.href = `${process.env.REACT_APP_LAUNCH_URL}`;
         console.log("dotenv :", process.env.REACT_APP_LAUNCH_URL);
         setCheckedOnce(true);
-      } else {
-        history.push("/not-authenticated");
-        setLoggedIn(false);
       }
     }
   }, [checkedOnce, history]);
+
+  useEffect(() => {
+    if (!loggedIn && checkedOnce) {
+      setTimeout(() => {
+        history.push("/not-authenticated");
+      }, 30000);
+    }
+  }, [checkedOnce, history, loggedIn]);
 
   return (
     <Suspense fallback={<Loader isInner />}>
@@ -106,12 +121,13 @@ const CDASWrapper = ({ match }) => {
         </div>
       ) : (
         <Switch>
-          {/* <Route path="/checkAuth" exact render={() => <Auth />} /> */}
+          <Route path="/auth" exact render={() => <Empty />} />
           <Route
             path="/not-authenticated"
+            exact
             render={() => <NotAuthenticated />}
           />
-          <Redirect from="/" to="/" />
+          <Redirect from="/" to="/auth" />
         </Switch>
       )}
     </Suspense>
