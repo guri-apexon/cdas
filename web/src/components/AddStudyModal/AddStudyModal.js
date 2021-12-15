@@ -1,17 +1,17 @@
 import { withRouter } from "react-router";
 import Modal from "apollo-react/components/Modal";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./AddStudyModal.scss";
-import { useEffect } from "react";
 import Typography from "apollo-react/components/Typography";
 import Search from "apollo-react/components/Search";
 import Table from "apollo-react/components/Table";
-import { searchStudy } from "../../services/ApiServices";
 import Box from "apollo-react/components/Box";
 import Button from "apollo-react/components/Button";
 import ChevronLeft from "apollo-react-icons/ChevronLeft";
 import ApolloProgress from "apollo-react/components/ApolloProgress";
-import Highlighted from '../Common/Highlighted';
+
+import searchStudy from "../../services/ApiServices";
+import Highlighted from "../Common/Highlighted";
 
 const Label = ({ children }) => {
   return (
@@ -37,13 +37,16 @@ const AddStudyModal = ({ history, location: { pathname }, open, onClose }) => {
   const setDetail = (study) => {
     setSelectedStudy(study);
   };
+
   const FormatCell = ({ row, column: { accessor } }) => {
     return (
+      // eslint-disable-next-line jsx-a11y/click-events-have-key-events
       <div onClick={() => setDetail(row)}>
-      <Highlighted text={row[accessor]} highlight={searchTxt} />
+        <Highlighted text={row[accessor]} highlight={searchTxt} />
       </div>
     );
   };
+
   const columns = [
     {
       header: "Protocol Number",
@@ -71,9 +74,10 @@ const AddStudyModal = ({ history, location: { pathname }, open, onClose }) => {
   const searchTrigger = async (e) => {
     if (e.key === "Enter") {
       setLoading(true);
-      const studies = await searchStudy(searchTxt);
-      console.log("event", searchTxt, studies);
-      setStudies(studies);
+      // eslint-disable-next-line no-shadow
+      const newStudies = await searchStudy(searchTxt);
+      console.log("event", searchTxt, newStudies);
+      setStudies(newStudies);
       setLoading(false);
     }
   };
@@ -102,7 +106,7 @@ const AddStudyModal = ({ history, location: { pathname }, open, onClose }) => {
                 size="small"
                 onClick={backToSearch}
               >
-                <ChevronLeft style={{ width: 12, marginRight: 5 }} width={10} />{" "}
+                <ChevronLeft style={{ width: 12, marginRight: 5 }} width={10} />
                 Back to search
               </Button>
               <Typography className="title" variant="title2">
@@ -148,9 +152,9 @@ const AddStudyModal = ({ history, location: { pathname }, open, onClose }) => {
               />
               {/* </form> */}
               {loading ? (
-              <Box display='flex' className="loader-container">
-              <ApolloProgress />
-              </Box>
+                <Box display="flex" className="loader-container">
+                  <ApolloProgress />
+                </Box>
               ) : (
                 <Table
                   hasScroll={true}
@@ -159,7 +163,7 @@ const AddStudyModal = ({ history, location: { pathname }, open, onClose }) => {
                   rows={studies}
                   rowId="employeeId"
                   hidePagination
-                  maxHeight={"40vh"}
+                  maxHeight="40vh"
                 />
               )}
             </>
