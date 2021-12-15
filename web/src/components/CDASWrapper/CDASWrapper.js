@@ -116,7 +116,7 @@ const CDASWrapper = (props) => {
               exact
               render={() => <Redirect to="/launchpad" />}
             />
-            <Redirect from="/" to="/launchpad" />
+            {/* <Redirect from="/" to="/launchpad" /> */}
           </Switch>
           <AppFooter />
         </div>

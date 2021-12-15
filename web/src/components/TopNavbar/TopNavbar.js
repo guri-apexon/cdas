@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-one-expression-per-line */
 /* eslint-disable prettier/prettier */
 /* eslint-disable no-shadow */
-import { withRouter, useHistory } from "react-router";
+import { withRouter } from "react-router";
 import { useState } from "react";
 import NavigationBar from "apollo-react/components/NavigationBar";
 import makeStyles from "@material-ui/core/styles/makeStyles";
@@ -119,14 +119,13 @@ const useStyles = makeStyles(styles);
 
 const TopNavbar = ({ history, location: { pathname } }) => {
   const classes = useStyles();
-  const histr = useHistory();
   const [panelOpen, setpanelOpen] = useState(true);
   const profileMenuProps = {
-    name: `${getCookie("user.first_name")} ${getCookie("user.last_name")}`,
-    title: getCookie("user.user_email"),
+    name: decodeURIComponent(`${getCookie("user.first_name")} ${getCookie("user.last_name")}`),
+    title: decodeURIComponent(getCookie("user.email")),
     email: (
       <span style={{ fontSize: "13px" }}>
-        Last Login: {getCookie("user.last_login")}
+        Last Login: {getCookie("user.current_login_ts")}
       </span>
     ),
     // eslint-disable-next-line no-use-before-define
@@ -139,7 +138,7 @@ const TopNavbar = ({ history, location: { pathname } }) => {
     if (isLogout) {
       const deleted = await deleteAllCookies();
       if (deleted) {
-        histr.push("/logout");
+        history.push("/logout");
       }
     }
   };
