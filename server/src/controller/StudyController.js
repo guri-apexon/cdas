@@ -11,11 +11,12 @@ function StudyData(data) {
  */
 exports.studyList = function (req, res) {
     try {
-        const searchParam = req.params.query;
+        const searchParam = req.params.query.toLowerCase();
         const searchQuery = `SELECT * from cdascore1d.cdascore.cdas_study_master 
-        WHERE prot_nbr LIKE '%${searchParam}%' OR 
-        spnsr_nm LIKE '%${searchParam}%' OR 
-        project_code LIKE '%${searchParam}%'
+        WHERE LOWER(prot_nbr) LIKE '%${searchParam}%' OR 
+        LOWER(spnsr_nm) LIKE '%${searchParam}%' OR 
+        LOWER(project_code) LIKE '%${searchParam}%'
+        LIMIT 60
         `;
         DB.executeQuery(searchQuery).then( response => {
             const studies = response.rows || [];
