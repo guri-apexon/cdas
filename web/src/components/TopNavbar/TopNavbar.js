@@ -3,6 +3,9 @@ import NavigationBar from "apollo-react/components/NavigationBar";
 import makeStyles from "@material-ui/core/styles/makeStyles";
 import { neutral7 } from "apollo-react/colors";
 import Typography from "apollo-react/components/Typography";
+import Backdrop from 'apollo-react/components/Backdrop';
+import CircularProgress from 'apollo-react/components/CircularProgress';
+import Banner from 'apollo-react/components/Banner';
 import App from "apollo-react-icons/App";
 import DashboardIcon from "apollo-react-icons/Dashboard";
 import Question from "apollo-react-icons/Question";
@@ -115,6 +118,8 @@ const TopNavbar = ({ history, location: { pathname } }) => {
   const classes = useStyles();
   const histr = useHistory();
   const [panelOpen, setpanelOpen] = useState(true);
+  const [notLoggedOutErr, setNotLoggedOutErr] = useState(false);
+  const [open, setOpen] = useState(false);
   const user_email = decodeURIComponent(getCookie('user.email'))
   const last_login = getLastLogin();
   const profileMenuProps = {
@@ -126,12 +131,17 @@ const TopNavbar = ({ history, location: { pathname } }) => {
   };
 
   const LogOut = async () => {
+    setOpen(true)
     const isLogout = await userLogOut();
     if(isLogout) {
       const deleted = await deleteAllCookies()
       if(deleted) {
         histr.push("/logout");
+        setOpen(false)
       }
+    } else {
+      setNotLoggedOutErr(true)
+      setOpen(false)
     }
   }
 
@@ -154,6 +164,18 @@ const TopNavbar = ({ history, location: { pathname } }) => {
   };
   return (
     <div id="topNavbar">
+      <Backdrop
+        style={{ zIndex: 1 }}
+        open={open}
+      >
+        <CircularProgress variant="indeterminate" size="small"/>
+      </Backdrop>
+      <Banner
+          variant="error"
+          open={notLoggedOutErr}
+          onClose={() => setNotLoggedOutErr(false)}
+          message="Error: There is some error in logging out!"
+        />
       <NavigationBar
         LogoComponent={() => (
           <div className={classes.centerAligned}>
