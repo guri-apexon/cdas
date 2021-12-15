@@ -41,3 +41,11 @@ export function getLastLogin() {
   const local_date = moment.unix(current_login).local();
   return local_date.format("DD-MMM-YYYY hh:mm A"); 
 }
+
+export function getUserInfo() {
+  return {
+    full_name : getCookie('user.first_name') + " " +getCookie('user.last_name'),
+    user_email : decodeURIComponent(getCookie('user.email')),
+    last_login : getLastLogin()
+  }
+}
