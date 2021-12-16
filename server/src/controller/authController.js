@@ -2,7 +2,7 @@ const moment = require("moment");
 const request = require("request");
 const axios = require("axios");
 const btoa = require("btoa");
-
+const apiResponse = require("../helpers/apiResponse");
 const Logger = require("../config/logger");
 
 const getToken = (code, clientId, clientSecret, callbackUrl, ssoUrl) => {
@@ -114,5 +114,6 @@ exports.logoutHandler = async (req, res) => {
   } catch (e) {
     // console.error(e);
     Logger.error(e);
+    return apiResponse.ErrorResponse(res, err);
   }
 };
