@@ -49,3 +49,11 @@ export function getUserInfo() {
     last_login : getLastLogin()
   }
 }
+
+var  timerId;
+export const  debounceFunction  =  function (func, delay) {
+	// Cancels the setTimeout method execution
+	clearTimeout(timerId);
+	// Executes the func after delay time.
+	timerId  =  setTimeout(func, delay)
+}
