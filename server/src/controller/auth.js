@@ -123,6 +123,7 @@ const logoutHandler = async (req, res) => {
       message: "LogOut",
     });
     const ok = resp.status > 199 && resp.status < 400
+    console.log(resp.status, "status", ok)
     if(!ok) {
       return res.status(resp.status).json(false);
     } else {
