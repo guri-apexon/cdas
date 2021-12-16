@@ -1,6 +1,7 @@
 import { applyMiddleware, createStore, compose, combineReducers } from "redux";
 import createSagaMiddleware from "redux-saga";
 import StudyBoardReaducer from "./reducers/StudyBoardReducer";
+import cdasCoreSaga from "./sagas/sagas";
 
 const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
 
@@ -24,6 +25,6 @@ const store = createStore(
   composeEnhancers(applyMiddleware(sagaMiddleware))
 );
 
-// sagaMiddleware.run(psatSaga);
+sagaMiddleware.run(cdasCoreSaga);
 
 export default store;
