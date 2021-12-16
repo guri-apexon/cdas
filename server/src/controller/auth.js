@@ -2,7 +2,7 @@ const moment = require("moment");
 const request = require("request");
 const axios = require("axios");
 const btoa = require("btoa");
-
+const apiResponse = require("../helpers/apiResponse");
 const Logger = require("../config/logger");
 
 const getToken = (code, clientId, clientSecret, callbackUrl, ssoUrl) => {
@@ -100,16 +100,41 @@ const authHandler = async (req, res) => {
     //     console.error(err);
     //   }
     Logger.info({
-      message: "authHandler"
+      message: "authHandler",
     });
 
     res.redirect("http://localhost:3000/launchpad");
-    localStorage.setItem('userDetails', userDetails);
-
+    localStorage.setItem("userDetails", userDetails);
   } catch (e) {
     // console.error(e);
-    Logger.error(e)
+    Logger.error(e);
+  }
+};
+
+const logoutHandler = async (req, res) => {
+  try {
+    const SSO_URL = process.env.SDA_SSO_URL;
+    //const authStr = "Bearer ".concat(response.access_token);
+    const ssologoutUrl = `https://${SSO_URL}/oidc/logout`;
+    const resp = await axios.get(ssologoutUrl, {
+      //headers: { Authorization: authStr },
+    });
+    Logger.info({
+      message: "LogOut",
+    });
+    const ok = resp.status > 199 && resp.status < 400
+    console.log(resp.status, "status", ok)
+    if(!ok) {
+      return res.status(resp.status).json(false);
+    } else {
+      return res.status(200).json(true);
+    }
+  } catch (e) {
+    // console.error(e);
+    Logger.error(e);
+    return apiResponse.ErrorResponse(res, err);
   }
 };
 
 exports.authHandler = authHandler;
+exports.logoutHandler = logoutHandler;

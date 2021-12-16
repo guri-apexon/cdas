@@ -7,3 +7,11 @@ export const searchStudy = (searchQuery='') => {
 
     });
 }
+
+export const userLogOut = () => {
+    return axios.get(`${base_url}/logout/`).then(res=> {
+        return res.data || false;
+    }).catch(err=> {
+        console.log(err)
+    });
+}
