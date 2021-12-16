@@ -16,8 +16,8 @@ router.all("/sda", authController.authHandler);
 
 router.get("/logout", authController.logoutHandler);
 
-router.get("/api/study/search-study/:query", StudyController.studyList);
+router.get("/v1/api/study/search-study/:query", StudyController.studyList);
 
-router.post("/api/study/list", StudyController.getStudyList);
+router.post("/v1/api/study/list", StudyController.getStudyList);
 
 module.exports = router;

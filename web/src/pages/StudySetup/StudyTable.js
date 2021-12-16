@@ -2,7 +2,7 @@ import React from "react";
 
 import Table from "apollo-react/components/Table";
 import { moreColumns } from "./columns";
-import { rowsWithExtra } from "./rows.data";
+import rows, { rowsWithExtra } from "./rows.data";
 
 // const CustomHeader = ({
 //   onBulkEdit,
@@ -43,6 +43,7 @@ import { rowsWithExtra } from "./rows.data";
 // };
 
 export default function StudyTable() {
+  console.log("rowsWith", rowsWithExtra, rows);
   return (
     <div className="study-table">
       <Table

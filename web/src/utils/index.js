@@ -1,15 +1,15 @@
 import moment from "moment";
 
-export const getUrl = (apiPath) => {
-  return (
-    // eslint-disable-next-line prefer-template
-    window.location.protocol +
-    "//" +
-    window.location.hostname +
-    ":4000" +
-    apiPath
-  );
-};
+// export const getURL = (apiPath) => {
+//   return (
+//     // eslint-disable-next-line prefer-template
+//     window.location.protocol +
+//     "//" +
+//     window.location.hostname +
+//     ":443" +
+//     apiPath
+//   );
+// };
 
 export const getCookie = (key) => {
   const b = document.cookie.match(`(^|;)\\s*${key}\\s*=\\s*([^;]+)`);
