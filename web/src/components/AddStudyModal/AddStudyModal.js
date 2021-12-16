@@ -33,13 +33,11 @@ const AddStudyModal = ({ open, onClose }) => {
   const [studies, setStudies] = useState([]);
   const [selectedStudy, setSelectedStudy] = useState(null);
   const [loading, setLoading] = useState(false);
-  const btnArr = [
-    {label: 'Cancel', size: 'small', className: 'cancel-btn'}
-  ];
+  const btnArr = [{ label: "Cancel", size: "small", className: "cancel-btn" }];
   const allBtnArr = [
     ...btnArr,
-    { label: 'Import and Assign later', size: 'small', disabled: true}, 
-    { label: 'Import and Assign Users', size: 'small', disabled: true }
+    { label: "Import and Assign later", size: "small", disabled: true },
+    { label: "Import and Assign Users", size: "small", disabled: true },
   ];
 
   const setDetail = (study) => {
@@ -60,19 +58,19 @@ const AddStudyModal = ({ open, onClose }) => {
       header: "Protocol Number",
       accessor: "prot_nbr",
       customCell: FormatCell,
-      width: '34%'
+      width: "34%",
     },
     {
       header: "Sponsor",
       accessor: "spnsr_nm",
       customCell: FormatCell,
-      width: '41%'
+      width: "41%",
     },
     {
       header: "Project Code",
       accessor: "project_code",
       customCell: FormatCell,
-      width: '25%'
+      width: "25%",
     },
   ];
   const handleClose = () => {
