@@ -43,4 +43,8 @@
 
 .study-table{
     margin-top: 28px;
+
+    .MuiToolbar-regular > div{
+        display: flex;
+    }
 }

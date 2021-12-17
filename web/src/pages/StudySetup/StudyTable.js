@@ -13,9 +13,13 @@ import Question from "apollo-react-icons/Question";
 import Rocket from "apollo-react-icons/Rocket";
 import moment from "moment";
 
+import Button from "apollo-react/components/Button";
 import AutocompleteV2 from "apollo-react/components/AutocompleteV2";
 import DateRangePickerV2 from "apollo-react/components/DateRangePickerV2";
-// import IconButton from "apollo-react/components/IconButton";
+import DownloadIcon from "apollo-react-icons/Download";
+import FilterIcon from "apollo-react-icons/Filter";
+import RefreshIcon from "apollo-react-icons/Refresh";
+import IconButton from "apollo-react/components/IconButton";
 import { TextField } from "apollo-react/components/TextField/TextField";
 
 // const CustomHeader = ({
@@ -201,6 +205,28 @@ export function createStringArraySearchFilter(accessor) {
     );
 }
 
+const CustomButtonHeader = ({ toggleFilters, downloadFile }) => (
+  <div>
+    <Button
+      size="small"
+      variant="secondary"
+      icon={DownloadIcon}
+      onClick={downloadFile}
+      style={{ marginRight: "8px", border: "none" }}
+    >
+      Download
+    </Button>
+    <Button
+      size="small"
+      variant="secondary"
+      icon={FilterIcon}
+      onClick={toggleFilters}
+    >
+      Filter
+    </Button>
+  </div>
+);
+
 export default function StudyTable({ studyData }) {
   // console.log("rowsWith", rowsWithExtra, rows, studyData);
   const { studyboardData } = studyData;
@@ -302,10 +328,18 @@ export default function StudyTable({ studyData }) {
     columns.slice(-1)[0],
   ];
 
+  const downloadFile = () => {};
+
   return (
     <div className="study-table">
       <Table
         title="Studies"
+        subtitle={
+          // eslint-disable-next-line react/jsx-wrap-multilines
+          <IconButton color="primary">
+            <RefreshIcon />
+          </IconButton>
+        }
         columns={moreColumns}
         rows={studyboardData}
         initialSortedColumn="protocolnumber"
@@ -317,7 +351,10 @@ export default function StudyTable({ studyData }) {
           truncate: true,
         }}
         columnSettings={{ enabled: true }}
-        headerProps={{}}
+        showFilterIcon
+        CustomHeader={(props) => (
+          <CustomButtonHeader downloadFile={downloadFile} {...props} />
+        )}
       />
       ;
     </div>
