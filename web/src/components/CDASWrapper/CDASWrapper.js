@@ -10,6 +10,7 @@ import AppFooter from "../AppFooter/AppFooter";
 import StudySetup from "../../pages/StudySetup/StudySetup";
 import UserManagement from "../../pages/UserManagement/UserManagement";
 import NotAuthenticated from "../../pages/NotAuthenticated/NotAuthenticated";
+import Logout from "../../pages/Logout/Logout";
 const Auth = lazy(() => import("../../pages/Auth/Auth"));
 const LaunchPad = lazy(() => import("../../pages/LaunchPad/LaunchPad"));
 const Analytics = lazy(() => import("../../pages/Analytics/Analytics"));
@@ -99,7 +100,10 @@ const CDASWrapper = ({ match }) => {
               exact
               render={() => <Redirect to="/launchpad" />}
             />
-            
+            <Route path={`/logout`} render={() => {
+              setLoggedIn(false);
+              <Logout />
+            }} />
             <Redirect from="/" to="/launchpad" />
 
           </Switch>
@@ -107,6 +111,7 @@ const CDASWrapper = ({ match }) => {
         </div>
       ) : (
         <Switch>
+          <Route path={`/logout`} render={() => <Logout />} />
           <Route path={`/checkAuth`} exact render={() => <Auth />} />
           <Route path={`/not-authenticated`} render={() => <NotAuthenticated />} />
           <Redirect from="/" to="/checkAuth" />
