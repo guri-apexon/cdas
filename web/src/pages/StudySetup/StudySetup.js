@@ -15,8 +15,12 @@ const StudySetup = () => {
   const dispatch = useDispatch();
   const studyData = useSelector((state) => state.studyBoard);
 
-  useEffect(() => {
+  const refreshData = () => {
     dispatch(getStudyboardData());
+  };
+
+  useEffect(() => {
+    refreshData();
   }, []);
 
   return (
@@ -36,7 +40,7 @@ const StudySetup = () => {
         </Button>
       </div>
       <StudyNotOnboarded />
-      <StudyTable studyData={studyData} />
+      <StudyTable studyData={studyData} refreshData={refreshData} />
     </div>
   );
 };

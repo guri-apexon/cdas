@@ -1,12 +1,12 @@
 import React from "react";
 import Table, {
-  // compareDates,
-  // compareNumbers,
+  compareDates,
+  compareNumbers,
   compareStrings,
   createSelectFilterComponent,
   createStringSearchFilter,
   dateFilterV2,
-  // numberSearchFilter,
+  numberSearchFilter,
 } from "apollo-react/components/Table";
 import Cog from "apollo-react-icons/Cog";
 import Question from "apollo-react-icons/Question";
@@ -21,44 +21,6 @@ import FilterIcon from "apollo-react-icons/Filter";
 import RefreshIcon from "apollo-react-icons/Refresh";
 import IconButton from "apollo-react/components/IconButton";
 import { TextField } from "apollo-react/components/TextField/TextField";
-
-// const CustomHeader = ({
-//   onBulkEdit,
-//   onBulkDelete,
-//   selectedRows,
-//   toggleFilters,
-// }) => {
-//   const menuItems = [
-//     {
-//       text: "Edit",
-//       onClick: onBulkEdit,
-//     },
-//     {
-//       text: "Delete",
-//       onClick: onBulkDelete,
-//     },
-//   ];
-
-//   return (
-//     <div>
-//       <MenuButton
-//         buttonText="Bulk actions"
-//         size="small"
-//         menuItems={menuItems}
-//         disabled={selectedRows.length === 0}
-//         style={{ marginRight: 8 }}
-//       />
-//       <Button
-//         size="small"
-//         variant="secondary"
-//         icon={FilterIcon}
-//         onClick={toggleFilters}
-//       >
-//         {"Filter"}
-//       </Button>
-//     </div>
-//   );
-// };
 
 const TextFieldFilter = ({ accessor, filters, updateFilterValue }) => {
   return (
@@ -228,7 +190,7 @@ const CustomButtonHeader = ({ toggleFilters, downloadFile }) => (
   </div>
 );
 
-export default function StudyTable({ studyData }) {
+export default function StudyTable({ studyData, refreshData }) {
   // console.log("rowsWith", rowsWithExtra, rows, studyData);
   const { studyboardData } = studyData;
 
@@ -272,6 +234,7 @@ export default function StudyTable({ studyData }) {
     {
       header: "Date Added",
       accessor: "dateadded",
+      sortFunction: compareDates,
       customCell: DateCell,
       filterFunction: dateFilterV2("dateadded"),
       filterComponent: DateFilter,
@@ -279,6 +242,7 @@ export default function StudyTable({ studyData }) {
     {
       header: "Date Edited",
       accessor: "dateedited",
+      sortFunction: compareDates,
       customCell: DateCell,
       filterFunction: dateFilterV2("dateedited"),
       filterComponent: DateFilter,
@@ -297,12 +261,9 @@ export default function StudyTable({ studyData }) {
     {
       header: "Assignment Count",
       accessor: "assignmentcoun",
-      sortFunction: compareStrings,
-      filterFunction: createStringSearchFilter("assignmentcoun"),
-      filterComponent: TextFieldFilter,
-      // sortFunction: compareNumbers,
-      // filterFunction: numberSearchFilter("assignmentcount"),
-      // filterComponent: IntegerFilter,
+      sortFunction: compareNumbers,
+      filterFunction: numberSearchFilter("assignmentcoun"),
+      filterComponent: IntegerFilter,
     },
   ];
 
@@ -337,13 +298,13 @@ export default function StudyTable({ studyData }) {
         title="Studies"
         subtitle={
           // eslint-disable-next-line react/jsx-wrap-multilines
-          <IconButton color="primary">
+          <IconButton color="primary" onClick={refreshData}>
             <RefreshIcon />
           </IconButton>
         }
         columns={moreColumns}
         rows={studyboardData}
-        initialSortedColumn="protocolnumber"
+        initialSortedColumn="dateadded"
         initialSortOrder="asc"
         rowsPerPageOptions={[10, 50, 100, "All"]}
         tablePaginationProps={{
