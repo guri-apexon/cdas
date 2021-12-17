@@ -63,19 +63,7 @@ export const getHeaderValue = (accessor) => {
   }
 };
 
-// export function getLastLogin() {
-//   const currentLogin = getCookie("user.current_login_ts");
-//   const localDate = moment.unix(currentLogin).local();
-//   return localDate.format("DD-MMM-YYYY hh:mm A");
-// }
-
-export function getUserInfo() {
-  // return {
-  //   // eslint-disable-next-line prefer-template
-  //   fullName: getCookie("user.first_name") + " " + getCookie("user.last_name"),
-  //   userEmail: decodeURIComponent(getCookie("user.email")),
-  //   lastLogin: getLastLogin(),
-  // };
+export function getLastLogin() {
   const currentLogin = getCookie("user.last_login_ts");
   const localDate = moment.unix(currentLogin).local();
   return localDate.format("DD-MMM-YYYY hh:mm A");
@@ -94,3 +82,19 @@ export function deleteAllCookies() {
   }
   return true;
 }
+
+export function getUserInfo() {
+  return {
+    full_name: `${getCookie("user.first_name")} ${getCookie("user.last_name")}`,
+    user_email: decodeURIComponent(getCookie("user.email")),
+    last_login: getLastLogin(),
+  };
+}
+
+let timerId;
+export const debounceFunction = (func, delay) => {
+  // Cancels the setTimeout method execution
+  clearTimeout(timerId);
+  // Executes the func after delay time.
+  timerId = setTimeout(func, delay);
+};
