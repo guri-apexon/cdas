@@ -113,9 +113,10 @@ const DateFilter = ({ accessor, filters, updateFilterValue }) => {
 
 const DateCell = ({ row, column: { accessor } }) => {
   const rowValue = row[accessor];
-  console.log("date", rowValue);
-  const date = moment(rowValue, "MM/DD/YYYY").format("M/D/YYYY");
-  // : rowValue;
+  const date =
+    rowValue && moment(rowValue, "MM/DD/YYYY").isValid()
+      ? moment(rowValue, "MM/DD/YYYY").format("M/D/YYYY")
+      : moment(rowValue).format("MM/DD/YYYY");
 
   return <span>{date}</span>;
 };
