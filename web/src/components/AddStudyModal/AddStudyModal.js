@@ -12,6 +12,7 @@ import Button from "apollo-react/components/Button";
 import ChevronLeft from "apollo-react-icons/ChevronLeft";
 import ApolloProgress from "apollo-react/components/ApolloProgress";
 import Highlighted from '../Common/Highlighted';
+import { debounceFunction } from "../../utils";
 
 const Label = ({ children }) => {
   return (
@@ -79,14 +80,16 @@ const AddStudyModal = ({ history, location: { pathname }, open, onClose }) => {
   const backToSearch = () => {
     setSelectedStudy(null);
   };
-  const searchTrigger = async (e) => {
-    if (e.key === "Enter") {
+  const searchTrigger = (e) => {
+    const newValue = e.target.value;
+    setSearchTxt(newValue);
+    debounceFunction( async()=>{
       setLoading(true);
-      const studies = await searchStudy(searchTxt);
-      console.log("event", searchTxt, studies);
+      const studies = await searchStudy(newValue);
+      console.log("event", newValue, studies);
       setStudies(studies);
       setLoading(false);
-    }
+    }, 1000);
   };
   useEffect(() => {
     setOpenModal(open);
@@ -149,28 +152,25 @@ const AddStudyModal = ({ history, location: { pathname }, open, onClose }) => {
           ) : (
             <>
               <Typography variant="caption">Search for a study</Typography>
-              {/* <form onSubmit={searchTrigger}> */}
               <Search
-                onKeyDown={searchTrigger}
+                // onKeyDown={searchTrigger}
                 placeholder="Search"
                 value={searchTxt}
-                onChange={(e) => setSearchTxt(e.target.value)}
+                onChange={searchTrigger}
                 fullWidth
               />
-              {/* </form> */}
               {loading ? (
               <Box display='flex' className="loader-container">
               <ApolloProgress />
               </Box>
               ) : (
                 <Table
-                  hasScroll={true}
-                  isSticky={true}
                   columns={columns}
                   rows={studies}
                   rowId="employeeId"
                   hidePagination
                   maxHeight={"40vh"}
+                  emptyProps={{text: searchTxt=='' && !loading ? '' : 'No data to display' }}
                 />
               )}
             </>

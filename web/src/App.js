@@ -1,5 +1,6 @@
 import React from "react";
 import "./App.scss";
+import "./styles/common.scss";
 import { ErrorBoundary } from "./components/ErrorBoundary/ErrorBoundary";
 import CDASWrapper from "./components/CDASWrapper/CDASWrapper";
 
