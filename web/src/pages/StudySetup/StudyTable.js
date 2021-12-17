@@ -151,7 +151,15 @@ const obs = [
   "In Development",
 ];
 
-const phases = ["Phase 4", "Phase 3", "Phase 2", "Phase 1", "Phase 0", "N/A"];
+const phases = [
+  "Phase 4",
+  "Phase 3",
+  "Phase 3b",
+  "Phase 2",
+  "Phase 1",
+  "Phase 0",
+  "N/A",
+];
 
 const obIcons = {
   Enrolling: Cog,
