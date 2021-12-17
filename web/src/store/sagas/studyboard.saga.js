@@ -8,22 +8,17 @@ import {
 } from "../../constants";
 
 // eslint-disable-next-line import/prefer-default-export
-export function* fetchStudyboardData(action) {
+export function* fetchStudyboardData() {
   try {
     const studyboardData = yield call(
       axios.post,
       `${baseURL}/${STUDYBOARD_DATA_FETCH}`,
-      {
-        pageNo: action.pageNo,
-        pageLimit: action.pageLimit,
-        studyboardFilters: action.studyboardFilters,
-        sortColumn: action.sortColumn,
-        sortOrder: action.sortOrder,
-      }
+      {}
     );
+    console.log("study", studyboardData);
     yield put({
       type: STUDYBOARD_FETCH_SUCCESS,
-      studyboardData: studyboardData.data.studyboardData,
+      studyboardData: studyboardData.data.data,
       studyboardTotalCount: studyboardData.data.studyboardTotalCount,
     });
   } catch (e) {

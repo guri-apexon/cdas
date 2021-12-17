@@ -56,7 +56,10 @@ exports.getStudyList = async (req, res) => {
       : "";
 
     const offset = pageNo > 1 ? (pageNo - 1) * pageLimit : 0;
-    const query = "SELECT * from cdascore1d.cdascore.cdas_study_master";
+    // const query =
+    //   "SELECT prot_nbr as protocolNumber, spnsr_nm as sponsorName, phase as phase, prot_status as protocolStatus, thptc_area as therapeuticArea, project_code as projectCode from cdascore1d.cdascore.cdas_study_master";
+
+    const query = "SELECT prot_nbr as protocolnumber, spnsr_nm as sponsername, phase, prot_stat as protocolstatus, cs.insrt_tm as dateadded, cs.updt_tm as dateedited, ob_stat as onboardingprogress, cs.usr_descr as assignmentcount, thptc_area as therapeuticarea, proj_cd as projectcode FROM cdascore.cdas_study cs INNER JOIN cdascore.cdas_sponsor cs2 ON cs2.spnsr_id = cs.spnsr_id ORDER BY cs.insrt_tm";
 
     Logger.info({
       message: "getStudyList",
