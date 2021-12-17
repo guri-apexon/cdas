@@ -141,7 +141,17 @@ const createAutocompleteFilter =
     );
   };
 
-const obs = ["In-progress", "Failure", "Success"];
+const obs = [
+  "Enrolling",
+  "Completed",
+  "On Hold",
+  "Closed To Enrollment",
+  "Open To Enrollment",
+  "Discontinued",
+  "In Development",
+];
+
+const phases = ["Phase 4", "Phase 3", "Phase 2", "Phase 1", "Phase 0", "N/A"];
 
 const obIcons = {
   "In-progress": Rocket,
@@ -213,12 +223,11 @@ export default function StudyTable({ studyData, refreshData }) {
       header: "Phase",
       accessor: "phase",
       sortFunction: compareStrings,
-      filterFunction: createStringSearchFilter("phase"),
-      filterComponent: createAutocompleteFilter(
-        studyboardData
-          .filter(({ phase }) => phase)
-          .map(({ phase }) => ({ label: phase }))
-      ),
+      filterFunction: createStringArraySearchFilter("phase"),
+      filterComponent: createSelectFilterComponent(phases, {
+        size: "small",
+        multiple: true,
+      }),
     },
     {
       header: "Protocol Status",
@@ -285,9 +294,8 @@ export default function StudyTable({ studyData, refreshData }) {
   ];
 
   const moreColumns = [
-    ...columns.map((column) => ({ ...column })).slice(0, -1),
+    ...columns.map((column) => ({ ...column })),
     ...columnsToAdd.map((column) => ({ ...column, hidden: true })),
-    columns.slice(-1)[0],
   ];
 
   const downloadFile = () => {};
