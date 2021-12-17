@@ -154,8 +154,13 @@ const obs = [
 const phases = ["Phase 4", "Phase 3", "Phase 2", "Phase 1", "Phase 0", "N/A"];
 
 const obIcons = {
-  "In-progress": Rocket,
-  Failure: Cog,
+  Enrolling: Cog,
+  Completed: Question,
+  "On Hold": Cog,
+  "Closed To Enrollment": Cog,
+  "Open To Enrollment": Cog,
+  Discontinued: Rocket,
+  "In Development": Cog,
 };
 
 const SelectiveCell = ({ row, column: { accessor } }) => {
@@ -163,7 +168,10 @@ const SelectiveCell = ({ row, column: { accessor } }) => {
   const Icon = obIcons[onboardingprogress] || Question;
   return (
     <div style={{ position: "relative" }}>
-      <Icon fontSize="small" style={{ position: "relative", top: 5 }} />
+      <Icon
+        fontSize="small"
+        style={{ position: "relative", top: 5, marginRight: 5 }}
+      />
       {onboardingprogress || "Unknown"}
     </div>
   );
