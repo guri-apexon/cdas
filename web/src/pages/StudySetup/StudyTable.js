@@ -1,12 +1,12 @@
 import React from "react";
 import Table, {
-  compareDates,
-  compareNumbers,
+  // compareDates,
+  // compareNumbers,
   compareStrings,
   createSelectFilterComponent,
   createStringSearchFilter,
   dateFilterV2,
-  numberSearchFilter,
+  // numberSearchFilter,
 } from "apollo-react/components/Table";
 import Cog from "apollo-react-icons/Cog";
 import Question from "apollo-react-icons/Question";
@@ -15,7 +15,7 @@ import moment from "moment";
 
 import AutocompleteV2 from "apollo-react/components/AutocompleteV2";
 import DateRangePickerV2 from "apollo-react/components/DateRangePickerV2";
-import IconButton from "apollo-react/components/IconButton";
+// import IconButton from "apollo-react/components/IconButton";
 import { TextField } from "apollo-react/components/TextField/TextField";
 
 // const CustomHeader = ({
