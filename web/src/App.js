@@ -1,17 +1,23 @@
 import React from "react";
+import { BrowserRouter, useHistory } from "react-router-dom";
+
 import "./App.scss";
-import "./styles/common.scss";
-import { ErrorBoundary } from "./components/ErrorBoundary/ErrorBoundary";
 import CDASWrapper from "./components/CDASWrapper/CDASWrapper";
+import AppProvider from "./components/AppProvider";
+import MessageProvider from "./components/MessageProvider";
 
-const App = (props) => {
-
+const App = () => {
+  const history = useHistory();
   return (
-    <React.Fragment>
-        <ErrorBoundary>
-          <CDASWrapper />
-        </ErrorBoundary>
-    </React.Fragment>
+    <>
+      <AppProvider>
+        <MessageProvider>
+          <BrowserRouter basename="/" history={history}>
+            <CDASWrapper />
+          </BrowserRouter>
+        </MessageProvider>
+      </AppProvider>
+    </>
   );
 };
 

@@ -5,8 +5,6 @@
   "dependencies": {
     "@material-ui/core": "^4.11.2",
     "@material-ui/icons": "^4.11.2",
-    "@wojtekmaj/enzyme-adapter-react-17": "^0.6.2",
-    "@wojtekmaj/react-daterange-picker": "^3.3.2",
     "apollo-react": "https://imshealth.myget.org/F/apollo/auth/368c2ce5-6e29-4066-b6cc-1459725faafe/npm/apollo-react/-/3.23.0",
     "apollo-react-icons": "https://imshealth.myget.org/F/apollo/auth/368c2ce5-6e29-4066-b6cc-1459725faafe/npm/apollo-react-icons/-/1.0.0-beta.7",
     "axios": "^0.21.1",
@@ -20,7 +18,6 @@
     "moment-timezone": "^0.5.33",
     "node-sass": "^6.0.1",
     "react": "^17.0.2",
-    "react-cookie": "^4.1.1",
     "react-dom": "^17.0.2",
     "react-emotion": "9.2.6",
     "react-recompose": "^0.31.1",
@@ -39,7 +36,7 @@
     "test": "react-scripts test --detectOpenHandles --updateSnapshot --watchAll=false",
     "coverage": "react-scripts test --detectOpenHandles --watchAll=false --coverage",
     "eject": "react-scripts eject",
-    "lint": "eslint . & eslint . -f ./node_modules/eslint-html-reporter/reporter.js -o eslint-report.html"
+    "lint": "eslint src"
   },
   "eslintConfig": {
     "extends": [
@@ -64,6 +61,7 @@
     "@testing-library/react": "^11.2.7",
     "@testing-library/user-event": "^12.8.3",
     "babel-eslint": "^10.1.0",
+    "chokidar": "^3.5.2",
     "eslint": "^7.18.0",
     "eslint-config-airbnb": "^18.2.1",
     "eslint-config-prettier": "^7.2.0",
@@ -74,7 +72,6 @@
     "eslint-plugin-react": "^7.22.0",
     "eslint-plugin-react-hooks": "^4.2.0",
     "jest-html-reporters": "^2.1.2",
-    "chokidar": "^3.5.2",
     "prettier": "2.4.1"
   }
 }
