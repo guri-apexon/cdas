@@ -38,25 +38,25 @@ export function getPathnameAndSearch(path) {
 
 export const getHeaderValue = (accessor) => {
   switch (accessor) {
-    case "ProtocolNumber":
+    case "protocolnumber":
       return "Protocol Number";
-    case "SponsorName":
+    case "sponsorname":
       return "Sponsor Name";
-    case "Phase":
+    case "phase":
       return "Phase";
-    case "ProtocolStatus":
+    case "protocolstatus":
       return "Protocol Status";
-    case "DateAdded":
+    case "dateadded":
       return "Date Added";
-    case "DateEdited":
+    case "dateedited":
       return "Date Edited";
-    case "OnboardingProgress":
+    case "onboardingprogress":
       return "Onboarding Progress";
-    case "AssignmentCount":
+    case "assignmentcount":
       return "Assignment Count";
-    case "TherapeuticArea":
+    case "therapeuticarea":
       return "Therapeutic Area";
-    case "ProjectCode":
+    case "projectcode":
       return "Project Code";
     default:
       return "";
