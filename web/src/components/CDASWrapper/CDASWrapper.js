@@ -100,7 +100,10 @@ const CDASWrapper = ({ match }) => {
               exact
               render={() => <Redirect to="/launchpad" />}
             />
-            <Route path={`/logout`} render={() => <Logout />} />
+            <Route path={`/logout`} render={() => {
+              setLoggedIn(false);
+              <Logout />
+            }} />
             <Redirect from="/" to="/launchpad" />
 
           </Switch>
