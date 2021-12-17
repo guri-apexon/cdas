@@ -109,10 +109,9 @@ const DateFilter = ({ accessor, filters, updateFilterValue }) => {
 
 const DateCell = ({ row, column: { accessor } }) => {
   const rowValue = row[accessor];
-  const date =
-    rowValue && moment(rowValue, "MM/DD/YYYY").isValid()
-      ? moment(rowValue, "MM/DD/YYYY").format("M/D/YYYY")
-      : rowValue;
+  console.log("date", rowValue);
+  const date = moment(rowValue, "MM/DD/YYYY").format("M/D/YYYY");
+  // : rowValue;
 
   return <span>{date}</span>;
 };
@@ -216,9 +215,9 @@ export default function StudyTable({ studyData }) {
     },
     {
       header: "Sponsor Name",
-      accessor: "sponsername",
+      accessor: "sponsorname",
       sortFunction: compareStrings,
-      filterFunction: createStringSearchFilter("sponsername"),
+      filterFunction: createStringSearchFilter("sponsorname"),
       filterComponent: TextFieldFilter,
     },
     {
@@ -270,9 +269,9 @@ export default function StudyTable({ studyData }) {
     },
     {
       header: "Assignment Count",
-      accessor: "assignmentcount",
+      accessor: "assignmentcoun",
       sortFunction: compareStrings,
-      filterFunction: createStringSearchFilter("assignmentcount"),
+      filterFunction: createStringSearchFilter("assignmentcoun"),
       filterComponent: TextFieldFilter,
       // sortFunction: compareNumbers,
       // filterFunction: numberSearchFilter("assignmentcount"),

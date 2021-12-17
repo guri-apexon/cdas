@@ -7,7 +7,7 @@ import FileAccountPlan from "apollo-react-icons/FileAccountPlan";
 import Button from "apollo-react/components/Button";
 import { useDispatch, useSelector } from "react-redux";
 
-// import StudyNotOnboarded from "./StudyNotOnboarded";x`
+import StudyNotOnboarded from "./StudyNotOnboarded";
 import StudyTable from "./StudyTable";
 import { getStudyboardData } from "../../store/actions/StudyBoardAction";
 
@@ -35,7 +35,7 @@ const StudySetup = () => {
           Add New Study
         </Button>
       </div>
-      {/* <StudyNotOnboarded /> */}
+      <StudyNotOnboarded />
       <StudyTable studyData={studyData} />
     </div>
   );
