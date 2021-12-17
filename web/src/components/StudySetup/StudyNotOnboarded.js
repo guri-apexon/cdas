@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Accordion from 'apollo-react/components/Accordion';
 import AccordionDetails from 'apollo-react/components/AccordionDetails';
 import AccordionSummary from 'apollo-react/components/AccordionSummary';
@@ -8,19 +8,40 @@ import Paper from 'apollo-react/components/Paper';
 import Typography from 'apollo-react/components/Typography';
 import Clock from 'apollo-react-icons/Clock'
 import StatusExclamation from 'apollo-react-icons/StatusExclamation'
-
+import ApolloProgress from "apollo-react/components/ApolloProgress";
+import Box from "apollo-react/components/Box";
+import { getNotOnBoardedStudiesStat } from "../../services/ApiServices";
 const StudyNotOnboarded = () => {
-    const [totalCount] = useState(3)
-    const [totalInProgress] = useState(1)
-    const [totalFailures] = useState(2)
+    const [totalCount, setTotalCount] = useState(0)
+    const [totalInProgress, setInprogressCount] = useState(0)
+    const [totalFailures, setFailureCouut] = useState(0)
+    const [isLoading, setIsnLoading] = useState(true)
     const styles = {
         padding: '45px 15px',
         textAlign: 'center',
         width: 216
       };
+
+    useEffect(() => {
+        getNotOnBoardedStudiesStat().then((res) => {
+            const inprogress_count = parseInt(res.inprogress_count)
+            const faliure_count = parseInt(res.faliure_count)
+            setTotalCount(inprogress_count + faliure_count)
+            setInprogressCount(inprogress_count)
+            setFailureCouut(faliure_count)
+            setIsnLoading(false)
+        }).catch(err => {
+            console.log(err)
+            setIsnLoading(false)
+        })
+    }, [])
     return (
         <div className="studies-not-onboarded">
-            <Accordion variant="alternate" defaultExpanded={totalCount > 0 || false} style={{ marginTop: '60px' }}>
+            {isLoading && <Box display='flex' className="loader-container">
+              <ApolloProgress />
+            </Box>
+            }
+            <Accordion variant="alternate" defaultExpanded={true || totalCount > 0}  style={{ marginTop: '60px' }}>
                 <AccordionSummary>
                     <Typography>Studies Not Onboarded ({totalCount})</Typography>
                 </AccordionSummary>

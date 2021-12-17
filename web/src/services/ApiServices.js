@@ -8,6 +8,15 @@ export const searchStudy = (searchQuery='') => {
     });
 }
 
+export const getNotOnBoardedStudiesStat = () => {
+    return axios.get(`${base_url}/api/study/notonboarded-studies-stat`).then(res=> {
+        console.log(res, "service")
+        return res.data?.data || [];
+    }).catch(err=> {
+
+    });
+}
+
 export const userLogOut = () => {
     return axios.get(`${base_url}/logout/`).then(res=> {
         return res.data || false;

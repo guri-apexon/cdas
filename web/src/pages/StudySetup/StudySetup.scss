@@ -35,5 +35,12 @@
     .failure-box{
         border: 1px solid #E20000;
     }
+    .loader-container {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        z-index: 99;
+        background-color: rgba(255,255,255,0.7);
+    }
 }
 
