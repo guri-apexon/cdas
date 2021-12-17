@@ -141,15 +141,7 @@ const createAutocompleteFilter =
     );
   };
 
-const obs = [
-  "Enrolling",
-  "Completed",
-  "On Hold",
-  "Closed To Enrollment",
-  "Open To Enrollment",
-  "Discontinued",
-  "In Development",
-];
+const obs = ["Failure", "Completed", "In Progress"];
 
 const phases = [
   "Phase 4",
@@ -162,25 +154,27 @@ const phases = [
 ];
 
 const obIcons = {
-  Enrolling: Cog,
-  Completed: Question,
-  "On Hold": Cog,
-  "Closed To Enrollment": Cog,
-  "Open To Enrollment": Cog,
-  Discontinued: Rocket,
-  "In Development": Cog,
+  Failure: Cog,
+  "In Progress": Rocket,
 };
 
 const SelectiveCell = ({ row, column: { accessor } }) => {
   const onboardingprogress = row[accessor];
-  const Icon = obIcons[onboardingprogress] || Question;
+  const Icon = obIcons[onboardingprogress] || "noIcon";
+  if (Icon === "noIcon") {
+    return (
+      <div style={{ position: "relative", marginLeft: 25 }}>
+        {onboardingprogress}
+      </div>
+    );
+  }
   return (
     <div style={{ position: "relative" }}>
       <Icon
         fontSize="small"
         style={{ position: "relative", top: 5, marginRight: 5 }}
       />
-      {onboardingprogress || "Unknown"}
+      {onboardingprogress}
     </div>
   );
 };
