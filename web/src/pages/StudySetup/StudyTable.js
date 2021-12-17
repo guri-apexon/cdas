@@ -141,7 +141,7 @@ const createAutocompleteFilter =
     );
   };
 
-const obs = ["Failure", "Completed", "In Progress"];
+const obs = ["Failure", "Success", "In Progress"];
 
 const phases = [
   "Phase 4",
@@ -331,7 +331,6 @@ export default function StudyTable({ studyData, refreshData }) {
           truncate: true,
         }}
         columnSettings={{ enabled: true }}
-        showFilterIcon
         CustomHeader={(props) => (
           <CustomButtonHeader downloadFile={downloadFile} {...props} />
         )}
