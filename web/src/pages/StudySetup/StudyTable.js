@@ -84,17 +84,16 @@ export default function StudyTable({ studyData, refreshData }) {
   // console.log("rowsWith", rowsWithExtra, rows, studyData);
   const { studyboardData } = studyData;
   const downloadElementRef = useRef();
-  const [selectedFilter, setSelectedFilter] = useState([]);
-  const [selectedSorting, setSelectedSorting] = useState([]);
+  // const [selectedFilter, setSelectedFilter] = useState([]);
+  // const [selectedSorting, setSelectedSorting] = useState([]);
 
-  const updateFilters = ({ accessor, value }) => {
-    const temp = [...selectedFilter, { accessor, value }];
-    console.log("filterpart", accessor, value, temp);
-    // setSelectedFilter(temp);
-  };
+  // const updateFilters = ({ accessor, filters, value }) => {
+  //   const temp = [...selectedFilter, { accessor, value }];
+  //   console.log("filterpart", filters, accessor, value);
+  //   setSelectedFilter(temp);
+  // };
 
   const TextFieldFilter = ({ accessor, filters, updateFilterValue }) => {
-    updateFilters(accessor, updateFilterValue);
     return (
       <TextField
         value={filters[accessor]}
