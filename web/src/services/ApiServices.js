@@ -12,17 +12,6 @@ const searchStudy = async (searchQuery = "") => {
 
 export default searchStudy;
 
-export const getNotOnBoardedStudiesStat = () => {
-  return axios
-    .get(`${baseURL}/v1/api/study/notonboarded-studies-stat`)
-    .then((res) => {
-      return res.data?.data || [];
-    })
-    .catch((err) => {
-      console.log(err);
-    });
-};
-
 export const userLogOut = () => {
   return axios
     .get(`${baseURL}/logout`)

@@ -9,7 +9,11 @@ import { useDispatch, useSelector } from "react-redux";
 
 import StudyNotOnboarded from "./StudyNotOnboarded";
 import StudyTable from "./StudyTable";
-import { getStudyboardData } from "../../store/actions/StudyBoardAction";
+import {
+  getStudyboardData,
+  getNotOnBordedStatus,
+} from "../../store/actions/StudyBoardAction";
+
 import AddStudyModal from "../../components/AddStudyModal/AddStudyModal";
 
 const StudySetup = () => {
@@ -19,6 +23,7 @@ const StudySetup = () => {
 
   const refreshData = () => {
     dispatch(getStudyboardData());
+    dispatch(getNotOnBordedStatus());
   };
 
   useEffect(() => {
@@ -46,7 +51,7 @@ const StudySetup = () => {
           Add New Study
         </Button>
       </div>
-      <StudyNotOnboarded />
+      <StudyNotOnboarded studyData={studyData} />
       <StudyTable studyData={studyData} refreshData={refreshData} />
     </div>
   );

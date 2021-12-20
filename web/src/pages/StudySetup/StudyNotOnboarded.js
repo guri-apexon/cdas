@@ -8,11 +8,11 @@ import Paper from "apollo-react/components/Paper";
 import Typography from "apollo-react/components/Typography";
 import ApolloProgress from "apollo-react/components/ApolloProgress";
 import Box from "apollo-react/components/Box";
-import { getNotOnBoardedStudiesStat } from "../../services/ApiServices";
 import { ReactComponent as InProgressIcon } from "./Icon_In-progress_72x72.svg";
 import { ReactComponent as InFailureIcon } from "./Icon_Failure_72x72.svg";
 
-const StudyNotOnboarded = () => {
+export default function StudyNotOnboarded({ studyData }) {
+  const { notOnBoardedStudyStatus } = studyData;
   const [totalCount, setTotalCount] = useState(0);
   const [totalInProgress, setInprogressCount] = useState(0);
   const [totalFailures, setFailureCouut] = useState(0);
@@ -25,20 +25,16 @@ const StudyNotOnboarded = () => {
   };
 
   useEffect(() => {
-    getNotOnBoardedStudiesStat()
-      .then((res) => {
-        const inprogressCount = parseInt(res.inprogress_count, 10);
-        const faliureCount = parseInt(res.faliure_count, 10);
-        setTotalCount(inprogressCount + faliureCount);
-        setInprogressCount(inprogressCount);
-        setFailureCouut(faliureCount);
-        setIsnLoading(false);
-      })
-      .catch((err) => {
-        console.log(err);
-        setIsnLoading(false);
-      });
-  }, []);
+    const inprogressCount =
+      parseInt(notOnBoardedStudyStatus?.inprogress_count, 10) || 0;
+    const faliureCount =
+      parseInt(notOnBoardedStudyStatus?.faliure_count, 10) || 0;
+    setTotalCount(inprogressCount + faliureCount);
+    setInprogressCount(inprogressCount);
+    setFailureCouut(faliureCount);
+    setIsnLoading(false);
+  }, [notOnBoardedStudyStatus]);
+
   return (
     <div className="studies-not-onboarded">
       {isLoading && (
@@ -48,7 +44,7 @@ const StudyNotOnboarded = () => {
       )}
       <Accordion
         variant="alternate"
-        defaultExpanded={totalCount > 0 || false}
+        defaultExpanded={true ?? totalCount > 0}
         style={{ marginTop: "60px" }}
       >
         <AccordionSummary>
@@ -92,6 +88,4 @@ const StudyNotOnboarded = () => {
       </Accordion>
     </div>
   );
-};
-
-export default StudyNotOnboarded;
+}
