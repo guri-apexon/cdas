@@ -121,7 +121,7 @@ const menuItems = [
 
 const useStyles = makeStyles(styles);
 
-const TopNavbar = ({ history, location: { pathname } }) => {
+const TopNavbar = ({ history, location: { pathname }, setLoggedIn }) => {
   const classes = useStyles();
   const [panelOpen, setpanelOpen] = useState(true);
   const [notLoggedOutErr, setNotLoggedOutErr] = useState(false);
@@ -147,6 +147,7 @@ const TopNavbar = ({ history, location: { pathname } }) => {
     if (isLogout) {
       const deleted = await deleteAllCookies();
       if (deleted) {
+        setLoggedIn(false);
         history.push("/logout");
         setOpen(false);
       }

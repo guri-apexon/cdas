@@ -62,7 +62,7 @@ const CDASWrapper = () => {
     <Suspense fallback={<Loader isInner />}>
       {loggedIn ? (
         <div className="page-wrapper">
-          <TopNavbar />
+          <TopNavbar setLoggedIn={setLoggedIn} />
           <Switch>
             <Route
               path="/launchpad"
