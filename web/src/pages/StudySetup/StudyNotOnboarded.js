@@ -11,12 +11,17 @@ import Box from "apollo-react/components/Box";
 import { ReactComponent as InProgressIcon } from "./Icon_In-progress_72x72.svg";
 import { ReactComponent as InFailureIcon } from "./Icon_Failure_72x72.svg";
 
-export default function StudyNotOnboarded({ studyData, selectedStatus }) {
+export default function StudyNotOnboarded({
+  studyData,
+  selectedStatus,
+  selectedFilter,
+}) {
   const { notOnBoardedStudyStatus } = studyData;
   const [totalCount, setTotalCount] = useState(0);
   const [totalInProgress, setInprogressCount] = useState(0);
   const [totalFailures, setFailureCouut] = useState(0);
   const [isLoading, setIsnLoading] = useState(true);
+  const [status, setStatus] = useState(null);
 
   const styles = {
     padding: "45px 15px",
@@ -34,6 +39,10 @@ export default function StudyNotOnboarded({ studyData, selectedStatus }) {
     setFailureCouut(faliureCount);
     setIsnLoading(false);
   }, [notOnBoardedStudyStatus]);
+
+  useEffect(() => {
+    setStatus(selectedFilter);
+  }, [selectedFilter]);
 
   return (
     <div className="studies-not-onboarded">
@@ -57,7 +66,9 @@ export default function StudyNotOnboarded({ studyData, selectedStatus }) {
             <Grid item xs={3}>
               <Paper
                 style={styles}
-                className="in-progress-box"
+                className={`in-progress-box ${
+                  status === "In Progress" ? "selected" : null
+                }`}
                 onClick={() => selectedStatus("In Progress")}
               >
                 <div className="full-width">
@@ -75,7 +86,9 @@ export default function StudyNotOnboarded({ studyData, selectedStatus }) {
             <Grid item xs={3}>
               <Paper
                 style={styles}
-                className="failure-box"
+                className={`failure-box ${
+                  status === "Failed" ? "selected" : null
+                }`}
                 onClick={() => selectedStatus("Failed")}
               >
                 <div className="full-width">

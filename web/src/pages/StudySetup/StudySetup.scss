@@ -31,11 +31,21 @@
         border: 1px solid #D9D9D9;
         border-radius: 4px;
         background-color: #FFFFFF;
-        & :hover{
-            cursor: pointer;
-        }
     }/*  */
-    .failure-box{
+    .in-progress-box.selected {
+        background-color: #ECF3FF;
+        border: 1px solid #10558a;
+    }
+    .failure-box.selected {
+        background-color: #FDEBEB;
+        border: 1px solid #E20000;
+    }
+    .in-progress-box:hover{
+        cursor: pointer;
+        border: 1px solid #10558a;
+    }
+    .failure-box:hover{
+        cursor: pointer;
         border: 1px solid #E20000;
     }
     .loader-container {
