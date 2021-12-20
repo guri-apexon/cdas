@@ -9,16 +9,26 @@ import { useDispatch, useSelector } from "react-redux";
 
 import StudyNotOnboarded from "./StudyNotOnboarded";
 import StudyTable from "./StudyTable";
-import { getStudyboardData } from "../../store/actions/StudyBoardAction";
+import {
+  getStudyboardData,
+  getNotOnBordedStatus,
+} from "../../store/actions/StudyBoardAction";
+
 import AddStudyModal from "../../components/AddStudyModal/AddStudyModal";
 
 const StudySetup = () => {
   const dispatch = useDispatch();
   const studyData = useSelector((state) => state.studyBoard);
   const [addStudyOpen, setAddStudyOpen] = useState(false);
-
+  const [selectedFilter, setSelectedFilter] = useState("");
   const refreshData = () => {
     dispatch(getStudyboardData());
+    dispatch(getNotOnBordedStatus());
+    setSelectedFilter("");
+  };
+
+  const selectedStatus = (val) => {
+    setSelectedFilter(val);
   };
 
   useEffect(() => {
@@ -46,8 +56,15 @@ const StudySetup = () => {
           Add New Study
         </Button>
       </div>
-      <StudyNotOnboarded />
-      <StudyTable studyData={studyData} refreshData={refreshData} />
+      <StudyNotOnboarded
+        studyData={studyData}
+        selectedStatus={selectedStatus}
+      />
+      <StudyTable
+        studyData={studyData}
+        refreshData={refreshData}
+        selectedFilter={selectedFilter}
+      />
     </div>
   );
 };
