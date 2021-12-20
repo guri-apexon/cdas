@@ -11,9 +11,7 @@ import CAIcon from "./CA_ICON_96x96.svg";
 import CDMIcon from "./CDM_ICON_96x96.svg";
 import CDRIcon from "./CDR_ICON_96x96.svg";
 import DSWIcon from "./DSW_ICON_96x96.svg";
-
 import "./LaunchPad.scss";
-import AddStudyModal from "../../components/AddStudyModal/AddStudyModal";
 
 const productArr = [
   {
@@ -60,7 +58,6 @@ const productArr = [
 
 const LaunchPad = () => {
   const history = useHistory();
-  const [addStudyOpen, setAddStudyOpen] = useState(false);
 
   return (
     <div className="lauchpad-wrapper">
@@ -74,18 +71,10 @@ const LaunchPad = () => {
             variant="secondary"
             icon={ArrowRight}
             style={{ marginRight: 10 }}
-            onClick={
-              () => setAddStudyOpen(!addStudyOpen)
-              // eslint-disable-next-line spaced-comment
-              /*history.push("study-admin") */
-            }
+            onClick={() => history.push("study-setup")}
           >
             Quick Link to Study Setup
           </Button>
-          <AddStudyModal
-            open={addStudyOpen}
-            onClose={() => setAddStudyOpen(false)}
-          />
         </div>
       </div>
       <div className="products">
