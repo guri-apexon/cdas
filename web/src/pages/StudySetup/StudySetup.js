@@ -3,13 +3,14 @@ import React, { useEffect, useState } from "react";
 import "./StudySetup.scss";
 import Typography from "apollo-react/components/Typography";
 import PlusIcon from "apollo-react-icons/Plus";
-import FileAccountPlan from "apollo-react-icons/FileAccountPlan";
 import Button from "apollo-react/components/Button";
 import { useDispatch, useSelector } from "react-redux";
 import Backdrop from "apollo-react/components/Backdrop";
 import CircularProgress from "apollo-react/components/CircularProgress";
 import StudyNotOnboarded from "./StudyNotOnboarded";
 import StudyTable from "./StudyTable";
+import { ReactComponent as StudyDataIcon } from "./Icon_StudyData_72x72.svg";
+
 import {
   getStudyboardData,
   getNotOnBordedStatus,
@@ -47,7 +48,11 @@ const StudySetup = () => {
       />
       <div className="header-section">
         <div className="header-title">
-          <FileAccountPlan style={{ marginRight: "18px" }} />
+          <StudyDataIcon
+            height="24"
+            width="24"
+            style={{ marginRight: "18px" }}
+          />
           <Typography variant="title1">Study Setup</Typography>
         </div>
         <Button
