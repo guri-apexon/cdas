@@ -18,7 +18,7 @@ export function* fetchStudyboardData() {
       `${baseURL}/${STUDYBOARD_DATA_FETCH}`,
       {}
     );
-    console.log("study", studyboardData);
+    // console.log("study", studyboardData);
     yield put({
       type: STUDYBOARD_FETCH_SUCCESS,
       studyboardData: studyboardData.data.data,

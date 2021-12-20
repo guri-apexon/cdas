@@ -1,6 +1,6 @@
 /* eslint-disable jsx-a11y/no-static-element-interactions */
 /* eslint-disable react/no-array-index-key */
-import React, { useState } from "react";
+import React from "react";
 import ArrowRight from "apollo-react-icons/ArrowRight";
 import Button from "apollo-react/components/Button";
 import Typography from "apollo-react/components/Typography";
