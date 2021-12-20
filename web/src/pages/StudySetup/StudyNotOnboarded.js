@@ -11,7 +11,7 @@ import Box from "apollo-react/components/Box";
 import { ReactComponent as InProgressIcon } from "./Icon_In-progress_72x72.svg";
 import { ReactComponent as InFailureIcon } from "./Icon_Failure_72x72.svg";
 
-export default function StudyNotOnboarded({ studyData }) {
+export default function StudyNotOnboarded({ studyData, selectedStatus }) {
   const { notOnBoardedStudyStatus } = studyData;
   const [totalCount, setTotalCount] = useState(0);
   const [totalInProgress, setInprogressCount] = useState(0);
@@ -55,7 +55,11 @@ export default function StudyNotOnboarded({ studyData }) {
           <Grid container spacing={2}>
             <Grid item xs={3} />
             <Grid item xs={3}>
-              <Paper style={styles} className="in-progress-box">
+              <Paper
+                style={styles}
+                className="in-progress-box"
+                onClick={() => selectedStatus("In Progress")}
+              >
                 <div className="full-width">
                   <InProgressIcon />
                   <Typography
@@ -69,7 +73,11 @@ export default function StudyNotOnboarded({ studyData }) {
               </Paper>
             </Grid>
             <Grid item xs={3}>
-              <Paper style={styles} className="failure-box">
+              <Paper
+                style={styles}
+                className="failure-box"
+                onClick={() => selectedStatus("Failed")}
+              >
                 <div className="full-width">
                   <InFailureIcon />
                   <Typography

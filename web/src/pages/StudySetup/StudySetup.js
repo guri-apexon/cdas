@@ -20,10 +20,14 @@ const StudySetup = () => {
   const dispatch = useDispatch();
   const studyData = useSelector((state) => state.studyBoard);
   const [addStudyOpen, setAddStudyOpen] = useState(false);
-
+  const [selectedFilter, setSelectedFilter] = useState("");
   const refreshData = () => {
     dispatch(getStudyboardData());
     dispatch(getNotOnBordedStatus());
+  };
+
+  const selectedStatus = (val) => {
+    setSelectedFilter(val);
   };
 
   useEffect(() => {
@@ -51,8 +55,15 @@ const StudySetup = () => {
           Add New Study
         </Button>
       </div>
-      <StudyNotOnboarded studyData={studyData} />
-      <StudyTable studyData={studyData} refreshData={refreshData} />
+      <StudyNotOnboarded
+        studyData={studyData}
+        selectedStatus={selectedStatus}
+      />
+      <StudyTable
+        studyData={studyData}
+        refreshData={refreshData}
+        selectedFilter={selectedFilter}
+      />
     </div>
   );
 };

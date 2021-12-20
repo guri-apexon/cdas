@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import Table, {
   compareDates,
   compareNumbers,
@@ -178,13 +178,16 @@ const SelectiveCell = ({ row, column: { accessor } }) => {
   );
 };
 
-export function createStringArraySearchFilter(accessor) {
+export function createStringArraySearchFilter(accessor, filterStr = "") {
   return (row, filters) =>
     !Array.isArray(filters[accessor]) ||
     filters[accessor].length === 0 ||
-    filters[accessor].some(
-      (value) => value.toUpperCase() === row[accessor]?.toUpperCase()
-    );
+    filters[accessor].some((value) => {
+      if (filterStr) {
+        return filterStr.toUpperCase() === row[accessor]?.toUpperCase();
+      }
+      return value.toUpperCase() === row[accessor]?.toUpperCase();
+    });
 }
 
 const CustomButtonHeader = ({ toggleFilters, downloadFile }) => (
@@ -209,9 +212,13 @@ const CustomButtonHeader = ({ toggleFilters, downloadFile }) => (
   </div>
 );
 
-export default function StudyTable({ studyData, refreshData }) {
+export default function StudyTable({ studyData, refreshData, selectedFilter }) {
   // console.log("rowsWith", rowsWithExtra, rows, studyData);
   const { studyboardData } = studyData;
+
+  useEffect(() => {
+    createStringArraySearchFilter("onboardingprogress", selectedFilter);
+  }, [selectedFilter]);
 
   const columns = [
     {
@@ -308,7 +315,6 @@ export default function StudyTable({ studyData, refreshData }) {
   ];
 
   const downloadFile = () => {};
-
   return (
     <div className="study-table">
       <Table
