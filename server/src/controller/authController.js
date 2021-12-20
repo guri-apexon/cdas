@@ -36,12 +36,11 @@ const getToken = (code, clientId, clientSecret, callbackUrl, ssoUrl) => {
 };
 
 // Handler for the /sda path
-const authHandler = async (req, res) => {
-  // read the code from the request
-  const { code } = req.query;
-
+exports.authHandler = async (req, res) => {
   // Get the token
   try {
+    // read the code from the request
+    const { code } = req.query;
     const CLIENT_ID = process.env.SDA_CLIENT_ID;
     const CLIENT_SECRET = process.env.SDA_CLIENT_SECRET;
     const CALLBACK_URL = process.env.SDA_CALLBACK_URL;
@@ -110,35 +109,19 @@ const authHandler = async (req, res) => {
     // res.cookie("userDetails", userDetails);
 
     console.debug(userDetails);
-    // Do the upsert if it fails do not stop.
-    //   try {
-    //     const unpwAdminCfg = `${process.env.MULE_ADMINCFG_BASIC_AUTH_USERNAME}:${process.env.MULE_ADMINCFG_BASIC_AUTH_PASSWORD}`;
-    //     const base64Encoded = btoa(unpwAdminCfg);
-    //     const userAddUpdUrl = `${process.env.ADMINCFGAPI_ENDPOINT}/api/admin/users/${resp.data.userid}`;
-    //     const url = new URL(userAddUpdUrl);
-    //     const userAddUpd = await axios.post(userAddUpdUrl, userDetails, {
-    //       headers: {
-    //         Authorization: `Basic ${base64Encoded}`,
-    //         tid: resp.data.userid + url.pathname + moment().unix(),
-    //       },
-    //     });
-    //     // console.info(userAddUpd);
-    //   } catch (err) {
-    //     console.error(err);
-    //   }
     Logger.info({
       message: "authHandler",
     });
 
     res.redirect("http://localhost:3000/launchpad");
-    localStorage.setItem("userDetails", userDetails);
   } catch (e) {
     // console.error(e);
     Logger.error(e);
+    res.redirect("http://localhost:3000/not-authenticated");
   }
 };
 
-const logoutHandler = async (req, res) => {
+exports.logoutHandler = async (req, res) => {
   try {
     const SSO_URL = process.env.SDA_SSO_URL;
     //const authStr = "Bearer ".concat(response.access_token);
@@ -149,9 +132,8 @@ const logoutHandler = async (req, res) => {
     Logger.info({
       message: "LogOut",
     });
-    const ok = resp.status > 199 && resp.status < 400
-    console.log(resp.status, "status", ok)
-    if(!ok) {
+    const ok = resp.status > 199 && resp.status < 400;
+    if (!ok) {
       return res.status(resp.status).json(false);
     } else {
       return res.status(200).json(true);
@@ -162,6 +144,3 @@ const logoutHandler = async (req, res) => {
     return apiResponse.ErrorResponse(res, e);
   }
 };
-
-exports.authHandler = authHandler;
-exports.logoutHandler = logoutHandler;

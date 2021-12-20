@@ -1,17 +1,18 @@
 import { withRouter } from "react-router";
 import Modal from "apollo-react/components/Modal";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./AddStudyModal.scss";
-import { useEffect } from "react";
 import Typography from "apollo-react/components/Typography";
 import Search from "apollo-react/components/Search";
 import Table from "apollo-react/components/Table";
-import { searchStudy } from "../../services/ApiServices";
 import Box from "apollo-react/components/Box";
 import Button from "apollo-react/components/Button";
 import ChevronLeft from "apollo-react-icons/ChevronLeft";
 import ApolloProgress from "apollo-react/components/ApolloProgress";
-import Highlighted from '../Common/Highlighted';
+
+import searchStudy from "../../services/ApiServices";
+import Highlighted from "../Common/Highlighted";
+import { debounceFunction } from "../../utils";
 
 const Label = ({ children }) => {
   return (
@@ -27,49 +28,50 @@ const Value = ({ children }) => {
     </Typography>
   );
 };
-const AddStudyModal = ({ history, location: { pathname }, open, onClose }) => {
+const AddStudyModal = ({ open, onClose }) => {
   const [openModal, setOpenModal] = useState(open);
   const [searchTxt, setSearchTxt] = useState("");
   const [studies, setStudies] = useState([]);
   const [selectedStudy, setSelectedStudy] = useState(null);
   const [loading, setLoading] = useState(false);
-  const btnArr = [
-    {label: 'Cancel', size: 'small', className: 'cancel-btn'}
-  ];
+  const btnArr = [{ label: "Cancel", size: "small", className: "cancel-btn" }];
   const allBtnArr = [
     ...btnArr,
-    { label: 'Import and Assign later', size: 'small', disabled: true}, 
-    { label: 'Import and Assign Users', size: 'small', disabled: true }
+    { label: "Import and Assign later", size: "small", disabled: true },
+    { label: "Import and Assign Users", size: "small", disabled: true },
   ];
 
   const setDetail = (study) => {
     setSelectedStudy(study);
   };
+
   const FormatCell = ({ row, column: { accessor } }) => {
     return (
-      <div onClick={() => setDetail(row)}>
-      <Highlighted text={row[accessor]} highlight={searchTxt} />
+      // eslint-disable-next-line jsx-a11y/click-events-have-key-events
+      <div onClick={() => setDetail(row)} role="menu" tabIndex={0}>
+        <Highlighted text={row[accessor]} highlight={searchTxt} />
       </div>
     );
   };
+
   const columns = [
     {
       header: "Protocol Number",
       accessor: "prot_nbr",
       customCell: FormatCell,
-      width: '34%'
+      width: "34%",
     },
     {
       header: "Sponsor",
       accessor: "spnsr_nm",
       customCell: FormatCell,
-      width: '41%'
+      width: "41%",
     },
     {
       header: "Project Code",
       accessor: "project_code",
       customCell: FormatCell,
-      width: '25%'
+      width: "25%",
     },
   ];
   const handleClose = () => {
@@ -79,14 +81,16 @@ const AddStudyModal = ({ history, location: { pathname }, open, onClose }) => {
   const backToSearch = () => {
     setSelectedStudy(null);
   };
-  const searchTrigger = async (e) => {
-    if (e.key === "Enter") {
+  const searchTrigger = (e) => {
+    const newValue = e.target.value;
+    setSearchTxt(newValue);
+    debounceFunction(async () => {
       setLoading(true);
-      const studies = await searchStudy(searchTxt);
-      console.log("event", searchTxt, studies);
-      setStudies(studies);
+      const newStudies = await searchStudy(newValue);
+      console.log("event", newValue, newStudies);
+      setStudies(newStudies);
       setLoading(false);
-    }
+    }, 1000);
   };
   useEffect(() => {
     setOpenModal(open);
@@ -113,7 +117,7 @@ const AddStudyModal = ({ history, location: { pathname }, open, onClose }) => {
                 size="small"
                 onClick={backToSearch}
               >
-                <ChevronLeft style={{ width: 12, marginRight: 5 }} width={10} />{" "}
+                <ChevronLeft style={{ width: 12, marginRight: 5 }} width={10} />
                 Back to search
               </Button>
               <Typography className="title" variant="title2">
@@ -149,28 +153,28 @@ const AddStudyModal = ({ history, location: { pathname }, open, onClose }) => {
           ) : (
             <>
               <Typography variant="caption">Search for a study</Typography>
-              {/* <form onSubmit={searchTrigger}> */}
               <Search
-                onKeyDown={searchTrigger}
+                // onKeyDown={searchTrigger}
                 placeholder="Search"
                 value={searchTxt}
-                onChange={(e) => setSearchTxt(e.target.value)}
+                onChange={searchTrigger}
                 fullWidth
               />
-              {/* </form> */}
               {loading ? (
-              <Box display='flex' className="loader-container">
-              <ApolloProgress />
-              </Box>
+                <Box display="flex" className="loader-container">
+                  <ApolloProgress />
+                </Box>
               ) : (
                 <Table
-                  hasScroll={true}
-                  isSticky={true}
                   columns={columns}
                   rows={studies}
                   rowId="employeeId"
                   hidePagination
-                  maxHeight={"40vh"}
+                  maxHeight="40vh"
+                  emptyProps={{
+                    text:
+                      searchTxt === "" && !loading ? "" : "No data to display",
+                  }}
                 />
               )}
             </>

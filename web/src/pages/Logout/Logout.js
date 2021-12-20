@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import Modal from "apollo-react/components/Modal";
 
 import "./Logout.scss";

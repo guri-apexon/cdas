@@ -1,20 +1,20 @@
-import moment from 'moment'
+import moment from "moment";
 
-export const getUrl = (apiPath) => {
-  return (
-    window.location.protocol +
-    "//" +
-    window.location.hostname +
-    ":4000" +
-    apiPath
-  );
-};
+// export const getURL = (apiPath) => {
+//   return (
+//     // eslint-disable-next-line prefer-template
+//     window.location.protocol +
+//     "//" +
+//     window.location.hostname +
+//     ":443" +
+//     apiPath
+//   );
+// };
 
- 
 export const getCookie = (key) => {
   const b = document.cookie.match(`(^|;)\\s*${key}\\s*=\\s*([^;]+)`);
   return b ? b.pop() : "";
-}
+};
 
 // URL Related
 export function getQueryParams(query) {
@@ -36,28 +36,65 @@ export function getPathnameAndSearch(path) {
   };
 }
 
+export const getHeaderValue = (accessor) => {
+  switch (accessor) {
+    case "protocolnumber":
+      return "Protocol Number";
+    case "sponsorname":
+      return "Sponsor Name";
+    case "phase":
+      return "Phase";
+    case "protocolstatus":
+      return "Protocol Status";
+    case "dateadded":
+      return "Date Added";
+    case "dateedited":
+      return "Date Edited";
+    case "onboardingprogress":
+      return "Onboarding Progress";
+    case "assignmentcount":
+      return "Assignment Count";
+    case "therapeuticarea":
+      return "Therapeutic Area";
+    case "projectcode":
+      return "Project Code";
+    default:
+      return "";
+  }
+};
+
 export function getLastLogin() {
-  const current_login = getCookie('user.last_login_ts')
-  const local_date = moment.unix(current_login).local();
-  return local_date.format("DD-MMM-YYYY hh:mm A"); 
+  const currentLogin = getCookie("user.last_login_ts");
+  const localDate = moment.unix(currentLogin).local();
+  return localDate.format("DD-MMM-YYYY hh:mm A");
 }
 
 export function deleteAllCookies() {
-  var cookies = document.cookie.split(";");
+  const cookies = document.cookie.split(";");
 
-  for (var i = 0; i < cookies.length; i++) {
-      var cookie = cookies[i];
-      var eqPos = cookie.indexOf("=");
-      var name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
-        document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
+  // eslint-disable-next-line no-plusplus
+  for (let i = 0; i < cookies.length; i++) {
+    const cookie = cookies[i];
+    const eqPos = cookie.indexOf("=");
+    const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+    // eslint-disable-next-line prefer-template
+    document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
   }
   return true;
 }
 
 export function getUserInfo() {
   return {
-    full_name : getCookie('user.first_name') + " " +getCookie('user.last_name'),
-    user_email : decodeURIComponent(getCookie('user.email')),
-    last_login : getLastLogin()
-  }
+    full_name: `${getCookie("user.first_name")} ${getCookie("user.last_name")}`,
+    user_email: decodeURIComponent(getCookie("user.email")),
+    last_login: getLastLogin(),
+  };
 }
+
+let timerId;
+export const debounceFunction = (func, delay) => {
+  // Cancels the setTimeout method execution
+  clearTimeout(timerId);
+  // Executes the func after delay time.
+  timerId = setTimeout(func, delay);
+};

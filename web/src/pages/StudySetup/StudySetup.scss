@@ -31,7 +31,7 @@
         border: 1px solid #D9D9D9;
         border-radius: 4px;
         background-color: #FFFFFF;
-    }
+    }/*  */
     .failure-box{
         border: 1px solid #E20000;
     }
@@ -54,3 +54,14 @@
     }
 }
 
+.study-setup-wrapper{
+    margin: 28px;
+}
+
+.study-table{
+    margin-top: 28px;
+
+    .MuiToolbar-regular > div{
+        display: flex;
+    }
+}

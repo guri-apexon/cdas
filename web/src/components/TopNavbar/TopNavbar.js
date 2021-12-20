@@ -1,20 +1,27 @@
-import { withRouter, useHistory } from "react-router";
+/* eslint-disable react/jsx-one-expression-per-line */
+/* eslint-disable prettier/prettier */
+/* eslint-disable no-shadow */
+import { withRouter } from "react-router";
+import { useState } from "react";
 import NavigationBar from "apollo-react/components/NavigationBar";
 import makeStyles from "@material-ui/core/styles/makeStyles";
 import { neutral7 } from "apollo-react/colors";
 import Typography from "apollo-react/components/Typography";
-import Backdrop from 'apollo-react/components/Backdrop';
-import CircularProgress from 'apollo-react/components/CircularProgress';
-import Banner from 'apollo-react/components/Banner';
+import Backdrop from "apollo-react/components/Backdrop";
+import CircularProgress from "apollo-react/components/CircularProgress";
+import Banner from "apollo-react/components/Banner";
 import App from "apollo-react-icons/App";
 import DashboardIcon from "apollo-react-icons/Dashboard";
 import Question from "apollo-react-icons/Question";
 import moment from "moment";
 import Button from "apollo-react/components/Button";
+
 import NavigationPanel from "../NavigationPanel/NavigationPanel";
-import { useState } from "react";
-import { getUserInfo, deleteAllCookies } from "../../utils";
+// eslint-disable-next-line import/named
+import { getCookie, deleteAllCookies } from "../../utils/index";
+// eslint-disable-next-line import/named
 import { userLogOut } from "../../services/ApiServices";
+
 const styles = {
   root: {
     display: "flex",
@@ -116,33 +123,38 @@ const useStyles = makeStyles(styles);
 
 const TopNavbar = ({ history, location: { pathname } }) => {
   const classes = useStyles();
-  const histr = useHistory();
   const [panelOpen, setpanelOpen] = useState(true);
   const [notLoggedOutErr, setNotLoggedOutErr] = useState(false);
   const [open, setOpen] = useState(false);
-  const userInfo = getUserInfo();
   const profileMenuProps = {
-    name: userInfo.full_name, 
-    title: userInfo.user_email,
-    email: <span style={{ fontSize: '13px' }}>Last Login: {userInfo.last_login}</span>,
-    logoutButtonProps: { onClick:  () => LogOut() },
+    name: decodeURIComponent(
+      `${getCookie("user.first_name")} ${getCookie("user.last_name")}`
+    ),
+    title: decodeURIComponent(getCookie("user.email")),
+    email: (
+      <span style={{ fontSize: "13px" }}>
+        Last Login: {getCookie("user.current_login_ts")}
+      </span>
+    ),
+    // eslint-disable-next-line no-use-before-define
+    logoutButtonProps: { onClick: () => LogOut() },
     menuItems: [],
   };
 
   const LogOut = async () => {
-    setOpen(true)
+    setOpen(true);
     const isLogout = await userLogOut();
-    if(isLogout) {
-      const deleted = await deleteAllCookies()
-      if(deleted) {
-        histr.push("/logout");
-        setOpen(false)
+    if (isLogout) {
+      const deleted = await deleteAllCookies();
+      if (deleted) {
+        history.push("/logout");
+        setOpen(false);
       }
     } else {
-      setNotLoggedOutErr(true)
-      setOpen(false)
+      setNotLoggedOutErr(true);
+      setOpen(false);
     }
-  }
+  };
 
   const notificationsMenuProps = {
     newNotifications: true,
@@ -156,6 +168,7 @@ const TopNavbar = ({ history, location: { pathname } }) => {
     ],
   };
   const toggleMenu = () => {
+    // eslint-disable-next-line no-shadow
     setpanelOpen((panelOpen) => !panelOpen);
   };
   const onPanelClose = () => {
@@ -163,18 +176,15 @@ const TopNavbar = ({ history, location: { pathname } }) => {
   };
   return (
     <div id="topNavbar">
-      <Backdrop
-        style={{ zIndex: 1 }}
-        open={open}
-      >
-        <CircularProgress variant="indeterminate" size="small"/>
+      <Backdrop style={{ zIndex: 1 }} open={open}>
+        <CircularProgress variant="indeterminate" size="small" />
       </Backdrop>
       <Banner
-          variant="error"
-          open={notLoggedOutErr}
-          onClose={() => setNotLoggedOutErr(false)}
-          message="Error: There is some error in logging out!"
-        />
+        variant="error"
+        open={notLoggedOutErr}
+        onClose={() => setNotLoggedOutErr(false)}
+        message="Error: There is some error in logging out!"
+      />
       <NavigationBar
         LogoComponent={() => (
           <div className={classes.centerAligned}>
@@ -185,9 +195,9 @@ const TopNavbar = ({ history, location: { pathname } }) => {
               className={classes.navLogo}
               onClick={() => history.push("launchpad")}
             >
-              {"IQVIA™"}{" "}
+              IQVIA™
               <span className={classes.bold}>
-                {"Clinical Data Analytics Suite"}
+                Clinical Data Analytics Suite
               </span>
             </Typography>
           </div>
@@ -195,6 +205,7 @@ const TopNavbar = ({ history, location: { pathname } }) => {
         position="static"
         menuItems={menuItems}
         profileMenuProps={profileMenuProps}
+        // eslint-disable-next-line no-shadow
         onClick={({ pathname }) => history.push(pathname)}
         checkIsActive={(item) =>
           item.pathname
@@ -204,6 +215,7 @@ const TopNavbar = ({ history, location: { pathname } }) => {
         waves
         notificationsMenuProps={notificationsMenuProps}
         otherButtons={
+          // eslint-disable-next-line react/jsx-wrap-multilines
           <div className={classes.centerAligned}>
             <Button
               onClick={() => history.push("help")}

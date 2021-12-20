@@ -1,16 +1,16 @@
-import { applyMiddleware, createStore, compose, combineReducers } from "redux";
+import { applyMiddleware, createStore, compose } from "redux";
 import createSagaMiddleware from "redux-saga";
+
+import cdasCoreSaga from "./sagas/sagas";
+import { appReducer } from "./reducers";
 
 const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
 
 const sagaMiddleware = createSagaMiddleware();
 
-const appReducer = combineReducers({});
-
 const rootReducer = (state, action) => {
   console.log(action);
   if (action.type === "LOGOUT_SUCCESS") {
-    localStorage.clear();
     state = undefined;
   }
   return appReducer(state, action);
@@ -21,6 +21,6 @@ const store = createStore(
   composeEnhancers(applyMiddleware(sagaMiddleware))
 );
 
-// sagaMiddleware.run(psatSaga);
+sagaMiddleware.run(cdasCoreSaga);
 
 export default store;
