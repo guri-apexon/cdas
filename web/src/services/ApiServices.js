@@ -13,13 +13,15 @@ const searchStudy = async (searchQuery = "") => {
 export default searchStudy;
 
 export const getNotOnBoardedStudiesStat = () => {
-    return axios.get(`${base_url}/api/study/notonboarded-studies-stat`).then(res=> {
-        console.log(res, "service")
-        return res.data?.data || [];
-    }).catch(err=> {
-
+  return axios
+    .get(`${baseURL}/api/study/notonboarded-studies-stat`)
+    .then((res) => {
+      return res.data?.data || [];
+    })
+    .catch((err) => {
+      console.log(err);
     });
-}
+};
 
 export const userLogOut = () => {
   return axios
