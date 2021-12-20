@@ -123,14 +123,14 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
   ];
 
   const obIcons = {
-    Failed: Cog,
-    "In Progress": Rocket,
+    Failed: InFailureIcon,
+    "In Progress": InProgressIcon,
   };
 
   const SelectiveCell = ({ row, column: { accessor } }) => {
     const onboardingprogress = row[accessor];
-    const Icon = obIcons[onboardingprogress] || "noIcon";
-    if (Icon === "noIcon") {
+    const Img = obIcons[onboardingprogress] || "noIcon";
+    if (Img === "noIcon") {
       return (
         <div style={{ position: "relative", marginLeft: 25 }}>
           {onboardingprogress}
@@ -139,9 +139,14 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
     }
     return (
       <div style={{ position: "relative" }}>
-        <Icon
-          fontSize="small"
-          style={{ position: "relative", top: 5, marginRight: 5 }}
+        <Img
+          style={{
+            position: "relative",
+            top: 5,
+            marginRight: 5,
+            width: 20,
+            height: 20,
+          }}
         />
         {onboardingprogress}
       </div>
