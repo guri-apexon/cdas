@@ -14,7 +14,7 @@ export default searchStudy;
 
 export const getNotOnBoardedStudiesStat = () => {
   return axios
-    .get(`${baseURL}/api/study/notonboarded-studies-stat`)
+    .get(`${baseURL}/v1/api/study/notonboarded-studies-stat`)
     .then((res) => {
       return res.data?.data || [];
     })

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Accordion from "apollo-react/components/Accordion";
 import AccordionDetails from "apollo-react/components/AccordionDetails";
 import AccordionSummary from "apollo-react/components/AccordionSummary";
@@ -6,21 +6,46 @@ import Divider from "apollo-react/components/Divider";
 import Grid from "apollo-react/components/Grid";
 import Paper from "apollo-react/components/Paper";
 import Typography from "apollo-react/components/Typography";
-import Clock from "apollo-react-icons/Clock";
-import StatusExclamation from "apollo-react-icons/StatusExclamation";
+import ApolloProgress from "apollo-react/components/ApolloProgress";
+import Box from "apollo-react/components/Box";
+import { getNotOnBoardedStudiesStat } from "../../services/ApiServices";
+import { ReactComponent as InProgressIcon } from "./Icon_In-progress_72x72.svg";
+import { ReactComponent as InFailureIcon } from "./Icon_Failure_72x72.svg";
 
 const StudyNotOnboarded = () => {
-  const [totalCount] = useState(3);
-  const [totalInProgress] = useState(1);
-  const [totalFailures] = useState(2);
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalInProgress, setInprogressCount] = useState(0);
+  const [totalFailures, setFailureCouut] = useState(0);
+  const [isLoading, setIsnLoading] = useState(true);
+
   const styles = {
     padding: "45px 15px",
     textAlign: "center",
     width: 216,
-    margin: "auto",
   };
+
+  useEffect(() => {
+    getNotOnBoardedStudiesStat()
+      .then((res) => {
+        const inprogressCount = parseInt(res.inprogress_count, 10);
+        const faliureCount = parseInt(res.faliure_count, 10);
+        setTotalCount(inprogressCount + faliureCount);
+        setInprogressCount(inprogressCount);
+        setFailureCouut(faliureCount);
+        setIsnLoading(false);
+      })
+      .catch((err) => {
+        console.log(err);
+        setIsnLoading(false);
+      });
+  }, []);
   return (
     <div className="studies-not-onboarded">
+      {isLoading && (
+        <Box display="flex" className="loader-container">
+          <ApolloProgress />
+        </Box>
+      )}
       <Accordion
         variant="alternate"
         defaultExpanded={totalCount > 0 || false}
@@ -36,13 +61,7 @@ const StudyNotOnboarded = () => {
             <Grid item xs={3}>
               <Paper style={styles} className="in-progress-box">
                 <div className="full-width">
-                  <Clock
-                    style={{
-                      fontSize: 72,
-                      color: "#10558A",
-                      marginBottom: "15px",
-                    }}
-                  />
+                  <InProgressIcon />
                   <Typography
                     variant="title1"
                     gutterBottom
@@ -56,13 +75,7 @@ const StudyNotOnboarded = () => {
             <Grid item xs={3}>
               <Paper style={styles} className="failure-box">
                 <div className="full-width">
-                  <StatusExclamation
-                    style={{
-                      fontSize: 72,
-                      color: "#E20000",
-                      marginBottom: "15px",
-                    }}
-                  />
+                  <InFailureIcon />
                   <Typography
                     variant="title1"
                     gutterBottom

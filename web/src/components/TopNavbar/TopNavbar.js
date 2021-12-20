@@ -18,7 +18,7 @@ import Button from "apollo-react/components/Button";
 
 import NavigationPanel from "../NavigationPanel/NavigationPanel";
 // eslint-disable-next-line import/named
-import { getCookie, deleteAllCookies } from "../../utils/index";
+import { deleteAllCookies, getUserInfo } from "../../utils/index";
 // eslint-disable-next-line import/named
 import { userLogOut } from "../../services/ApiServices";
 
@@ -126,16 +126,11 @@ const TopNavbar = ({ history, location: { pathname }, setLoggedIn }) => {
   const [panelOpen, setpanelOpen] = useState(true);
   const [notLoggedOutErr, setNotLoggedOutErr] = useState(false);
   const [open, setOpen] = useState(false);
+  const userInfo = getUserInfo();
   const profileMenuProps = {
-    name: decodeURIComponent(
-      `${getCookie("user.first_name")} ${getCookie("user.last_name")}`
-    ),
-    title: decodeURIComponent(getCookie("user.email")),
-    email: (
-      <span style={{ fontSize: "13px" }}>
-        Last Login: {getCookie("user.current_login_ts")}
-      </span>
-    ),
+    name: userInfo.full_name,
+    title: userInfo.user_email,
+    email: <span style={{ fontSize: '13px' }}>Last Login: {userInfo.last_login}</span>,
     // eslint-disable-next-line no-use-before-define
     logoutButtonProps: { onClick: () => LogOut() },
     menuItems: [],
