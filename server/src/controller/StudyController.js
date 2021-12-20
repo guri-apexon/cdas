@@ -1,6 +1,7 @@
 const DB = require("../config/db");
 const apiResponse = require("../helpers/apiResponse");
 const Logger = require("../config/logger");
+const moment = require("moment");
 
 /**
  * Study Search List.
@@ -59,17 +60,30 @@ exports.getStudyList = async (req, res) => {
     // const query =
     //   "SELECT prot_nbr as protocolNumber, spnsr_nm as sponsorName, phase as phase, prot_status as protocolStatus, thptc_area as therapeuticArea, project_code as projectCode from cdascore1d.cdascore.cdas_study_master";
 
-    const query = "SELECT prot_nbr as protocolnumber, spnsr_nm as sponsorname, phase, prot_stat as protocolstatus, cs.insrt_tm as dateadded, cs.updt_tm as dateedited, ob_stat as onboardingprogress, cs.usr_descr as assignmentcount, thptc_area as therapeuticarea, proj_cd as projectcode FROM cdascore.cdas_study cs INNER JOIN cdascore.cdas_sponsor cs2 ON cs2.spnsr_id = cs.spnsr_id ORDER BY cs.insrt_tm";
+    const query =
+      "SELECT prot_id, prot_nbr as protocolnumber, spnsr_nm as sponsorname, phase, prot_stat as protocolstatus, cs.insrt_tm as dateadded, cs.updt_tm as dateedited, ob_stat as onboardingprogress, cs.usr_descr as assignmentcount, thptc_area as therapeuticarea, proj_cd as projectcode FROM cdascore.cdas_study cs INNER JOIN cdascore.cdas_sponsor cs2 ON cs2.spnsr_id = cs.spnsr_id ORDER BY cs.insrt_tm";
+    const query2 = "SELECT prot_id, COUNT(DISTINCT usr_id) FROM cdascore.cdas_study_assignment csa GROUP BY prot_id";
+    //
 
     Logger.info({
       message: "getStudyList",
     });
 
     const $data = await DB.executeQuery(query);
+    const $acData = await DB.executeQuery(query2);
+    const formatDateValues = await $data.rows.map((e) => {
+      let editT = moment().format("MM/DD/YYYY");
+      let addT = moment(e.dateadded).format("MM/DD/YYYY");
+      let acc = $acData.rows.filter((d) => d.prot_id === e.prot_id);
+      let newObj = acc[0] ? acc[0] : { count: 0 };
+      let { count } = newObj;
+      return { ...e, "dateadded": addT, "dateedited": editT, "assignmentcount": count };
+    });
+    // console.log('rows', $data.rows, formatDateValues);
     return apiResponse.successResponseWithData(
       res,
       "Operation success",
-      $data.rows
+      formatDateValues
     );
   } catch (err) {
     //throw error in json response with status 500.
