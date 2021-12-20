@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Table, {
   compareDates,
   compareNumbers,
@@ -214,11 +214,11 @@ const CustomButtonHeader = ({ toggleFilters, downloadFile }) => (
 
 export default function StudyTable({ studyData, refreshData, selectedFilter }) {
   // console.log("rowsWith", rowsWithExtra, rows, studyData);
-  const { studyboardData } = studyData;
-
-  useEffect(() => {
-    createStringArraySearchFilter("onboardingprogress", selectedFilter);
-  }, [selectedFilter]);
+  const studyboardData = selectedFilter
+    ? studyData?.studyboardData.filter(
+        (data) => data.onboardingprogress === selectedFilter
+      )
+    : studyData.studyboardData;
 
   const columns = [
     {

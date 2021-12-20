@@ -24,6 +24,7 @@ const StudySetup = () => {
   const refreshData = () => {
     dispatch(getStudyboardData());
     dispatch(getNotOnBordedStatus());
+    setSelectedFilter("");
   };
 
   const selectedStatus = (val) => {
