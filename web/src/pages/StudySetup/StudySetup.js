@@ -59,6 +59,7 @@ const StudySetup = () => {
       <StudyNotOnboarded
         studyData={studyData}
         selectedStatus={selectedStatus}
+        selectedFilter={selectedFilter}
       />
       <StudyTable
         studyData={studyData}
