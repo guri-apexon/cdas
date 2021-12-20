@@ -140,7 +140,7 @@ const createAutocompleteFilter =
     );
   };
 
-const obs = ["Failure", "Success", "In Progress"];
+const obs = ["Failed", "Success", "In Progress"];
 
 const phases = [
   "Phase 4",
@@ -153,7 +153,7 @@ const phases = [
 ];
 
 const obIcons = {
-  Failure: Cog,
+  Failed: Cog,
   "In Progress": Rocket,
 };
 
