@@ -1,108 +1,138 @@
-import { Route, Switch, withRouter, Redirect } from "react-router";
-// import { useHistory } from "react-router-dom";
-import { lazy, Suspense } from "react";
+import { Route, Switch, Redirect } from "react-router";
+import { useHistory } from "react-router-dom";
+import { lazy, Suspense, useState, useEffect } from "react";
 import Loader from "apollo-react/components/Loader";
-import { useState, useEffect } from "react";
 
+import { getCookie } from "../../utils";
 import TopNavbar from "../TopNavbar/TopNavbar";
 import AppFooter from "../AppFooter/AppFooter";
 import StudySetup from "../../pages/StudySetup/StudySetup";
 import UserManagement from "../../pages/UserManagement/UserManagement";
-const UnAuth = lazy(() => import("../../pages/UnAuth/UnAuth"));
-const Auth = lazy(() => import("../../pages/Auth/Auth"));
+import NotAuthenticated from "../../pages/NotAuthenticated/NotAuthenticated";
+import Logout from "../../pages/Logout/Logout";
+
 const LaunchPad = lazy(() => import("../../pages/LaunchPad/LaunchPad"));
 const Analytics = lazy(() => import("../../pages/Analytics/Analytics"));
 
-const CDASWrapper = ({ match }) => {
+const Empty = () => <></>;
+
+const CDASWrapper = () => {
   const [loggedIn, setLoggedIn] = useState(false);
+  const [checkedOnce, setCheckedOnce] = useState(false);
+  const history = useHistory();
 
   const getUrlPath = (route) => {
-    // console.log(`${match.url}${route}`);
     return `${route}`;
   };
-  
-  let userData = JSON.parse(localStorage.getItem('userDetails'));
 
   useEffect(() => {
-    // console.log(window.location.href);
-    if(userData && userData.code){
+    const userId = getCookie("user.id");
+    // console.log("Wrapper-props:", JSON.stringify(props));
+    if (userId) {
       setLoggedIn(true);
+    } else {
+      setLoggedIn(false);
     }
-    console.log(userData)
-  }, [userData])
+  }, [history]);
 
+  useEffect(() => {
+    const userId = getCookie("user.id");
+    console.log(userId);
+    if (userId) {
+      history.push("/launchpad");
+    } else {
+      // eslint-disable-next-line no-lonely-if
+      if (!checkedOnce) {
+        window.location.href = `${process.env.REACT_APP_LAUNCH_URL}`;
+        console.log("dotenv :", process.env.REACT_APP_LAUNCH_URL);
+        setCheckedOnce(true);
+      }
+    }
+  }, [checkedOnce, history]);
+
+  useEffect(() => {
+    if (!loggedIn && checkedOnce) {
+      setTimeout(() => {
+        history.push("/not-authenticated");
+      }, 30000);
+    }
+  }, [checkedOnce, history, loggedIn]);
 
   return (
-    
-    <Suspense fallback={<Loader isInner></Loader>}>
+    <Suspense fallback={<Loader isInner />}>
       {loggedIn ? (
-        <>
-          <TopNavbar />
+        <div className="page-wrapper">
+          <TopNavbar setLoggedIn={setLoggedIn} />
           <Switch>
             <Route
-              path={`/launchpad`}
+              path="/launchpad"
               // path={`${getUrlPath('/dashboard')}`}
               exact
               render={() => <LaunchPad />}
             />
             <Route
-              path={`${getUrlPath('/analytics')}`}
+              path={`${getUrlPath("/analytics")}`}
               exact
               render={() => <Analytics />}
             />
             <Route
-              path={`${getUrlPath('/cdi')}`}
+              path={`${getUrlPath("/cdi")}`}
               exact
-              render={() => <Analytics />}
+              render={() => <Redirect to="/launchpad" />}
             />
             <Route
-              path={`${getUrlPath('/user-management')}`}
+              path={`${getUrlPath("/user-management")}`}
               exact
               render={() => <UserManagement />}
             />
             <Route
-              path={`${getUrlPath('/study-setup')}`}
+              path={`${getUrlPath("/study-setup")}`}
               exact
               render={() => <StudySetup />}
             />
             <Route
-              path={`${getUrlPath('/cdm')}`}
+              path={`${getUrlPath("/cdm")}`}
               exact
-              render={() => <Analytics />}
+              render={() => <Redirect to="/launchpad" />}
             />
             <Route
-              path={`${getUrlPath('/cdr')}`}
+              path={`${getUrlPath("/cdr")}`}
               exact
-              render={() => <Analytics />}
+              render={() => <Redirect to="/launchpad" />}
             />
             <Route
-              path={`${getUrlPath('/ca')}`}
+              path={`${getUrlPath("/ca")}`}
               exact
-              render={() => <Analytics />}
+              render={() => <Redirect to="/launchpad" />}
             />
             <Route
-              path={`${getUrlPath('/dsw')}`}
+              path={`${getUrlPath("/dsw")}`}
               exact
-              render={() => <Analytics />}
+              render={() => <Redirect to="/launchpad" />}
             />
             <Route
-              path={`${getUrlPath('/study-admin')}`}
+              path={`${getUrlPath("/study-admin")}`}
               exact
-              render={() => <Analytics />}
+              render={() => <Redirect to="/launchpad" />}
             />
             <Redirect from="/" to="/launchpad" />
           </Switch>
           <AppFooter />
-        </>
+        </div>
       ) : (
         <Switch>
-          <Route path={`/unauth`} exact render={() => <UnAuth />} />
-          <Route path={`/oauth2client`} render={() => <Auth />} />
-          <Redirect from="/" to="/unauth" />
+          <Route path="/checkAuthentication" exact render={() => <Empty />} />
+          <Route
+            path="/not-authenticated"
+            exact
+            render={() => <NotAuthenticated />}
+          />
+          <Route path="/logout" render={() => <Logout />} />
+          <Redirect from="/" to="/checkAuthentication" />
         </Switch>
       )}
     </Suspense>
   );
 };
 
-export default CDASWrapper
+export default CDASWrapper;
