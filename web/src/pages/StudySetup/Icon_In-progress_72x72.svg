@@ -9,7 +9,7 @@
             <mask id="mask-2" fill="white">
                 <use xlink:href="#path-1"></use>
             </mask>
-            <use id="Combined-Shape" fill="#FFFFFF" xlink:href="#path-1"></use>
+            <use id="Combined-Shape" fill="#10558a" xlink:href="#path-1"></use>
         </g>
     </g>
 </svg>
