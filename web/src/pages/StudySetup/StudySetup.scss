@@ -31,9 +31,29 @@
         border: 1px solid #D9D9D9;
         border-radius: 4px;
         background-color: #FFFFFF;
+        & :hover{
+            cursor: pointer;
+        }
     }/*  */
     .failure-box{
         border: 1px solid #E20000;
+    }
+    .loader-container {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        z-index: 99;
+        background-color: rgba(255,255,255,0.7);
+    }
+    #Icon_In-progress_72x72 {
+        #Combined-Shape{
+            fill: rgb(16, 85, 138);
+        }
+    }
+    #Icon_Failure_72x72 {
+        #Combined-Shape{
+            fill: #E20000;
+        }
     }
 }
 

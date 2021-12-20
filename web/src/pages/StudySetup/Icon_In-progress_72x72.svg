@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="80px" height="80px" viewBox="0 0 80 80" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>Icon_In-progress_72x72</title>
+    <defs>
+        <path d="M36,0 C55.882251,0 72,16.117749 72,36 C72,55.882251 55.882251,72 36,72 C16.117749,72 0,55.882251 0,36 C0,16.117749 16.117749,0 36,0 Z M36,10.2857143 C35.9993317,10.2857143 35.9986634,10.2857143 35.9979951,10.2857144 L35.997,61.714 C50.0595918,61.7142857 61.4837633,50.4307101 61.7108407,36.4252327 L61.7142857,36 C61.7142857,21.7983921 50.2016079,10.2857143 36,10.2857143 Z" id="path-1"></path>
+    </defs>
+    <g id="Icon_In-progress_72x72" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="icon/status/dot-copy-6" transform="translate(4.000000, 4.000000)">
+            <mask id="mask-2" fill="white">
+                <use xlink:href="#path-1"></use>
+            </mask>
+            <use id="Combined-Shape" fill="#FFFFFF" xlink:href="#path-1"></use>
+        </g>
+    </g>
+</svg>
