@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef } from "react";
 import moment from "moment";
 import { CSVLink } from "react-csv";
 
@@ -21,68 +21,16 @@ import FilterIcon from "apollo-react-icons/Filter";
 import RefreshIcon from "apollo-react-icons/Refresh";
 import IconButton from "apollo-react/components/IconButton";
 import { TextField } from "apollo-react/components/TextField/TextField";
+import { ReactComponent as InProgressIcon } from "./Icon_In-progress_72x72.svg";
+import { ReactComponent as InFailureIcon } from "./Icon_Failure_72x72.svg";
 
-// const createAutocompleteFilter =
-//   (source) =>
-//   ({ accessor, filters, updateFilterValue }) => {
-//     const ref = React.useRef();
-//     const [height, setHeight] = React.useState(0);
-//     const [isFocused, setIsFocused] = React.useState(false);
-//     const value = filters[accessor];
+export default function StudyTable({ studyData, refreshData, selectedFilter }) {
+  const studyboardData = selectedFilter
+    ? studyData?.studyboardData.filter(
+        (data) => data.onboardingprogress === selectedFilter
+      )
+    : studyData.studyboardData;
 
-//     React.useEffect(() => {
-//       const curHeight = ref?.current?.getBoundingClientRect().height;
-//       if (curHeight !== height) {
-//         setHeight(curHeight);
-//       }
-//     }, [value, isFocused, height]);
-
-//     return (
-//       <div
-//         style={{
-//           minWidth: 144,
-//           maxWidth: 200,
-//           position: "relative",
-//           height,
-//         }}
-//       >
-//         <AutocompleteV2
-//           style={{ position: "absolute", left: 0, right: 0 }}
-//           value={value ? value.map((label) => ({ label })) : []}
-//           name={accessor}
-//           source={source}
-//           // eslint-disable-next-line no-shadow
-//           onChange={(event, value) =>
-//             updateFilterValue({
-//               target: {
-//                 name: accessor,
-//                 value: value.map(({ label }) => label),
-//               },
-//             })
-//           }
-//           fullWidth
-//           multiple
-//           chipColor="white"
-//           size="small"
-//           forcePopupIcon
-//           showCheckboxes
-//           limitChips={1}
-//           filterSelectedOptions={false}
-//           blurOnSelect={false}
-//           clearOnBlur={false}
-//           disableCloseOnSelect
-//           showSelectAll
-//           onFocus={() => setIsFocused(true)}
-//           onBlur={() => setIsFocused(false)}
-//           ref={ref}
-//         />
-//       </div>
-//     );
-//   };
-
-export default function StudyTable({ studyData, refreshData }) {
-  // console.log("rowsWith", rowsWithExtra, rows, studyData);
-  const { studyboardData } = studyData;
   const downloadElementRef = useRef();
   // const [selectedFilter, setSelectedFilter] = useState([]);
   // const [selectedSorting, setSelectedSorting] = useState([]);
