@@ -9,7 +9,6 @@ import Table, {
   numberSearchFilter,
 } from "apollo-react/components/Table";
 import Cog from "apollo-react-icons/Cog";
-import Question from "apollo-react-icons/Question";
 import Rocket from "apollo-react-icons/Rocket";
 import moment from "moment";
 
@@ -141,7 +140,7 @@ const createAutocompleteFilter =
     );
   };
 
-const obs = ["Failure", "Success", "In Progress"];
+const obs = ["Failed", "Success", "In Progress"];
 
 const phases = [
   "Phase 4",
@@ -154,7 +153,7 @@ const phases = [
 ];
 
 const obIcons = {
-  Failure: Cog,
+  Failed: Cog,
   "In Progress": Rocket,
 };
 
