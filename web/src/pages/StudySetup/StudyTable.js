@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import moment from "moment";
 import { CSVLink } from "react-csv";
 
@@ -11,8 +11,6 @@ import Table, {
   dateFilterV2,
   numberSearchFilter,
 } from "apollo-react/components/Table";
-import Cog from "apollo-react-icons/Cog";
-import Rocket from "apollo-react-icons/Rocket";
 import Button from "apollo-react/components/Button";
 // import AutocompleteV2 from "apollo-react/components/AutocompleteV2";
 import DateRangePickerV2 from "apollo-react/components/DateRangePickerV2";
@@ -42,6 +40,7 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
   // };
 
   const TextFieldFilter = ({ accessor, filters, updateFilterValue }) => {
+    // console.log("studyData temp", studyData, accessor, filters);
     return (
       <TextField
         value={filters[accessor]}
@@ -104,23 +103,9 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
 
   const obs = ["Failed", "Success", "In Progress"];
 
-  const phases = [
-    "Phase 4",
-    "Phase 3",
-    "Phase 3b",
-    "Phase 2",
-    "Phase 1",
-    "Phase 0",
-    "N/A",
-  ];
+  const phases = studyData.uniqurePhase;
 
-  const status = [
-    "Closed Follow Up / In Analysis",
-    "Closed To Enrollment",
-    "On Hold",
-    "In Development",
-    "Completed",
-  ];
+  const status = studyData.uniqueProtocolStatus;
 
   const obIcons = {
     Failed: InFailureIcon,
@@ -277,47 +262,41 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
     ...columnsToAdd.map((column) => ({ ...column, hidden: true })),
   ];
 
-  const downloadFile = (e) => {
-    e.preventDefault();
+  const downloadFile = () => {
     downloadElementRef.current.link.click();
     return false;
   };
 
-  return (
-    <div className="study-table">
-      <CSVLink
-        data={studyboardData}
-        // headers={moreColumns}
-        filename={`StudyList_${moment(new Date()).format("YYYYMMDD")}.csv`}
-        target="Visits"
-        style={{ textDecoration: "none", display: "none" }}
-        ref={downloadElementRef}
-      >
-        download
-      </CSVLink>
-      <Table
-        title="Studies"
-        subtitle={
-          // eslint-disable-next-line react/jsx-wrap-multilines
-          <IconButton color="primary" onClick={refreshData}>
-            <RefreshIcon />
-          </IconButton>
-        }
-        columns={moreColumns}
-        rows={studyboardData}
-        initialSortedColumn="dateadded"
-        initialSortOrder="asc"
-        rowsPerPageOptions={[10, 50, 100, "All"]}
-        tablePaginationProps={{
-          labelDisplayedRows: ({ from, to, count }) =>
-            `${count === 1 ? "Item " : "Items"} ${from}-${to} of ${count}`,
-          truncate: true,
-        }}
-        columnSettings={{ enabled: true }}
-        CustomHeader={(props) => (
-          <CustomButtonHeader downloadFile={downloadFile} {...props} />
-        )}
-      />
-    </div>
+  const getTableData = React.useMemo(
+    () => (
+      <>
+        <Table
+          title="Studies"
+          subtitle={
+            // eslint-disable-next-line react/jsx-wrap-multilines
+            <IconButton color="primary" onClick={refreshData}>
+              <RefreshIcon />
+            </IconButton>
+          }
+          columns={moreColumns}
+          rows={studyboardData}
+          initialSortedColumn="dateadded"
+          initialSortOrder="asc"
+          rowsPerPageOptions={[10, 50, 100, "All"]}
+          tablePaginationProps={{
+            labelDisplayedRows: ({ from, to, count }) =>
+              `${count === 1 ? "Item " : "Items"} ${from}-${to} of ${count}`,
+            truncate: true,
+          }}
+          columnSettings={{ enabled: true }}
+          CustomHeader={(props) => (
+            <CustomButtonHeader downloadFile={downloadFile} {...props} />
+          )}
+        />
+      </>
+    ),
+    [moreColumns, studyboardData]
   );
+
+  return <div className="study-table">{getTableData}</div>;
 }
