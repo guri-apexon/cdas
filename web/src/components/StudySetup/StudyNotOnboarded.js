@@ -6,11 +6,11 @@ import Divider from 'apollo-react/components/Divider';
 import Grid from 'apollo-react/components/Grid';
 import Paper from 'apollo-react/components/Paper';
 import Typography from 'apollo-react/components/Typography';
-import Clock from 'apollo-react-icons/Clock'
-import StatusExclamation from 'apollo-react-icons/StatusExclamation'
 import ApolloProgress from "apollo-react/components/ApolloProgress";
 import Box from "apollo-react/components/Box";
 import { getNotOnBoardedStudiesStat } from "../../services/ApiServices";
+import { ReactComponent as InProgressIcon } from "./Icon_In-progress_72x72.svg"
+import { ReactComponent as InFailureIcon } from "./Icon_Failure_72x72.svg"
 const StudyNotOnboarded = () => {
     const [totalCount, setTotalCount] = useState(0)
     const [totalInProgress, setInprogressCount] = useState(0)
@@ -41,7 +41,7 @@ const StudyNotOnboarded = () => {
               <ApolloProgress />
             </Box>
             }
-            <Accordion variant="alternate" defaultExpanded={true || totalCount > 0}  style={{ marginTop: '60px' }}>
+            <Accordion variant="alternate" defaultExpanded={totalCount > 0 || false}  style={{ marginTop: '60px' }}>
                 <AccordionSummary>
                     <Typography>Studies Not Onboarded ({totalCount})</Typography>
                 </AccordionSummary>
@@ -52,7 +52,7 @@ const StudyNotOnboarded = () => {
                         <Grid item xs={3}>
                             <Paper style={styles} className="in-progress-box">
                                 <div className="full-width">
-                                    <Clock style={{ fontSize: 72, color: "#10558A", marginBottom: "15px" }} />
+                                    <InProgressIcon />
                                     <Typography variant="title1" gutterBottom style={{ color: "#015FF1" }}>
                                         {totalInProgress} In-progress
                                     </Typography>
@@ -62,7 +62,7 @@ const StudyNotOnboarded = () => {
                         <Grid item xs={3}>
                             <Paper style={styles} className="failure-box">
                                 <div className="full-width">
-                                    <StatusExclamation style={{ fontSize: 72, color: "#E20000", marginBottom: "15px"  }} />
+                                    <InFailureIcon />
                                     <Typography variant="title1"  gutterBottom style={{ color: "#E20000" }}>
                                         {totalFailures} Failures
                                     </Typography>

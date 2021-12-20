@@ -35,8 +35,8 @@ exports.studyList = function (req, res) {
 exports.noOnboardedStat = function (req, res) {
     try {
         const query = `SELECT 
-        COUNT(DISTINCT CASE WHEN ob_stat = 'Enrolling'   THEN prot_id END) inprogress_count,
-        COUNT(DISTINCT CASE WHEN ob_stat = 'Discontinued' THEN prot_id END) faliure_count
+        COUNT(DISTINCT CASE WHEN ob_stat = 'In Progress'   THEN prot_id END) inprogress_count,
+        COUNT(DISTINCT CASE WHEN ob_stat = 'Failed' THEN prot_id END) faliure_count
  FROM cdascore1d.cdascore.cdas_study`;
         DB.executeQuery(query).then( response => {
             const studies = response.rows || [];
