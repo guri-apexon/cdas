@@ -22,6 +22,7 @@ export default function StudyNotOnboarded({
   const [totalFailures, setFailureCouut] = useState(0);
   const [isLoading, setIsnLoading] = useState(true);
   const [status, setStatus] = useState(null);
+  const [expanded, setExpanded] = useState(false);
 
   const styles = {
     padding: "45px 15px",
@@ -44,6 +45,10 @@ export default function StudyNotOnboarded({
     setStatus(selectedFilter);
   }, [selectedFilter]);
 
+  useEffect(() => {
+    setExpanded(totalCount ?? false);
+  }, [totalCount]);
+
   return (
     <div className="studies-not-onboarded">
       {isLoading && (
@@ -53,7 +58,9 @@ export default function StudyNotOnboarded({
       )}
       <Accordion
         variant="alternate"
-        defaultExpanded={true ?? totalCount > 0}
+        defaultExpanded={totalCount > 0 ?? false}
+        expanded={expanded}
+        onChange={() => setExpanded(!expanded)}
         style={{ marginTop: "60px" }}
       >
         <AccordionSummary>
