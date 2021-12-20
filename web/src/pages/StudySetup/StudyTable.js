@@ -89,18 +89,17 @@ export default function StudyTable({ studyData, refreshData }) {
 
   const updateFilters = ({ accessor, value }) => {
     const temp = [...selectedFilter, { accessor, value }];
-    setSelectedFilter(temp);
+    console.log("filterpart", accessor, value, temp);
+    // setSelectedFilter(temp);
   };
 
   const TextFieldFilter = ({ accessor, filters, updateFilterValue }) => {
+    updateFilters(accessor, updateFilterValue);
     return (
       <TextField
         value={filters[accessor]}
         name={accessor}
-        onChange={() => {
-          updateFilters(accessor, updateFilterValue);
-          updateFilterValue();
-        }}
+        onChange={updateFilterValue}
         fullWidth
         margin="none"
         size="small"
@@ -113,10 +112,7 @@ export default function StudyTable({ studyData, refreshData }) {
       <TextField
         value={filters[accessor]}
         name={accessor}
-        onChange={() => {
-          updateFilters(accessor, updateFilterValue);
-          updateFilterValue();
-        }}
+        onChange={updateFilterValue}
         type="number"
         style={{ width: 74 }}
         margin="none"
@@ -132,12 +128,11 @@ export default function StudyTable({ studyData, refreshData }) {
           <DateRangePickerV2
             value={filters[accessor] || [null, null]}
             name={accessor}
-            onChange={(value) => {
-              updateFilters(accessor, updateFilterValue);
+            onChange={(value) =>
               updateFilterValue({
                 target: { name: accessor, value },
-              });
-            }}
+              })
+            }
             startLabel=""
             endLabel=""
             placeholder=""
@@ -332,7 +327,7 @@ export default function StudyTable({ studyData, refreshData }) {
 
   const downloadFile = (e) => {
     e.preventDefault();
-    downloadElementRef.current.click();
+    downloadElementRef.current.link.click();
     return false;
   };
 
