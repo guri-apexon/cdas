@@ -31,6 +31,9 @@
         border: 1px solid #D9D9D9;
         border-radius: 4px;
         background-color: #FFFFFF;
+        & :hover{
+            cursor: pointer;
+        }
     }/*  */
     .failure-box{
         border: 1px solid #E20000;
