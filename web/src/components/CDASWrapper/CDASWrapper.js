@@ -8,7 +8,6 @@ import TopNavbar from "../TopNavbar/TopNavbar";
 import AppFooter from "../AppFooter/AppFooter";
 import StudySetup from "../../pages/StudySetup/StudySetup";
 import UserManagement from "../../pages/UserManagement/UserManagement";
-import NotAuthenticated from "../../pages/NotAuthenticated/NotAuthenticated";
 import Logout from "../../pages/Logout/Logout";
 
 const LaunchPad = lazy(() => import("../../pages/LaunchPad/LaunchPad"));
@@ -122,11 +121,6 @@ const CDASWrapper = () => {
       ) : (
         <Switch>
           <Route path="/checkAuthentication" exact render={() => <Empty />} />
-          <Route
-            path="/not-authenticated"
-            exact
-            render={() => <NotAuthenticated />}
-          />
           <Route path="/logout" render={() => <Logout />} />
           <Redirect from="/" to="/checkAuthentication" />
         </Switch>
