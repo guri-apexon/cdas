@@ -46,7 +46,7 @@ export default function StudyNotOnboarded({
   }, [selectedFilter]);
 
   useEffect(() => {
-    setExpanded(totalCount ?? false);
+    setExpanded(totalCount > 0 ?? false);
   }, [totalCount]);
 
   return (
