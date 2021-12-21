@@ -273,8 +273,8 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
   ];
 
   const downloadFile = () => {
-    downloadElementRef.current.link.click();
-    return false;
+    // downloadElementRef.current.link.click();
+    // return false;
   };
 
   const getTableData = React.useMemo(
