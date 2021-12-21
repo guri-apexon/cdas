@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import moment from "moment";
 import { CSVLink } from "react-csv";
 
@@ -21,13 +21,23 @@ import IconButton from "apollo-react/components/IconButton";
 import { TextField } from "apollo-react/components/TextField/TextField";
 import { ReactComponent as InProgressIcon } from "./Icon_In-progress_72x72.svg";
 import { ReactComponent as InFailureIcon } from "./Icon_Failure_72x72.svg";
+import Progress from "../../components/Progress";
 
 export default function StudyTable({ studyData, refreshData, selectedFilter }) {
+  const [loading, setLoading] = useState(true);
   const studyboardData = selectedFilter
     ? studyData?.studyboardData.filter(
         (data) => data.onboardingprogress === selectedFilter
       )
     : studyData.studyboardData;
+
+  useEffect(() => {
+    if (studyData.loading) {
+      setLoading(true);
+    } else {
+      setLoading(false);
+    }
+  }, [studyData]);
 
   const downloadElementRef = useRef();
   // const [selectedFilter, setSelectedFilter] = useState([]);
@@ -270,29 +280,33 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
   const getTableData = React.useMemo(
     () => (
       <>
-        <Table
-          title="Studies"
-          subtitle={
-            // eslint-disable-next-line react/jsx-wrap-multilines
-            <IconButton color="primary" onClick={refreshData}>
-              <RefreshIcon />
-            </IconButton>
-          }
-          columns={moreColumns}
-          rows={studyboardData}
-          initialSortedColumn="dateadded"
-          initialSortOrder="asc"
-          rowsPerPageOptions={[10, 50, 100, "All"]}
-          tablePaginationProps={{
-            labelDisplayedRows: ({ from, to, count }) =>
-              `${count === 1 ? "Item " : "Items"} ${from}-${to} of ${count}`,
-            truncate: true,
-          }}
-          columnSettings={{ enabled: true }}
-          CustomHeader={(props) => (
-            <CustomButtonHeader downloadFile={downloadFile} {...props} />
-          )}
-        />
+        {loading ? (
+          <Progress />
+        ) : (
+          <Table
+            title="Studies"
+            subtitle={
+              // eslint-disable-next-line react/jsx-wrap-multilines
+              <IconButton color="primary" onClick={refreshData}>
+                <RefreshIcon />
+              </IconButton>
+            }
+            columns={moreColumns}
+            rows={studyboardData}
+            initialSortedColumn="dateadded"
+            initialSortOrder="asc"
+            rowsPerPageOptions={[10, 50, 100, "All"]}
+            tablePaginationProps={{
+              labelDisplayedRows: ({ from, to, count }) =>
+                `${count === 1 ? "Item " : "Items"} ${from}-${to} of ${count}`,
+              truncate: true,
+            }}
+            columnSettings={{ enabled: true }}
+            CustomHeader={(props) => (
+              <CustomButtonHeader downloadFile={downloadFile} {...props} />
+            )}
+          />
+        )}
       </>
     ),
     [moreColumns, studyboardData]
