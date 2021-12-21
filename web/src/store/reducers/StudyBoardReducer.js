@@ -30,7 +30,8 @@ const StudyBoardReducer = (state = initialState, action) =>
       case STUDYBOARD_FETCH_SUCCESS:
         newState.loading = false;
         newState.studyboardData = action.studyboardData;
-        newState.studyboardTotalCount = action.studyboardTotalCount;
+        newState.uniqurePhase = action.uniqurePhase;
+        newState.uniqueProtocolStatus = action.uniqueProtocolStatus;
         newState.studyboardFetchSuccess = true;
         newState.studyboardFetchFailure = false;
         break;
