@@ -128,9 +128,9 @@ const TopNavbar = ({ history, location: { pathname }, setLoggedIn }) => {
   const [open, setOpen] = useState(false);
   const userInfo = getUserInfo();
   const profileMenuProps = {
-    name: userInfo.full_name,
-    title: userInfo.user_email,
-    email: <span style={{ fontSize: '13px' }}>Last Login: {userInfo.last_login}</span>,
+    name: userInfo.fullName,
+    title: userInfo.userEmail,
+    email: <span style={{ fontSize: '13px' }}>Last Login: {userInfo.lastLogin}</span>,
     // eslint-disable-next-line no-use-before-define
     logoutButtonProps: { onClick: () => LogOut() },
     menuItems: [],
