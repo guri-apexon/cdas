@@ -32,8 +32,28 @@
         border-radius: 4px;
         background-color: #FFFFFF;
     }/*  */
-    .failure-box{
+    .in-progress-box.selected {
+        background-color: #ECF3FF;
+        border: 1px solid #10558a;
+    }
+    .failure-box.selected {
+        background-color: #FDEBEB;
         border: 1px solid #E20000;
+    }
+    .in-progress-box:hover{
+        cursor: pointer;
+        border: 1px solid #10558a;
+    }
+    .failure-box:hover{
+        cursor: pointer;
+        border: 1px solid #E20000;
+    }
+    .loader-container {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        z-index: 99;
+        background-color: rgba(255,255,255,0.7);
     }
 }
 

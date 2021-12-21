@@ -85,9 +85,9 @@ export function deleteAllCookies() {
 
 export function getUserInfo() {
   return {
-    full_name: `${getCookie("user.first_name")} ${getCookie("user.last_name")}`,
-    user_email: decodeURIComponent(getCookie("user.email")),
-    last_login: getLastLogin(),
+    fullName: `${getCookie("user.first_name")} ${getCookie("user.last_name")}`,
+    userEmail: decodeURIComponent(getCookie("user.email")),
+    lastLogin: getLastLogin(),
   };
 }
 
@@ -97,4 +97,17 @@ export const debounceFunction = (func, delay) => {
   clearTimeout(timerId);
   // Executes the func after delay time.
   timerId = setTimeout(func, delay);
+};
+
+export const titleCase = (str) => {
+  const splitStr = str.toLowerCase().split(" ");
+  // eslint-disable-next-line no-plusplus
+  for (let i = 0; i < splitStr.length; i++) {
+    // You do not need to check if i is larger than splitStr length, as your for does that for you
+    // Assign it back to the array
+    splitStr[i] =
+      splitStr[i].charAt(0).toUpperCase() + splitStr[i].substring(1);
+  }
+  // Directly return the joined string
+  return splitStr.join(" ");
 };
