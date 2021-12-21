@@ -28,6 +28,7 @@ export default function StudyNotOnboarded({
     padding: "45px 15px",
     textAlign: "center",
     width: 216,
+    margin: "auto",
   };
 
   useEffect(() => {
