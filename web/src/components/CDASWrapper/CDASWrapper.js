@@ -1,23 +1,24 @@
 import { Route, Switch, Redirect } from "react-router";
 import { useHistory } from "react-router-dom";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useState, useEffect } from "react";
 import Loader from "apollo-react/components/Loader";
-import { useState, useEffect } from "react";
 
 import { getCookie } from "../../utils";
 import TopNavbar from "../TopNavbar/TopNavbar";
 import AppFooter from "../AppFooter/AppFooter";
 import StudySetup from "../../pages/StudySetup/StudySetup";
 import UserManagement from "../../pages/UserManagement/UserManagement";
-import NotAuthenticated from "../../pages/NotAuthenticated/NotAuthenticated";
-const Auth = lazy(() => import("../../pages/Auth/Auth"));
+import Logout from "../../pages/Logout/Logout";
+
 const LaunchPad = lazy(() => import("../../pages/LaunchPad/LaunchPad"));
 const Analytics = lazy(() => import("../../pages/Analytics/Analytics"));
 
-const CDASWrapper = ({ match }) => {
+const Empty = () => <></>;
+
+const CDASWrapper = () => {
   const [loggedIn, setLoggedIn] = useState(false);
   const [checkedOnce, setCheckedOnce] = useState(false);
-  let history = useHistory();
+  const history = useHistory();
 
   const getUrlPath = (route) => {
     return `${route}`;
@@ -25,35 +26,49 @@ const CDASWrapper = ({ match }) => {
 
   useEffect(() => {
     const userId = getCookie("user.id");
-    console.log(userId);
-    if(userId){
-      history.push("/launchpad");
+    // console.log("Wrapper-props:", JSON.stringify(props));
+    if (userId) {
       setLoggedIn(true);
     } else {
-      if(!checkedOnce){
-        history.push("/checkAuth")
+      setLoggedIn(false);
+    }
+  }, [history]);
+
+  useEffect(() => {
+    const userId = getCookie("user.id");
+    console.log(userId);
+    if (userId) {
+      history.push("/launchpad");
+    } else {
+      // eslint-disable-next-line no-lonely-if
+      if (!checkedOnce) {
+        window.location.href = `${process.env.REACT_APP_LAUNCH_URL}`;
+        console.log("dotenv :", process.env.REACT_APP_LAUNCH_URL);
         setCheckedOnce(true);
-      } else {
-        history.push("/not-authenticated")
-        setLoggedIn(false);
       }
     }
-  }, []);
+  }, [checkedOnce, history]);
 
- 
+  useEffect(() => {
+    if (!loggedIn && checkedOnce) {
+      setTimeout(() => {
+        history.push("/not-authenticated");
+      }, 30000);
+    }
+  }, [checkedOnce, history, loggedIn]);
+
   return (
-    <Suspense fallback={<Loader isInner></Loader>}>
+    <Suspense fallback={<Loader isInner />}>
       {loggedIn ? (
         <div className="page-wrapper">
-          <TopNavbar />
+          <TopNavbar setLoggedIn={setLoggedIn} />
           <Switch>
             <Route
-              path={`/launchpad`}
+              path="/launchpad"
               // path={`${getUrlPath('/dashboard')}`}
               exact
               render={() => <LaunchPad />}
             />
-            
             <Route
               path={`${getUrlPath("/analytics")}`}
               exact
@@ -99,17 +114,15 @@ const CDASWrapper = ({ match }) => {
               exact
               render={() => <Redirect to="/launchpad" />}
             />
-            
             <Redirect from="/" to="/launchpad" />
-
           </Switch>
           <AppFooter />
         </div>
       ) : (
         <Switch>
-          <Route path={`/checkAuth`} exact render={() => <Auth />} />
-          <Route path={`/not-authenticated`} render={() => <NotAuthenticated />} />
-          <Redirect from="/" to="/checkAuth" />
+          <Route path="/checkAuthentication" exact render={() => <Empty />} />
+          <Route path="/logout" render={() => <Logout />} />
+          <Redirect from="/" to="/checkAuthentication" />
         </Switch>
       )}
     </Suspense>

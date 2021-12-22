@@ -4,14 +4,17 @@ const cors = require("cors");
 const fs = require("fs");
 const path = require("path");
 const dotenv = require("dotenv");
+const bodyParser = require("body-parser");
+const cookieParser = require("cookie-parser");
+const session = require("express-session");
 
 const app = express();
 dotenv.config();
 const PORT = process.env.PORT;
 let dir = "./public/exports";
-const auth = require("./controller/auth");
+const apiRoutes = require("./route/routes");
 
-const Logger = require("./config/logger");
+// const Logger = require("./config/logger");
 
 const shouldCompress = (req, res) => {
   if (req.headers["x-no-compression"]) {
@@ -28,7 +31,20 @@ app.use(
   })
 );
 app.use(cors());
+app.use(bodyParser.json());
+app.use(cookieParser());
+app.use(
+  session({
+    secret: "cdascore",
+    resave: false,
+    saveUninitialized: true,
+  })
+);
 app.use(express.json({ limit: "50mb" }));
+
+//Route Prefixes
+app.use("/", apiRoutes);
+
 app.use(
   express.urlencoded({
     extended: true,
@@ -36,7 +52,6 @@ app.use(
   })
 );
 
-app.all("/sda", auth.authHandler);
 app.use("/public", express.static("public"));
 
 if (!fs.existsSync(dir)) {
@@ -44,5 +59,5 @@ if (!fs.existsSync(dir)) {
 }
 app.listen(PORT, () => {
   console.log(`app started on port ${PORT}`);
-    // Logger.info({ message: `app started on port ${PORT}` });
+  // Logger.info({ message: `app started on port ${PORT}` });
 });
