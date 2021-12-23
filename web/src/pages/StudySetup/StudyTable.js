@@ -3,25 +3,154 @@ import moment from "moment";
 import { CSVLink } from "react-csv";
 
 import Table, {
-  compareDates,
-  compareNumbers,
-  compareStrings,
   createSelectFilterComponent,
   createStringSearchFilter,
   dateFilterV2,
   numberSearchFilter,
 } from "apollo-react/components/Table";
 import Button from "apollo-react/components/Button";
-// import AutocompleteV2 from "apollo-react/components/AutocompleteV2";
+import AutocompleteV2 from "apollo-react/components/AutocompleteV2";
 import DateRangePickerV2 from "apollo-react/components/DateRangePickerV2";
 import DownloadIcon from "apollo-react-icons/Download";
 import FilterIcon from "apollo-react-icons/Filter";
 import RefreshIcon from "apollo-react-icons/Refresh";
+import EllipsisVertical from "apollo-react-icons/EllipsisVertical";
+import Link from "apollo-react/components/Link";
 import IconButton from "apollo-react/components/IconButton";
 import { TextField } from "apollo-react/components/TextField/TextField";
+import {
+  compareDates,
+  compareNumbers,
+  compareStrings,
+} from "../../utils/index";
 import { ReactComponent as InProgressIcon } from "./Icon_In-progress_72x72.svg";
 import { ReactComponent as InFailureIcon } from "./Icon_Failure_72x72.svg";
 import Progress from "../../components/Progress";
+
+const createAutocompleteFilter =
+  (source) =>
+  ({ accessor, filters, updateFilterValue }) => {
+    const ref = React.useRef();
+    const [height, setHeight] = React.useState(0);
+    const [isFocused, setIsFocused] = React.useState(false);
+    const value = filters[accessor];
+
+    React.useEffect(() => {
+      const curHeight = ref?.current?.getBoundingClientRect().height;
+      if (curHeight !== height) {
+        setHeight(curHeight);
+      }
+    }, [value, isFocused, height]);
+
+    return (
+      <div
+        style={{
+          minWidth: 160,
+          maxWidth: 200,
+          position: "relative",
+          height,
+        }}
+      >
+        <AutocompleteV2
+          style={{ position: "absolute", left: 0, right: 0 }}
+          value={
+            value
+              ? value.map((label) => {
+                  if (label === "") {
+                    return { label: "blanks" };
+                  }
+                  return { label };
+                })
+              : []
+          }
+          name={accessor}
+          source={source}
+          onChange={(event, value2) => {
+            updateFilterValue({
+              target: {
+                name: accessor,
+                value: value2.map(({ label }) => {
+                  if (label === "blanks") {
+                    return "";
+                  }
+                  return label;
+                }),
+              },
+            });
+          }}
+          fullWidth
+          multiple
+          chipColor="white"
+          size="small"
+          forcePopupIcon
+          showCheckboxes
+          limitChips={1}
+          filterSelectedOptions={false}
+          blurOnSelect={false}
+          clearOnBlur={false}
+          disableCloseOnSelect
+          matchFrom="any"
+          showSelectAll
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          ref={ref}
+          noOptionsText="No matches"
+        />
+      </div>
+    );
+  };
+
+const TextFieldFilter = ({ accessor, filters, updateFilterValue }) => {
+  // console.log("studyData temp", studyData, accessor, filters);
+  return (
+    <TextField
+      value={filters[accessor]}
+      name={accessor}
+      onChange={updateFilterValue}
+      fullWidth
+      margin="none"
+      size="small"
+    />
+  );
+};
+
+const IntegerFilter = ({ accessor, filters, updateFilterValue }) => {
+  return (
+    <TextField
+      value={filters[accessor]}
+      name={accessor}
+      onChange={updateFilterValue}
+      type="number"
+      style={{ width: 74 }}
+      margin="none"
+      size="small"
+    />
+  );
+};
+
+const DateFilter = ({ accessor, filters, updateFilterValue }) => {
+  return (
+    <div style={{ minWidth: 230 }}>
+      <div style={{ position: "absolute", top: 0, paddingRight: 4 }}>
+        <DateRangePickerV2
+          value={filters[accessor] || [null, null]}
+          name={accessor}
+          onChange={(value) =>
+            updateFilterValue({
+              target: { name: accessor, value },
+            })
+          }
+          startLabel=""
+          endLabel=""
+          placeholder=""
+          fullWidth
+          margin="none"
+          size="small"
+        />
+      </div>
+    </div>
+  );
+};
 
 export default function StudyTable({ studyData, refreshData, selectedFilter }) {
   const [loading, setLoading] = useState(true);
@@ -49,55 +178,14 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
   //   setSelectedFilter(temp);
   // };
 
-  const TextFieldFilter = ({ accessor, filters, updateFilterValue }) => {
-    // console.log("studyData temp", studyData, accessor, filters);
+  const LinkCell = ({ row, column: { accessor } }) => {
+    const rowValue = row[accessor];
+    // eslint-disable-next-line jsx-a11y/anchor-is-valid
     return (
-      <TextField
-        value={filters[accessor]}
-        name={accessor}
-        onChange={updateFilterValue}
-        fullWidth
-        margin="none"
-        size="small"
-      />
-    );
-  };
-
-  const IntegerFilter = ({ accessor, filters, updateFilterValue }) => {
-    return (
-      <TextField
-        value={filters[accessor]}
-        name={accessor}
-        onChange={updateFilterValue}
-        type="number"
-        style={{ width: 74 }}
-        margin="none"
-        size="small"
-      />
-    );
-  };
-
-  const DateFilter = ({ accessor, filters, updateFilterValue }) => {
-    return (
-      <div style={{ minWidth: 230 }}>
-        <div style={{ position: "absolute", top: 0, paddingRight: 4 }}>
-          <DateRangePickerV2
-            value={filters[accessor] || [null, null]}
-            name={accessor}
-            onChange={(value) =>
-              updateFilterValue({
-                target: { name: accessor, value },
-              })
-            }
-            startLabel=""
-            endLabel=""
-            placeholder=""
-            fullWidth
-            margin="none"
-            size="small"
-          />
-        </div>
-      </div>
+      // eslint-disable-next-line jsx-a11y/anchor-is-valid
+      <Link onClick={() => console.log(`link clicked ${rowValue}`)}>
+        {rowValue}
+      </Link>
     );
   };
 
@@ -179,6 +267,16 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
     </div>
   );
 
+  const ActionCell = ({ row }) => {
+    return (
+      <div style={{ display: "flex", justifyContent: "end" }}>
+        <IconButton size="small" data-id={row.protocolnumber}>
+          <EllipsisVertical />
+        </IconButton>
+      </div>
+    );
+  };
+
   const columns = [
     {
       header: "Protocol Number",
@@ -245,8 +343,14 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
       header: "Assignment Count",
       accessor: "assignmentcount",
       sortFunction: compareNumbers,
+      customCell: LinkCell,
       filterFunction: numberSearchFilter("assignmentcount"),
       filterComponent: IntegerFilter,
+    },
+    {
+      accessor: "action",
+      customCell: ActionCell,
+      width: 32,
     },
   ];
 
@@ -268,18 +372,29 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
   ];
 
   const moreColumns = [
-    ...columns.map((column) => ({ ...column })),
+    ...columns.map((column) => ({ ...column })).slice(0, -1),
     ...columnsToAdd.map((column) => ({ ...column, hidden: true })),
+    columns.slice(-1)[0],
   ];
 
   const downloadFile = () => {
-    // downloadElementRef.current.link.click();
+    downloadElementRef.current.link.click();
     // return false;
   };
 
   const getTableData = React.useMemo(
     () => (
       <>
+        <CSVLink
+          data={studyboardData}
+          // headers={moreColumns}
+          filename={`StudyList_${moment(new Date()).format("YYYYMMDD")}.csv`}
+          target="Visits"
+          style={{ textDecoration: "none", display: "none" }}
+          ref={downloadElementRef}
+        >
+          download
+        </CSVLink>
         {loading ? (
           <Progress />
         ) : (
@@ -301,7 +416,7 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
                 `${count === 1 ? "Item " : "Items"} ${from}-${to} of ${count}`,
               truncate: true,
             }}
-            columnSettings={{ enabled: true }}
+            columnSettings={{ enabled: true, defaultColumns: moreColumns }}
             CustomHeader={(props) => (
               <CustomButtonHeader downloadFile={downloadFile} {...props} />
             )}
