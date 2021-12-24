@@ -301,6 +301,28 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
         size: "small",
         multiple: true,
       }),
+      // filterComponent: createAutocompleteFilter(
+      //   Array.from(
+      //     new Set(
+      //       studyboardData
+      //         .filter(({ phase }) => phase)
+      //         .map(({ phase }) => ({ label: phase }))
+      //         .map((item) => item.label)
+      //     )
+      //   )
+      //     .map((label) => {
+      //       return { label };
+      //     })
+      //     .sort((a, b) => {
+      //       if (a.label < b.label) {
+      //         return -1;
+      //       }
+      //       if (a.label > b.label) {
+      //         return 1;
+      //       }
+      //       return 0;
+      //     })
+      // ),
     },
     {
       header: "Protocol Status",

@@ -38,7 +38,7 @@ const CDASWrapper = () => {
     const userId = getCookie("user.id");
     console.log(userId);
     if (userId) {
-      history.push("/launchpad");
+      // history.push("/launchpad");
     } else {
       // eslint-disable-next-line no-lonely-if
       if (!checkedOnce) {
@@ -49,68 +49,47 @@ const CDASWrapper = () => {
     }
   }, [checkedOnce, history]);
 
-  useEffect(() => {
-    if (!loggedIn && checkedOnce) {
-      setTimeout(() => {
-        history.push("/not-authenticated");
-      }, 30000);
-    }
-  }, [checkedOnce, history, loggedIn]);
-
   return (
     <Suspense fallback={<Loader isInner />}>
       {loggedIn ? (
         <div className="page-wrapper">
           <TopNavbar setLoggedIn={setLoggedIn} />
           <Switch>
+            <Route path="/launchpad" exact render={() => <LaunchPad />} />
+            <Route path="/analytics" exact render={() => <Analytics />} />
             <Route
-              path="/launchpad"
-              // path={`${getUrlPath('/dashboard')}`}
-              exact
-              render={() => <LaunchPad />}
-            />
-            <Route
-              path={`${getUrlPath("/analytics")}`}
-              exact
-              render={() => <Analytics />}
-            />
-            <Route
-              path={`${getUrlPath("/cdi")}`}
+              path="/cdi"
               exact
               render={() => <Redirect to="/launchpad" />}
             />
             <Route
-              path={`${getUrlPath("/user-management")}`}
+              path="/user-management"
               exact
               render={() => <UserManagement />}
             />
+            <Route path="/study-setup" exact render={() => <StudySetup />} />
             <Route
-              path={`${getUrlPath("/study-setup")}`}
-              exact
-              render={() => <StudySetup />}
-            />
-            <Route
-              path={`${getUrlPath("/cdm")}`}
+              path="/cdm"
               exact
               render={() => <Redirect to="/launchpad" />}
             />
             <Route
-              path={`${getUrlPath("/cdr")}`}
+              path="/cdr"
               exact
               render={() => <Redirect to="/launchpad" />}
             />
             <Route
-              path={`${getUrlPath("/ca")}`}
+              path="/ca"
               exact
               render={() => <Redirect to="/launchpad" />}
             />
             <Route
-              path={`${getUrlPath("/dsw")}`}
+              path="/dsw"
               exact
               render={() => <Redirect to="/launchpad" />}
             />
             <Route
-              path={`${getUrlPath("/study-admin")}`}
+              path="/study-admin"
               exact
               render={() => <Redirect to="/launchpad" />}
             />
