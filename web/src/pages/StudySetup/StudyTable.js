@@ -152,8 +152,20 @@ const DateFilter = ({ accessor, filters, updateFilterValue }) => {
   );
 };
 
+const createStringArraySearchFilter = (accessor) => {
+  return (row, filters) =>
+    !Array.isArray(filters[accessor]) ||
+    filters[accessor].length === 0 ||
+    filters[accessor].some(
+      (value) => value.toUpperCase() === row[accessor]?.toUpperCase()
+    );
+};
+
 export default function StudyTable({ studyData, refreshData, selectedFilter }) {
   const [loading, setLoading] = useState(true);
+  const [filters, setFilters] = useState([]);
+  const [exportHeader, setExportHeader] = useState([]);
+  const [tableColumns, setTableColumns] = useState([]);
   const studyboardData = selectedFilter
     ? studyData?.studyboardData.filter(
         (data) => data.onboardingprogress === selectedFilter
@@ -169,14 +181,17 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
   }, [studyData]);
 
   const downloadElementRef = useRef();
-  // const [selectedFilter, setSelectedFilter] = useState([]);
-  // const [selectedSorting, setSelectedSorting] = useState([]);
 
-  // const updateFilters = ({ accessor, filters, value }) => {
-  //   const temp = [...selectedFilter, { accessor, value }];
-  //   console.log("filterpart", filters, accessor, value);
-  //   setSelectedFilter(temp);
-  // };
+  const obs = ["Failed", "Success", "In Progress"];
+
+  const phases = studyData.uniqurePhase;
+
+  const status = studyData.uniqueProtocolStatus;
+
+  const obIcons = {
+    Failed: InFailureIcon,
+    "In Progress": InProgressIcon,
+  };
 
   const LinkCell = ({ row, column: { accessor } }) => {
     const rowValue = row[accessor];
@@ -199,15 +214,14 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
     return <span>{date}</span>;
   };
 
-  const obs = ["Failed", "Success", "In Progress"];
-
-  const phases = studyData.uniqurePhase;
-
-  const status = studyData.uniqueProtocolStatus;
-
-  const obIcons = {
-    Failed: InFailureIcon,
-    "In Progress": InProgressIcon,
+  const ActionCell = ({ row }) => {
+    return (
+      <div style={{ display: "flex", justifyContent: "end" }}>
+        <IconButton size="small" data-id={row.protocolnumber}>
+          <EllipsisVertical />
+        </IconButton>
+      </div>
+    );
   };
 
   const SelectiveCell = ({ row, column: { accessor } }) => {
@@ -236,15 +250,6 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
     );
   };
 
-  const createStringArraySearchFilter = (accessor) => {
-    return (row, filters) =>
-      !Array.isArray(filters[accessor]) ||
-      filters[accessor].length === 0 ||
-      filters[accessor].some(
-        (value) => value.toUpperCase() === row[accessor]?.toUpperCase()
-      );
-  };
-
   const CustomButtonHeader = ({ toggleFilters, downloadFile }) => (
     <div>
       <Button
@@ -266,16 +271,6 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
       </Button>
     </div>
   );
-
-  const ActionCell = ({ row }) => {
-    return (
-      <div style={{ display: "flex", justifyContent: "end" }}>
-        <IconButton size="small" data-id={row.protocolnumber}>
-          <EllipsisVertical />
-        </IconButton>
-      </div>
-    );
-  };
 
   const columns = [
     {
@@ -404,45 +399,73 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
     // return false;
   };
 
+  useEffect(() => {
+    setTableColumns([...moreColumns]);
+  }, []);
+
+  useEffect(() => {
+    const newHeader = tableColumns
+      .filter((e) => e.hidden !== true)
+      .map((e) => {
+        const newObj = { label: e.header, key: e.accessor };
+        return newObj;
+      });
+    setExportHeader([...newHeader]);
+    // console.log("columns", tableColumns, newHeader);
+  }, [tableColumns]);
+
   const getTableData = React.useMemo(
     () => (
       <>
-        <CSVLink
-          data={studyboardData}
-          // headers={moreColumns}
-          filename={`StudyList_${moment(new Date()).format("YYYYMMDD")}.csv`}
-          target="Visits"
-          style={{ textDecoration: "none", display: "none" }}
-          ref={downloadElementRef}
-        >
-          download
-        </CSVLink>
+        {console.log("headers", exportHeader)}
         {loading ? (
           <Progress />
         ) : (
-          <Table
-            title="Studies"
-            subtitle={
-              // eslint-disable-next-line react/jsx-wrap-multilines
-              <IconButton color="primary" onClick={refreshData}>
-                <RefreshIcon />
-              </IconButton>
-            }
-            columns={moreColumns}
-            rows={studyboardData}
-            initialSortedColumn="dateadded"
-            initialSortOrder="asc"
-            rowsPerPageOptions={[10, 50, 100, "All"]}
-            tablePaginationProps={{
-              labelDisplayedRows: ({ from, to, count }) =>
-                `${count === 1 ? "Item " : "Items"} ${from}-${to} of ${count}`,
-              truncate: true,
-            }}
-            columnSettings={{ enabled: true, defaultColumns: moreColumns }}
-            CustomHeader={(props) => (
-              <CustomButtonHeader downloadFile={downloadFile} {...props} />
-            )}
-          />
+          <>
+            <CSVLink
+              data={studyboardData}
+              headers={exportHeader}
+              filename={`StudyList_${moment(new Date()).format(
+                "YYYYMMDD"
+              )}.csv`}
+              target="Visits"
+              style={{ textDecoration: "none", display: "none" }}
+              ref={downloadElementRef}
+            >
+              download
+            </CSVLink>
+            <Table
+              title="Studies"
+              subtitle={
+                // eslint-disable-next-line react/jsx-wrap-multilines
+                <IconButton color="primary" onClick={refreshData}>
+                  <RefreshIcon />
+                </IconButton>
+              }
+              columns={tableColumns}
+              rows={studyboardData}
+              initialSortedColumn="dateadded"
+              initialSortOrder="asc"
+              rowsPerPageOptions={[10, 50, 100, "All"]}
+              tablePaginationProps={{
+                labelDisplayedRows: ({ from, to, count }) =>
+                  `${
+                    count === 1 ? "Item " : "Items"
+                  } ${from}-${to} of ${count}`,
+                truncate: true,
+              }}
+              columnSettings={{
+                enabled: true,
+                defaultColumns: moreColumns,
+                onChange: (changeColumns) => {
+                  setTableColumns(changeColumns);
+                },
+              }}
+              CustomHeader={(props) => (
+                <CustomButtonHeader downloadFile={downloadFile} {...props} />
+              )}
+            />
+          </>
         )}
       </>
     ),
