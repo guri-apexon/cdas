@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useContext, useEffect } from "react";
 import moment from "moment";
 import { CSVLink } from "react-csv";
 
@@ -26,6 +26,7 @@ import {
 import { ReactComponent as InProgressIcon } from "./Icon_In-progress_72x72.svg";
 import { ReactComponent as InFailureIcon } from "./Icon_Failure_72x72.svg";
 import Progress from "../../components/Progress";
+import { MessageContext } from "../../components/MessageProvider";
 
 const createAutocompleteFilter =
   (source) =>
@@ -163,9 +164,18 @@ const createStringArraySearchFilter = (accessor) => {
 
 export default function StudyTable({ studyData, refreshData, selectedFilter }) {
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState([]);
+  // const [filters, setFilters] = useState([]);
   const [exportHeader, setExportHeader] = useState([]);
   const [tableColumns, setTableColumns] = useState([]);
+  const [exportTableRows, setExportTableRows] = useState([]);
+  const [sortedColumnValue, setSortedColumnValue] = useState("requestDate");
+  const [rowsPerPageRecord, setRowPerPageRecord] = useState(10);
+  const [pageNo, setPageNo] = useState(0);
+  const [sortOrderValue, setSortOrderValue] = useState("desc");
+  const [inlineFilters, setInlineFilters] = useState([]);
+
+  const messageContext = useContext(MessageContext);
+
   const studyboardData = selectedFilter
     ? studyData?.studyboardData.filter(
         (data) => data.onboardingprogress === selectedFilter
@@ -394,13 +404,33 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
     columns.slice(-1)[0],
   ];
 
-  const downloadFile = () => {
-    downloadElementRef.current.link.click();
-    // return false;
-  };
-
   useEffect(() => {
     setTableColumns([...moreColumns]);
+    setExportTableRows(studyboardData);
+    const updatedColumns = columns.map((column) => {
+      if (column.accessor === "actions") {
+        return column;
+      }
+      const filterColumn = {
+        ...column,
+        filterFunction: createStringArraySearchFilter(column.accessor),
+        filterComponent: createAutocompleteFilter(
+          Array.from(
+            new Set(
+              studyboardData
+                .map((r) => ({ label: r[column.accessor] }))
+                .map((item) => item.label)
+            )
+          )
+            .sort()
+            .map((label) => {
+              return { label };
+            })
+        ),
+      };
+      return filterColumn;
+    });
+    setTableColumns(updatedColumns);
   }, []);
 
   useEffect(() => {
@@ -414,6 +444,53 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
     // console.log("columns", tableColumns, newHeader);
   }, [tableColumns]);
 
+  const applyFilter = (cols, records, filts) => {
+    let filteredRows = records;
+    Object.values(cols).forEach((column) => {
+      if (column.filterFunction) {
+        filteredRows = filteredRows.filter((row) => {
+          return column.filterFunction(row, filts);
+        });
+        if (column.sortFunction) {
+          filteredRows.sort(
+            column.sortFunction(sortedColumnValue, sortOrderValue)
+          );
+        }
+      }
+    });
+    return filteredRows;
+  };
+
+  const exportDataRows = () => {
+    const toBeExportRows = [...studyboardData];
+    const sortedFilteredData = applyFilter(
+      tableColumns,
+      toBeExportRows,
+      inlineFilters
+    );
+    setExportTableRows(sortedFilteredData);
+    return sortedFilteredData;
+  };
+
+  useEffect(() => {
+    const rows = exportDataRows();
+    setExportTableRows(rows);
+  }, [inlineFilters, sortedColumnValue]);
+
+  const downloadFile = (e) => {
+    downloadElementRef.current.link.click();
+    const exportRows = exportDataRows();
+    if (exportRows.length <= 0) {
+      e.preventDefault();
+      const message = `There is no data on the screen to download because of which an empty file has been downloaded.`;
+      messageContext.showErrorMessage(message);
+    } else {
+      const message = `File downloaded successfully.`;
+      messageContext.showSuccessMessage(message);
+    }
+    // return false;
+  };
+
   const getTableData = React.useMemo(
     () => (
       <>
@@ -423,7 +500,7 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
         ) : (
           <>
             <CSVLink
-              data={studyboardData}
+              data={exportTableRows}
               headers={exportHeader}
               filename={`StudyList_${moment(new Date()).format(
                 "YYYYMMDD"
@@ -435,6 +512,7 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
               download
             </CSVLink>
             <Table
+              isLoading={loading}
               title="Studies"
               subtitle={
                 // eslint-disable-next-line react/jsx-wrap-multilines
@@ -446,6 +524,8 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
               rows={studyboardData}
               initialSortedColumn="dateadded"
               initialSortOrder="asc"
+              sortedColumn={sortedColumnValue}
+              sortOrder={sortOrderValue}
               rowsPerPageOptions={[10, 50, 100, "All"]}
               tablePaginationProps={{
                 labelDisplayedRows: ({ from, to, count }) =>
@@ -453,6 +533,15 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
                     count === 1 ? "Item " : "Items"
                   } ${from}-${to} of ${count}`,
                 truncate: true,
+              }}
+              page={pageNo}
+              rowsPerPage={rowsPerPageRecord}
+              onChange={(rpp, sc, so, filts, page) => {
+                setRowPerPageRecord(rpp);
+                setSortedColumnValue(sc);
+                setSortOrderValue(so);
+                setInlineFilters(filts);
+                setPageNo(page);
               }}
               columnSettings={{
                 enabled: true,
