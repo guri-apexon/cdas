@@ -494,7 +494,6 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
   const getTableData = React.useMemo(
     () => (
       <>
-        {console.log("headers", exportHeader)}
         {loading ? (
           <Progress />
         ) : (
