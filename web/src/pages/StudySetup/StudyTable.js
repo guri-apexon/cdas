@@ -29,7 +29,6 @@ import { ReactComponent as InProgressIcon } from "./Icon_In-progress_72x72.svg";
 import { ReactComponent as InFailureIcon } from "./Icon_Failure_72x72.svg";
 import Progress from "../../components/Progress";
 import { MessageContext } from "../../components/MessageProvider";
-import { ExportToExcel } from "../../components/ExportToExcel";
 
 const createAutocompleteFilter =
   (source) =>
