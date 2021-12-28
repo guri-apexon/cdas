@@ -1,12 +1,16 @@
-import React, { useRef, useState, useContext, useEffect } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import moment from "moment";
-import { CSVLink } from "react-csv";
+import * as XLSX from "xlsx";
+import { pick } from "lodash";
 
 import Table, {
   createSelectFilterComponent,
   createStringSearchFilter,
   dateFilterV2,
   numberSearchFilter,
+  compareDates,
+  compareNumbers,
+  compareStrings,
 } from "apollo-react/components/Table";
 import Button from "apollo-react/components/Button";
 import AutocompleteV2 from "apollo-react/components/AutocompleteV2";
@@ -18,11 +22,11 @@ import EllipsisVertical from "apollo-react-icons/EllipsisVertical";
 import Link from "apollo-react/components/Link";
 import IconButton from "apollo-react/components/IconButton";
 import { TextField } from "apollo-react/components/TextField/TextField";
-import {
-  compareDates,
-  compareNumbers,
-  compareStrings,
-} from "../../utils/index";
+// import {
+//   compareDates,
+//   compareNumbers,
+//   compareStrings,
+// } from "../../utils/index";
 import { ReactComponent as InProgressIcon } from "./Icon_In-progress_72x72.svg";
 import { ReactComponent as InFailureIcon } from "./Icon_Failure_72x72.svg";
 import Progress from "../../components/Progress";
@@ -164,16 +168,12 @@ const createStringArraySearchFilter = (accessor) => {
 
 export default function StudyTable({ studyData, refreshData, selectedFilter }) {
   const [loading, setLoading] = useState(true);
-  // const [filters, setFilters] = useState([]);
-  const [exportHeader, setExportHeader] = useState([]);
-  const [tableColumns, setTableColumns] = useState([]);
-  const [exportTableRows, setExportTableRows] = useState([]);
-  const [sortedColumnValue, setSortedColumnValue] = useState("requestDate");
+  // const [exportHeader, setExportHeader] = useState([]);
   const [rowsPerPageRecord, setRowPerPageRecord] = useState(10);
   const [pageNo, setPageNo] = useState(0);
+  const [sortedColumnValue, setSortedColumnValue] = useState("dateadded");
   const [sortOrderValue, setSortOrderValue] = useState("desc");
   const [inlineFilters, setInlineFilters] = useState([]);
-
   const messageContext = useContext(MessageContext);
 
   const studyboardData = selectedFilter
@@ -182,19 +182,22 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
       )
     : studyData.studyboardData;
 
-  useEffect(() => {
-    if (studyData.loading) {
-      setLoading(true);
-    } else {
-      setLoading(false);
-    }
-  }, [studyData]);
+  const [tableRows, setTableRows] = useState([...studyboardData]);
+  const [exportTableRows, setExportTableRows] = useState([...studyboardData]);
 
-  const downloadElementRef = useRef();
+  useEffect(() => {
+    if (!studyData.loading || studyData.studyboardFetchSuccess) {
+      setLoading(false);
+      setTableRows([...studyboardData]);
+      setExportTableRows([...studyboardData]);
+    } else {
+      setLoading(true);
+    }
+  }, [studyData.loading, studyboardData, studyData.studyboardFetchSuccess]);
 
   const obs = ["Failed", "Success", "In Progress"];
 
-  const phases = studyData.uniqurePhase;
+  // const phases = studyData.uniqurePhase;
 
   const status = studyData.uniqueProtocolStatus;
 
@@ -205,7 +208,6 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
 
   const LinkCell = ({ row, column: { accessor } }) => {
     const rowValue = row[accessor];
-    // eslint-disable-next-line jsx-a11y/anchor-is-valid
     return (
       // eslint-disable-next-line jsx-a11y/anchor-is-valid
       <Link onClick={() => console.log(`link clicked ${rowValue}`)}>
@@ -302,32 +304,27 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
       accessor: "phase",
       sortFunction: compareStrings,
       filterFunction: createStringArraySearchFilter("phase"),
-      filterComponent: createSelectFilterComponent(phases, {
-        size: "small",
-        multiple: true,
-      }),
-      // filterComponent: createAutocompleteFilter(
-      //   Array.from(
-      //     new Set(
-      //       studyboardData
-      //         .filter(({ phase }) => phase)
-      //         .map(({ phase }) => ({ label: phase }))
-      //         .map((item) => item.label)
-      //     )
-      //   )
-      //     .map((label) => {
-      //       return { label };
-      //     })
-      //     .sort((a, b) => {
-      //       if (a.label < b.label) {
-      //         return -1;
-      //       }
-      //       if (a.label > b.label) {
-      //         return 1;
-      //       }
-      //       return 0;
-      //     })
-      // ),
+      filterComponent: createAutocompleteFilter(
+        Array.from(
+          new Set(
+            studyboardData
+              .map((r) => ({ label: r.phase }))
+              .map((item) => item.label)
+          )
+        )
+          .map((label) => {
+            return { label };
+          })
+          .sort((a, b) => {
+            if (a.label < b.label) {
+              return -1;
+            }
+            if (a.label > b.label) {
+              return 1;
+            }
+            return 0;
+          })
+      ),
     },
     {
       header: "Protocol Status",
@@ -404,48 +401,21 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
     columns.slice(-1)[0],
   ];
 
-  useEffect(() => {
-    setTableColumns([...moreColumns]);
-    setExportTableRows(studyboardData);
-    const updatedColumns = columns.map((column) => {
-      if (column.accessor === "actions") {
-        return column;
-      }
-      const filterColumn = {
-        ...column,
-        filterFunction: createStringArraySearchFilter(column.accessor),
-        filterComponent: createAutocompleteFilter(
-          Array.from(
-            new Set(
-              studyboardData
-                .map((r) => ({ label: r[column.accessor] }))
-                .map((item) => item.label)
-            )
-          )
-            .sort()
-            .map((label) => {
-              return { label };
-            })
-        ),
-      };
-      return filterColumn;
-    });
-    setTableColumns(updatedColumns);
-  }, []);
+  const [tableColumns, setTableColumns] = useState([...moreColumns]);
 
-  useEffect(() => {
-    const newHeader = tableColumns
-      .filter((e) => e.hidden !== true)
-      .map((e) => {
-        const newObj = { label: e.header, key: e.accessor };
-        return newObj;
-      });
-    setExportHeader([...newHeader]);
-    // console.log("columns", tableColumns, newHeader);
-  }, [tableColumns]);
+  const exportToCSV = (exportData, headers, fileName) => {
+    // console.log("data for export", exportData, headers, fileName);
+    const wb = XLSX.utils.book_new();
+    let ws = XLSX.worksheet;
+    exportData.unshift(headers);
+    ws = XLSX.utils.json_to_sheet(exportData, { skipHeader: true });
+    XLSX.utils.book_append_sheet(wb, ws, "studylist");
+    XLSX.writeFile(wb, fileName);
+    exportData.shift();
+  };
 
-  const applyFilter = (cols, records, filts) => {
-    let filteredRows = records;
+  const applyFilter = (cols, rows, filts) => {
+    let filteredRows = rows;
     Object.values(cols).forEach((column) => {
       if (column.filterFunction) {
         filteredRows = filteredRows.filter((row) => {
@@ -472,13 +442,23 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
     return sortedFilteredData;
   };
 
-  useEffect(() => {
-    const rows = exportDataRows();
-    setExportTableRows(rows);
-  }, [inlineFilters, sortedColumnValue]);
-
-  const downloadFile = (e) => {
-    downloadElementRef.current.link.click();
+  const downloadFile = async (e) => {
+    const fileExtension = ".xlsx";
+    const fileName = `StudyList_${moment(new Date()).format("YYYYMMDD")}`;
+    // console.log("inDown", exportHeader);
+    const tempObj = {};
+    tableColumns
+      .slice(0, -1)
+      .filter((d) => d.hidden !== true)
+      .map((d) => {
+        tempObj[d.accessor] = d.header;
+        return d;
+      });
+    const newData = exportTableRows.map((obj) => {
+      const newObj = pick(obj, Object.keys(tempObj));
+      return newObj;
+    });
+    exportToCSV(newData, tempObj, fileName + fileExtension);
     const exportRows = exportDataRows();
     if (exportRows.length <= 0) {
       e.preventDefault();
@@ -488,8 +468,19 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
       const message = `File downloaded successfully.`;
       messageContext.showSuccessMessage(message);
     }
-    // return false;
   };
+
+  useEffect(() => {
+    const rows = exportDataRows();
+    setTableRows([...rows]);
+    setExportTableRows(rows);
+  }, [inlineFilters, sortedColumnValue, sortOrderValue]);
+
+  // useEffect(() => {
+  // setTableColumns([...moreColumns]);
+  // setExportTableRows([...studyboardData]);
+  // setTableRows([...studyboardData]);
+  // }, []);
 
   const getTableData = React.useMemo(
     () => (
@@ -498,18 +489,6 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
           <Progress />
         ) : (
           <>
-            <CSVLink
-              data={exportTableRows}
-              headers={exportHeader}
-              filename={`StudyList_${moment(new Date()).format(
-                "YYYYMMDD"
-              )}.csv`}
-              target="Visits"
-              style={{ textDecoration: "none", display: "none" }}
-              ref={downloadElementRef}
-            >
-              download
-            </CSVLink>
             <Table
               isLoading={loading}
               title="Studies"
@@ -520,7 +499,7 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
                 </IconButton>
               }
               columns={tableColumns}
-              rows={studyboardData}
+              rows={tableRows}
               initialSortedColumn="dateadded"
               initialSortOrder="asc"
               sortedColumn={sortedColumnValue}
@@ -536,6 +515,7 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
               page={pageNo}
               rowsPerPage={rowsPerPageRecord}
               onChange={(rpp, sc, so, filts, page) => {
+                // console.log("onChange", rpp, sc, so, filts, page, others);
                 setRowPerPageRecord(rpp);
                 setSortedColumnValue(sc);
                 setSortOrderValue(so);
@@ -557,7 +537,15 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
         )}
       </>
     ),
-    [moreColumns, studyboardData]
+    [
+      tableColumns,
+      tableRows,
+      sortOrderValue,
+      sortedColumnValue,
+      pageNo,
+      rowsPerPageRecord,
+      loading,
+    ]
   );
 
   return <div className="study-table">{getTableData}</div>;

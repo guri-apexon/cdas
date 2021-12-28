@@ -1,4 +1,4 @@
-import { Route, Router, Switch, Redirect } from "react-router";
+import { Route, Switch, Redirect } from "react-router";
 import { useHistory } from "react-router-dom";
 import { lazy, Suspense, useState, useEffect } from "react";
 import Loader from "apollo-react/components/Loader";
@@ -17,10 +17,6 @@ const CDASWrapper = () => {
   const [loggedIn, setLoggedIn] = useState(false);
   const [checkedOnce, setCheckedOnce] = useState(false);
   const history = useHistory();
-
-  const getUrlPath = (route) => {
-    return `${route}`;
-  };
 
   useEffect(() => {
     const userId = getCookie("user.id");
