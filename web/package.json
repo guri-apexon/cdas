@@ -8,7 +8,6 @@
     "@wojtekmaj/enzyme-adapter-react-17": "^0.6.6",
     "apollo-react": "https://imshealth.myget.org/F/apollo/auth/368c2ce5-6e29-4066-b6cc-1459725faafe/npm/apollo-react/-/3.23.0",
     "apollo-react-icons": "https://imshealth.myget.org/F/apollo/auth/368c2ce5-6e29-4066-b6cc-1459725faafe/npm/apollo-react-icons/-/1.0.0-beta.7",
-    "axios": "^0.21.1",
     "babel-plugin-emotion": "^11.0.0",
     "create-emotion": "^11.0.0",
     "create-emotion-styled": "^9.2.8",
@@ -62,6 +61,7 @@
     "@testing-library/jest-dom": "^5.12.0",
     "@testing-library/react": "^11.2.7",
     "@testing-library/user-event": "^12.8.3",
+    "axios": "^0.24.0",
     "babel-eslint": "^10.1.0",
     "chokidar": "^3.5.2",
     "eslint": "^7.18.0",
@@ -73,7 +73,9 @@
     "eslint-plugin-prettier": "^3.3.1",
     "eslint-plugin-react": "^7.22.0",
     "eslint-plugin-react-hooks": "^4.2.0",
+    "file-saver": "^2.0.5",
     "jest-html-reporters": "^2.1.2",
-    "prettier": "2.4.1"
+    "prettier": "2.4.1",
+    "xlsx": "^0.17.4"
   }
 }

@@ -1,6 +1,8 @@
 import React, { useRef, useState, useContext, useEffect } from "react";
 import moment from "moment";
 import { CSVLink } from "react-csv";
+import * as FileSaver from "file-saver";
+import * as XLSX from "xlsx";
 
 import Table, {
   createSelectFilterComponent,
@@ -27,6 +29,7 @@ import { ReactComponent as InProgressIcon } from "./Icon_In-progress_72x72.svg";
 import { ReactComponent as InFailureIcon } from "./Icon_Failure_72x72.svg";
 import Progress from "../../components/Progress";
 import { MessageContext } from "../../components/MessageProvider";
+import { ExportToExcel } from "../../components/ExportToExcel";
 
 const createAutocompleteFilter =
   (source) =>
@@ -472,6 +475,17 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
     return sortedFilteredData;
   };
 
+  const fileType =
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8";
+  const fileExtension = ".xlsx";
+  const exportToCSV = (exportData, fileName) => {
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = { Sheets: { data: ws }, SheetNames: ["data"] };
+    const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+    const data = new Blob([excelBuffer], { type: fileType });
+    FileSaver.saveAs(data, fileName + fileExtension);
+  };
+
   useEffect(() => {
     const rows = exportDataRows();
     setExportTableRows(rows);
@@ -479,6 +493,8 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
 
   const downloadFile = (e) => {
     downloadElementRef.current.link.click();
+    // const fileName = `StudyList_${moment(new Date()).format("YYYYMMDD")}`;
+    // exportToCSV(exportTableRows, fileName);
     const exportRows = exportDataRows();
     if (exportRows.length <= 0) {
       e.preventDefault();
@@ -503,7 +519,7 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
               headers={exportHeader}
               filename={`StudyList_${moment(new Date()).format(
                 "YYYYMMDD"
-              )}.csv`}
+              )}.xlsx`}
               target="Visits"
               style={{ textDecoration: "none", display: "none" }}
               ref={downloadElementRef}
