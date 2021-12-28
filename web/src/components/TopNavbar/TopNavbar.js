@@ -192,7 +192,7 @@ const TopNavbar = ({ history, location: { pathname }, setLoggedIn }) => {
               onClick={() => history.push("launchpad")}
             >
               IQVIA™
-              <span className={classes.bold}>
+              <span style={{ paddingLeft: 3 }} className={classes.bold}>
                 Clinical Data Analytics Suite
               </span>
             </Typography>

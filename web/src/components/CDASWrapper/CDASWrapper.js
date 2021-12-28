@@ -1,4 +1,4 @@
-import { Route, Switch, Redirect } from "react-router";
+import { Route, Router, Switch, Redirect } from "react-router";
 import { useHistory } from "react-router-dom";
 import { lazy, Suspense, useState, useEffect } from "react";
 import Loader from "apollo-react/components/Loader";
@@ -7,11 +7,9 @@ import { getCookie } from "../../utils";
 import TopNavbar from "../TopNavbar/TopNavbar";
 import AppFooter from "../AppFooter/AppFooter";
 import StudySetup from "../../pages/StudySetup/StudySetup";
-import UserManagement from "../../pages/UserManagement/UserManagement";
 import Logout from "../../pages/Logout/Logout";
 
 const LaunchPad = lazy(() => import("../../pages/LaunchPad/LaunchPad"));
-const Analytics = lazy(() => import("../../pages/Analytics/Analytics"));
 
 const Empty = () => <></>;
 
@@ -38,7 +36,7 @@ const CDASWrapper = () => {
     const userId = getCookie("user.id");
     console.log(userId);
     if (userId) {
-      history.push("/launchpad");
+      // history.push("/launchpad");
     } else {
       // eslint-disable-next-line no-lonely-if
       if (!checkedOnce) {
@@ -49,68 +47,51 @@ const CDASWrapper = () => {
     }
   }, [checkedOnce, history]);
 
-  useEffect(() => {
-    if (!loggedIn && checkedOnce) {
-      setTimeout(() => {
-        history.push("/not-authenticated");
-      }, 30000);
-    }
-  }, [checkedOnce, history, loggedIn]);
-
   return (
     <Suspense fallback={<Loader isInner />}>
       {loggedIn ? (
         <div className="page-wrapper">
           <TopNavbar setLoggedIn={setLoggedIn} />
           <Switch>
+            <Route path="/launchpad" exact render={() => <LaunchPad />} />
             <Route
-              path="/launchpad"
-              // path={`${getUrlPath('/dashboard')}`}
-              exact
-              render={() => <LaunchPad />}
-            />
-            <Route
-              path={`${getUrlPath("/analytics")}`}
-              exact
-              render={() => <Analytics />}
-            />
-            <Route
-              path={`${getUrlPath("/cdi")}`}
+              path="/analytics"
               exact
               render={() => <Redirect to="/launchpad" />}
             />
             <Route
-              path={`${getUrlPath("/user-management")}`}
-              exact
-              render={() => <UserManagement />}
-            />
-            <Route
-              path={`${getUrlPath("/study-setup")}`}
-              exact
-              render={() => <StudySetup />}
-            />
-            <Route
-              path={`${getUrlPath("/cdm")}`}
+              path="/cdi"
               exact
               render={() => <Redirect to="/launchpad" />}
             />
             <Route
-              path={`${getUrlPath("/cdr")}`}
+              path="/user-management"
+              exact
+              render={() => <Redirect to="/launchpad" />}
+            />
+            <Route path="/study-setup" exact render={() => <StudySetup />} />
+            <Route
+              path="/cdm"
               exact
               render={() => <Redirect to="/launchpad" />}
             />
             <Route
-              path={`${getUrlPath("/ca")}`}
+              path="/cdr"
               exact
               render={() => <Redirect to="/launchpad" />}
             />
             <Route
-              path={`${getUrlPath("/dsw")}`}
+              path="/ca"
               exact
               render={() => <Redirect to="/launchpad" />}
             />
             <Route
-              path={`${getUrlPath("/study-admin")}`}
+              path="/dsw"
+              exact
+              render={() => <Redirect to="/launchpad" />}
+            />
+            <Route
+              path="/study-admin"
               exact
               render={() => <Redirect to="/launchpad" />}
             />
@@ -119,11 +100,13 @@ const CDASWrapper = () => {
           <AppFooter />
         </div>
       ) : (
-        <Switch>
-          <Route path="/checkAuthentication" exact render={() => <Empty />} />
-          <Route path="/logout" render={() => <Logout />} />
-          <Redirect from="/" to="/checkAuthentication" />
-        </Switch>
+        <div className="page-wrapper">
+          <Switch>
+            <Route path="/checkAuthentication" exact render={() => <Empty />} />
+            <Route path="/logout" render={() => <Logout />} />
+            <Redirect from="/" to="/checkAuthentication" />
+          </Switch>
+        </div>
       )}
     </Suspense>
   );
