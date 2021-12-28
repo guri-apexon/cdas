@@ -183,11 +183,13 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
     : studyData.studyboardData;
 
   const [tableRows, setTableRows] = useState([...studyboardData]);
+  const [exportTableRows, setExportTableRows] = useState([...studyboardData]);
 
   useEffect(() => {
     if (!studyData.loading || studyData.studyboardFetchSuccess) {
       setLoading(false);
       setTableRows([...studyboardData]);
+      setExportTableRows([...studyboardData]);
     } else {
       setLoading(true);
     }
@@ -400,25 +402,9 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
   ];
 
   const [tableColumns, setTableColumns] = useState([...moreColumns]);
-  const [exportTableRows, setExportTableRows] = useState([...studyboardData]);
-
-  // function getObjectDiff(obj1, obj2) {
-  //   const diff = Object.keys(obj1).reduce((result, key) => {
-  //     // eslint-disable-next-line no-prototype-builtins
-  //     if (!obj2.hasOwnProperty(key)) {
-  //       result.push(key);
-  //     } else if (isEqual(obj1[key], obj2[key])) {
-  //       const resultKeyIndex = result.indexOf(key);
-  //       result.splice(resultKeyIndex, 1);
-  //     }
-  //     return result;
-  //   }, Object.keys(obj2));
-
-  //   return diff;
-  // }
 
   const exportToCSV = (exportData, headers, fileName) => {
-    console.log("data for export", exportData, headers, fileName);
+    // console.log("data for export", exportData, headers, fileName);
     const wb = XLSX.utils.book_new();
     let ws = XLSX.worksheet;
     exportData.unshift(headers);
