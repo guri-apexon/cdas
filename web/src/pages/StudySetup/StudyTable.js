@@ -444,7 +444,7 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
 
   const downloadFile = async (e) => {
     const fileExtension = ".xlsx";
-    const fileName = `StudyList_${moment(new Date()).format("YYYYMMDD")}`;
+    const fileName = `StudyList_${moment(new Date()).format("DDMMYYYY")}`;
     // console.log("inDown", exportHeader);
     const tempObj = {};
     const temp = tableColumns
