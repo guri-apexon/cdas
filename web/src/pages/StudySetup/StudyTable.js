@@ -182,19 +182,6 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
       )
     : studyData.studyboardData;
 
-  const [tableRows, setTableRows] = useState([...studyboardData]);
-  const [exportTableRows, setExportTableRows] = useState([...studyboardData]);
-
-  useEffect(() => {
-    if (!studyData.loading || studyData.studyboardFetchSuccess) {
-      setLoading(false);
-      setTableRows([...studyboardData]);
-      setExportTableRows([...studyboardData]);
-    } else {
-      setLoading(true);
-    }
-  }, [studyData.loading, studyboardData, studyData.studyboardFetchSuccess]);
-
   const obs = ["Failed", "Success", "In Progress"];
 
   // const phases = studyData.uniqurePhase;
@@ -401,7 +388,20 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
     columns.slice(-1)[0],
   ];
 
+  const [tableRows, setTableRows] = useState([...studyboardData]);
+  const [exportTableRows, setExportTableRows] = useState([...studyboardData]);
   const [tableColumns, setTableColumns] = useState([...moreColumns]);
+
+  useEffect(() => {
+    if (!studyData.loading || studyData.studyboardFetchSuccess) {
+      setLoading(false);
+      setTableRows([...studyboardData]);
+      setExportTableRows([...studyboardData]);
+      setTableColumns([...moreColumns]);
+    } else {
+      setLoading(true);
+    }
+  }, [studyData.loading, studyboardData, studyData.studyboardFetchSuccess]);
 
   const exportToCSV = (exportData, headers, fileName) => {
     // console.log("data for export", exportData, headers, fileName);
@@ -447,7 +447,7 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
     const fileName = `StudyList_${moment(new Date()).format("YYYYMMDD")}`;
     // console.log("inDown", exportHeader);
     const tempObj = {};
-    tableColumns
+    const temp = tableColumns
       .slice(0, -1)
       .filter((d) => d.hidden !== true)
       .map((d) => {
@@ -476,11 +476,11 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
     setExportTableRows(rows);
   }, [inlineFilters, sortedColumnValue, sortOrderValue]);
 
-  // useEffect(() => {
-  // setTableColumns([...moreColumns]);
-  // setExportTableRows([...studyboardData]);
-  // setTableRows([...studyboardData]);
-  // }, []);
+  useEffect(() => {
+    setTableColumns([...moreColumns]);
+    setExportTableRows([...studyboardData]);
+    setTableRows([...studyboardData]);
+  }, []);
 
   const getTableData = React.useMemo(
     () => (
@@ -541,6 +541,7 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
       tableColumns,
       tableRows,
       sortOrderValue,
+      moreColumns,
       sortedColumnValue,
       pageNo,
       rowsPerPageRecord,
