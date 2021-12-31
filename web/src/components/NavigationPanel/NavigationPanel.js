@@ -34,6 +34,14 @@ const styles = {
   },
 };
 
+const CustomTooltip = withStyles(() => ({
+  tooltip: {
+    fontSize: 13,
+    width: 220,
+    padding: "1px 10px",
+  },
+}))(Tooltip);
+
 const linksArr = [
   {
     title: "Clinical Data Ingestion",
@@ -149,13 +157,13 @@ const NavigationPanel = ({
               // eslint-disable-next-line react/no-array-index-key
               <div key={i}>
                 {!link.haveAccess ? (
-                  <Tooltip
+                  <CustomTooltip
                     variant="dark"
                     title="Contact your System Administrator for access"
                     placement="right"
                   >
                     {buttonLInk}
-                  </Tooltip>
+                  </CustomTooltip>
                 ) : (
                   buttonLInk
                 )}

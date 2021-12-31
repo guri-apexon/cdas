@@ -9,6 +9,7 @@ const wrapperStyle = {
 
 const footerStyle = {
   maxWidth: "100%",
+  height: "auto",
 };
 
 const AppFooter = () => {

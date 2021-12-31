@@ -23,7 +23,13 @@ body{
   // overflow-y: scroll !important;
   // padding: 0 !important;
 }
-#topNavbar{
+#topNavbar {
+  top: 0;
+  left: auto;
+  right: 0;
+  position: fixed;
+  width: 100%;
+  z-index: 999;
   header div.MuiToolbar-regular{
     width: 100%;
     padding-left: 10px;
@@ -34,6 +40,7 @@ body{
   background:  #F6F7FB;
   min-height: 100vh;
   position: relative;
+  padding-top: 56px;
 }
 .navigation-panel{
   .waves{
