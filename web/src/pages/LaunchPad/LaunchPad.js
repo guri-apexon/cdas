@@ -81,8 +81,9 @@ const LaunchPad = () => {
           <h2>Harness the power of your clinical data</h2>
           <Button
             variant="secondary"
+            className="linktoStudy"
             icon={ArrowRight}
-            style={{ marginRight: 10 }}
+            style={{ marginRight: 10, padding: "0 14px" }}
             onClick={() => history.push("study-setup")}
           >
             Quick Link to Study Setup
