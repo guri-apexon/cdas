@@ -172,7 +172,7 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
   const [rowsPerPageRecord, setRowPerPageRecord] = useState(10);
   const [pageNo, setPageNo] = useState(0);
   const [sortedColumnValue, setSortedColumnValue] = useState("dateadded");
-  const [sortOrderValue, setSortOrderValue] = useState("desc");
+  const [sortOrderValue, setSortOrderValue] = useState("asc");
   const [inlineFilters, setInlineFilters] = useState([]);
   const messageContext = useContext(MessageContext);
 
@@ -407,8 +407,12 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
     // console.log("data for export", exportData, headers, fileName);
     const wb = XLSX.utils.book_new();
     let ws = XLSX.worksheet;
-    exportData.unshift(headers);
-    ws = XLSX.utils.json_to_sheet(exportData, { skipHeader: true });
+    const from = pageNo * rowsPerPageRecord;
+    const to = from + rowsPerPageRecord;
+    const newData = exportData.slice(from, to);
+    newData.unshift(headers);
+    console.log("data", from, rowsPerPageRecord, newData);
+    ws = XLSX.utils.json_to_sheet(newData, { skipHeader: true });
     XLSX.utils.book_append_sheet(wb, ws, "studylist");
     XLSX.writeFile(wb, fileName);
     exportData.shift();
