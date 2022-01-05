@@ -1,5 +1,16 @@
 import Footer from "apollo-react/components/Footer";
-import { withRouter } from "react-router";
+
+const wrapperStyle = {
+  background: "#F6F7FB",
+  // position: "absolute",
+  width: "100%",
+  // bottom: 0,
+};
+
+const footerStyle = {
+  maxWidth: "100%",
+  height: "auto",
+};
 
 const wrapperStyle = {
   background: "#F6F7FB",
@@ -14,7 +25,7 @@ const footerStyle = {
 
 const AppFooter = () => {
   return (
-    <div style={wrapperStyle}>
+    <div className="app-footer" style={wrapperStyle}>
       <Footer
         buttonProps={[
           {
@@ -34,4 +45,4 @@ const AppFooter = () => {
   );
 };
 
-export default withRouter(AppFooter);
+export default AppFooter;
