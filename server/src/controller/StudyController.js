@@ -13,7 +13,7 @@ const _ = require("lodash");
 exports.studyList = function (req, res) {
   try {
     const searchParam = req.params.query.toLowerCase();
-        const searchQuery = `SELECT * from cdascore1d.cdascore.cdas_study_master 
+    const searchQuery = `SELECT * from cdascore1d.cdascore.cdas_study_master 
         WHERE LOWER(prot_nbr) LIKE '%${searchParam}%' OR 
         LOWER(spnsr_nm) LIKE '%${searchParam}%' OR 
         LOWER(project_code) LIKE '%${searchParam}%'
@@ -50,32 +50,42 @@ exports.studyList = function (req, res) {
 
 exports.noOnboardedStat = function (req, res) {
   try {
-      const query = `SELECT 
+    const query = `SELECT 
       COUNT(DISTINCT CASE WHEN ob_stat = 'In Progress'   THEN prot_id END) inprogress_count,
       COUNT(DISTINCT CASE WHEN ob_stat = 'Failed' THEN prot_id END) faliure_count
 FROM cdascore1d.cdascore.cdas_study`;
-      DB.executeQuery(query).then( response => {
-          const studies = response.rows || [];
-          if(studies.length > 0){
-              return apiResponse.successResponseWithData(res, "Operation success", studies[0]);
-          }else{
-              return apiResponse.successResponseWithData(res, "Operation success", []);
-          }
-      });
+    DB.executeQuery(query).then((response) => {
+      const studies = response.rows || [];
+      if (studies.length > 0) {
+        return apiResponse.successResponseWithData(
+          res,
+          "Operation success",
+          studies[0]
+        );
+      } else {
+        return apiResponse.successResponseWithData(
+          res,
+          "Operation success",
+          []
+        );
+      }
+    });
   } catch (err) {
-      //throw error in json response with status 500. 
-      return apiResponse.ErrorResponse(res, err);
+    //throw error in json response with status 500.
+    return apiResponse.ErrorResponse(res, err);
   }
-}
+};
 
 exports.getStudyList = async (req, res) => {
   try {
     //
     const query =
       "SELECT prot_id, prot_nbr as protocolnumber, spnsr_nm as sponsorname, phase, prot_stat as protocolstatus, cs.insrt_tm as dateadded, cs.updt_tm as dateedited, ob_stat as onboardingprogress, cs.usr_descr as assignmentcount, thptc_area as therapeuticarea, proj_cd as projectcode FROM cdascore.cdas_study cs INNER JOIN cdascore.cdas_sponsor cs2 ON cs2.spnsr_id = cs.spnsr_id ORDER BY cs.insrt_tm";
-    const query2 = "SELECT prot_id, COUNT(DISTINCT usr_id) FROM cdascore.cdas_study_assignment csa GROUP BY prot_id";
+    const query2 =
+      "SELECT prot_id, COUNT(DISTINCT usr_id) FROM cdascore.cdas_study_assignment csa GROUP BY prot_id";
     const query3 = "SELECT DISTINCT phase FROM cdascore.cdas_study";
-    const query4 = "SELECT DISTINCT prot_stat as protocolstatus FROM cdascore.cdas_study";
+    const query4 =
+      "SELECT DISTINCT prot_stat as protocolstatus FROM cdascore.cdas_study";
 
     Logger.info({
       message: "getStudyList",
@@ -92,18 +102,23 @@ exports.getStudyList = async (req, res) => {
       let { count } = newObj;
       let editT = moment(e.dateedited).format("MM/DD/YYYY");
       let addT = moment(e.dateadded).format("MM/DD/YYYY");
-      let newData = _.omit(e, ['prot_id']);
-      return { ...newData, "dateadded": addT, "dateedited": editT, "assignmentcount": count };
+      let newData = _.omit(e, ["prot_id"]);
+      return {
+        ...newData,
+        dateadded: addT,
+        dateedited: editT,
+        assignmentcount: count,
+      };
     });
 
-    let uniquePhase = $q3.rows.map(e => Object.values(e)).flat();
-    let uniqueProtocolStatus = $q4.rows.map(e => Object.values(e)).flat();
+    let uniquePhase = $q3.rows.map((e) => Object.values(e)).flat();
+    let uniqueProtocolStatus = $q4.rows.map((e) => Object.values(e)).flat();
     // console.log('rows', $data.rows, formatDateValues);
-    return apiResponse.successResponseWithData(
-      res,
-      "Operation success",
-      { studyData: formatDateValues, uniquePhase: uniquePhase, uniqueProtocolStatus: uniqueProtocolStatus }
-    );
+    return apiResponse.successResponseWithData(res, "Operation success", {
+      studyData: formatDateValues,
+      uniquePhase: uniquePhase,
+      uniqueProtocolStatus: uniqueProtocolStatus,
+    });
   } catch (err) {
     //throw error in json response with status 500.
     Logger.error("catch :studyList");

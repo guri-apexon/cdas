@@ -111,3 +111,79 @@ export const titleCase = (str) => {
   // Directly return the joined string
   return splitStr.join(" ");
 };
+
+export const compareStrings = (accessor, sortOrder) => {
+  return (rowA, rowB) => {
+    if (!rowA[accessor]) {
+      return 1;
+    }
+    if (!rowB[accessor]) {
+      return -1;
+    }
+    const stringA = rowA[accessor].toString().toUpperCase();
+    const stringB = rowB[accessor].toString().toUpperCase();
+    if (sortOrder === "asc") {
+      if (stringA < stringB) {
+        return -1;
+      }
+
+      if (stringA > stringB) {
+        return 1;
+      }
+
+      return 0;
+    }
+    if (stringA < stringB) {
+      return 1;
+    }
+
+    if (stringA > stringB) {
+      return -1;
+    }
+
+    return 0;
+  };
+};
+
+export const compareNumbers = (accessor, sortOrder) => {
+  return (rowA, rowB) => {
+    if (!rowA[accessor]) {
+      return 1;
+    }
+    if (!rowB[accessor]) {
+      return -1;
+    }
+    const numberA = rowA[accessor];
+    const numberB = rowB[accessor];
+
+    if (sortOrder === "asc") {
+      return numberA - numberB;
+    }
+    return numberB - numberA;
+  };
+};
+
+/* eslint-disable react/display-name */
+export const compareDates = (accessor, sortOrder) => {
+  return (rowA, rowB) => {
+    const dateA = rowA[accessor];
+    const dateB = rowB[accessor];
+
+    if (sortOrder === "asc") {
+      if (moment(dateA).isBefore(dateB)) {
+        return -1;
+      }
+      if (moment(dateB).isBefore(dateA)) {
+        return 1;
+      }
+      return 0;
+    }
+    if (moment(dateA).isBefore(dateB)) {
+      return 1;
+    }
+    if (moment(dateB).isBefore(dateA)) {
+      return -1;
+    }
+    return 0;
+  };
+};

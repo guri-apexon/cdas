@@ -1,6 +1,7 @@
 /* eslint-disable jsx-a11y/no-static-element-interactions */
 /* eslint-disable react/no-array-index-key */
 import React from "react";
+import withStyles from "@material-ui/core/styles/withStyles";
 import ArrowRight from "apollo-react-icons/ArrowRight";
 import Button from "apollo-react/components/Button";
 import Typography from "apollo-react/components/Typography";
@@ -13,6 +14,13 @@ import CDMIcon from "./CDM_ICON_96x96.svg";
 import CDRIcon from "./CDR_ICON_96x96.svg";
 import DSWIcon from "./DSW_ICON_96x96.svg";
 import "./LaunchPad.scss";
+
+const CustomTooltip = withStyles(() => ({
+  tooltip: {
+    maxWidth: 400,
+    padding: "10px 16px",
+  },
+}))(Tooltip);
 
 const productArr = [
   {
@@ -73,8 +81,9 @@ const LaunchPad = () => {
           <h2>Harness the power of your clinical data</h2>
           <Button
             variant="secondary"
+            className="linktoStudy"
             icon={ArrowRight}
-            style={{ marginRight: 10 }}
+            style={{ marginRight: 10, padding: "0 14px" }}
             onClick={() => history.push("study-setup")}
           >
             Quick Link to Study Setup
@@ -102,24 +111,37 @@ const LaunchPad = () => {
                   "productBox " + (product.haveAccess ? "haveAccess" : "")
                 }
               >
-                <Tooltip
+                <CustomTooltip
                   variant="light"
-                  title={product.title}
-                  subtitle={product.tooltipText}
+                  title={
+                    // eslint-disable-next-line react/jsx-wrap-multilines
+                    <span style={{ fontSize: 16, fontWeight: 600 }}>
+                      {product.title}
+                    </span>
+                  }
+                  subtitle={
+                    // eslint-disable-next-line react/jsx-wrap-multilines
+                    <span style={{ fontSize: 14, color: "#444444" }}>
+                      {product.tooltipText}
+                    </span>
+                  }
                   extraLabels={
                     product.haveAccess
                       ? null
                       : [
                           {
-                            title:
-                              "Contact your System Administrator for access",
+                            title: (
+                              <span style={{ fontSize: 14, fontWeight: 600 }}>
+                                Contact your System Administrator for access
+                              </span>
+                            ),
                           },
                         ]
                   }
                   placement="bottom"
                 >
                   {productBox}
-                </Tooltip>
+                </CustomTooltip>
               </div>
             );
           })}

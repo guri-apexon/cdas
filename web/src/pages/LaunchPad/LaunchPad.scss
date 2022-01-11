@@ -1,6 +1,6 @@
 .lauchpad-wrapper {
   background: #f6f7fb;
-  height: calc(100vh - 184px);
+  height: calc(100vh - 136px);
   min-height: 700px;
 }
 
@@ -85,6 +85,10 @@
     cursor: pointer;
     background: linear-gradient(to left, #0768fd, #0f2252);
   }
+}
+
+.linktoStudy svg {
+  margin-left: -6px !important;
 }
 
 // .productBox img{
