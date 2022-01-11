@@ -504,6 +504,9 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
               }
               columns={tableColumns}
               rows={tableRows}
+              rowId="protocolnumber"
+              hasScroll={true}
+              maxHeight="600px"
               initialSortedColumn="dateadded"
               initialSortOrder="asc"
               sortedColumn={sortedColumnValue}
