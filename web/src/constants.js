@@ -25,3 +25,5 @@ export const STUDYBOARD_DATA_FETCH = "v1/api/study/list";
 export const STUDYSEARCH = "v1/api/study/search-study";
 export const NOT_ONBOARDED_FETCH = "v1/api/study/notonboarded-studies-stat";
 export const baseURL = process.env.API_URL || "http://localhost:443";
+export const remoteBaseUrl =
+  "https://rds-cdrfsr-dev.gdev-car3-k8s.work.iqvia.com/fsr";
