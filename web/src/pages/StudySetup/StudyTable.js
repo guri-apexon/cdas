@@ -22,8 +22,8 @@ import EllipsisVertical from "apollo-react-icons/EllipsisVertical";
 import Link from "apollo-react/components/Link";
 import IconButton from "apollo-react/components/IconButton";
 import { TextField } from "apollo-react/components/TextField/TextField";
-import { ReactComponent as InProgressIcon } from "./Icon_In-progress_72x72.svg";
-import { ReactComponent as InFailureIcon } from "./Icon_Failure_72x72.svg";
+import { ReactComponent as InProgressIcon } from "../../components/Icons/Icon_In-progress_72x72.svg";
+import { ReactComponent as InFailureIcon } from "../../components/Icons/Icon_Failure_72x72.svg";
 import Progress from "../../components/Progress";
 import { MessageContext } from "../../components/MessageProvider";
 
