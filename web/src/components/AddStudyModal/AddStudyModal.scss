@@ -1,5 +1,6 @@
 @import '../../styles/customscroll.scss';
 #addStudyModal{
+    z-index: 999 !important;
     div[class^='MuiFormControl-root-']{
         margin-top: 0;
         margin-bottom: 24px;
@@ -36,6 +37,17 @@
             td{
                 color: #000;
                 font-weight: 500;
+                padding: 0;
+            }
+            .result-row{
+                display: flex;
+                height: 100%;
+                align-items: center;
+                padding: 0 16px;
+                &.greyedout{
+                    color: #595959;
+                    background-color: #fff;
+                }
             }
         }
         .back-btn{

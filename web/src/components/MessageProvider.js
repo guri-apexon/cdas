@@ -7,13 +7,17 @@ const MessageProvider = ({ children }) => {
     variant: "",
     messages: "",
     show: false,
+    top: 56,
   });
 
   const bannerCloseHandle = () => {
     setErrorMessage({ show: false });
   };
 
-  const showErrorMessage = (error) => {
+  const showErrorMessage = (error, top = null) => {
+    if (top !== null) {
+      setErrorMessage({ top });
+    }
     if (error && error.data) {
       const { message } = error.data;
       setErrorMessage({ variant: "error", messages: message, show: true });
@@ -25,7 +29,10 @@ const MessageProvider = ({ children }) => {
     }, 5000);
   };
 
-  const showSuccessMessage = (message) => {
+  const showSuccessMessage = (message, top = null) => {
+    if (top !== null) {
+      setErrorMessage({ top });
+    }
     setErrorMessage({ variant: "success", messages: message, show: true });
     setTimeout(() => {
       setErrorMessage({ show: false });
