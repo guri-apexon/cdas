@@ -77,7 +77,8 @@ const AddStudyModal = ({ open, onClose }) => {
   const FormatCell = ({ row, column: { accessor } }) => {
     const greyedOut = ["In Progress", "Success"].includes(row.ob_stat);
     console.log("row[accessor]", accessor);
-    const innerEl = (
+    const innerEl = <Highlighted text={row[accessor]} highlight={searchTxt} />;
+    return (
       // eslint-disable-next-line jsx-a11y/click-events-have-key-events
       <div
         className={`result-row ${greyedOut ? "greyedout" : ""}`}
@@ -85,22 +86,18 @@ const AddStudyModal = ({ open, onClose }) => {
         role="menu"
         tabIndex={0}
       >
-        <Highlighted text={row[accessor]} highlight={searchTxt} />
+        {accessor === "prot_nbr" && greyedOut ? (
+          <Tooltip
+            variant="dark"
+            title="This study has been imported into CDAS"
+            placement="top"
+          >
+            <span>{innerEl}</span>
+          </Tooltip>
+        ) : (
+          innerEl
+        )}
       </div>
-    );
-    return (
-      // eslint-disable-next-line jsx-a11y/click-events-have-key-events
-      accessor === "prot_nbr" && greyedOut ? (
-        <Tooltip
-          variant="dark"
-          title="This study has been imported into CDAS"
-          placement="top"
-        >
-          {innerEl}
-        </Tooltip>
-      ) : (
-        innerEl
-      )
     );
   };
 
