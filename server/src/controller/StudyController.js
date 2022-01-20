@@ -3,13 +3,47 @@ const apiResponse = require("../helpers/apiResponse");
 const Logger = require("../config/logger");
 const moment = require("moment");
 const _ = require("lodash");
+const axios = require("axios");
+const request = require("request");
 
 /**
  * Study Search List.
  *
  * @returns {Object}
  */
-
+exports.onboardStudy = async function (req, res) {
+  const {
+    sponsorName,
+    studyId,
+  } = req.body;
+  let result;
+  await axios
+    .post(
+      "https://rds-cdrfsr-dev.gdev-car3-k8s.work.iqvia.com/fsr/study/onboard",
+      {
+        sponsorName: "u1112428",
+        studyId: "a020E000005SwQpQAK",
+      },
+      {
+        headers: {
+          ClientId: "CDI",
+          ClientSecret:
+            "h+p78ADQ8Zwo1EiJdLPU9brxYe9qo64YUYoZAVq/VSjY1IOHsE3yiQ==",
+          "Content-Type": "application/json",
+        },
+      }
+    )
+    .then((response) => {
+      result = response.data;
+    })
+    .catch((err) => {
+    });
+    return apiResponse.successResponseWithData(
+      res,
+      "Operation success",
+      result
+    );
+}
 exports.studyList = function (req, res) {
   try {
     const searchParam = req.params.query.toLowerCase();
