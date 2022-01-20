@@ -3,13 +3,14 @@ import { useHistory } from "react-router-dom";
 import { lazy, Suspense, useState, useEffect } from "react";
 import Loader from "apollo-react/components/Loader";
 
-import { getCookie } from "../../utils";
-import TopNavbar from "../TopNavbar/TopNavbar";
-import AppFooter from "../AppFooter/AppFooter";
-import StudySetup from "../../pages/StudySetup/StudySetup";
-import Logout from "../../pages/Logout/Logout";
+import { getCookie } from "../utils";
+import TopNavbar from "../components/TopNavbar/TopNavbar";
+import AppFooter from "../components/AppFooter/AppFooter";
+import Logout from "../pages/Logout/Logout";
 
-const LaunchPad = lazy(() => import("../../pages/LaunchPad/LaunchPad"));
+const LaunchPad = lazy(() => import("../pages/LaunchPad/LaunchPad"));
+const StudySetup = lazy(() => import("../pages/StudySetup/StudySetup"));
+const PolicyList = lazy(() => import("../pages/Admin/Policy/PolicyList"));
 
 const Empty = () => <></>;
 
@@ -69,6 +70,11 @@ const CDASWrapper = () => {
               path="/cdi"
               exact
               render={() => <Redirect to="/launchpad" />}
+            />
+            <Route
+              path="/policy-management"
+              exact
+              render={() => <PolicyList />}
             />
             <Route
               path="/user-management"
