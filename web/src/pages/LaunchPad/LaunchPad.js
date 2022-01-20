@@ -8,11 +8,11 @@ import Typography from "apollo-react/components/Typography";
 import Tooltip from "apollo-react/components/Tooltip";
 import { useHistory } from "react-router-dom";
 import { titleCase, getUserInfo } from "../../utils/index";
-import CDIIcon from "./CDI_ICON_96x96.svg";
-import CAIcon from "./CA_ICON_96x96.svg";
-import CDMIcon from "./CDM_ICON_96x96.svg";
-import CDRIcon from "./CDR_ICON_96x96.svg";
-import DSWIcon from "./DSW_ICON_96x96.svg";
+import CDIIcon from "../../components/Icons/CDI_ICON_96x96.svg";
+import CAIcon from "../../components/Icons/CA_ICON_96x96.svg";
+import CDMIcon from "../../components/Icons/CDM_ICON_96x96.svg";
+import CDRIcon from "../../components/Icons/CDR_ICON_96x96.svg";
+import DSWIcon from "../../components/Icons/DSW_ICON_96x96.svg";
 import "./LaunchPad.scss";
 
 const CustomTooltip = withStyles(() => ({
