@@ -8,8 +8,8 @@ import Paper from "apollo-react/components/Paper";
 import Typography from "apollo-react/components/Typography";
 import ApolloProgress from "apollo-react/components/ApolloProgress";
 import Box from "apollo-react/components/Box";
-import { ReactComponent as InProgressIcon } from "./Icon_In-progress_72x72.svg";
-import { ReactComponent as InFailureIcon } from "./Icon_Failure_72x72.svg";
+import { ReactComponent as InProgressIcon } from "../../components/Icons/Icon_In-progress_72x72.svg";
+import { ReactComponent as InFailureIcon } from "../../components/Icons/Icon_Failure_72x72.svg";
 
 export default function StudyNotOnboarded({
   studyData,
