@@ -13,157 +13,26 @@ import Table, {
   compareStrings,
 } from "apollo-react/components/Table";
 import Button from "apollo-react/components/Button";
-import AutocompleteV2 from "apollo-react/components/AutocompleteV2";
-import DateRangePickerV2 from "apollo-react/components/DateRangePickerV2";
 import DownloadIcon from "apollo-react-icons/Download";
 import FilterIcon from "apollo-react-icons/Filter";
 import RefreshIcon from "apollo-react-icons/Refresh";
 import EllipsisVertical from "apollo-react-icons/EllipsisVertical";
 import Link from "apollo-react/components/Link";
 import IconButton from "apollo-react/components/IconButton";
-import { TextField } from "apollo-react/components/TextField/TextField";
 import { ReactComponent as InProgressIcon } from "../../components/Icons/Icon_In-progress_72x72.svg";
 import { ReactComponent as InFailureIcon } from "../../components/Icons/Icon_Failure_72x72.svg";
 import Progress from "../../components/Progress";
 import { MessageContext } from "../../components/MessageProvider";
-
-const createAutocompleteFilter =
-  (source) =>
-  ({ accessor, filters, updateFilterValue }) => {
-    const ref = React.useRef();
-    const [height, setHeight] = React.useState(0);
-    const [isFocused, setIsFocused] = React.useState(false);
-    const value = filters[accessor];
-
-    React.useEffect(() => {
-      const curHeight = ref?.current?.getBoundingClientRect().height;
-      if (curHeight !== height) {
-        setHeight(curHeight);
-      }
-    }, [value, isFocused, height]);
-
-    return (
-      <div
-        style={{
-          minWidth: 160,
-          maxWidth: 200,
-          position: "relative",
-          height,
-        }}
-      >
-        <AutocompleteV2
-          style={{ position: "absolute", left: 0, right: 0 }}
-          value={
-            value
-              ? value.map((label) => {
-                  if (label === "") {
-                    return { label: "blanks" };
-                  }
-                  return { label };
-                })
-              : []
-          }
-          name={accessor}
-          source={source}
-          onChange={(event, value2) => {
-            updateFilterValue({
-              target: {
-                name: accessor,
-                value: value2.map(({ label }) => {
-                  if (label === "blanks") {
-                    return "";
-                  }
-                  return label;
-                }),
-              },
-            });
-          }}
-          fullWidth
-          multiple
-          chipColor="white"
-          size="small"
-          forcePopupIcon
-          showCheckboxes
-          limitChips={1}
-          filterSelectedOptions={false}
-          blurOnSelect={false}
-          clearOnBlur={false}
-          disableCloseOnSelect
-          matchFrom="any"
-          showSelectAll
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
-          ref={ref}
-          noOptionsText="No matches"
-        />
-      </div>
-    );
-  };
-
-const TextFieldFilter = ({ accessor, filters, updateFilterValue }) => {
-  // console.log("studyData temp", studyData, accessor, filters);
-  return (
-    <TextField
-      value={filters[accessor]}
-      name={accessor}
-      onChange={updateFilterValue}
-      fullWidth
-      margin="none"
-      size="small"
-    />
-  );
-};
-
-const IntegerFilter = ({ accessor, filters, updateFilterValue }) => {
-  return (
-    <TextField
-      value={filters[accessor]}
-      name={accessor}
-      onChange={updateFilterValue}
-      type="number"
-      style={{ width: 74 }}
-      margin="none"
-      size="small"
-    />
-  );
-};
-
-const DateFilter = ({ accessor, filters, updateFilterValue }) => {
-  return (
-    <div style={{ minWidth: 230 }}>
-      <div style={{ position: "absolute", top: 0, paddingRight: 4 }}>
-        <DateRangePickerV2
-          value={filters[accessor] || [null, null]}
-          name={accessor}
-          onChange={(value) =>
-            updateFilterValue({
-              target: { name: accessor, value },
-            })
-          }
-          startLabel=""
-          endLabel=""
-          placeholder=""
-          fullWidth
-          margin="none"
-          size="small"
-        />
-      </div>
-    </div>
-  );
-};
-
-const createStringArraySearchFilter = (accessor) => {
-  return (row, filters) =>
-    !Array.isArray(filters[accessor]) ||
-    filters[accessor].length === 0 ||
-    filters[accessor].some(
-      (value) => value.toUpperCase() === row[accessor]?.toUpperCase()
-    );
-};
+import {
+  createAutocompleteFilter,
+  TextFieldFilter,
+  IntegerFilter,
+  DateFilter,
+  createStringArraySearchFilter,
+} from "../../utils/index";
 
 export default function StudyTable({ studyData, refreshData, selectedFilter }) {
   const [loading, setLoading] = useState(true);
-  // const [exportHeader, setExportHeader] = useState([]);
   const [rowsPerPageRecord, setRowPerPageRecord] = useState(10);
   const [pageNo, setPageNo] = useState(0);
   const [sortedColumnValue, setSortedColumnValue] = useState("dateadded");
@@ -178,8 +47,6 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
     : studyData.studyboardData;
 
   const obs = ["Failed", "Success", "In Progress"];
-
-  // const phases = studyData.uniqurePhase;
 
   const status = studyData.uniqueProtocolStatus;
 
@@ -500,8 +367,8 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
               columns={tableColumns}
               rows={tableRows}
               rowId="protocolnumber"
-              // hasScroll={true}
-              // maxHeight="600px"
+              hasScroll={true}
+              maxHeight="600px"
               initialSortedColumn="dateadded"
               initialSortOrder="asc"
               sortedColumn={sortedColumnValue}
@@ -517,7 +384,6 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
               page={pageNo}
               rowsPerPage={rowsPerPageRecord}
               onChange={(rpp, sc, so, filts, page) => {
-                // console.log("onChange", rpp, sc, so, filts, page, others);
                 setRowPerPageRecord(rpp);
                 setSortedColumnValue(sc);
                 setSortOrderValue(so);
