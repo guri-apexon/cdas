@@ -3,6 +3,7 @@ const apiResponse = require("../helpers/apiResponse");
 const Logger = require("../config/logger");
 const moment = require("moment");
 const _ = require("lodash");
+const config = require("../config/dbconstant.json");
 
 /**
  * Study Search List.
@@ -13,7 +14,7 @@ const _ = require("lodash");
 exports.studyList = function (req, res) {
   try {
     const searchParam = req.params.query.toLowerCase();
-    const searchQuery = `SELECT * from cdascore1d.cdascore.cdas_study_master 
+    const searchQuery = `SELECT * from ${config.DB_SCHEMA_NAME}.cdas_study_master 
         WHERE LOWER(prot_nbr) LIKE '%${searchParam}%' OR 
         LOWER(spnsr_nm) LIKE '%${searchParam}%' OR 
         LOWER(project_code) LIKE '%${searchParam}%'
@@ -53,7 +54,7 @@ exports.noOnboardedStat = function (req, res) {
     const query = `SELECT 
       COUNT(DISTINCT CASE WHEN ob_stat = 'In Progress'   THEN prot_id END) inprogress_count,
       COUNT(DISTINCT CASE WHEN ob_stat = 'Failed' THEN prot_id END) faliure_count
-FROM cdascore1d.cdascore.cdas_study`;
+FROM ${config.DB_SCHEMA_NAME}.cdas_study`;
     DB.executeQuery(query).then((response) => {
       const studies = response.rows || [];
       if (studies.length > 0) {
@@ -141,7 +142,7 @@ exports.getStudyList = async (req, res) => {
 
 //     // const offset = pageNo > 1 ? (pageNo - 1) * pageLimit : 0;
 //     // const query =
-//     //   "SELECT prot_nbr as protocolNumber, spnsr_nm as sponsorName, phase as phase, prot_status as protocolStatus, thptc_area as therapeuticArea, project_code as projectCode from cdascore1d.cdascore.cdas_study_master";
+//     //   "SELECT prot_nbr as protocolNumber, spnsr_nm as sponsorName, phase as phase, prot_status as protocolStatus, thptc_area as therapeuticArea, project_code as projectCode from ${config.DB_SCHEMA_NAME}.cdas_study_master";
 
 //     const query = "SELECT DISTINCT  FROM cdascore.cdas_study";
 
