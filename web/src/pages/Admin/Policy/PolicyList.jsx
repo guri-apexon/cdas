@@ -28,11 +28,19 @@ import {
 
 import "./PolicyList.scss";
 
+const ProductsCell = ({ row, column: { accessor } }) => {
+  const rowValue = row[accessor];
+  return <>{rowValue.slice(0, -1)}</>;
+};
+
+const statusList = ["Active", "Inactive"];
+
 const PolicyList = () => {
   const history = useHistory();
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState([]);
   const [tableRows, setTableRows] = useState([]);
+  const [policyLists, setPolicyLists] = useState([]);
   const [rowsPerPageRecord, setRowPerPageRecord] = useState(10);
   const [pageNo, setPageNo] = useState(0);
   const [sortedColumnValue, setSortedColumnValue] = useState("policyName");
@@ -40,16 +48,17 @@ const PolicyList = () => {
   const [inlineFilters, setInlineFilters] = useState([]);
   const [open, setOpen] = useState(false);
   const [curRow, setCurRow] = useState({});
+
   const dispatch = useDispatch();
   const policyAdmin = useSelector((state) => state.policyAdmin);
-  useEffect(() => {
-    dispatch(getPolicyList());
-  }, []);
 
-  useEffect(() => {
-    const { policyList, uniqueProducts } = policyAdmin;
+  const getData = () => {
+    dispatch(getPolicyList());
+  };
+
+  const createUniqueData = (arrayList) => {
     const uniquePolicies = Array.from(
-      policyList
+      arrayList
         .reduce((acc, { productName, policyId, ...r }) => {
           const current = acc.get(policyId) || {
             ...r,
@@ -63,10 +72,24 @@ const PolicyList = () => {
         }, new Map())
         .values()
     );
-    setTableRows(uniquePolicies);
+    return uniquePolicies;
+  };
+
+  useEffect(() => {
+    getData();
+  }, []);
+
+  useEffect(() => {
+    const { policyList, uniqueProducts } = policyAdmin;
+    setPolicyLists(policyList);
     setProducts(uniqueProducts);
     setLoading(false);
   }, [policyAdmin.loading]);
+
+  useEffect(() => {
+    const uniquePolicies = createUniqueData(policyLists);
+    setTableRows(uniquePolicies);
+  }, [policyLists]);
 
   // const messageContext = useContext(MessageContext);
 
@@ -86,11 +109,6 @@ const PolicyList = () => {
       );
     }
     return <Link onClick={(e) => goToPolicy(e, id)}>{rowValue}</Link>;
-  };
-
-  const ProductsCell = ({ row, column: { accessor } }) => {
-    const rowValue = row[accessor];
-    return <>{rowValue.slice(0, -1)}</>;
   };
 
   const handleInActivate = (e, id) => {
@@ -169,7 +187,7 @@ const PolicyList = () => {
         size="small"
         variant="secondary"
         icon={PlusIcon}
-        onClick={() => history.push("/launchpad")}
+        onClick={() => history.push("/policy-management/create")}
         style={{ marginRight: "8px", border: "none" }}
       >
         Create new policy
@@ -185,8 +203,6 @@ const PolicyList = () => {
     </div>
   );
 
-  const statusList = ["Active", "Inactive"];
-
   const columns = [
     {
       header: "",
@@ -200,6 +216,7 @@ const PolicyList = () => {
       sortFunction: compareStrings,
       filterFunction: createStringSearchFilter("policyName"),
       filterComponent: TextFieldFilter,
+      width: "20%",
     },
     {
       header: "Policy Description",
@@ -208,6 +225,7 @@ const PolicyList = () => {
       filterFunction: createStringSearchFilter("policyDescription"),
       filterComponent: TextFieldFilter,
       customCell: DespCell,
+      width: "40%",
     },
     {
       header: "Products Included",
@@ -219,22 +237,43 @@ const PolicyList = () => {
         size: "small",
         multiple: true,
       }),
+      width: "30%",
     },
-
     {
       header: "Status",
       accessor: "policyStatus",
       customCell: StatusCell,
-      filterFunction: createStringArraySearchFilter("status"),
+      sortFunction: compareStrings,
+      filterFunction: createStringArraySearchFilter("policyStatus"),
       filterComponent: createSelectFilterComponent(statusList, {
         size: "small",
         multiple: true,
       }),
+      width: "10%",
     },
+  ];
+
+  const newColumns = [
+    columns[0],
+    columns[1],
+    columns[2],
+    {
+      header: "Products Included",
+      accessor: "productName",
+      customCell: ProductsCell,
+      sortFunction: compareStrings,
+      filterFunction: createStringArraySearchFilter("productName"),
+      filterComponent: createSelectFilterComponent(products, {
+        size: "small",
+        multiple: true,
+      }),
+    },
+    columns[4],
   ];
 
   const applyFilter = (cols, rows, filts) => {
     let filteredRows = rows;
+    console.log("productsIncluded", cols);
     Object.values(cols).forEach((column) => {
       if (column.filterFunction) {
         filteredRows = filteredRows.filter((row) => {
@@ -247,13 +286,15 @@ const PolicyList = () => {
         }
       }
     });
+    // console.log("try", Object.values(cols));
     return filteredRows;
   };
 
   useEffect(() => {
-    // const rows = applyFilter();
-    // setTableRows([...rows]);
-    console.log(inlineFilters);
+    const rows = applyFilter(newColumns, policyLists, inlineFilters);
+    const uniqueRows = createUniqueData(rows);
+    console.log("filtered", rows, uniqueRows);
+    setTableRows([...uniqueRows]);
   }, [inlineFilters, sortedColumnValue, sortOrderValue]);
 
   const getTableData = React.useMemo(
@@ -300,14 +341,7 @@ const PolicyList = () => {
         )}
       </>
     ),
-    [
-      tableRows,
-      loading,
-      pageNo,
-      rowsPerPageRecord,
-      sortOrderValue,
-      sortedColumnValue,
-    ]
+    [tableRows, loading, pageNo, rowsPerPageRecord]
   );
 
   return (
@@ -317,6 +351,7 @@ const PolicyList = () => {
           Policy Management
         </Typography>
       </div>
+      <Button onClick={getData}>refresh</Button>
       <div className="policy-table">
         <div className="table">{getTableData}</div>
         <Peek
