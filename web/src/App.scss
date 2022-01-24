@@ -51,6 +51,18 @@ body{
 .Message-Banner.top-0{
   top: 0 !important;
 }
+label.inline-checkbox{
+  flex-direction: row-reverse;
+  align-items: center;
+  .MuiSwitch-sizeSmall .MuiSwitch-switchBase{
+    top: -8px;
+  }
+  >span:last-child{
+    margin: 0;
+    padding: 0;
+    margin-right: 10px;
+  }
+}
 .navigation-panel{
   .waves{
     position: absolute;

@@ -46,7 +46,7 @@ const CDASWrapper = () => {
     const userId = getCookie("user.id");
     console.log(userId);
     if (userId) {
-      history.push("/");
+      history.push("/create-policy");
     } else {
       // eslint-disable-next-line no-lonely-if
       if (!checkedOnce) {
