@@ -22,7 +22,7 @@ import IconButton from "apollo-react/components/IconButton";
 import { ReactComponent as InProgressIcon } from "../../components/Icons/Icon_In-progress_72x72.svg";
 import { ReactComponent as InFailureIcon } from "../../components/Icons/Icon_Failure_72x72.svg";
 import Progress from "../../components/Progress";
-import { MessageContext } from "../../components/MessageProvider";
+import { MessageContext } from "../../components/Providers/MessageProvider";
 import {
   createAutocompleteFilter,
   TextFieldFilter,

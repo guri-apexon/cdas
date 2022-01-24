@@ -10,7 +10,7 @@ import Box from "apollo-react/components/Box";
 import Button from "apollo-react/components/Button";
 import ChevronLeft from "apollo-react-icons/ChevronLeft";
 import ApolloProgress from "apollo-react/components/ApolloProgress";
-import { MessageContext } from "../MessageProvider";
+import { MessageContext } from "../Providers/MessageProvider";
 import { searchStudy, onboardStudy } from "../../services/ApiServices";
 import Highlighted from "../Common/Highlighted";
 import { debounceFunction } from "../../utils";
