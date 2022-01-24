@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Table, {
   createSelectFilterComponent,
@@ -27,7 +27,7 @@ import {
 
 import "./PolicyList.scss";
 
-export default function PolicyList() {
+const PolicyList = () => {
   const history = useHistory();
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState([]);
@@ -78,19 +78,20 @@ export default function PolicyList() {
 
   const handleInActivate = (e, id) => {
     e.preventDefault();
-    // const selectedData = tableRows.filter((d) => d.policyId === id);
-    // const newData = [...tableRows, selectedData];
-    // setTableRows([...tableRows, newData]);
-    console.log("tableRows", tableRows, products, id);
+    const selectedData = tableRows.filter((d) => d.policyId === id);
+    const unSelectedData = tableRows.filter((d) => d.policyId !== id);
+    selectedData[0].policyStatus = "Inactive";
+    setTableRows([...unSelectedData, ...selectedData]);
+    // console.log("tableRows", tableRows, products, id);
   };
 
   const handleActivate = (e, id) => {
     e.preventDefault();
-    // console.log(id);
-    // const newData = tableRows.filter((d) => d.policyId === id);
-    // newData.policyStatus = "Active";
-    // setTableRows([...tableRows, newData]);
-    console.log("tableRows", tableRows, products, id);
+    const selectedData = tableRows.filter((d) => d.policyId === id);
+    const unSelectedData = tableRows.filter((d) => d.policyId !== id);
+    selectedData[0].policyStatus = "Active";
+    setTableRows([...unSelectedData, ...selectedData]);
+    // console.log("tableRows", tableRows, products, id);
   };
 
   const StatusCell = ({ row, column: { accessor } }) => {
@@ -179,10 +180,6 @@ export default function PolicyList() {
     },
   ];
 
-  const moreColumns = [...columns];
-
-  const [tableColumns, setTableColumns] = useState([...moreColumns]);
-
   // useEffect(() => {
   //   if (!studyData.loading || studyData.studyboardFetchSuccess) {
   //     setLoading(false);
@@ -204,7 +201,7 @@ export default function PolicyList() {
             <Table
               isLoading={loading}
               title="Policies"
-              columns={tableColumns}
+              columns={columns}
               rows={tableRows}
               rowId="policyId"
               hasScroll={true}
@@ -225,7 +222,7 @@ export default function PolicyList() {
         )}
       </>
     ),
-    [tableColumns, tableRows, loading]
+    [tableRows, loading]
   );
 
   return (
@@ -238,4 +235,6 @@ export default function PolicyList() {
       <div className="policy-table">{getTableData}</div>
     </div>
   );
-}
+};
+
+export default PolicyList;
