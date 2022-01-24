@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect } from "react";
-
+import { useDispatch, useSelector } from "react-redux";
 import Table, {
   createSelectFilterComponent,
   createStringSearchFilter,
@@ -15,6 +15,8 @@ import Typography from "apollo-react/components/Typography";
 import Progress from "../../../components/Progress";
 // import { MessageContext } from "../../../components/MessageProvider";
 
+import { getPolicyList } from "../../../store/actions/PolicyAdminActions";
+
 import {
   TextFieldFilter,
   createStringArraySearchFilter,
@@ -25,6 +27,15 @@ import "./PolicyList.scss";
 export default function PolicyList() {
   const history = useHistory();
   const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch();
+  const policyAdmin = useSelector((state) => state.policyAdmin);
+  useEffect(() => {
+    dispatch(getPolicyList());
+  }, []);
+
+  useEffect(() => {
+    setLoading(policyAdmin.loading);
+  }, [policyAdmin.loading]);
   // const messageContext = useContext(MessageContext);
 
   const studyboardData = [];

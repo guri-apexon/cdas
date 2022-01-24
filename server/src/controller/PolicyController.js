@@ -11,31 +11,24 @@ exports.getPolicyList = async (req, res) => {
     const query = `select p.plcy_nm as "policyName", p.plcy_desc as "policyDescription", p.plcy_id as "policyId", p2.prod_nm as "productName", p.plcy_stat as "policyStatus" from cdascore."policy" p 
     inner join cdascore.policy_product pp on (pp.plcy_id=p.plcy_id)
     inner join cdascore.product p2 on (pp.prod_id=p2.prod_id)
-    where pp.act_flg =1;`;
+    where pp.act_flg =1`;
 
     const $q1 = await DB.executeQuery(query);
 
-    // $q1.map()
+    // const uniqueProducts = [];
 
-    
-    // const formatDateValues = await $q1.rows.map((e) => {
-    //   let acc = $q2.rows.filter((d) => d.prot_id === e.prot_id);
-    //   let newObj = acc[0] ? acc[0] : { count: 0 };
-    //   let { count } = newObj;
-    //   let editT = moment(e.dateedited).format("MM/DD/YYYY");
-    //   let addT = moment(e.dateadded).format("MM/DD/YYYY");
-    //   let newData = _.omit(e, ["prot_id"]);
-    //   return {
-    //     ...newData,
-    //     dateadded: addT,
-    //     dateedited: editT,
-    //     assignmentcount: count,
-    //   };
+    const uniqueProducts = await $q1.rows
+      .map((e) => e.productName)
+      .filter((it, i, ar) => ar.indexOf(it) === i);
+
+    // const formatDateValues = await $q1.rows.reduce((e) => {
+
     // });
 
-
-
-    return apiResponse.successResponseWithData(res, "Operation success", $q1);
+    return apiResponse.successResponseWithData(res, "Operation success", {
+      polciyList: $q1.rows,
+      uniqueProducts,
+    });
 
     // .then((response) => {
     //   const studies = response.rows || [];
