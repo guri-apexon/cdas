@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/anchor-is-valid */
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Table, {
@@ -7,12 +8,12 @@ import Table, {
 } from "apollo-react/components/Table";
 import Button from "apollo-react/components/Button";
 import PlusIcon from "apollo-react-icons/Plus";
+import Peek from "apollo-react/components/Peek";
 import FilterIcon from "apollo-react-icons/Filter";
 import Link from "apollo-react/components/Link";
 import Tooltip from "apollo-react/components/Tooltip";
 import { useHistory } from "react-router-dom";
 import Switch from "apollo-react/components/Switch";
-// import IconButton from "apollo-react/components/IconButton";
 import Typography from "apollo-react/components/Typography";
 import Progress from "../../../components/Progress";
 
@@ -32,6 +33,13 @@ const PolicyList = () => {
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState([]);
   const [tableRows, setTableRows] = useState([]);
+  const [rowsPerPageRecord, setRowPerPageRecord] = useState(10);
+  const [pageNo, setPageNo] = useState(0);
+  const [sortedColumnValue, setSortedColumnValue] = useState("policyName");
+  const [sortOrderValue, setSortOrderValue] = useState("asc");
+  const [inlineFilters, setInlineFilters] = useState([]);
+  const [open, setOpen] = useState(false);
+  const [curRow, setCurRow] = useState({});
   const dispatch = useDispatch();
   const policyAdmin = useSelector((state) => state.policyAdmin);
   useEffect(() => {
@@ -70,10 +78,19 @@ const PolicyList = () => {
   const LinkCell = ({ row, column: { accessor } }) => {
     const rowValue = row[accessor];
     const id = row.policyId;
-    return (
-      // eslint-disable-next-line jsx-a11y/anchor-is-valid
-      <Link onClick={(e) => goToPolicy(e, id)}>{rowValue}</Link>
-    );
+    if (rowValue.length > 30) {
+      return (
+        <Link onClick={(e) => goToPolicy(e, id)}>
+          {`${rowValue.slice(0, 30)}  [...]`}
+        </Link>
+      );
+    }
+    return <Link onClick={(e) => goToPolicy(e, id)}>{rowValue}</Link>;
+  };
+
+  const ProductsCell = ({ row, column: { accessor } }) => {
+    const rowValue = row[accessor];
+    return <>{rowValue.slice(0, -1)}</>;
   };
 
   const handleInActivate = (e, id) => {
@@ -119,6 +136,33 @@ const PolicyList = () => {
     );
   };
 
+  const handleMouseOver = (row) => {
+    setOpen(!open);
+    setCurRow(row);
+  };
+
+  const handleMouseOut = () => {
+    setOpen(false);
+  };
+
+  const DespCell = ({ row, column: { accessor } }) => {
+    const data = row[accessor];
+    if (data.length < 80) {
+      return <>{data}</>;
+    }
+    return (
+      <>
+        {data.slice(0, 50)}
+        <Link
+          onMouseOver={() => handleMouseOver(row)}
+          onMouseOut={handleMouseOut}
+        >
+          {`  [...]`}
+        </Link>
+      </>
+    );
+  };
+
   const CustomButtonHeader = ({ toggleFilters }) => (
     <div>
       <Button
@@ -141,6 +185,8 @@ const PolicyList = () => {
     </div>
   );
 
+  const statusList = ["Active", "Inactive"];
+
   const columns = [
     {
       header: "",
@@ -161,10 +207,12 @@ const PolicyList = () => {
       sortFunction: compareStrings,
       filterFunction: createStringSearchFilter("policyDescription"),
       filterComponent: TextFieldFilter,
+      customCell: DespCell,
     },
     {
       header: "Products Included",
       accessor: "productsIncluded",
+      customCell: ProductsCell,
       sortFunction: compareStrings,
       filterFunction: createStringArraySearchFilter("productsIncluded"),
       filterComponent: createSelectFilterComponent(products, {
@@ -177,19 +225,36 @@ const PolicyList = () => {
       header: "Status",
       accessor: "policyStatus",
       customCell: StatusCell,
+      filterFunction: createStringArraySearchFilter("status"),
+      filterComponent: createSelectFilterComponent(statusList, {
+        size: "small",
+        multiple: true,
+      }),
     },
   ];
 
-  // useEffect(() => {
-  //   if (!studyData.loading || studyData.studyboardFetchSuccess) {
-  //     setLoading(false);
-  //     setTableRows([...studyboardData]);
-  //     setExportTableRows([...studyboardData]);
-  //     setTableColumns([...moreColumns]);
-  //   } else {
-  //     setLoading(true);
-  //   }
-  // }, [studyData.loading, studyboardData, studyData.studyboardFetchSuccess]);
+  const applyFilter = (cols, rows, filts) => {
+    let filteredRows = rows;
+    Object.values(cols).forEach((column) => {
+      if (column.filterFunction) {
+        filteredRows = filteredRows.filter((row) => {
+          return column.filterFunction(row, filts);
+        });
+        if (column.sortFunction) {
+          filteredRows.sort(
+            column.sortFunction(sortedColumnValue, sortOrderValue)
+          );
+        }
+      }
+    });
+    return filteredRows;
+  };
+
+  useEffect(() => {
+    // const rows = applyFilter();
+    // setTableRows([...rows]);
+    console.log(inlineFilters);
+  }, [inlineFilters, sortedColumnValue, sortOrderValue]);
 
   const getTableData = React.useMemo(
     () => (
@@ -208,6 +273,18 @@ const PolicyList = () => {
               maxHeight="calc(100vh - 162px)"
               initialSortedColumn="policyName"
               initialSortOrder="asc"
+              sortedColumn={sortedColumnValue}
+              sortOrder={sortOrderValue}
+              page={pageNo}
+              rowsPerPage={rowsPerPageRecord}
+              onChange={(rpp, sc, so, filts, page) => {
+                setRowPerPageRecord(rpp);
+                setSortedColumnValue(sc);
+                setSortOrderValue(so);
+                setInlineFilters(filts);
+                setPageNo(page);
+                // console.log("onChange", rpp, sc, so, filts, page);
+              }}
               rowsPerPageOptions={[10, 50, 100, "All"]}
               tablePaginationProps={{
                 labelDisplayedRows: ({ from, to, count }) =>
@@ -223,7 +300,14 @@ const PolicyList = () => {
         )}
       </>
     ),
-    [tableRows, loading]
+    [
+      tableRows,
+      loading,
+      pageNo,
+      rowsPerPageRecord,
+      sortOrderValue,
+      sortedColumnValue,
+    ]
   );
 
   return (
@@ -233,7 +317,29 @@ const PolicyList = () => {
           Policy Management
         </Typography>
       </div>
-      <div className="policy-table">{getTableData}</div>
+      <div className="policy-table">
+        <div className="table">{getTableData}</div>
+        <Peek
+          open={open}
+          followCursor
+          placement="bottom"
+          content={
+            // eslint-disable-next-line react/jsx-wrap-multilines
+            <div style={{ maxWidth: 400 }}>
+              <Typography
+                variant="title2"
+                gutterBottom
+                style={{ fontWeight: 600 }}
+              >
+                {curRow.policyName}
+              </Typography>
+              <Typography variant="body2">
+                {curRow.policyDescription}
+              </Typography>
+            </div>
+          }
+        />
+      </div>
     </div>
   );
 };
