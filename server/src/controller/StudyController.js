@@ -3,8 +3,12 @@ const apiResponse = require("../helpers/apiResponse");
 const Logger = require("../config/logger");
 const moment = require("moment");
 const _ = require("lodash");
+<<<<<<< HEAD
 const axios = require("axios");
 const request = require("request");
+=======
+const constants = require('../config/constants');
+>>>>>>> b7fd4f335884e7c0940a2d67eff76e9cd04c58c3
 
 /**
  * Study Search List.
@@ -47,11 +51,18 @@ exports.onboardStudy = async function (req, res) {
 exports.studyList = function (req, res) {
   try {
     const searchParam = req.params.query.toLowerCase();
+<<<<<<< HEAD
     const searchQuery = `SELECT ms.prot_nbr, ms.spnsr_nm, ms.proj_cd, s.ob_stat from cdascore1d.cdascore.mdm_study ms
         FULL OUTER JOIN cdascore.study s ON ms.prot_nbr = s.prot_nbr
         WHERE LOWER(ms.prot_nbr) LIKE '%${searchParam}%' OR 
         LOWER(ms.spnsr_nm) LIKE '%${searchParam}%' OR 
         LOWER(ms.proj_cd) LIKE '%${searchParam}%'
+=======
+    const searchQuery = `SELECT * from ${constants.DB_SCHEMA_NAME}.cdas_study_master 
+        WHERE LOWER(prot_nbr) LIKE '%${searchParam}%' OR 
+        LOWER(spnsr_nm) LIKE '%${searchParam}%' OR 
+        LOWER(project_code) LIKE '%${searchParam}%'
+>>>>>>> b7fd4f335884e7c0940a2d67eff76e9cd04c58c3
         LIMIT 60
         `;
     Logger.info({
@@ -88,7 +99,7 @@ exports.noOnboardedStat = function (req, res) {
     const query = `SELECT 
       COUNT(DISTINCT CASE WHEN ob_stat = 'In Progress'   THEN prot_id END) inprogress_count,
       COUNT(DISTINCT CASE WHEN ob_stat = 'Failed' THEN prot_id END) faliure_count
-FROM cdascore1d.cdascore.cdas_study`;
+FROM ${constants.DB_SCHEMA_NAME}.cdas_study`;
     DB.executeQuery(query).then((response) => {
       const studies = response.rows || [];
       if (studies.length > 0) {
@@ -176,7 +187,7 @@ exports.getStudyList = async (req, res) => {
 
 //     // const offset = pageNo > 1 ? (pageNo - 1) * pageLimit : 0;
 //     // const query =
-//     //   "SELECT prot_nbr as protocolNumber, spnsr_nm as sponsorName, phase as phase, prot_status as protocolStatus, thptc_area as therapeuticArea, project_code as projectCode from cdascore1d.cdascore.cdas_study_master";
+//     //   "SELECT prot_nbr as protocolNumber, spnsr_nm as sponsorName, phase as phase, prot_status as protocolStatus, thptc_area as therapeuticArea, project_code as projectCode from ${constants.DB_SCHEMA_NAME}.cdas_study_master";
 
 //     const query = "SELECT DISTINCT  FROM cdascore.cdas_study";
 
