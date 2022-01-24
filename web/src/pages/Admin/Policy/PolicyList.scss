@@ -13,5 +13,9 @@
   .table {
     margin: 30px;
     background-color: #ffffff;
+
+    div[class^="MuiSwitch-sizeSmall-"] {
+      top: -8px;
+    }
   }
 }

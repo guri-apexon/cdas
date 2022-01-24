@@ -14,7 +14,6 @@ import Link from "apollo-react/components/Link";
 import Tooltip from "apollo-react/components/Tooltip";
 import { useHistory } from "react-router-dom";
 import Switch from "apollo-react/components/Switch";
-// import IconButton from "apollo-react/components/IconButton";
 import Typography from "apollo-react/components/Typography";
 import Progress from "../../../components/Progress";
 
@@ -40,7 +39,6 @@ const PolicyList = () => {
   const [sortOrderValue, setSortOrderValue] = useState("asc");
   const [inlineFilters, setInlineFilters] = useState([]);
   const [open, setOpen] = useState(false);
-  const [showPeek, setShowPeek] = useState(false);
   const [curRow, setCurRow] = useState({});
   const dispatch = useDispatch();
   const policyAdmin = useSelector((state) => state.policyAdmin);
@@ -88,6 +86,11 @@ const PolicyList = () => {
       );
     }
     return <Link onClick={(e) => goToPolicy(e, id)}>{rowValue}</Link>;
+  };
+
+  const ProductsCell = ({ row, column: { accessor } }) => {
+    const rowValue = row[accessor];
+    return <>{rowValue.slice(0, -1)}</>;
   };
 
   const handleInActivate = (e, id) => {
@@ -142,17 +145,8 @@ const PolicyList = () => {
     setOpen(false);
   };
 
-  // const handleShortLink = () => {
-  //   setShowPeek(true);
-  // };
-
-  // const handleShortLinkOut = () => {
-  //   setShowPeek(false);
-  // };
-
   const DespCell = ({ row, column: { accessor } }) => {
     const data = row[accessor];
-    // const id = row.policyId;
     if (data.length < 80) {
       return <>{data}</>;
     }
@@ -191,6 +185,8 @@ const PolicyList = () => {
     </div>
   );
 
+  const statusList = ["Active", "Inactive"];
+
   const columns = [
     {
       header: "",
@@ -216,6 +212,7 @@ const PolicyList = () => {
     {
       header: "Products Included",
       accessor: "productsIncluded",
+      customCell: ProductsCell,
       sortFunction: compareStrings,
       filterFunction: createStringArraySearchFilter("productsIncluded"),
       filterComponent: createSelectFilterComponent(products, {
@@ -228,6 +225,11 @@ const PolicyList = () => {
       header: "Status",
       accessor: "policyStatus",
       customCell: StatusCell,
+      filterFunction: createStringArraySearchFilter("status"),
+      filterComponent: createSelectFilterComponent(statusList, {
+        size: "small",
+        multiple: true,
+      }),
     },
   ];
 
@@ -251,7 +253,7 @@ const PolicyList = () => {
   useEffect(() => {
     // const rows = applyFilter();
     // setTableRows([...rows]);
-    console.log(inlineFilters, sortedColumnValue, sortOrderValue);
+    console.log(inlineFilters);
   }, [inlineFilters, sortedColumnValue, sortOrderValue]);
 
   const getTableData = React.useMemo(
@@ -281,7 +283,7 @@ const PolicyList = () => {
                 setSortOrderValue(so);
                 setInlineFilters(filts);
                 setPageNo(page);
-                console.log("onChange", rpp, sc, so, filts, page);
+                // console.log("onChange", rpp, sc, so, filts, page);
               }}
               rowsPerPageOptions={[10, 50, 100, "All"]}
               tablePaginationProps={{
@@ -293,16 +295,19 @@ const PolicyList = () => {
               }}
               showFilterIcon
               CustomHeader={(props) => <CustomButtonHeader {...props} />}
-              // rowProps={{
-              //   onMouseOver: handleMouseOver,
-              //   onMouseOut: handleMouseOut,
-              // }}
             />
           </>
         )}
       </>
     ),
-    [tableRows, loading]
+    [
+      tableRows,
+      loading,
+      pageNo,
+      rowsPerPageRecord,
+      sortOrderValue,
+      sortedColumnValue,
+    ]
   );
 
   return (
