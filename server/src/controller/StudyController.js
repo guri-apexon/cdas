@@ -3,20 +3,55 @@ const apiResponse = require("../helpers/apiResponse");
 const Logger = require("../config/logger");
 const moment = require("moment");
 const _ = require("lodash");
+const axios = require("axios");
+const request = require("request");
 
 /**
  * Study Search List.
  *
  * @returns {Object}
  */
-
+exports.onboardStudy = async function (req, res) {
+  const {
+    sponsorName,
+    studyId,
+  } = req.body;
+  let result;
+  await axios
+    .post(
+      "https://rds-cdrfsr-dev.gdev-car3-k8s.work.iqvia.com/fsr/study/onboard",
+      {
+        sponsorName: "u1112428",
+        studyId: "a020E000005SwQpQAK",
+      },
+      {
+        headers: {
+          ClientId: "CDI",
+          ClientSecret:
+            "h+p78ADQ8Zwo1EiJdLPU9brxYe9qo64YUYoZAVq/VSjY1IOHsE3yiQ==",
+          "Content-Type": "application/json",
+        },
+      }
+    )
+    .then((response) => {
+      result = response.data;
+    })
+    .catch((err) => {
+    });
+    return apiResponse.successResponseWithData(
+      res,
+      "Operation success",
+      result
+    );
+}
 exports.studyList = function (req, res) {
   try {
     const searchParam = req.params.query.toLowerCase();
-    const searchQuery = `SELECT * from cdascore1d.cdascore.cdas_study_master 
-        WHERE LOWER(prot_nbr) LIKE '%${searchParam}%' OR 
-        LOWER(spnsr_nm) LIKE '%${searchParam}%' OR 
-        LOWER(project_code) LIKE '%${searchParam}%'
+    const searchQuery = `SELECT ms.prot_nbr, ms.spnsr_nm, ms.proj_cd, s.ob_stat from cdascore1d.cdascore.mdm_study ms
+        FULL OUTER JOIN cdascore.study s ON ms.prot_nbr = s.prot_nbr
+        WHERE LOWER(ms.prot_nbr) LIKE '%${searchParam}%' OR 
+        LOWER(ms.spnsr_nm) LIKE '%${searchParam}%' OR 
+        LOWER(ms.proj_cd) LIKE '%${searchParam}%'
         LIMIT 60
         `;
     Logger.info({
