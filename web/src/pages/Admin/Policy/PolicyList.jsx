@@ -216,6 +216,7 @@ const PolicyList = () => {
                   } ${from}-${to} of ${count}`,
                 truncate: true,
               }}
+              showFilterIcon
               CustomHeader={(props) => <CustomButtonHeader {...props} />}
             />
           </>
