@@ -10,6 +10,7 @@ import PlusIcon from "apollo-react-icons/Plus";
 import FilterIcon from "apollo-react-icons/Filter";
 import Link from "apollo-react/components/Link";
 import { useHistory } from "react-router-dom";
+import Switch from "apollo-react/components/Switch";
 // import IconButton from "apollo-react/components/IconButton";
 import Typography from "apollo-react/components/Typography";
 import Progress from "../../../components/Progress";
@@ -27,6 +28,8 @@ import "./PolicyList.scss";
 export default function PolicyList() {
   const history = useHistory();
   const [loading, setLoading] = useState(false);
+  const [value, setValue] = React.useState(true);
+  const [tableRows, setTableRows] = useState([]);
   const dispatch = useDispatch();
   const policyAdmin = useSelector((state) => state.policyAdmin);
   useEffect(() => {
@@ -35,6 +38,8 @@ export default function PolicyList() {
 
   useEffect(() => {
     setLoading(policyAdmin.loading);
+    setTableRows(policyAdmin.policyList);
+    console.log("policy", policyAdmin);
   }, [policyAdmin.loading]);
   // const messageContext = useContext(MessageContext);
 
@@ -52,29 +57,34 @@ export default function PolicyList() {
     );
   };
 
-  const SelectiveCell = ({ row, column: { accessor } }) => {
-    const onboardingprogress = row[accessor];
-    const Img = "noIcon";
-    if (Img === "noIcon") {
+  const handleInActivate = (e, id) => {
+    // setValue(checked);
+    console.log(id);
+  };
+
+  const handleActivate = (e, id) => {
+    // setValue(checked);
+    console.log(id);
+  };
+
+  const StatusCell = ({ row, column: { accessor } }) => {
+    const data = row[accessor];
+    const id = row.policyId;
+    if (data === "Active") {
       return (
-        <div style={{ position: "relative", marginLeft: 25 }}>
-          {onboardingprogress}
-        </div>
+        <Switch
+          label="Label"
+          checked={true}
+          onChange={(e) => handleInActivate(e, id)}
+        />
       );
     }
     return (
-      <div style={{ position: "relative" }}>
-        <Img
-          style={{
-            position: "relative",
-            top: 5,
-            marginRight: 5,
-            width: 20,
-            height: 20,
-          }}
-        />
-        {onboardingprogress}
-      </div>
+      <Switch
+        label="Label"
+        checked={false}
+        onChange={(e) => handleActivate(e, id)}
+      />
     );
   };
 
@@ -104,6 +114,7 @@ export default function PolicyList() {
     {
       header: "Policy Name",
       accessor: "policyName",
+      customCell: LinkCell,
       sortFunction: compareStrings,
       filterFunction: createStringSearchFilter("policyName"),
       filterComponent: TextFieldFilter,
@@ -128,16 +139,13 @@ export default function PolicyList() {
 
     {
       header: "Status",
-      accessor: "status",
-      sortFunction: compareStrings,
-      filterFunction: createStringSearchFilter("status"),
-      filterComponent: TextFieldFilter,
+      accessor: "policyStatus",
+      customCell: StatusCell,
     },
   ];
 
   const moreColumns = [...columns];
 
-  const [tableRows, setTableRows] = useState([...studyboardData]);
   const [tableColumns, setTableColumns] = useState([...moreColumns]);
 
   // useEffect(() => {
@@ -168,7 +176,7 @@ export default function PolicyList() {
               title="Policies"
               columns={tableColumns}
               rows={tableRows}
-              rowId="policyId"
+              // rowId="policyId"
               hasScroll={true}
               maxHeight="calc(100vh - 162px)"
               initialSortedColumn="policyName"

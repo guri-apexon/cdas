@@ -26,7 +26,7 @@ exports.getPolicyList = async (req, res) => {
     // });
 
     return apiResponse.successResponseWithData(res, "Operation success", {
-      polciyList: $q1.rows,
+      policyList: $q1.rows,
       uniqueProducts,
     });
 

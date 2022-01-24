@@ -19,7 +19,7 @@ export function* fetchPolicyListData() {
     // console.log("study", fetchSBData);
     yield put({
       type: POLICY_LIST_SUCCESS,
-      polciyList: fetchSBData.data.data.polciyList,
+      policyList: fetchSBData.data.data.policyList,
       uniqueProducts: fetchSBData.data.data.uniqueProducts,
     });
   } catch (e) {
