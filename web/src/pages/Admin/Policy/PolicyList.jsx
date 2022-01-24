@@ -7,6 +7,7 @@ import Table, {
 } from "apollo-react/components/Table";
 import Button from "apollo-react/components/Button";
 import PlusIcon from "apollo-react-icons/Plus";
+import Peek from "apollo-react/components/Peek";
 import FilterIcon from "apollo-react-icons/Filter";
 import Link from "apollo-react/components/Link";
 import Tooltip from "apollo-react/components/Tooltip";
@@ -32,6 +33,13 @@ const PolicyList = () => {
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState([]);
   const [tableRows, setTableRows] = useState([]);
+  const [rowsPerPageRecord, setRowPerPageRecord] = useState(10);
+  const [pageNo, setPageNo] = useState(0);
+  const [sortedColumnValue, setSortedColumnValue] = useState("policyName");
+  const [sortOrderValue, setSortOrderValue] = useState("asc");
+  const [inlineFilters, setInlineFilters] = useState([]);
+  const [open, setOpen] = useState(false);
+  const [curRow, setCurRow] = useState({});
   const dispatch = useDispatch();
   const policyAdmin = useSelector((state) => state.policyAdmin);
   useEffect(() => {
@@ -119,6 +127,15 @@ const PolicyList = () => {
     );
   };
 
+  const DespCell = ({ row, column: { accessor } }) => {
+    const data = row[accessor];
+    const id = row.policyId;
+    if (data.lenght() < 60) {
+      return <>{data}</>;
+    }
+    return <div>{data}</div>;
+  };
+
   const CustomButtonHeader = ({ toggleFilters }) => (
     <div>
       <Button
@@ -180,16 +197,37 @@ const PolicyList = () => {
     },
   ];
 
-  // useEffect(() => {
-  //   if (!studyData.loading || studyData.studyboardFetchSuccess) {
-  //     setLoading(false);
-  //     setTableRows([...studyboardData]);
-  //     setExportTableRows([...studyboardData]);
-  //     setTableColumns([...moreColumns]);
-  //   } else {
-  //     setLoading(true);
-  //   }
-  // }, [studyData.loading, studyboardData, studyData.studyboardFetchSuccess]);
+  const handleMouseOver = (row) => {
+    setOpen(true);
+    setCurRow(row);
+  };
+
+  const handleMouseOut = () => {
+    setOpen(false);
+  };
+
+  const applyFilter = (cols, rows, filts) => {
+    let filteredRows = rows;
+    Object.values(cols).forEach((column) => {
+      if (column.filterFunction) {
+        filteredRows = filteredRows.filter((row) => {
+          return column.filterFunction(row, filts);
+        });
+        if (column.sortFunction) {
+          filteredRows.sort(
+            column.sortFunction(sortedColumnValue, sortOrderValue)
+          );
+        }
+      }
+    });
+    return filteredRows;
+  };
+
+  useEffect(() => {
+    // const rows = applyFilter();
+    // setTableRows([...rows]);
+    console.log(inlineFilters, sortedColumnValue, sortOrderValue);
+  }, [inlineFilters, sortedColumnValue, sortOrderValue]);
 
   const getTableData = React.useMemo(
     () => (
@@ -208,6 +246,18 @@ const PolicyList = () => {
               maxHeight="calc(100vh - 162px)"
               initialSortedColumn="policyName"
               initialSortOrder="asc"
+              sortedColumn={sortedColumnValue}
+              sortOrder={sortOrderValue}
+              page={pageNo}
+              rowsPerPage={rowsPerPageRecord}
+              onChange={(rpp, sc, so, filts, page) => {
+                setRowPerPageRecord(rpp);
+                setSortedColumnValue(sc);
+                setSortOrderValue(so);
+                setInlineFilters(filts);
+                setPageNo(page);
+                console.log("onChange", rpp, sc, so, filts, page);
+              }}
               rowsPerPageOptions={[10, 50, 100, "All"]}
               tablePaginationProps={{
                 labelDisplayedRows: ({ from, to, count }) =>
@@ -218,12 +268,36 @@ const PolicyList = () => {
               }}
               showFilterIcon
               CustomHeader={(props) => <CustomButtonHeader {...props} />}
+              rowProps={{
+                onMouseOver: handleMouseOver,
+                onMouseOut: handleMouseOut,
+              }}
+            />
+            <Peek
+              open={open}
+              followCursor
+              placement="bottom"
+              content={
+                // eslint-disable-next-line react/jsx-wrap-multilines
+                <div style={{ maxWidth: 400 }}>
+                  <Typography
+                    variant="title2"
+                    gutterBottom
+                    style={{ fontWeight: 600 }}
+                  >
+                    {curRow.policyName}
+                  </Typography>
+                  <Typography variant="body2">
+                    {curRow.policyDescription}
+                  </Typography>
+                </div>
+              }
             />
           </>
         )}
       </>
     ),
-    [tableRows, loading]
+    [tableRows, loading, open]
   );
 
   return (
@@ -233,7 +307,9 @@ const PolicyList = () => {
           Policy Management
         </Typography>
       </div>
-      <div className="policy-table">{getTableData}</div>
+      <div className="policy-table">
+        <div className="table">{getTableData}</div>
+      </div>
     </div>
   );
 };
