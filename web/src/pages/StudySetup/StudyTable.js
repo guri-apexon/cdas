@@ -409,7 +409,6 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
       tableColumns,
       tableRows,
       sortOrderValue,
-      moreColumns,
       sortedColumnValue,
       pageNo,
       rowsPerPageRecord,
