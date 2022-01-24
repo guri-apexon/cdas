@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/anchor-is-valid */
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Table, {
@@ -39,6 +40,7 @@ const PolicyList = () => {
   const [sortOrderValue, setSortOrderValue] = useState("asc");
   const [inlineFilters, setInlineFilters] = useState([]);
   const [open, setOpen] = useState(false);
+  const [showPeek, setShowPeek] = useState(false);
   const [curRow, setCurRow] = useState({});
   const dispatch = useDispatch();
   const policyAdmin = useSelector((state) => state.policyAdmin);
@@ -78,10 +80,14 @@ const PolicyList = () => {
   const LinkCell = ({ row, column: { accessor } }) => {
     const rowValue = row[accessor];
     const id = row.policyId;
-    return (
-      // eslint-disable-next-line jsx-a11y/anchor-is-valid
-      <Link onClick={(e) => goToPolicy(e, id)}>{rowValue}</Link>
-    );
+    if (rowValue.length > 30) {
+      return (
+        <Link onClick={(e) => goToPolicy(e, id)}>
+          {`${rowValue.slice(0, 30)}  [...]`}
+        </Link>
+      );
+    }
+    return <Link onClick={(e) => goToPolicy(e, id)}>{rowValue}</Link>;
   };
 
   const handleInActivate = (e, id) => {
@@ -127,13 +133,40 @@ const PolicyList = () => {
     );
   };
 
+  const handleMouseOver = (row) => {
+    setOpen(!open);
+    setCurRow(row);
+  };
+
+  const handleMouseOut = () => {
+    setOpen(false);
+  };
+
+  // const handleShortLink = () => {
+  //   setShowPeek(true);
+  // };
+
+  // const handleShortLinkOut = () => {
+  //   setShowPeek(false);
+  // };
+
   const DespCell = ({ row, column: { accessor } }) => {
     const data = row[accessor];
-    const id = row.policyId;
-    if (data.lenght() < 60) {
+    // const id = row.policyId;
+    if (data.length < 80) {
       return <>{data}</>;
     }
-    return <div>{data}</div>;
+    return (
+      <>
+        {data.slice(0, 50)}
+        <Link
+          onMouseOver={() => handleMouseOver(row)}
+          onMouseOut={handleMouseOut}
+        >
+          {`  [...]`}
+        </Link>
+      </>
+    );
   };
 
   const CustomButtonHeader = ({ toggleFilters }) => (
@@ -178,6 +211,7 @@ const PolicyList = () => {
       sortFunction: compareStrings,
       filterFunction: createStringSearchFilter("policyDescription"),
       filterComponent: TextFieldFilter,
+      customCell: DespCell,
     },
     {
       header: "Products Included",
@@ -196,15 +230,6 @@ const PolicyList = () => {
       customCell: StatusCell,
     },
   ];
-
-  const handleMouseOver = (row) => {
-    setOpen(true);
-    setCurRow(row);
-  };
-
-  const handleMouseOut = () => {
-    setOpen(false);
-  };
 
   const applyFilter = (cols, rows, filts) => {
     let filteredRows = rows;
@@ -268,36 +293,16 @@ const PolicyList = () => {
               }}
               showFilterIcon
               CustomHeader={(props) => <CustomButtonHeader {...props} />}
-              rowProps={{
-                onMouseOver: handleMouseOver,
-                onMouseOut: handleMouseOut,
-              }}
-            />
-            <Peek
-              open={open}
-              followCursor
-              placement="bottom"
-              content={
-                // eslint-disable-next-line react/jsx-wrap-multilines
-                <div style={{ maxWidth: 400 }}>
-                  <Typography
-                    variant="title2"
-                    gutterBottom
-                    style={{ fontWeight: 600 }}
-                  >
-                    {curRow.policyName}
-                  </Typography>
-                  <Typography variant="body2">
-                    {curRow.policyDescription}
-                  </Typography>
-                </div>
-              }
+              // rowProps={{
+              //   onMouseOver: handleMouseOver,
+              //   onMouseOut: handleMouseOut,
+              // }}
             />
           </>
         )}
       </>
     ),
-    [tableRows, loading, open]
+    [tableRows, loading]
   );
 
   return (
@@ -309,6 +314,26 @@ const PolicyList = () => {
       </div>
       <div className="policy-table">
         <div className="table">{getTableData}</div>
+        <Peek
+          open={open}
+          followCursor
+          placement="bottom"
+          content={
+            // eslint-disable-next-line react/jsx-wrap-multilines
+            <div style={{ maxWidth: 400 }}>
+              <Typography
+                variant="title2"
+                gutterBottom
+                style={{ fontWeight: 600 }}
+              >
+                {curRow.policyName}
+              </Typography>
+              <Typography variant="body2">
+                {curRow.policyDescription}
+              </Typography>
+            </div>
+          }
+        />
       </div>
     </div>
   );
