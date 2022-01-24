@@ -9,11 +9,13 @@ import Button from "apollo-react/components/Button";
 import PlusIcon from "apollo-react-icons/Plus";
 import FilterIcon from "apollo-react-icons/Filter";
 import Link from "apollo-react/components/Link";
+import Tooltip from "apollo-react/components/Tooltip";
 import { useHistory } from "react-router-dom";
 import Switch from "apollo-react/components/Switch";
 // import IconButton from "apollo-react/components/IconButton";
 import Typography from "apollo-react/components/Typography";
 import Progress from "../../../components/Progress";
+
 // import { MessageContext } from "../../../components/MessageProvider";
 
 import { getPolicyList } from "../../../store/actions/PolicyAdminActions";
@@ -27,8 +29,8 @@ import "./PolicyList.scss";
 
 export default function PolicyList() {
   const history = useHistory();
-  const [loading, setLoading] = useState(false);
-  const [value, setValue] = React.useState(true);
+  const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState([]);
   const [tableRows, setTableRows] = useState([]);
   const dispatch = useDispatch();
   const policyAdmin = useSelector((state) => state.policyAdmin);
@@ -37,34 +39,58 @@ export default function PolicyList() {
   }, []);
 
   useEffect(() => {
-    setLoading(policyAdmin.loading);
-    setTableRows(policyAdmin.policyList);
-    console.log("policy", policyAdmin);
+    const { policyList, uniqueProducts } = policyAdmin;
+    const uniquePolicies = Array.from(
+      policyList
+        .reduce((acc, { productName, policyId, ...r }) => {
+          const current = acc.get(policyId) || {
+            ...r,
+            policyId,
+            productsIncluded: "",
+          };
+          return acc.set(policyId, {
+            ...current,
+            productsIncluded: `${current.productsIncluded} ${productName},`,
+          });
+        }, new Map())
+        .values()
+    );
+    setTableRows(uniquePolicies);
+    setProducts(uniqueProducts);
+    setLoading(false);
   }, [policyAdmin.loading]);
+
   // const messageContext = useContext(MessageContext);
 
-  const studyboardData = [];
-
-  const productsIncluded = ["Failed", "Success", "In Progress"];
+  const goToPolicy = (e, id) => {
+    e.preventDefault();
+    history.push(`/policy-management/${id}`);
+  };
 
   const LinkCell = ({ row, column: { accessor } }) => {
     const rowValue = row[accessor];
+    const id = row.policyId;
     return (
       // eslint-disable-next-line jsx-a11y/anchor-is-valid
-      <Link onClick={() => console.log(`link clicked ${rowValue}`)}>
-        {rowValue}
-      </Link>
+      <Link onClick={(e) => goToPolicy(e, id)}>{rowValue}</Link>
     );
   };
 
   const handleInActivate = (e, id) => {
-    // setValue(checked);
-    console.log(id);
+    e.preventDefault();
+    // const selectedData = tableRows.filter((d) => d.policyId === id);
+    // const newData = [...tableRows, selectedData];
+    // setTableRows([...tableRows, newData]);
+    console.log("tableRows", tableRows, products, id);
   };
 
   const handleActivate = (e, id) => {
-    // setValue(checked);
-    console.log(id);
+    e.preventDefault();
+    // console.log(id);
+    // const newData = tableRows.filter((d) => d.policyId === id);
+    // newData.policyStatus = "Active";
+    // setTableRows([...tableRows, newData]);
+    console.log("tableRows", tableRows, products, id);
   };
 
   const StatusCell = ({ row, column: { accessor } }) => {
@@ -72,19 +98,23 @@ export default function PolicyList() {
     const id = row.policyId;
     if (data === "Active") {
       return (
-        <Switch
-          label="Label"
-          checked={true}
-          onChange={(e) => handleInActivate(e, id)}
-        />
+        <Tooltip title="Active" disableFocusListener>
+          <Switch
+            checked={true}
+            onChange={(e) => handleInActivate(e, id)}
+            size="small"
+          />
+        </Tooltip>
       );
     }
     return (
-      <Switch
-        label="Label"
-        checked={false}
-        onChange={(e) => handleActivate(e, id)}
-      />
+      <Tooltip title="Inactive" disableFocusListener>
+        <Switch
+          checked={false}
+          onChange={(e) => handleActivate(e, id)}
+          size="small"
+        />
+      </Tooltip>
     );
   };
 
@@ -94,7 +124,7 @@ export default function PolicyList() {
         size="small"
         variant="secondary"
         icon={PlusIcon}
-        onClick={() => history.push("/")}
+        onClick={() => history.push("/launchpad")}
         style={{ marginRight: "8px", border: "none" }}
       >
         Create new policy
@@ -111,6 +141,11 @@ export default function PolicyList() {
   );
 
   const columns = [
+    {
+      header: "",
+      accessor: "policyId",
+      hidden: true,
+    },
     {
       header: "Policy Name",
       accessor: "policyName",
@@ -131,7 +166,7 @@ export default function PolicyList() {
       accessor: "productsIncluded",
       sortFunction: compareStrings,
       filterFunction: createStringArraySearchFilter("productsIncluded"),
-      filterComponent: createSelectFilterComponent(productsIncluded, {
+      filterComponent: createSelectFilterComponent(products, {
         size: "small",
         multiple: true,
       }),
@@ -159,11 +194,6 @@ export default function PolicyList() {
   //   }
   // }, [studyData.loading, studyboardData, studyData.studyboardFetchSuccess]);
 
-  useEffect(() => {
-    setTableColumns([...moreColumns]);
-    setTableRows([...studyboardData]);
-  }, []);
-
   const getTableData = React.useMemo(
     () => (
       <>
@@ -176,7 +206,7 @@ export default function PolicyList() {
               title="Policies"
               columns={tableColumns}
               rows={tableRows}
-              // rowId="policyId"
+              rowId="policyId"
               hasScroll={true}
               maxHeight="calc(100vh - 162px)"
               initialSortedColumn="policyName"
