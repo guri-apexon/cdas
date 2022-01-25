@@ -42,14 +42,13 @@ const PolicyList = () => {
   const [products, setProducts] = useState([]);
   const [tableRows, setTableRows] = useState([]);
   const [policyLists, setPolicyLists] = useState([]);
-  const [rowsPerPageRecord, setRowPerPageRecord] = useState(10);
-  const [pageNo, setPageNo] = useState(0);
-  const [sortedColumnValue, setSortedColumnValue] = useState("policyName");
-  const [sortOrderValue, setSortOrderValue] = useState("asc");
-  const [inlineFilters, setInlineFilters] = useState([]);
+  // const [rowsPerPageRecord, setRowPerPageRecord] = useState(10);
+  // const [pageNo, setPageNo] = useState(0);
+  // const [sortedColumnValue, setSortedColumnValue] = useState("policyName");
+  // const [sortOrderValue, setSortOrderValue] = useState("asc");
+  // const [inlineFilters, setInlineFilters] = useState([]);
   const [open, setOpen] = useState(false);
   const [curRow, setCurRow] = useState({});
-
   const dispatch = useDispatch();
   const policyAdmin = useSelector((state) => state.policyAdmin);
 
@@ -342,7 +341,7 @@ const PolicyList = () => {
         )}
       </>
     ),
-    [tableRows, loading, pageNo, rowsPerPageRecord]
+    [tableRows, loading]
   );
 
   return (
@@ -352,7 +351,6 @@ const PolicyList = () => {
           Policy Management
         </Typography>
       </div>
-      <Button onClick={getData}>refresh</Button>
       <div className="policy-table">
         <div className="table">{getTableData}</div>
         <Peek
