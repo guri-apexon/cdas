@@ -21,7 +21,7 @@ import NavigationPanel from "../NavigationPanel/NavigationPanel";
 import { deleteAllCookies, getUserInfo } from "../../utils/index";
 // eslint-disable-next-line import/named
 import { userLogOut } from "../../services/ApiServices";
-import { MessageContext } from "../MessageProvider";
+import { MessageContext } from "../Providers/MessageProvider";
 
 const styles = {
   root: {

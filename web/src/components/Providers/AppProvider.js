@@ -9,7 +9,6 @@ const AppProvider = ({ children }) => {
     username: "",
     lastlogin: "",
     token: null,
-    actions: "",
   });
 
   const updateUser = (userData) => {
@@ -19,7 +18,6 @@ const AppProvider = ({ children }) => {
       username: userData.username,
       lastlogin: userData.lastlogin,
       token: userData.token,
-      actions: userData.actions,
     });
   };
 
