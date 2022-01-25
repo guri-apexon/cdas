@@ -27,7 +27,9 @@ const productArr = [
     title: "Clinical Data Ingestion",
     haveAccess: true,
     imgUrl: CDIIcon,
-    url: "cdi",
+    url:
+      process.env.REACT_APP_CDI_URL ||
+      `${window.location.protocol}//${window.location.hostname}:3000`,
     tooltipText:
       "Business friendly technology to accelerate the setup and management of clinical study data ingestion acquisition from any source, for any data type, for any data type.",
   },
@@ -70,6 +72,9 @@ const LaunchPad = () => {
   const userInfo = getUserInfo();
 
   const { fullName } = userInfo;
+  const goToApp = (path) => {
+    window.location.href = path;
+  };
 
   return (
     <div className="lauchpad-wrapper">
@@ -105,7 +110,7 @@ const LaunchPad = () => {
               // eslint-disable-next-line jsx-a11y/click-events-have-key-events
               <div
                 key={i}
-                onClick={() => product.haveAccess && history.push(product.url)}
+                onClick={() => product.haveAccess && goToApp(product.url)}
                 className={
                   // eslint-disable-next-line prefer-template
                   "productBox " + (product.haveAccess ? "haveAccess" : "")

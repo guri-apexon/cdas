@@ -5,7 +5,7 @@ const moment = require("moment");
 const _ = require("lodash");
 const axios = require("axios");
 const request = require("request");
-const constants = require("../config/constants");
+const constants = require('../config/constants');
 
 exports.onboardStudy = async function (req, res) {
   const { sponsorName, studyId } = req.body;
@@ -35,10 +35,11 @@ exports.onboardStudy = async function (req, res) {
 exports.studyList = function (req, res) {
   try {
     const searchParam = req.params.query.toLowerCase();
-    const searchQuery = `SELECT * from ${constants.DB_SCHEMA_NAME}.cdas_study_master 
-        WHERE LOWER(prot_nbr) LIKE '%${searchParam}%' OR 
-        LOWER(spnsr_nm) LIKE '%${searchParam}%' OR 
-        LOWER(project_code) LIKE '%${searchParam}%'
+    const searchQuery = `SELECT ms.prot_nbr, ms.spnsr_nm, ms.proj_cd, s.ob_stat from ${constants.DB_SCHEMA_NAME}.mdm_study ms
+    FULL OUTER JOIN cdascore.study s ON ms.prot_nbr = s.prot_nbr
+    WHERE LOWER(ms.prot_nbr) LIKE '%${searchParam}%' OR 
+    LOWER(ms.spnsr_nm) LIKE '%${searchParam}%' OR 
+    LOWER(ms.proj_cd) LIKE '%${searchParam}%'
         LIMIT 60
         `;
     Logger.info({
