@@ -24,6 +24,7 @@ import { getPolicyList } from "../../../store/actions/PolicyAdminActions";
 import {
   TextFieldFilter,
   createStringArraySearchFilter,
+  createStringArrayIncludedFilter,
 } from "../../../utils/index";
 
 import "./PolicyList.scss";
@@ -232,7 +233,7 @@ const PolicyList = () => {
       accessor: "productsIncluded",
       customCell: ProductsCell,
       sortFunction: compareStrings,
-      filterFunction: createStringArraySearchFilter("productsIncluded"),
+      filterFunction: createStringArrayIncludedFilter("productsIncluded"),
       filterComponent: createSelectFilterComponent(products, {
         size: "small",
         multiple: true,
@@ -253,49 +254,49 @@ const PolicyList = () => {
     },
   ];
 
-  const newColumns = [
-    columns[0],
-    columns[1],
-    columns[2],
-    {
-      header: "Products Included",
-      accessor: "productName",
-      customCell: ProductsCell,
-      sortFunction: compareStrings,
-      filterFunction: createStringArraySearchFilter("productName"),
-      filterComponent: createSelectFilterComponent(products, {
-        size: "small",
-        multiple: true,
-      }),
-    },
-    columns[4],
-  ];
+  // const newColumns = [
+  //   columns[0],
+  //   columns[1],
+  //   columns[2],
+  //   {
+  //     header: "Products Included",
+  //     accessor: "productName",
+  //     customCell: ProductsCell,
+  //     sortFunction: compareStrings,
+  //     filterFunction: createStringArraySearchFilter("productName"),
+  //     filterComponent: createSelectFilterComponent(products, {
+  //       size: "small",
+  //       multiple: true,
+  //     }),
+  //   },
+  //   columns[4],
+  // ];
 
-  const applyFilter = (cols, rows, filts) => {
-    let filteredRows = rows;
-    console.log("productsIncluded", cols);
-    Object.values(cols).forEach((column) => {
-      if (column.filterFunction) {
-        filteredRows = filteredRows.filter((row) => {
-          return column.filterFunction(row, filts);
-        });
-        if (column.sortFunction) {
-          filteredRows.sort(
-            column.sortFunction(sortedColumnValue, sortOrderValue)
-          );
-        }
-      }
-    });
-    // console.log("try", Object.values(cols));
-    return filteredRows;
-  };
+  // const applyFilter = (cols, rows, filts) => {
+  //   let filteredRows = rows;
+  //   console.log("productsIncluded", cols);
+  //   Object.values(cols).forEach((column) => {
+  //     if (column.filterFunction) {
+  //       filteredRows = filteredRows.filter((row) => {
+  //         return column.filterFunction(row, filts);
+  //       });
+  //       if (column.sortFunction) {
+  //         filteredRows.sort(
+  //           column.sortFunction(sortedColumnValue, sortOrderValue)
+  //         );
+  //       }
+  //     }
+  //   });
+  //   // console.log("try", Object.values(cols));
+  //   return filteredRows;
+  // };
 
-  useEffect(() => {
-    const rows = applyFilter(newColumns, policyLists, inlineFilters);
-    const uniqueRows = createUniqueData(rows);
-    console.log("filtered", rows, uniqueRows);
-    setTableRows([...uniqueRows]);
-  }, [inlineFilters, sortedColumnValue, sortOrderValue]);
+  // useEffect(() => {
+  //   const rows = applyFilter(newColumns, policyLists, inlineFilters);
+  //   const uniqueRows = createUniqueData(rows);
+  //   console.log("filtered", rows, uniqueRows);
+  //   setTableRows([...uniqueRows]);
+  // }, [inlineFilters, sortedColumnValue, sortOrderValue]);
 
   const getTableData = React.useMemo(
     () => (
@@ -314,18 +315,18 @@ const PolicyList = () => {
               maxHeight="calc(100vh - 162px)"
               initialSortedColumn="policyName"
               initialSortOrder="asc"
-              sortedColumn={sortedColumnValue}
-              sortOrder={sortOrderValue}
-              page={pageNo}
-              rowsPerPage={rowsPerPageRecord}
-              onChange={(rpp, sc, so, filts, page) => {
-                setRowPerPageRecord(rpp);
-                setSortedColumnValue(sc);
-                setSortOrderValue(so);
-                setInlineFilters(filts);
-                setPageNo(page);
-                // console.log("onChange", rpp, sc, so, filts, page);
-              }}
+              // sortedColumn={sortedColumnValue}
+              // sortOrder={sortOrderValue}
+              // page={pageNo}
+              // rowsPerPage={rowsPerPageRecord}
+              // onChange={(rpp, sc, so, filts, page) => {
+              //   setRowPerPageRecord(rpp);
+              //   setSortedColumnValue(sc);
+              //   setSortOrderValue(so);
+              //   setInlineFilters(filts);
+              //   setPageNo(page);
+              //   // console.log("onChange", rpp, sc, so, filts, page);
+              // }}
               rowsPerPageOptions={[10, 50, 100, "All"]}
               tablePaginationProps={{
                 labelDisplayedRows: ({ from, to, count }) =>

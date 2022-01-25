@@ -297,3 +297,12 @@ export const createStringArraySearchFilter = (accessor) => {
       (value) => value.toUpperCase() === row[accessor]?.toUpperCase()
     );
 };
+
+export const createStringArrayIncludedFilter = (accessor) => {
+  return (row, filters) =>
+    !Array.isArray(filters[accessor]) ||
+    filters[accessor].length === 0 ||
+    filters[accessor].some((value) =>
+      row[accessor]?.toUpperCase().includes(value.toUpperCase())
+    );
+};
