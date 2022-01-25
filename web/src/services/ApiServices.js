@@ -26,6 +26,23 @@ export const addPolicyService = async (reqBody) => {
     return console.log("Error", err);
   }
 };
+
+export const getPolicyPermissions = async () => {
+  try {
+    return new Promise((resolve, reject) => {
+      axios
+        .get(`${baseURL}/v1/api/policy/permission-list`)
+        .then((res) => {
+          resolve(res.data.data);
+        })
+        .catch((err) => {
+          console.log("Err", err);
+        });
+    });
+  } catch (err) {
+    return console.log("Error", err);
+  }
+};
 export const onboardStudy = (reqBody) => {
   try {
     return new Promise((resolve, reject) => {

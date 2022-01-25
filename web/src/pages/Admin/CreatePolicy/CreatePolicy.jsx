@@ -1,5 +1,5 @@
 /* eslint-disable react/button-has-type */
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import Box from "apollo-react/components/Box";
 import BreadcrumbsUI from "apollo-react/components/Breadcrumbs";
 import Switch from "apollo-react/components/Switch";
@@ -10,7 +10,10 @@ import Typography from "apollo-react/components/Typography";
 import Grid from "apollo-react/components/Grid";
 import Tab from "apollo-react/components/Tab";
 import Tabs from "apollo-react/components/Tabs";
-import { addPolicyService } from "../../../services/ApiServices";
+import {
+  addPolicyService,
+  getPolicyPermissions,
+} from "../../../services/ApiServices";
 import { MessageContext } from "../../../components/MessageProvider";
 
 const breadcrumpItems = [
@@ -29,6 +32,7 @@ const CreatePolicy = () => {
   const [currentTab, setCurrentTab] = useState(0);
   const [policyName, setPolicyName] = useState("");
   const [policyDesc, setPolicyDesc] = useState("");
+  const [permissions, setPermissions] = useState([]);
   const messageContext = useContext(MessageContext);
   const handleActive = (e, checked) => {
     setActive(checked);
@@ -57,6 +61,14 @@ const CreatePolicy = () => {
       setPolicyDesc(val);
     }
   };
+  const fetchPermissions = async () => {
+    const permissionsData = await getPolicyPermissions();
+    console.log("permissions", permissionsData);
+    setPermissions(permissionsData);
+  };
+  useEffect(() => {
+    fetchPermissions();
+  }, []);
   return (
     <div className="create-policy-wrapper">
       <Box className="top-content">
