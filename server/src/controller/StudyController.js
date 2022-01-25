@@ -7,16 +7,8 @@ const axios = require("axios");
 const request = require("request");
 const constants = require('../config/constants');
 
-/**
- * Study Search List.
- *
- * @returns {Object}
- */
 exports.onboardStudy = async function (req, res) {
-  const {
-    sponsorName,
-    studyId,
-  } = req.body;
+  const { sponsorName, studyId } = req.body;
   let result;
   await axios
     .post(
@@ -37,18 +29,13 @@ exports.onboardStudy = async function (req, res) {
     .then((response) => {
       result = response.data;
     })
-    .catch((err) => {
-    });
-    return apiResponse.successResponseWithData(
-      res,
-      "Operation success",
-      result
-    );
-}
+    .catch((err) => {});
+  return apiResponse.successResponseWithData(res, "Operation success", result);
+};
 exports.studyList = function (req, res) {
   try {
     const searchParam = req.params.query.toLowerCase();
-    const searchQuery = `SELECT ms.prot_nbr, ms.spnsr_nm, ms.proj_cd, s.ob_stat from ${constants.DB_SCHEMA_NAME}.mdm_study 
+    const searchQuery = `SELECT ms.prot_nbr, ms.spnsr_nm, ms.proj_cd, s.ob_stat from ${constants.DB_SCHEMA_NAME}.mdm_study ms
     FULL OUTER JOIN cdascore.study s ON ms.prot_nbr = s.prot_nbr
     WHERE LOWER(ms.prot_nbr) LIKE '%${searchParam}%' OR 
     LOWER(ms.spnsr_nm) LIKE '%${searchParam}%' OR 
@@ -162,39 +149,3 @@ exports.getStudyList = async (req, res) => {
     return apiResponse.ErrorResponse(res, err);
   }
 };
-
-// exports.getUniqueValueofColumn = async (req, res) => {
-//   try {
-//     let searchData = req.body;
-//     let { columnName } = searchData;
-//     //   searchData;
-//     // const ist_update = new Date();
-
-//     // const searchString = searchData.searchString ? searchData.searchString : "";
-//     // const searchStringDataType = searchData.searchStringDataType
-//     //   ? searchData.searchStringDataType
-//     //   : "";
-
-//     // const offset = pageNo > 1 ? (pageNo - 1) * pageLimit : 0;
-//     // const query =
-//     //   "SELECT prot_nbr as protocolNumber, spnsr_nm as sponsorName, phase as phase, prot_status as protocolStatus, thptc_area as therapeuticArea, project_code as projectCode from ${constants.DB_SCHEMA_NAME}.cdas_study_master";
-
-//     const query = "SELECT DISTINCT  FROM cdascore.cdas_study";
-
-//     Logger.info({
-//       message: "getStudyList",
-//     });
-
-//     const $data = await DB.executeQuery(query);
-//     return apiResponse.successResponseWithData(
-//       res,
-//       "Operation success",
-//       $data.rows
-//     );
-//   } catch (err) {
-//     //throw error in json response with status 500.
-//     Logger.error("catch :studyList");
-//     Logger.error(err);
-//     return apiResponse.ErrorResponse(res, err);
-//   }
-// };
