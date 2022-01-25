@@ -22,7 +22,7 @@ import IconButton from "apollo-react/components/IconButton";
 import { ReactComponent as InProgressIcon } from "../../components/Icons/Icon_In-progress_72x72.svg";
 import { ReactComponent as InFailureIcon } from "../../components/Icons/Icon_Failure_72x72.svg";
 import Progress from "../../components/Progress";
-import { MessageContext } from "../../components/MessageProvider";
+import { MessageContext } from "../../components/Providers/MessageProvider";
 import {
   createAutocompleteFilter,
   TextFieldFilter,
@@ -30,6 +30,84 @@ import {
   DateFilter,
   createStringArraySearchFilter,
 } from "../../utils/index";
+
+const columnsToAdd = [
+  {
+    header: "Therapeutic Area",
+    accessor: "therapeuticarea",
+    sortFunction: compareStrings,
+    filterFunction: createStringSearchFilter("therapeuticarea"),
+    filterComponent: TextFieldFilter,
+  },
+  {
+    header: "Project Code",
+    accessor: "projectcode",
+    sortFunction: compareStrings,
+    filterFunction: createStringSearchFilter("projectcode"),
+    filterComponent: TextFieldFilter,
+  },
+];
+
+const ActionCell = ({ row }) => {
+  return (
+    <div style={{ display: "flex", justifyContent: "end" }}>
+      <IconButton size="small" data-id={row.protocolnumber}>
+        <EllipsisVertical />
+      </IconButton>
+    </div>
+  );
+};
+
+const LinkCell = ({ row, column: { accessor } }) => {
+  const rowValue = row[accessor];
+  return (
+    // eslint-disable-next-line jsx-a11y/anchor-is-valid
+    <Link onClick={() => console.log(`link clicked ${rowValue}`)}>
+      {rowValue}
+    </Link>
+  );
+};
+
+const DateCell = ({ row, column: { accessor } }) => {
+  const rowValue = row[accessor];
+  const date =
+    rowValue && moment(rowValue, "DD-MMM-YYYY").isValid()
+      ? moment(rowValue).format("DD-MMM-YYYY")
+      : moment(rowValue).format("DD-MMM-YYYY");
+
+  return <span>{date}</span>;
+};
+
+const obs = ["Failed", "Success", "In Progress"];
+
+const obIcons = {
+  Failed: InFailureIcon,
+  "In Progress": InProgressIcon,
+};
+
+const SelectiveCell = ({ row, column: { accessor } }) => {
+  const rowValue = row[accessor];
+  const Img = obIcons[rowValue] || "noIcon";
+  if (Img === "noIcon") {
+    return (
+      <div style={{ position: "relative", marginLeft: 25 }}>{rowValue}</div>
+    );
+  }
+  return (
+    <div style={{ position: "relative" }}>
+      <Img
+        style={{
+          position: "relative",
+          top: 5,
+          marginRight: 5,
+          width: 20,
+          height: 20,
+        }}
+      />
+      {rowValue}
+    </div>
+  );
+};
 
 export default function StudyTable({ studyData, refreshData, selectedFilter }) {
   const [loading, setLoading] = useState(true);
@@ -46,70 +124,7 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
       )
     : studyData.studyboardData;
 
-  const obs = ["Failed", "Success", "In Progress"];
-
   const status = studyData.uniqueProtocolStatus;
-
-  const obIcons = {
-    Failed: InFailureIcon,
-    "In Progress": InProgressIcon,
-  };
-
-  const LinkCell = ({ row, column: { accessor } }) => {
-    const rowValue = row[accessor];
-    return (
-      // eslint-disable-next-line jsx-a11y/anchor-is-valid
-      <Link onClick={() => console.log(`link clicked ${rowValue}`)}>
-        {rowValue}
-      </Link>
-    );
-  };
-
-  const DateCell = ({ row, column: { accessor } }) => {
-    const rowValue = row[accessor];
-    const date =
-      rowValue && moment(rowValue, "DD-MMM-YYYY").isValid()
-        ? moment(rowValue).format("DD-MMM-YYYY")
-        : moment(rowValue).format("DD-MMM-YYYY");
-
-    return <span>{date}</span>;
-  };
-
-  const ActionCell = ({ row }) => {
-    return (
-      <div style={{ display: "flex", justifyContent: "end" }}>
-        <IconButton size="small" data-id={row.protocolnumber}>
-          <EllipsisVertical />
-        </IconButton>
-      </div>
-    );
-  };
-
-  const SelectiveCell = ({ row, column: { accessor } }) => {
-    const onboardingprogress = row[accessor];
-    const Img = obIcons[onboardingprogress] || "noIcon";
-    if (Img === "noIcon") {
-      return (
-        <div style={{ position: "relative", marginLeft: 25 }}>
-          {onboardingprogress}
-        </div>
-      );
-    }
-    return (
-      <div style={{ position: "relative" }}>
-        <Img
-          style={{
-            position: "relative",
-            top: 5,
-            marginRight: 5,
-            width: 20,
-            height: 20,
-          }}
-        />
-        {onboardingprogress}
-      </div>
-    );
-  };
 
   const CustomButtonHeader = ({ toggleFilters, downloadFile }) => (
     <div>
@@ -227,23 +242,6 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
     },
   ];
 
-  const columnsToAdd = [
-    {
-      header: "Therapeutic Area",
-      accessor: "therapeuticarea",
-      sortFunction: compareStrings,
-      filterFunction: createStringSearchFilter("therapeuticarea"),
-      filterComponent: TextFieldFilter,
-    },
-    {
-      header: "Project Code",
-      accessor: "projectcode",
-      sortFunction: compareStrings,
-      filterFunction: createStringSearchFilter("projectcode"),
-      filterComponent: TextFieldFilter,
-    },
-  ];
-
   const moreColumns = [
     ...columns.map((column) => ({ ...column })).slice(0, -1),
     ...columnsToAdd.map((column) => ({ ...column, hidden: true })),
@@ -328,11 +326,11 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
     const exportRows = exportDataRows();
     if (exportRows.length <= 0) {
       e.preventDefault();
-      const message = `There is no data on the screen to download because of which an empty file has been downloaded.`;
-      messageContext.showErrorMessage(message);
+      messageContext.showErrorMessage(
+        `There is no data on the screen to download because of which an empty file has been downloaded.`
+      );
     } else {
-      const message = `File downloaded successfully.`;
-      messageContext.showSuccessMessage(message);
+      messageContext.showSuccessMessage(`File downloaded successfully.`);
     }
   };
 
@@ -405,15 +403,7 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
         )}
       </>
     ),
-    [
-      tableColumns,
-      tableRows,
-      sortOrderValue,
-      sortedColumnValue,
-      pageNo,
-      rowsPerPageRecord,
-      loading,
-    ]
+    [tableColumns, tableRows, pageNo, rowsPerPageRecord, loading]
   );
 
   return <div className="study-table">{getTableData}</div>;

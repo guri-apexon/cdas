@@ -24,32 +24,41 @@ import { getPolicyList } from "../../../store/actions/PolicyAdminActions";
 import {
   TextFieldFilter,
   createStringArraySearchFilter,
+  createStringArrayIncludedFilter,
 } from "../../../utils/index";
 
 import "./PolicyList.scss";
+
+const ProductsCell = ({ row, column: { accessor } }) => {
+  const rowValue = row[accessor];
+  return <>{rowValue.slice(0, -1)}</>;
+};
+
+const statusList = ["Active", "Inactive"];
 
 const PolicyList = () => {
   const history = useHistory();
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState([]);
   const [tableRows, setTableRows] = useState([]);
-  const [rowsPerPageRecord, setRowPerPageRecord] = useState(10);
-  const [pageNo, setPageNo] = useState(0);
-  const [sortedColumnValue, setSortedColumnValue] = useState("policyName");
-  const [sortOrderValue, setSortOrderValue] = useState("asc");
-  const [inlineFilters, setInlineFilters] = useState([]);
+  const [policyLists, setPolicyLists] = useState([]);
+  // const [rowsPerPageRecord, setRowPerPageRecord] = useState(10);
+  // const [pageNo, setPageNo] = useState(0);
+  // const [sortedColumnValue, setSortedColumnValue] = useState("policyName");
+  // const [sortOrderValue, setSortOrderValue] = useState("asc");
+  // const [inlineFilters, setInlineFilters] = useState([]);
   const [open, setOpen] = useState(false);
   const [curRow, setCurRow] = useState({});
   const dispatch = useDispatch();
   const policyAdmin = useSelector((state) => state.policyAdmin);
-  useEffect(() => {
-    dispatch(getPolicyList());
-  }, []);
 
-  useEffect(() => {
-    const { policyList, uniqueProducts } = policyAdmin;
+  const getData = () => {
+    dispatch(getPolicyList());
+  };
+
+  const createUniqueData = (arrayList) => {
     const uniquePolicies = Array.from(
-      policyList
+      arrayList
         .reduce((acc, { productName, policyId, ...r }) => {
           const current = acc.get(policyId) || {
             ...r,
@@ -63,10 +72,24 @@ const PolicyList = () => {
         }, new Map())
         .values()
     );
-    setTableRows(uniquePolicies);
+    return uniquePolicies;
+  };
+
+  useEffect(() => {
+    getData();
+  }, []);
+
+  useEffect(() => {
+    const { policyList, uniqueProducts } = policyAdmin;
+    setPolicyLists(policyList);
     setProducts(uniqueProducts);
     setLoading(false);
   }, [policyAdmin.loading]);
+
+  useEffect(() => {
+    const uniquePolicies = createUniqueData(policyLists);
+    setTableRows(uniquePolicies);
+  }, [policyLists]);
 
   // const messageContext = useContext(MessageContext);
 
@@ -86,11 +109,6 @@ const PolicyList = () => {
       );
     }
     return <Link onClick={(e) => goToPolicy(e, id)}>{rowValue}</Link>;
-  };
-
-  const ProductsCell = ({ row, column: { accessor } }) => {
-    const rowValue = row[accessor];
-    return <>{rowValue.slice(0, -1)}</>;
   };
 
   const handleInActivate = (e, id) => {
@@ -169,7 +187,7 @@ const PolicyList = () => {
         size="small"
         variant="secondary"
         icon={PlusIcon}
-        onClick={() => history.push("/launchpad")}
+        onClick={() => history.push("/policy-management/create")}
         style={{ marginRight: "8px", border: "none" }}
       >
         Create new policy
@@ -185,8 +203,6 @@ const PolicyList = () => {
     </div>
   );
 
-  const statusList = ["Active", "Inactive"];
-
   const columns = [
     {
       header: "",
@@ -200,6 +216,7 @@ const PolicyList = () => {
       sortFunction: compareStrings,
       filterFunction: createStringSearchFilter("policyName"),
       filterComponent: TextFieldFilter,
+      width: "20%",
     },
     {
       header: "Policy Description",
@@ -208,53 +225,77 @@ const PolicyList = () => {
       filterFunction: createStringSearchFilter("policyDescription"),
       filterComponent: TextFieldFilter,
       customCell: DespCell,
+      width: "40%",
     },
     {
       header: "Products Included",
       accessor: "productsIncluded",
       customCell: ProductsCell,
       sortFunction: compareStrings,
-      filterFunction: createStringArraySearchFilter("productsIncluded"),
+      filterFunction: createStringArrayIncludedFilter("productsIncluded"),
       filterComponent: createSelectFilterComponent(products, {
         size: "small",
         multiple: true,
       }),
+      width: "30%",
     },
-
     {
       header: "Status",
       accessor: "policyStatus",
       customCell: StatusCell,
-      filterFunction: createStringArraySearchFilter("status"),
+      sortFunction: compareStrings,
+      filterFunction: createStringArraySearchFilter("policyStatus"),
       filterComponent: createSelectFilterComponent(statusList, {
         size: "small",
         multiple: true,
       }),
+      width: "10%",
     },
   ];
 
-  const applyFilter = (cols, rows, filts) => {
-    let filteredRows = rows;
-    Object.values(cols).forEach((column) => {
-      if (column.filterFunction) {
-        filteredRows = filteredRows.filter((row) => {
-          return column.filterFunction(row, filts);
-        });
-        if (column.sortFunction) {
-          filteredRows.sort(
-            column.sortFunction(sortedColumnValue, sortOrderValue)
-          );
-        }
-      }
-    });
-    return filteredRows;
-  };
+  // const newColumns = [
+  //   columns[0],
+  //   columns[1],
+  //   columns[2],
+  //   {
+  //     header: "Products Included",
+  //     accessor: "productName",
+  //     customCell: ProductsCell,
+  //     sortFunction: compareStrings,
+  //     filterFunction: createStringArraySearchFilter("productName"),
+  //     filterComponent: createSelectFilterComponent(products, {
+  //       size: "small",
+  //       multiple: true,
+  //     }),
+  //   },
+  //   columns[4],
+  // ];
 
-  useEffect(() => {
-    // const rows = applyFilter();
-    // setTableRows([...rows]);
-    console.log(inlineFilters);
-  }, [inlineFilters, sortedColumnValue, sortOrderValue]);
+  // const applyFilter = (cols, rows, filts) => {
+  //   let filteredRows = rows;
+  //   console.log("productsIncluded", cols);
+  //   Object.values(cols).forEach((column) => {
+  //     if (column.filterFunction) {
+  //       filteredRows = filteredRows.filter((row) => {
+  //         return column.filterFunction(row, filts);
+  //       });
+  //       if (column.sortFunction) {
+  //         filteredRows.sort(
+  //           column.sortFunction(sortedColumnValue, sortOrderValue)
+  //         );
+  //       }
+  //     }
+  //   });
+  //   // console.log("try", Object.values(cols));
+  //   return filteredRows;
+  // };
+
+  // useEffect(() => {
+  //   const rows = applyFilter(newColumns, policyLists, inlineFilters);
+  //   const uniqueRows = createUniqueData(rows);
+  //   console.log("filtered", rows, uniqueRows);
+  //   setTableRows([...uniqueRows]);
+  // }, [inlineFilters, sortedColumnValue, sortOrderValue]);
 
   const getTableData = React.useMemo(
     () => (
@@ -273,18 +314,18 @@ const PolicyList = () => {
               maxHeight="calc(100vh - 162px)"
               initialSortedColumn="policyName"
               initialSortOrder="asc"
-              sortedColumn={sortedColumnValue}
-              sortOrder={sortOrderValue}
-              page={pageNo}
-              rowsPerPage={rowsPerPageRecord}
-              onChange={(rpp, sc, so, filts, page) => {
-                setRowPerPageRecord(rpp);
-                setSortedColumnValue(sc);
-                setSortOrderValue(so);
-                setInlineFilters(filts);
-                setPageNo(page);
-                // console.log("onChange", rpp, sc, so, filts, page);
-              }}
+              // sortedColumn={sortedColumnValue}
+              // sortOrder={sortOrderValue}
+              // page={pageNo}
+              // rowsPerPage={rowsPerPageRecord}
+              // onChange={(rpp, sc, so, filts, page) => {
+              //   setRowPerPageRecord(rpp);
+              //   setSortedColumnValue(sc);
+              //   setSortOrderValue(so);
+              //   setInlineFilters(filts);
+              //   setPageNo(page);
+              //   // console.log("onChange", rpp, sc, so, filts, page);
+              // }}
               rowsPerPageOptions={[10, 50, 100, "All"]}
               tablePaginationProps={{
                 labelDisplayedRows: ({ from, to, count }) =>
@@ -300,14 +341,7 @@ const PolicyList = () => {
         )}
       </>
     ),
-    [
-      tableRows,
-      loading,
-      pageNo,
-      rowsPerPageRecord,
-      sortOrderValue,
-      sortedColumnValue,
-    ]
+    [tableRows, loading]
   );
 
   return (
