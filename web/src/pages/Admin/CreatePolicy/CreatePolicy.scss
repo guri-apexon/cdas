@@ -18,8 +18,14 @@
         }
     }
     .products-wrapper{
+        margin-top: 10px;
         .product-content{
             margin-top: 20px;
+        }
+    }
+    .permission-table-wrapper{
+        tfoot{
+            display: none;
         }
     }
 }

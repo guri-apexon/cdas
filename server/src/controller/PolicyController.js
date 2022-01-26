@@ -19,15 +19,15 @@ exports.createPolicy = function (req, res) {
 
 exports.listPermission = function (req, res) {
   try {
-    const searchQuery = `select distinct p2.prod_nm ,c.ctgy_nm ,f.feat_nm ,p.permsn_nm ,
-      case when ppp.plcy_prod_permsn_id is not null then '1' else '0' end as checkbox_status
-      from ${constants.DB_SCHEMA_NAME}.product_permission pp 
-      left outer join ${constants.DB_SCHEMA_NAME}.policy_product_permission ppp on (pp.prod_permsn_id=ppp.prod_permsn_id and ppp.act_flg=1 )
-      left outer join ${constants.DB_SCHEMA_NAME}.category c on (c.ctgy_id=pp.ctgy_id)
-      left outer join ${constants.DB_SCHEMA_NAME}.feature f on (f.feat_id=pp.feat_id)
-      left outer join ${constants.DB_SCHEMA_NAME}."permission" p on (p.permsn_id=pp.permsn_id)
-      left outer join ${constants.DB_SCHEMA_NAME}.product p2 on (p2.prod_id=pp.prod_id);
-      `;
+    const searchQuery = `select row_number() over(order by prod_nm asc) as indx ,prod_nm,ctgy_nm ,feat_nm ,permsn_nm ,select_check_box
+    from (select distinct p2.prod_nm ,c.ctgy_nm ,f.feat_nm ,p.permsn_nm ,
+    case when ppp.plcy_prod_permsn_id is not null then 'checked' else 'unchecked' end as select_check_box
+    from cdascore.product_permission pp
+    left outer join cdascore.policy_product_permission ppp on (pp.prod_permsn_id=ppp.prod_permsn_id and ppp.act_flg=1 )
+    left outer join cdascore.category c on (c.ctgy_id=pp.ctgy_id)
+    left outer join cdascore.feature f on (f.feat_id=pp.feat_id)
+    left outer join cdascore."permission" p on (p.permsn_id=pp.permsn_id)
+    left outer join cdascore.product p2 on (p2.prod_id=pp.prod_id)) oprd;`;
     DB.executeQuery(searchQuery).then((response) => {
       const permissions = response?.rows || [];
       return apiResponse.successResponseWithData(

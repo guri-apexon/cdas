@@ -14,7 +14,8 @@ import {
   addPolicyService,
   getPolicyPermissions,
 } from "../../../services/ApiServices";
-import { MessageContext } from "../../../components/MessageProvider";
+import { MessageContext } from "../../../components/Providers/MessageProvider";
+import PermissionTable from "./PermissionTable";
 
 const breadcrumpItems = [
   { href: "/" },
@@ -61,10 +62,24 @@ const CreatePolicy = () => {
       setPolicyDesc(val);
     }
   };
+  const filterPermission = (arr) => {
+    const helper = {};
+    return arr.reduce((r, o) => {
+      const key = `${o.ctgy_nm}-${o.feat_nm}`;
+      if (!helper[key]) {
+        helper[key] = { ...o, permsn_nm: [o.permsn_nm] };
+        r.push(helper[key]);
+      } else {
+        helper[key].permsn_nm = [...helper[key].permsn_nm, o.permsn_nm];
+      }
+      return r;
+    }, []);
+  };
   const fetchPermissions = async () => {
     const permissionsData = await getPolicyPermissions();
-    console.log("permissions", permissionsData);
-    setPermissions(permissionsData);
+    const filteredData = filterPermission(permissionsData);
+    console.log("filteredData", filteredData);
+    setPermissions(filteredData);
   };
   useEffect(() => {
     fetchPermissions();
@@ -137,9 +152,7 @@ const CreatePolicy = () => {
             <Tab label="Analytics" />
           </Tabs>
           <div className="product-content">
-            {currentTab === 0 && (
-              <Typography variant="body2">Tab one content</Typography>
-            )}
+            {currentTab === 0 && <PermissionTable data={permissions} />}
           </div>
         </Grid>
       </Grid>
