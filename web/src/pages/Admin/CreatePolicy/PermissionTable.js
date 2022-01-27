@@ -1,3 +1,4 @@
+/* eslint-disable no-prototype-builtins */
 import React, { memo, useEffect, useState } from "react";
 import Table, {
   createSelectFilterComponent,
@@ -11,15 +12,19 @@ import Table, {
 import Checkbox from "apollo-react/components/Checkbox";
 import Search from "apollo-react/components/Search";
 
-const CustomHeader = () => {
+const CustomHeader = ({ setFeatureList }) => {
   return (
     <>
-      <Search placeholder="Search" size="small" />
+      <Search
+        placeholder="Search"
+        size="small"
+        onChange={(e) => setFeatureList(e.target.value)}
+      />
     </>
   );
 };
 
-const PermissionTable = ({ data }) => {
+const PermissionTable = ({ title, data, updateData }) => {
   const [tableRows, settableRows] = useState(data);
   const FeatureCell = ({ row, column: { accessor } }) => {
     return <span className="b-font">{row[accessor]}</span>;
@@ -27,26 +32,53 @@ const PermissionTable = ({ data }) => {
   const handleChange = (e, row) => {
     const { checked, accessor } = e.target;
     const type = e.target.getAttribute("data-accessor");
+    row.permsn_nm[type] = checked;
     switch (type) {
-      case "create":
+      case "Create":
+        if (row.permsn_nm.hasOwnProperty("Read")) row.permsn_nm.Read = checked;
+        break;
+      case "Update":
+        if (row.permsn_nm.hasOwnProperty("Read")) row.permsn_nm.Read = checked;
+        break;
+      case "Read":
+        if (!checked) {
+          if (row.permsn_nm.hasOwnProperty("Create"))
+            row.permsn_nm.Create = false;
+          if (row.permsn_nm.hasOwnProperty("Update"))
+            row.permsn_nm.Update = false;
+          if (row.permsn_nm.hasOwnProperty("Delete"))
+            row.permsn_nm.Delete = false;
+          if (row.permsn_nm.hasOwnProperty("Download"))
+            row.permsn_nm.Download = false;
+        }
+        break;
+      case "Delete":
+        if (row.permsn_nm.hasOwnProperty("Read")) row.permsn_nm.Read = checked;
+        if (row.permsn_nm.hasOwnProperty("Update"))
+          row.permsn_nm.Update = checked;
+        break;
+      case "Download":
+        if (row.permsn_nm.hasOwnProperty("Read")) row.permsn_nm.Read = checked;
         break;
       default:
         break;
     }
-    console.log("columnName", checked, type, row);
+    const tableData = [...tableRows];
+    // settableRows(tableData);
+    updateData({ product: title, data: tableData });
   };
   const checkboxCell = ({ row, column: { accessor } }) => {
+    if (!row.permsn_nm.hasOwnProperty(accessor)) {
+      return false;
+    }
     return (
-      <>
-        {row.permsn_nm.includes(accessor) && (
-          <input
-            type="checkbox"
-            className="custom-checkbox"
-            data-accessor={accessor}
-            onChange={(e) => handleChange(e, row)}
-          />
-        )}
-      </>
+      <input
+        type="checkbox"
+        className="custom-checkbox"
+        data-accessor={accessor}
+        checked={row.permsn_nm[accessor]}
+        onChange={(e) => handleChange(e, row)}
+      />
     );
   };
   const columns = [
@@ -101,63 +133,19 @@ const PermissionTable = ({ data }) => {
     console.log("columnName", checked);
   };
   useEffect(() => {
+    console.log("table Updated");
     settableRows(data);
   }, [data]);
   return (
     <div className="permission-table-wrapper">
       <Table
         title="Permissions"
-        subtitle="CDAS Admin"
+        subtitle={title}
         columns={columns}
         rows={tableRows}
         rowsPerPage={tableRows.length}
         CustomHeader={() => <CustomHeader />}
       />
-      {/* <table>
-        <thead>
-          <tr>
-            <th>Category</th>
-            <th>
-              <span className="b-font">Features</span>
-            </th>
-            <th>Read</th>
-            <th>Update</th>
-            <th>Create</th>
-            <th>Delete</th>
-            <th>Download</th>
-            <th>Enable</th>
-          </tr>
-        </thead>
-        <tbody>
-          {tableRows.map((row, i) => {
-            return (
-              // eslint-disable-next-line react/no-array-index-key
-              <tr key={i}>
-                <td>{row.prod_nm}</td>
-                <td>{row.ctgy_nm}</td>
-                <td>
-                  <Checkbox onChange={handleCheckox} />
-                </td>
-                <td>
-                  <Checkbox onChange={handleCheckox} />
-                </td>
-                <td>
-                  <Checkbox onChange={handleCheckox} />
-                </td>
-                <td>
-                  <Checkbox onChange={handleCheckox} />
-                </td>
-                <td>
-                  <Checkbox onChange={handleCheckox} />
-                </td>
-                <td>
-                  <Checkbox onChange={handleCheckox} />
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table> */}
     </div>
   );
 };

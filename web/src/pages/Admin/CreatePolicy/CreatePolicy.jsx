@@ -1,6 +1,7 @@
 /* eslint-disable react/button-has-type */
 import React, { useContext, useEffect, useState } from "react";
 import Box from "apollo-react/components/Box";
+import { useHistory } from "react-router";
 import BreadcrumbsUI from "apollo-react/components/Breadcrumbs";
 import Switch from "apollo-react/components/Switch";
 import ButtonGroup from "apollo-react/components/ButtonGroup";
@@ -12,10 +13,12 @@ import Tab from "apollo-react/components/Tab";
 import Tabs from "apollo-react/components/Tabs";
 import {
   addPolicyService,
+  fetchProducts,
   getPolicyPermissions,
 } from "../../../services/ApiServices";
 import { MessageContext } from "../../../components/Providers/MessageProvider";
 import PermissionTable from "./PermissionTable";
+import { getUserInfo } from "../../../utils";
 
 const breadcrumpItems = [
   { href: "/" },
@@ -33,8 +36,11 @@ const CreatePolicy = () => {
   const [currentTab, setCurrentTab] = useState(0);
   const [policyName, setPolicyName] = useState("");
   const [policyDesc, setPolicyDesc] = useState("");
-  const [permissions, setPermissions] = useState([]);
+  const [permissions, setPermissions] = useState({});
+  const [products, setProducts] = useState([]);
   const messageContext = useContext(MessageContext);
+  const userInfo = getUserInfo();
+  const history = useHistory();
   const handleActive = (e, checked) => {
     setActive(checked);
   };
@@ -42,17 +48,26 @@ const CreatePolicy = () => {
     setCurrentTab(v);
   };
   // eslint-disable-next-line consistent-return
-  const submitPolicy = () => {
+  const submitPolicy = async () => {
     const reqBody = {
       policyName,
       policyDesc,
+      permissions,
+      userId: userInfo.user_id,
+      status: active ? "Active" : "Inactive",
     };
     if (policyName === "") {
       messageContext.showErrorMessage("Policy Name shouldn't be empty");
       return false;
     }
-    console.log("submitPolicy", reqBody);
-    addPolicyService(reqBody);
+    addPolicyService(reqBody)
+      .then((res) => {
+        messageContext.showSuccessMessage(res.message || "Successfully Done");
+        history.push("/policy-management");
+      })
+      .catch((err) => {
+        messageContext.showErrorMessage(err.message || "Something went wrong");
+      });
   };
   const handleChange = (e) => {
     const val = e.target.value;
@@ -67,10 +82,13 @@ const CreatePolicy = () => {
     return arr.reduce((r, o) => {
       const key = `${o.ctgy_nm}-${o.feat_nm}`;
       if (!helper[key]) {
-        helper[key] = { ...o, permsn_nm: [o.permsn_nm] };
+        helper[key] = { ...o, permsn_nm: { [o.permsn_nm]: false } };
         r.push(helper[key]);
       } else {
-        helper[key].permsn_nm = [...helper[key].permsn_nm, o.permsn_nm];
+        helper[key].permsn_nm = {
+          ...helper[key].permsn_nm,
+          [o.permsn_nm]: false,
+        };
       }
       return r;
     }, []);
@@ -78,11 +96,29 @@ const CreatePolicy = () => {
   const fetchPermissions = async () => {
     const permissionsData = await getPolicyPermissions();
     const filteredData = filterPermission(permissionsData);
-    console.log("filteredData", filteredData);
-    setPermissions(filteredData);
+    const permissionArr = {};
+    products.forEach((product) => {
+      const filtered = filteredData.filter(
+        (x) => x.prod_nm === product.prod_nm
+      );
+      permissionArr[product.prod_nm] = filtered;
+    });
+    setPermissions(permissionArr);
+  };
+  const getProducts = async () => {
+    const productsData = await fetchProducts();
+    setProducts(productsData);
+  };
+  const updateData = (childData) => {
+    const newArr = { ...permissions, [childData.product]: childData.data };
+    console.log("updateData", newArr);
+    setPermissions(newArr);
   };
   useEffect(() => {
     fetchPermissions();
+  }, [products]);
+  useEffect(() => {
+    getProducts();
   }, []);
   return (
     <div className="create-policy-wrapper">
@@ -145,14 +181,25 @@ const CreatePolicy = () => {
         <Grid item xs={9} className="products-wrapper">
           <br />
           <Tabs value={currentTab} onChange={handleChangeTab} truncate>
-            <Tab label="CDAS Admin" />
-            <Tab label="Ingestion" />
-            <Tab label="Mapping" />
-            <Tab label="Review" />
-            <Tab label="Analytics" />
+            {products &&
+              products.map((product, i) => {
+                return <Tab label={product.prod_nm} />;
+              })}
           </Tabs>
           <div className="product-content">
-            {currentTab === 0 && <PermissionTable data={permissions} />}
+            {products &&
+              products.map((product, i) => {
+                if (currentTab !== i) {
+                  return false;
+                }
+                return (
+                  <PermissionTable
+                    title={product.prod_nm}
+                    updateData={updateData}
+                    data={permissions[product.prod_nm] || []}
+                  />
+                );
+              })}
           </div>
         </Grid>
       </Grid>
