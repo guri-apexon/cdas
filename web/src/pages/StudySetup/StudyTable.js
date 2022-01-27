@@ -19,6 +19,7 @@ import RefreshIcon from "apollo-react-icons/Refresh";
 import EllipsisVertical from "apollo-react-icons/EllipsisVertical";
 import Link from "apollo-react/components/Link";
 import IconButton from "apollo-react/components/IconButton";
+import IconMenuButton from "apollo-react/components/IconMenuButton";
 import { ReactComponent as InProgressIcon } from "../../components/Icons/Icon_In-progress_72x72.svg";
 import { ReactComponent as InFailureIcon } from "../../components/Icons/Icon_Failure_72x72.svg";
 import Progress from "../../components/Progress";
@@ -48,12 +49,17 @@ const columnsToAdd = [
   },
 ];
 
+const menuItems = [
+  { text: "Study assignments" },
+  { text: "Download study assignments" },
+];
+
 const ActionCell = ({ row }) => {
   return (
     <div style={{ display: "flex", justifyContent: "end" }}>
-      <IconButton size="small" data-id={row.protocolnumber}>
+      <IconMenuButton size="small" menuItems={menuItems}>
         <EllipsisVertical />
-      </IconButton>
+      </IconMenuButton>
     </div>
   );
 };
