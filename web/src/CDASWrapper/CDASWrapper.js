@@ -11,6 +11,9 @@ import Logout from "../pages/Logout/Logout";
 const LaunchPad = lazy(() => import("../pages/LaunchPad/LaunchPad"));
 const StudySetup = lazy(() => import("../pages/StudySetup/StudySetup"));
 const PolicyList = lazy(() => import("../pages/Admin/Policy/PolicyList"));
+const CreatePolicy = lazy(() =>
+  import("../pages/Admin/CreatePolicy/CreatePolicy")
+);
 
 const Empty = () => <></>;
 
@@ -43,7 +46,7 @@ const CDASWrapper = () => {
     const userId = getCookie("user.id");
     console.log(userId);
     if (userId) {
-      history.push("/");
+      history.push("/create-policy");
     } else {
       // eslint-disable-next-line no-lonely-if
       if (!checkedOnce) {
@@ -75,6 +78,11 @@ const CDASWrapper = () => {
               path="/policy-management"
               exact
               render={() => <PolicyList />}
+            />
+            <Route
+              path="/create-policy"
+              exact
+              render={() => <CreatePolicy />}
             />
             <Route
               path="/user-management"

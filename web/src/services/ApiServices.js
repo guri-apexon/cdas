@@ -9,6 +9,56 @@ export const searchStudy = async (searchQuery = "") => {
     return console.log("Error", err);
   }
 };
+
+export const addPolicyService = async (reqBody) => {
+  try {
+    return new Promise((resolve, reject) => {
+      axios
+        .post(`${baseURL}/v1/api/policy/create`, reqBody)
+        .then((res) => {
+          resolve(res.data);
+        })
+        .catch((err) => {
+          reject(err.response.data);
+        });
+    });
+  } catch (err) {
+    return console.log("Error", err);
+  }
+};
+
+export const getPolicyPermissions = async () => {
+  try {
+    return new Promise((resolve, reject) => {
+      axios
+        .get(`${baseURL}/v1/api/policy/permission-list`)
+        .then((res) => {
+          resolve(res.data.data);
+        })
+        .catch((err) => {
+          console.log("Err", err);
+        });
+    });
+  } catch (err) {
+    return console.log("Error", err);
+  }
+};
+export const fetchProducts = async () => {
+  try {
+    return new Promise((resolve, reject) => {
+      axios
+        .get(`${baseURL}/v1/api/policy/products`)
+        .then((res) => {
+          resolve(res.data.data);
+        })
+        .catch((err) => {
+          console.log("Err", err);
+        });
+    });
+  } catch (err) {
+    return console.log("Error", err);
+  }
+};
 export const onboardStudy = (reqBody) => {
   try {
     return new Promise((resolve, reject) => {

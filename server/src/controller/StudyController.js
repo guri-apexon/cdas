@@ -76,7 +76,7 @@ exports.noOnboardedStat = function (req, res) {
     const query = `SELECT 
       COUNT(DISTINCT CASE WHEN ob_stat = 'In Progress'   THEN prot_id END) inprogress_count,
       COUNT(DISTINCT CASE WHEN ob_stat = 'Failed' THEN prot_id END) faliure_count
-FROM ${constants.DB_SCHEMA_NAME}.cdas_study`;
+FROM ${constants.DB_SCHEMA_NAME}.study`;
     DB.executeQuery(query).then((response) => {
       const studies = response.rows || [];
       if (studies.length > 0) {
