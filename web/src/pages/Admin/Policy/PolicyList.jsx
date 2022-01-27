@@ -98,19 +98,6 @@ const PolicyList = () => {
     history.push(`/policy-management/${id}`);
   };
 
-  const LinkCell = ({ row, column: { accessor } }) => {
-    const rowValue = row[accessor];
-    const id = row.policyId;
-    if (rowValue.length > 30) {
-      return (
-        <Link onClick={(e) => goToPolicy(e, id)}>
-          {`${rowValue.slice(0, 30)}  [...]`}
-        </Link>
-      );
-    }
-    return <Link onClick={(e) => goToPolicy(e, id)}>{rowValue}</Link>;
-  };
-
   const handleInActivate = (e, id) => {
     e.preventDefault();
     const selectedData = tableRows.filter((d) => d.policyId === id);
@@ -161,6 +148,23 @@ const PolicyList = () => {
 
   const handleMouseOut = () => {
     setOpen(false);
+  };
+
+  const LinkCell = ({ row, column: { accessor } }) => {
+    const rowValue = row[accessor];
+    const id = row.policyId;
+    if (rowValue.length > 30) {
+      return (
+        <Link
+          onMouseOver={() => handleMouseOver(row)}
+          onMouseOut={handleMouseOut}
+          onClick={(e) => goToPolicy(e, id)}
+        >
+          {`${rowValue.slice(0, 30)}  [...]`}
+        </Link>
+      );
+    }
+    return <Link onClick={(e) => goToPolicy(e, id)}>{rowValue}</Link>;
   };
 
   const DespCell = ({ row, column: { accessor } }) => {
