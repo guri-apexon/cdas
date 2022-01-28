@@ -9,7 +9,6 @@ import Table, {
   compareNumbers,
   compareStrings,
 } from "apollo-react/components/Table";
-import Checkbox from "apollo-react/components/Checkbox";
 import Search from "apollo-react/components/Search";
 
 const CustomHeader = ({ setFeatureList }) => {
@@ -24,7 +23,7 @@ const CustomHeader = ({ setFeatureList }) => {
   );
 };
 
-const PermissionTable = ({ title, data, updateData }) => {
+const PermissionTable = ({ title, data, updateData, messageContext }) => {
   const [tableRows, settableRows] = useState(data);
   const FeatureCell = ({ row, column: { accessor } }) => {
     return <span className="b-font">{row[accessor]}</span>;
@@ -35,13 +34,25 @@ const PermissionTable = ({ title, data, updateData }) => {
     row.permsn_nm[type] = checked;
     switch (type) {
       case "Create":
-        if (row.permsn_nm.hasOwnProperty("Read")) row.permsn_nm.Read = checked;
+        if (checked) {
+          if (row.permsn_nm.hasOwnProperty("Read"))
+            row.permsn_nm.Read = checked;
+        }
         break;
       case "Update":
         if (row.permsn_nm.hasOwnProperty("Read")) row.permsn_nm.Read = checked;
+        if (!checked) {
+          if (row.permsn_nm.hasOwnProperty("Delete"))
+            row.permsn_nm.Delete = checked;
+        }
         break;
       case "Read":
         if (!checked) {
+          messageContext.showErrorMessage(
+            "Deselecting Read will automatically remove the options for all other options",
+            null,
+            "info"
+          );
           if (row.permsn_nm.hasOwnProperty("Create"))
             row.permsn_nm.Create = false;
           if (row.permsn_nm.hasOwnProperty("Update"))
@@ -53,12 +64,18 @@ const PermissionTable = ({ title, data, updateData }) => {
         }
         break;
       case "Delete":
-        if (row.permsn_nm.hasOwnProperty("Read")) row.permsn_nm.Read = checked;
-        if (row.permsn_nm.hasOwnProperty("Update"))
-          row.permsn_nm.Update = checked;
+        if (checked) {
+          if (row.permsn_nm.hasOwnProperty("Read"))
+            row.permsn_nm.Read = checked;
+          if (row.permsn_nm.hasOwnProperty("Update"))
+            row.permsn_nm.Update = checked;
+        }
         break;
       case "Download":
-        if (row.permsn_nm.hasOwnProperty("Read")) row.permsn_nm.Read = checked;
+        if (checked) {
+          if (row.permsn_nm.hasOwnProperty("Read"))
+            row.permsn_nm.Read = checked;
+        }
         break;
       default:
         break;

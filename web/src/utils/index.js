@@ -166,6 +166,21 @@ export const compareDates = (accessor, sortOrder) => {
   };
 };
 
+// eslint-disable-next-line consistent-return
+export const inputAlphaNumeric = (e, callback) => {
+  const value = e.target.value
+    ? e.target.value.replace(/[^0-9a-zA-Z]+/gi, "")
+    : "";
+
+  if (e.target.value !== value) {
+    e.target.value = value;
+  }
+
+  if (typeof callback === "function") {
+    return callback(value);
+  }
+};
+
 export const createAutocompleteFilter =
   (source) =>
   ({ accessor, filters, updateFilterValue }) => {
