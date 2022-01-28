@@ -14,15 +14,15 @@ const MessageProvider = ({ children }) => {
     setErrorMessage({ show: false });
   };
 
-  const showErrorMessage = (error, top = null) => {
+  const showErrorMessage = (error, top = null, variant = "error") => {
     if (top !== null) {
       setErrorMessage({ top });
     }
     if (error && error.data) {
       const { message } = error.data;
-      setErrorMessage({ variant: "error", messages: message, show: true });
+      setErrorMessage({ variant, messages: message, show: true });
     } else {
-      setErrorMessage({ variant: "error", messages: error, show: true });
+      setErrorMessage({ variant, messages: error, show: true });
     }
     setTimeout(() => {
       setErrorMessage({ show: false });
