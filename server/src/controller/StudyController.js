@@ -103,12 +103,12 @@ exports.getStudyList = async (req, res) => {
   try {
     //
     const query =
-      "SELECT prot_id, prot_nbr as protocolnumber, spnsr_nm as sponsorname, phase, prot_stat as protocolstatus, cs.insrt_tm as dateadded, cs.updt_tm as dateedited, ob_stat as onboardingprogress, cs.usr_descr as assignmentcount, thptc_area as therapeuticarea, proj_cd as projectcode FROM cdascore.cdas_study cs INNER JOIN cdascore.cdas_sponsor cs2 ON cs2.spnsr_id = cs.spnsr_id ORDER BY cs.insrt_tm";
+      `SELECT prot_id, prot_nbr as protocolnumber, spnsr_nm as sponsorname, phase, prot_stat as protocolstatus, cs.insrt_tm as dateadded, cs.updt_tm as dateedited, ob_stat as onboardingprogress, cs.usr_descr as assignmentcount, thptc_area as therapeuticarea, proj_cd as projectcode FROM ${constants.DB_SCHEMA_NAME}.cdas_study cs INNER JOIN ${constants.DB_SCHEMA_NAME}.cdas_sponsor cs2 ON cs2.spnsr_id = cs.spnsr_id ORDER BY cs.insrt_tm`;
     const query2 =
-      "SELECT prot_id, COUNT(DISTINCT usr_id) FROM cdascore.cdas_study_assignment csa GROUP BY prot_id";
-    const query3 = "SELECT DISTINCT phase FROM cdascore.cdas_study";
+      `SELECT prot_id, COUNT(DISTINCT usr_id) FROM ${constants.DB_SCHEMA_NAME}.cdas_study_assignment csa GROUP BY prot_id`;
+    const query3 = `SELECT DISTINCT phase FROM ${constants.DB_SCHEMA_NAME}.cdas_study`;
     const query4 =
-      "SELECT DISTINCT prot_stat as protocolstatus FROM cdascore.cdas_study";
+      `SELECT DISTINCT prot_stat as protocolstatus FROM ${constants.DB_SCHEMA_NAME}.cdas_study`;
 
     Logger.info({
       message: "getStudyList",
