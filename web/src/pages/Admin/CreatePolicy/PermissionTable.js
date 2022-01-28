@@ -15,6 +15,7 @@ const CustomHeader = ({ setSearchText, searchTxt }) => {
   const [txt, setText] = useState(searchTxt);
   const setTextHandler = (e) => {
     setText(e.target.value);
+    setSearchText(e.target.value);
   };
   const onKeyPress = (e) => {
     if (e.key === "Enter") {
@@ -27,6 +28,7 @@ const CustomHeader = ({ setSearchText, searchTxt }) => {
         placeholder="Search"
         size="small"
         value={txt}
+        autoFocus
         onKeyPress={onKeyPress}
         onChange={setTextHandler}
       />
