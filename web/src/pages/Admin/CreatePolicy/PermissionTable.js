@@ -11,13 +11,24 @@ import Table, {
 } from "apollo-react/components/Table";
 import Search from "apollo-react/components/Search";
 
-const CustomHeader = ({ setFeatureList }) => {
+const CustomHeader = ({ setSearchText, searchTxt }) => {
+  const [txt, setText] = useState(searchTxt);
+  const setTextHandler = (e) => {
+    setText(e.target.value);
+  };
+  const onKeyPress = (e) => {
+    if (e.key === "Enter") {
+      setSearchText(e.target.value);
+    }
+  };
   return (
     <>
       <Search
         placeholder="Search"
         size="small"
-        onChange={(e) => setFeatureList(e.target.value)}
+        value={txt}
+        onKeyPress={onKeyPress}
+        onChange={setTextHandler}
       />
     </>
   );
@@ -25,6 +36,8 @@ const CustomHeader = ({ setFeatureList }) => {
 
 const PermissionTable = ({ title, data, updateData, messageContext }) => {
   const [tableRows, settableRows] = useState(data);
+  const [filteredData, setFilteredData] = useState(data);
+  const [searchTxt, setSearchText] = useState("");
   const FeatureCell = ({ row, column: { accessor } }) => {
     return <span className="b-font">{row[accessor]}</span>;
   };
@@ -80,7 +93,9 @@ const PermissionTable = ({ title, data, updateData, messageContext }) => {
       default:
         break;
     }
-    const tableData = [...tableRows];
+    const tableData = [
+      ...new Set([...filteredData, ...tableRows].map((obj) => obj)),
+    ];
     // settableRows(tableData);
     updateData({ product: title, data: tableData });
   };
@@ -102,11 +117,13 @@ const PermissionTable = ({ title, data, updateData, messageContext }) => {
     {
       header: "Category",
       accessor: "ctgy_nm",
+      sortFunction: compareStrings,
       width: 150,
     },
     {
       header: <span className="b-font">Features</span>,
       accessor: "feat_nm",
+      sortFunction: compareStrings,
       customCell: FeatureCell,
     },
     {
@@ -150,8 +167,15 @@ const PermissionTable = ({ title, data, updateData, messageContext }) => {
     console.log("columnName", checked);
   };
   useEffect(() => {
+    const newRows = tableRows.filter((row) => {
+      return row.feat_nm.toLowerCase().includes(searchTxt);
+    });
+    setFilteredData(newRows);
+  }, [searchTxt]);
+  useEffect(() => {
     console.log("table Updated");
     settableRows(data);
+    if (filteredData.length === 0) setFilteredData(data);
   }, [data]);
   return (
     <div className="permission-table-wrapper">
@@ -159,9 +183,13 @@ const PermissionTable = ({ title, data, updateData, messageContext }) => {
         title="Permissions"
         subtitle={title}
         columns={columns}
-        rows={tableRows}
+        rows={filteredData}
         rowsPerPage={tableRows.length}
-        CustomHeader={() => <CustomHeader />}
+        CustomHeader={() => (
+          <CustomHeader searchTxt={searchTxt} setSearchText={setSearchText} />
+        )}
+        initialSortedColumn="feat_nm"
+        initialSortOrder="asc"
       />
     </div>
   );

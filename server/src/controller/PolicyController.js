@@ -18,7 +18,7 @@ exports.createPolicy = function (req, res) {
       userId,
       currentTime,
     ];
-    DB.executeQuery(`INSERT into ${constants.DB_SCHEMA_NAME}.policy_new(plcy_nm, plcy_desc, plcy_stat, created_by, created_on, updated_by, updated_on) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING *`, policyValues).then((response) => {
+    DB.executeQuery(`INSERT into ${constants.DB_SCHEMA_NAME}.policy(plcy_nm, plcy_desc, plcy_stat, created_by, created_on, updated_by, updated_on) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING *`, policyValues).then((response) => {
       const policy = response.rows[0];
       let permissionQuery = '';
       productsArr.forEach((product, i)=>{

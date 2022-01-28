@@ -64,9 +64,11 @@ const CreatePolicy = () => {
     if (active) {
       Object.keys(permissions).forEach((product) => {
         permissions[product].every((category) => {
-          atleastOneSelected = Object.keys(category.permsn_nm).find((x) => {
-            return category.permsn_nm[x] === true;
-          });
+          if (!atleastOneSelected) {
+            atleastOneSelected = Object.keys(category.permsn_nm).find((x) => {
+              return category.permsn_nm[x] === true;
+            });
+          }
           if (atleastOneSelected) return false;
           return true;
         });
