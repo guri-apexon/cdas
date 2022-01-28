@@ -36,7 +36,7 @@ exports.studyList = function (req, res) {
   try {
     const searchParam = req.params.query.toLowerCase();
     const searchQuery = `SELECT ms.prot_nbr, ms.spnsr_nm, ms.proj_cd, s.ob_stat from ${constants.DB_SCHEMA_NAME}.mdm_study ms
-    FULL OUTER JOIN cdascore.study s ON ms.prot_nbr = s.prot_nbr
+    FULL OUTER JOIN ${constants.DB_SCHEMA_NAME}.study s ON ms.prot_nbr = s.prot_nbr
     WHERE LOWER(ms.prot_nbr) LIKE '%${searchParam}%' OR 
     LOWER(ms.spnsr_nm) LIKE '%${searchParam}%' OR 
     LOWER(ms.proj_cd) LIKE '%${searchParam}%'
@@ -74,7 +74,7 @@ exports.studyList = function (req, res) {
 exports.noOnboardedStat = function (req, res) {
   try {
     const query = `SELECT 
-      COUNT(DISTINCT CASE WHEN ob_stat = 'In Progress' THEN prot_id END) inprogress_count,
+      COUNT(DISTINCT CASE WHEN ob_stat = 'In Progress'   THEN prot_id END) inprogress_count,
       COUNT(DISTINCT CASE WHEN ob_stat = 'Failed' THEN prot_id END) faliure_count FROM ${constants.DB_SCHEMA_NAME}.study`;
     DB.executeQuery(query).then((response) => {
       const studies = response.rows || [];
