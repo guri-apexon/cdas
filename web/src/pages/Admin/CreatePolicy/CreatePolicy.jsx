@@ -18,7 +18,7 @@ import {
 } from "../../../services/ApiServices";
 import { MessageContext } from "../../../components/Providers/MessageProvider";
 import PermissionTable from "./PermissionTable";
-import { getUserInfo } from "../../../utils";
+import { getUserInfo, inputAlphaNumeric } from "../../../utils";
 
 const breadcrumpItems = [
   { href: "/" },
@@ -60,6 +60,22 @@ const CreatePolicy = () => {
       messageContext.showErrorMessage("Policy Name shouldn't be empty");
       return false;
     }
+    let atleastOneSelected = false;
+    if (active) {
+      Object.keys(permissions).forEach((product) => {
+        permissions[product].every((category) => {
+          atleastOneSelected = Object.keys(category.permsn_nm).find((x) => {
+            return category.permsn_nm[x] === true;
+          });
+          if (atleastOneSelected) return false;
+          return true;
+        });
+      });
+      if (!atleastOneSelected) {
+        messageContext.showErrorMessage("Select atleat one permission");
+        return false;
+      }
+    }
     addPolicyService(reqBody)
       .then((res) => {
         messageContext.showSuccessMessage(res.message || "Successfully Done");
@@ -72,7 +88,9 @@ const CreatePolicy = () => {
   const handleChange = (e) => {
     const val = e.target.value;
     if (e.target.id === "policyName") {
-      setPolicyName(val);
+      inputAlphaNumeric(e, (v) => {
+        setPolicyName(v);
+      });
     } else if (e.target.id === "policyDesc") {
       setPolicyDesc(val);
     }
@@ -138,7 +156,7 @@ const CreatePolicy = () => {
               {
                 label: "Cancel",
                 size: "small",
-                // onClick: () => (),
+                onClick: () => history.push("/policy-management"),
               },
               {
                 label: "Save",
@@ -194,6 +212,7 @@ const CreatePolicy = () => {
                 }
                 return (
                   <PermissionTable
+                    messageContext={messageContext}
                     title={product.prod_nm}
                     updateData={updateData}
                     data={permissions[product.prod_nm] || []}
