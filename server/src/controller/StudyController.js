@@ -101,7 +101,6 @@ FROM ${constants.DB_SCHEMA_NAME}.study`;
 
 exports.getStudyList = async (req, res) => {
   try {
-    //
     const query =
       `SELECT prot_id, prot_nbr as protocolnumber, spnsr_nm as sponsorname, phase, prot_stat as protocolstatus, cs.insrt_tm as dateadded, cs.updt_tm as dateedited, ob_stat as onboardingprogress, cs.usr_descr as assignmentcount, thptc_area as therapeuticarea, proj_cd as projectcode FROM ${constants.DB_SCHEMA_NAME}.cdas_study cs INNER JOIN ${constants.DB_SCHEMA_NAME}.cdas_sponsor cs2 ON cs2.spnsr_id = cs.spnsr_id ORDER BY cs.insrt_tm`;
     const query2 =
