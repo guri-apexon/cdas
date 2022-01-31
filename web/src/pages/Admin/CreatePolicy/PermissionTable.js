@@ -55,7 +55,10 @@ const PermissionTable = ({ title, data, updateData, messageContext }) => {
         }
         break;
       case "Update":
-        if (row.permsn_nm.hasOwnProperty("Read")) row.permsn_nm.Read = checked;
+        if (checked) {
+          if (row.permsn_nm.hasOwnProperty("Read"))
+            row.permsn_nm.Read = checked;
+        }
         if (!checked) {
           if (row.permsn_nm.hasOwnProperty("Delete"))
             row.permsn_nm.Delete = checked;
