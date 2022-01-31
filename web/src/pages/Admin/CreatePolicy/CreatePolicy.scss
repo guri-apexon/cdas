@@ -1,3 +1,4 @@
+@import '../../../styles/customscroll.scss';
 .create-policy-wrapper{
     padding: 0 28px;
     .breadcrump{
@@ -24,8 +25,17 @@
         }
     }
     .permission-table-wrapper{
+        position: relative;
+        height: 80vh;
+        @extend .customscroll;
         tfoot{
             display: none;
+        }
+        .search-header{
+            position: absolute;
+            right: 20px;
+            top: 6px;
+            z-index: 2;
         }
     }
 }

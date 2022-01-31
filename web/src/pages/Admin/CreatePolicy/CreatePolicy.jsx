@@ -33,6 +33,7 @@ const breadcrumpItems = [
 
 const CreatePolicy = () => {
   const [active, setActive] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [currentTab, setCurrentTab] = useState(0);
   const [policyName, setPolicyName] = useState("");
   const [policyDesc, setPolicyDesc] = useState("");
@@ -74,17 +75,20 @@ const CreatePolicy = () => {
         });
       });
       if (!atleastOneSelected) {
-        messageContext.showErrorMessage("Select atleat one permission");
+        messageContext.showErrorMessage("Select atleast one permission");
         return false;
       }
     }
+    setLoading(true);
     addPolicyService(reqBody)
       .then((res) => {
         messageContext.showSuccessMessage(res.message || "Successfully Done");
         history.push("/policy-management");
+        setLoading(false);
       })
       .catch((err) => {
         messageContext.showErrorMessage(err.message || "Something went wrong");
+        setLoading(false);
       });
   };
   const handleChange = (e) => {
@@ -163,6 +167,7 @@ const CreatePolicy = () => {
               {
                 label: "Save",
                 size: "small",
+                disabled: loading,
                 onClick: submitPolicy,
               },
             ]}

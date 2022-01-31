@@ -28,7 +28,7 @@ const CustomHeader = ({ setSearchText, searchTxt }) => {
         placeholder="Search"
         size="small"
         value={txt}
-        autoFocus
+        // autoFocus={txt.length}
         onKeyPress={onKeyPress}
         onChange={setTextHandler}
       />
@@ -179,17 +179,20 @@ const PermissionTable = ({ title, data, updateData, messageContext }) => {
     settableRows(data);
     if (filteredData.length === 0) setFilteredData(data);
   }, [data]);
+  useEffect(() => {
+    console.log("Updated");
+  }, []);
   return (
     <div className="permission-table-wrapper">
+      <div className="search-header">
+        <CustomHeader searchTxt={searchTxt} setSearchText={setSearchText} />
+      </div>
       <Table
         title="Permissions"
         subtitle={title}
         columns={columns}
         rows={filteredData}
         rowsPerPage={tableRows.length}
-        CustomHeader={() => (
-          <CustomHeader searchTxt={searchTxt} setSearchText={setSearchText} />
-        )}
         initialSortedColumn="feat_nm"
         initialSortOrder="asc"
       />
