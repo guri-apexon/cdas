@@ -33,6 +33,7 @@ const breadcrumpItems = [
 
 const UpdatePolicy = () => {
   const params = useParams();
+  const [loading, setLoading] = useState(false);
   const [active, setActive] = useState(true);
   const [currentTab, setCurrentTab] = useState(0);
   const [policyName, setPolicyName] = useState("");
@@ -79,13 +80,16 @@ const UpdatePolicy = () => {
         return false;
       }
     }
+    setLoading(true);
     addPolicyService(reqBody)
       .then((res) => {
         messageContext.showSuccessMessage(res.message || "Successfully Done");
         history.push("/policy-management");
+        setLoading(false);
       })
       .catch((err) => {
         messageContext.showErrorMessage(err.message || "Something went wrong");
+        setLoading(false);
       });
   };
   const handleChange = (e) => {
@@ -163,6 +167,7 @@ const UpdatePolicy = () => {
               {
                 label: "Save",
                 size: "small",
+                disabled: loading,
                 onClick: submitPolicy,
               },
             ]}

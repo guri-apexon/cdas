@@ -181,15 +181,15 @@ const PermissionTable = ({ title, data, updateData, messageContext }) => {
   }, [data]);
   return (
     <div className="permission-table-wrapper">
+      <div className="search-header">
+        <CustomHeader searchTxt={searchTxt} setSearchText={setSearchText} />
+      </div>
       <Table
         title="Permissions"
         subtitle={title}
         columns={columns}
         rows={filteredData}
         rowsPerPage={tableRows.length}
-        CustomHeader={() => (
-          <CustomHeader searchTxt={searchTxt} setSearchText={setSearchText} />
-        )}
         initialSortedColumn="feat_nm"
         initialSortOrder="asc"
       />
