@@ -1,3 +1,3 @@
 module.exports = Object.freeze({
-    DB_SCHEMA_NAME: "cdascore"
+  DB_SCHEMA_NAME: "cdascfg",
 });

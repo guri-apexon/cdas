@@ -5,7 +5,7 @@ const moment = require("moment");
 const _ = require("lodash");
 const axios = require("axios");
 const request = require("request");
-const constants = require('../config/constants');
+const constants = require("../config/constants");
 
 exports.onboardStudy = async function (req, res) {
   const { sponsorName, studyId } = req.body;
@@ -75,8 +75,7 @@ exports.noOnboardedStat = function (req, res) {
   try {
     const query = `SELECT 
       COUNT(DISTINCT CASE WHEN ob_stat = 'In Progress'   THEN prot_id END) inprogress_count,
-      COUNT(DISTINCT CASE WHEN ob_stat = 'Failed' THEN prot_id END) faliure_count
-FROM ${constants.DB_SCHEMA_NAME}.study`;
+      COUNT(DISTINCT CASE WHEN ob_stat = 'Failed' THEN prot_id END) faliure_count FROM ${constants.DB_SCHEMA_NAME}.study`;
     DB.executeQuery(query).then((response) => {
       const studies = response.rows || [];
       if (studies.length > 0) {
@@ -101,13 +100,11 @@ FROM ${constants.DB_SCHEMA_NAME}.study`;
 
 exports.getStudyList = async (req, res) => {
   try {
-    const query =
-      `SELECT prot_id, prot_nbr as protocolnumber, spnsr_nm as sponsorname, phase, prot_stat as protocolstatus, cs.insrt_tm as dateadded, cs.updt_tm as dateedited, ob_stat as onboardingprogress, cs.usr_descr as assignmentcount, thptc_area as therapeuticarea, proj_cd as projectcode FROM ${constants.DB_SCHEMA_NAME}.cdas_study cs INNER JOIN ${constants.DB_SCHEMA_NAME}.cdas_sponsor cs2 ON cs2.spnsr_id = cs.spnsr_id ORDER BY cs.insrt_tm`;
-    const query2 =
-      `SELECT prot_id, COUNT(DISTINCT usr_id) FROM ${constants.DB_SCHEMA_NAME}.cdas_study_assignment csa GROUP BY prot_id`;
-    const query3 = `SELECT DISTINCT phase FROM ${constants.DB_SCHEMA_NAME}.cdas_study`;
-    const query4 =
-      `SELECT DISTINCT prot_stat as protocolstatus FROM ${constants.DB_SCHEMA_NAME}.cdas_study`;
+    //
+    const query = `SELECT prot_id, prot_nbr as protocolnumber, spnsr_nm as sponsorname, phase, prot_stat as protocolstatus, cs.insrt_tm as dateadded, cs.updt_tm as dateedited, ob_stat as onboardingprogress, cs.usr_descr as assignmentcount, thptc_area as therapeuticarea, proj_cd as projectcode FROM ${constants.DB_SCHEMA_NAME}.study cs INNER JOIN ${constants.DB_SCHEMA_NAME}.sponsor cs2 ON cs2.spnsr_id = cs.spnsr_id ORDER BY cs.insrt_tm`;
+    const query2 = `SELECT prot_id, COUNT(DISTINCT usr_id) FROM ${constants.DB_SCHEMA_NAME}.study_user csa GROUP BY prot_id`;
+    const query3 = `SELECT DISTINCT phase FROM ${constants.DB_SCHEMA_NAME}.study`;
+    const query4 = `SELECT DISTINCT prot_stat as protocolstatus FROM ${constants.DB_SCHEMA_NAME}.study`;
 
     Logger.info({
       message: "getStudyList",
