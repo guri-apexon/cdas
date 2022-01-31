@@ -322,3 +322,22 @@ export const createStringArrayIncludedFilter = (accessor) => {
       row[accessor]?.toUpperCase().includes(value.toUpperCase())
     );
 };
+
+export const getAppUrl = (app) => {
+  let appUrl;
+  switch (app) {
+    case "CDI":
+      appUrl =
+        process.env.REACT_APP_CDI_URL ||
+        `${window.location.protocol}//${window.location.hostname}:3000`;
+      break;
+    default:
+      appUrl = `${window.location.protocol}//${window.location.hostname}:3000`;
+      break;
+  }
+  // eslint-disable-next-line consistent-return
+  return appUrl;
+};
+export const goToApp = (path) => {
+  window.location.href = path;
+};

@@ -27,11 +27,11 @@ export const addPolicyService = async (reqBody) => {
   }
 };
 
-export const getPolicyPermissions = async () => {
+export const getPolicyPermissions = async (policyId = "") => {
   try {
     return new Promise((resolve, reject) => {
       axios
-        .get(`${baseURL}/v1/api/policy/permission-list`)
+        .get(`${baseURL}/v1/api/policy/permission-list/${policyId}`)
         .then((res) => {
           resolve(res.data.data);
         })
@@ -65,7 +65,7 @@ export const onboardStudy = (reqBody) => {
       axios
         .post(`${baseURL}/v1/api/study/onboard`, reqBody)
         .then((res) => {
-          resolve(res.data.data);
+          resolve(res.data);
         })
         .catch((err) => {
           if (err.response?.data) {

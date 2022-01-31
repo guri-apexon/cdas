@@ -9,13 +9,12 @@ const constants = require('../config/constants');
 
 exports.onboardStudy = async function (req, res) {
   const { sponsorName, studyId } = req.body;
-  let result;
-  await axios
+  axios
     .post(
       "https://rds-cdrfsr-dev.gdev-car3-k8s.work.iqvia.com/fsr/study/onboard",
       {
-        sponsorName: "u1112428",
-        studyId: "a020E000005SwQpQAK",
+        sponsorName,
+        studyId,
       },
       {
         headers: {
@@ -27,10 +26,16 @@ exports.onboardStudy = async function (req, res) {
       }
     )
     .then((response) => {
-      result = response.data;
+      return apiResponse.successResponseWithData(res, "Operation success", response);
     })
-    .catch((err) => {});
-  return apiResponse.successResponseWithData(res, "Operation success", result);
+    .catch((err) => {
+      const {data} = err.response;
+      if(data){
+        return res.json(data);
+      }else{
+        return apiResponse.ErrorResponse(res, 'Something went wrong');
+      }
+    });
 };
 exports.studyList = function (req, res) {
   try {

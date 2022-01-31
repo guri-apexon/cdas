@@ -7,7 +7,7 @@ import Button from "apollo-react/components/Button";
 import Typography from "apollo-react/components/Typography";
 import Tooltip from "apollo-react/components/Tooltip";
 import { useHistory } from "react-router-dom";
-import { titleCase, getUserInfo } from "../../utils/index";
+import { titleCase, getUserInfo, getAppUrl, goToApp } from "../../utils/index";
 import CDIIcon from "../../components/Icons/CDI_ICON_96x96.svg";
 import CAIcon from "../../components/Icons/CA_ICON_96x96.svg";
 import CDMIcon from "../../components/Icons/CDM_ICON_96x96.svg";
@@ -27,9 +27,7 @@ const productArr = [
     title: "Clinical Data Ingestion",
     haveAccess: true,
     imgUrl: CDIIcon,
-    url:
-      process.env.REACT_APP_CDI_URL ||
-      `${window.location.protocol}//${window.location.hostname}:3000`,
+    url: getAppUrl("CDI"),
     tooltipText:
       "Business friendly technology to accelerate the setup and management of clinical study data ingestion acquisition from any source, for any data type, for any data type.",
   },
@@ -72,9 +70,6 @@ const LaunchPad = () => {
   const userInfo = getUserInfo();
 
   const { fullName } = userInfo;
-  const goToApp = (path) => {
-    window.location.href = path;
-  };
 
   return (
     <div className="lauchpad-wrapper">

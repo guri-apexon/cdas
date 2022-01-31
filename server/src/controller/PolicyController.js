@@ -67,6 +67,8 @@ exports.getProducts = function (req, res) {
 };
 exports.listPermission = function (req, res) {
   try {
+    const {policyId} = req.params;
+    console.log("policyId", policyId);
     const searchQuery = `select row_number() over(order by prod_nm asc) as indx ,prod_nm,ctgy_nm ,feat_nm ,permsn_nm ,select_check_box
     from (select distinct p2.prod_nm ,c.ctgy_nm ,f.feat_nm ,p.permsn_nm ,
     case when ppp.plcy_prod_permsn_id is not null then 'checked' else 'unchecked' end as select_check_box
@@ -75,7 +77,7 @@ exports.listPermission = function (req, res) {
     left outer join ${constants.DB_SCHEMA_NAME}.category c on (c.ctgy_id=pp.ctgy_id)
     left outer join ${constants.DB_SCHEMA_NAME}.feature f on (f.feat_id=pp.feat_id)
     left outer join ${constants.DB_SCHEMA_NAME}."permission" p on (p.permsn_id=pp.permsn_id)
-    left outer join ${constants.DB_SCHEMA_NAME}.product p2 on (p2.prod_id=pp.prod_id)) oprd;`;
+    left outer join ${constants.DB_SCHEMA_NAME}.product p2 on (p2.prod_id=pp.prod_id)${(policyId ? `WHERE ppp.plcy_id='${policyId}'` : '')}) oprd;`;
     DB.executeQuery(searchQuery).then((response) => {
       const permissions = response?.rows || [];
       return apiResponse.successResponseWithData(

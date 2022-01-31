@@ -14,6 +14,9 @@ const PolicyList = lazy(() => import("../pages/Admin/Policy/PolicyList"));
 const CreatePolicy = lazy(() =>
   import("../pages/Admin/CreatePolicy/CreatePolicy")
 );
+const UpdatePolicy = lazy(() =>
+  import("../pages/Admin/UpdatePolicy/UpdatePolicy")
+);
 
 const Empty = () => <></>;
 
@@ -46,7 +49,7 @@ const CDASWrapper = () => {
     const userId = getCookie("user.id");
     console.log(userId);
     if (userId) {
-      history.push("/create-policy");
+      history.push("/");
     } else {
       // eslint-disable-next-line no-lonely-if
       if (!checkedOnce) {
@@ -78,6 +81,11 @@ const CDASWrapper = () => {
               path="/policy-management"
               exact
               render={() => <PolicyList />}
+            />
+            <Route
+              path="/policy-management/:id"
+              exact
+              render={() => <UpdatePolicy />}
             />
             <Route
               path="/create-policy"
