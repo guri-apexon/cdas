@@ -82,11 +82,11 @@ export const onboardStudy = (reqBody) => {
       axios
         .post(`${baseURL}/v1/api/study/onboard`, reqBody)
         .then((res) => {
-          resolve(res.data);
+          resolve(res.data?.data || res.data);
         })
         .catch((err) => {
           if (err.response?.data) {
-            resolve(err.response.data);
+            resolve(err.response?.data);
           } else {
             resolve({ status: "BAD_REQUEST", message: "Something went wrong" });
           }

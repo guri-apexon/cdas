@@ -26,12 +26,11 @@ exports.onboardStudy = async function (req, res) {
       }
     )
     .then((response) => {
-      return apiResponse.successResponseWithData(res, "Operation success", response);
+      return apiResponse.successResponseWithData(res, "Operation success", response?.data);
     })
     .catch((err) => {
-      const {data} = err.response;
-      if(data){
-        return res.json(data);
+      if(err.response?.data){
+        return res.json(err.response.data);
       }else{
         return apiResponse.ErrorResponse(res, 'Something went wrong');
       }
