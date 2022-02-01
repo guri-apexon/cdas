@@ -36,7 +36,13 @@ const CustomHeader = ({ setSearchText, searchTxt }) => {
   );
 };
 
-const PermissionTable = ({ title, data, updateData, messageContext }) => {
+const PermissionTable = ({
+  title,
+  data,
+  updateData,
+  messageContext,
+  disabled,
+}) => {
   const [tableRows, settableRows] = useState(data);
   const [filteredData, setFilteredData] = useState(data);
   const [searchTxt, setSearchText] = useState("");
@@ -46,19 +52,22 @@ const PermissionTable = ({ title, data, updateData, messageContext }) => {
   const handleChange = (e, row) => {
     const { checked, accessor } = e.target;
     const type = e.target.getAttribute("data-accessor");
-    row.permsn_nm[type] = checked;
+    const filtered = row.permsn_nm.find((x) => x.name === type);
+    filtered.value = checked;
+    filtered.updated = true;
+    const Read = row.permsn_nm.find((x) => x.name === "Read");
+    const Update = row.permsn_nm.find((x) => x.name === "Update");
+    const Delete = row.permsn_nm.find((x) => x.name === "Delete");
+    const Create = row.permsn_nm.find((x) => x.name === "Create");
+    const Download = row.permsn_nm.find((x) => x.name === "Download");
+    const updateValue = (obj, val) => {
+      obj.value = val;
+      obj.updated = true;
+    };
     switch (type) {
       case "Create":
         if (checked) {
-          if (row.permsn_nm.hasOwnProperty("Read"))
-            row.permsn_nm.Read = checked;
-        }
-        break;
-      case "Update":
-        if (row.permsn_nm.hasOwnProperty("Read")) row.permsn_nm.Read = checked;
-        if (!checked) {
-          if (row.permsn_nm.hasOwnProperty("Delete"))
-            row.permsn_nm.Delete = checked;
+          if (Read) updateValue(Read, checked);
         }
         break;
       case "Read":
@@ -68,28 +77,29 @@ const PermissionTable = ({ title, data, updateData, messageContext }) => {
             null,
             "info"
           );
-          if (row.permsn_nm.hasOwnProperty("Create"))
-            row.permsn_nm.Create = false;
-          if (row.permsn_nm.hasOwnProperty("Update"))
-            row.permsn_nm.Update = false;
-          if (row.permsn_nm.hasOwnProperty("Delete"))
-            row.permsn_nm.Delete = false;
-          if (row.permsn_nm.hasOwnProperty("Download"))
-            row.permsn_nm.Download = false;
+          if (Create && Create.value) updateValue(Create, false);
+          if (Update && Update.value) updateValue(Update, false);
+          if (Delete && Delete.value) updateValue(Delete, false);
+          if (Download && Download.value) updateValue(Download, false);
         }
         break;
       case "Delete":
         if (checked) {
-          if (row.permsn_nm.hasOwnProperty("Read"))
-            row.permsn_nm.Read = checked;
-          if (row.permsn_nm.hasOwnProperty("Update"))
-            row.permsn_nm.Update = checked;
+          if (Read) updateValue(Read, checked);
+          if (Update) updateValue(Update, checked);
+        }
+        break;
+      case "Update":
+        if (checked) {
+          if (Read) updateValue(Read, checked);
+        }
+        if (!checked) {
+          if (Delete) updateValue(Delete, checked);
         }
         break;
       case "Download":
         if (checked) {
-          if (row.permsn_nm.hasOwnProperty("Read"))
-            row.permsn_nm.Read = checked;
+          if (Read) updateValue(Read, checked);
         }
         break;
       default:
@@ -102,15 +112,17 @@ const PermissionTable = ({ title, data, updateData, messageContext }) => {
     updateData({ product: title, data: tableData });
   };
   const checkboxCell = ({ row, column: { accessor } }) => {
-    if (!row.permsn_nm.hasOwnProperty(accessor)) {
+    const filtered = row.permsn_nm.find((x) => x.name === accessor);
+    if (!filtered) {
       return false;
     }
     return (
       <input
         type="checkbox"
+        disabled={disabled}
         className="custom-checkbox"
         data-accessor={accessor}
-        checked={row.permsn_nm[accessor]}
+        checked={filtered.value}
         onChange={(e) => handleChange(e, row)}
       />
     );

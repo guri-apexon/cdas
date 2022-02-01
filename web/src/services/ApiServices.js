@@ -27,6 +27,23 @@ export const addPolicyService = async (reqBody) => {
   }
 };
 
+export const updatePolicyService = async (reqBody) => {
+  try {
+    return new Promise((resolve, reject) => {
+      axios
+        .post(`${baseURL}/v1/api/policy/update`, reqBody)
+        .then((res) => {
+          resolve(res.data);
+        })
+        .catch((err) => {
+          reject(err.response.data);
+        });
+    });
+  } catch (err) {
+    return console.log("Error", err);
+  }
+};
+
 export const getPolicyPermissions = async (policyId = "") => {
   try {
     return new Promise((resolve, reject) => {
