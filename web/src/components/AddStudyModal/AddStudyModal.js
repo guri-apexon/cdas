@@ -49,6 +49,7 @@ const AddStudyModal = ({ open, onClose }) => {
     };
     setLoading(true);
     const response = await onboardStudy(reqBody);
+    console.log("response", response);
     setLoading(false);
     if (response.status === "BAD_REQUEST") {
       messageContext.showErrorMessage(response.message, 0);
