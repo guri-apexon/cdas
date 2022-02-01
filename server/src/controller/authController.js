@@ -38,15 +38,14 @@ const getToken = (code, clientId, clientSecret, callbackUrl, ssoUrl) => {
 // Handler for the /sda path
 exports.authHandler = async (req, res) => {
   // Get the token
+  const REACT_APP_URL = process.env.REACT_APP_URL;
   try {
-    console.log('process.env', process.env);
     // read the code from the request
     const { code } = req.query;
     const CLIENT_ID = process.env.SDA_CLIENT_ID;
     const CLIENT_SECRET = process.env.SDA_CLIENT_SECRET;
     const CALLBACK_URL = process.env.SDA_CALLBACK_URL;
     const SSO_URL = process.env.SDA_SSO_URL;
-    const REACT_APP_URL = process.env.REACT_APP_URL;
 
     const body = await getToken(
       code,
@@ -113,7 +112,6 @@ exports.authHandler = async (req, res) => {
 
     // res.cookie("userDetails", userDetails);
 
-    console.debug(userDetails);
     Logger.info({
       message: "authHandler",
     });

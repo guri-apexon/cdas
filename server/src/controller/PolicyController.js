@@ -56,7 +56,8 @@ exports.createPolicy = function (req, res) {
           });
       })
       .catch((err) => {
-        return apiResponse.ErrorResponse(res, err.detail);
+        const errMessage = err.code==23505 ? "Policy Name should be unique - Please update the name and Save again" : err.detail;
+        return apiResponse.ErrorResponse(res, errMessage);
       });
   } catch (err) {
     return apiResponse.ErrorResponse(res, err);
