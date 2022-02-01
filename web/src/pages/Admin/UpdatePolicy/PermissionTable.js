@@ -1,14 +1,6 @@
 /* eslint-disable no-prototype-builtins */
 import React, { memo, useEffect, useState } from "react";
-import Table, {
-  createSelectFilterComponent,
-  createStringSearchFilter,
-  dateFilterV2,
-  numberSearchFilter,
-  compareDates,
-  compareNumbers,
-  compareStrings,
-} from "apollo-react/components/Table";
+import Table, { compareStrings } from "apollo-react/components/Table";
 import Search from "apollo-react/components/Search";
 
 const CustomHeader = ({ setSearchText, searchTxt }) => {
@@ -182,7 +174,10 @@ const PermissionTable = ({
   };
   useEffect(() => {
     const newRows = tableRows.filter((row) => {
-      return row.feat_nm.toLowerCase().includes(searchTxt);
+      return (
+        row.feat_nm.toLowerCase().includes(searchTxt) ||
+        row.ctgy_nm.toLowerCase().includes(searchTxt)
+      );
     });
     setFilteredData(newRows);
   }, [searchTxt]);

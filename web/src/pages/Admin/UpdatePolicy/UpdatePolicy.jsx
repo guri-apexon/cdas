@@ -83,24 +83,26 @@ const UpdatePolicy = () => {
       messageContext.showErrorMessage("Policy Name shouldn't be empty");
       return false;
     }
-    // let atleastOneSelected = false;
-    // if (active) {
-    //   Object.keys(permissions).forEach((product) => {
-    //     permissions[product].every((category) => {
-    //       if (!atleastOneSelected) {
-    //         atleastOneSelected = Object.keys(category.permsn_nm).find((x) => {
-    //           return category.permsn_nm[x] === true;
-    //         });
-    //       }
-    //       if (atleastOneSelected) return false;
-    //       return true;
-    //     });
-    //   });
-    //   if (!atleastOneSelected) {
-    //     messageContext.showErrorMessage("Select atleat one permission");
-    //     return false;
-    //   }
-    // }
+    let atleastOneSelected = false;
+    if (active) {
+      Object.keys(permissions).forEach((product) => {
+        permissions[product].every((category) => {
+          if (!atleastOneSelected) {
+            atleastOneSelected = category.permsn_nm.find((x) => {
+              return x.value === true;
+            });
+          }
+          if (atleastOneSelected) return false;
+          return true;
+        });
+      });
+      if (!atleastOneSelected) {
+        messageContext.showErrorMessage(
+          "Please complete all mandatory information and then click Save"
+        );
+        return false;
+      }
+    }
     setLoading(true);
     updatePolicyService(reqBody)
       .then((res) => {

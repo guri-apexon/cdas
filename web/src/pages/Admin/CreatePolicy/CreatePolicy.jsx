@@ -75,7 +75,9 @@ const CreatePolicy = () => {
         });
       });
       if (!atleastOneSelected) {
-        messageContext.showErrorMessage("Select atleast one permission");
+        messageContext.showErrorMessage(
+          "Please complete all mandatory information and then click Save"
+        );
         return false;
       }
     }
