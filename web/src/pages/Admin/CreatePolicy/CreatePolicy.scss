@@ -6,6 +6,12 @@
         margin-bottom: 0;
         padding-left: 0;
     }
+    .product-tabs{
+        .MuiTab-root{
+            overflow: visible;
+            margin-top: 4px;
+        }
+    }
     .top-actions{
         justify-content: end;
         label{
