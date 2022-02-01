@@ -30,13 +30,15 @@ exports.createPolicy = function (req, res) {
           if (productPermission.length) {
             productPermission.forEach((category) => {
               Object.keys(category.permsn_nm).forEach((permissionName) => {
-                permissionQuery += `INSERT into ${constants.DB_SCHEMA_NAME}.policy_product_permission(plcy_id, prod_permsn_id, act_flg, created_by, created_on, updated_by, updated_on)
-              select distinct ${policy.plcy_id}, pp.prod_permsn_id, 1, '${userId}', current_timestamp, '${userId}', current_timestamp from ${constants.DB_SCHEMA_NAME}.product_permission pp
-              left join ${constants.DB_SCHEMA_NAME}.product p2 on (pp.prod_id=p2.prod_id)
-              left join ${constants.DB_SCHEMA_NAME}.category c on (c.ctgy_id=pp.ctgy_id)
-              left join ${constants.DB_SCHEMA_NAME}.feature f on (f.feat_id=pp.feat_id)
-              left join ${constants.DB_SCHEMA_NAME}."permission" p on (p.permsn_id=pp.permsn_id)
-              where p2.prod_nm ='${product}' and c.ctgy_nm ='${category.ctgy_nm}' and f.feat_nm ='${category.feat_nm}' and p.permsn_nm ='${permissionName}';`;
+                if(category.permsn_nm[permissionName]){
+                  permissionQuery += `INSERT into ${constants.DB_SCHEMA_NAME}.policy_product_permission(plcy_id, prod_permsn_id, act_flg, created_by, created_on, updated_by, updated_on)
+                select distinct ${policy.plcy_id}, pp.prod_permsn_id, 1, '${userId}', current_timestamp, '${userId}', current_timestamp from ${constants.DB_SCHEMA_NAME}.product_permission pp
+                left join ${constants.DB_SCHEMA_NAME}.product p2 on (pp.prod_id=p2.prod_id)
+                left join ${constants.DB_SCHEMA_NAME}.category c on (c.ctgy_id=pp.ctgy_id)
+                left join ${constants.DB_SCHEMA_NAME}.feature f on (f.feat_id=pp.feat_id)
+                left join ${constants.DB_SCHEMA_NAME}."permission" p on (p.permsn_id=pp.permsn_id)
+                where p2.prod_nm ='${product}' and c.ctgy_nm ='${category.ctgy_nm}' and f.feat_nm ='${category.feat_nm}' and p.permsn_nm ='${permissionName}';`;
+                }
               });
             });
           }
@@ -94,7 +96,6 @@ exports.updatePolicy = function (req, res) {
           });
         }
       });
-      console.log("permissionQuery", permissionQuery);
       DB.executeQuery(permissionQuery).then((response) => {
         return apiResponse.successResponseWithData(res, "Added Successfully", []);
       }).catch(err=>{
