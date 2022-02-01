@@ -11,6 +11,7 @@ import Typography from "apollo-react/components/Typography";
 import Grid from "apollo-react/components/Grid";
 import Tab from "apollo-react/components/Tab";
 import Tabs from "apollo-react/components/Tabs";
+import Badge from "apollo-react/components/Badge";
 import {
   addPolicyService,
   fetchProducts,
@@ -140,6 +141,18 @@ const CreatePolicy = () => {
     console.log("updateData", newArr);
     setPermissions(newArr);
   };
+  const getBadgeCount = (product) => {
+    let count = 0;
+    if (!permissions[product]) {
+      return count;
+    }
+    permissions[product].forEach((category) => {
+      count += Object.keys(category.permsn_nm).filter((x) => {
+        return category.permsn_nm[x] === true;
+      }).length;
+    });
+    return count;
+  };
   useEffect(() => {
     fetchPermissions();
   }, [products]);
@@ -207,10 +220,27 @@ const CreatePolicy = () => {
         </Grid>
         <Grid item xs={9} className="products-wrapper">
           <br />
-          <Tabs value={currentTab} onChange={handleChangeTab} truncate>
+          <Tabs
+            value={currentTab}
+            onChange={handleChangeTab}
+            truncate
+            className="product-tabs"
+          >
             {products &&
               products.map((product, i) => {
-                return <Tab label={product.prod_nm} />;
+                return (
+                  <Tab
+                    label={
+                      // eslint-disable-next-line react/jsx-wrap-multilines
+                      <Badge
+                        badgeContent={getBadgeCount(product.prod_nm)}
+                        max={999}
+                      >
+                        {product.prod_nm}
+                      </Badge>
+                    }
+                  />
+                );
               })}
           </Tabs>
           <div className="product-content">
