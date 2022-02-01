@@ -8,6 +8,7 @@ import ButtonGroup from "apollo-react/components/ButtonGroup";
 import TextField from "apollo-react/components/TextField";
 import "./UpdatePolicy.scss";
 import Typography from "apollo-react/components/Typography";
+import Button from "apollo-react/components/Button";
 import Grid from "apollo-react/components/Grid";
 import Tab from "apollo-react/components/Tab";
 import Tabs from "apollo-react/components/Tabs";
@@ -248,6 +249,17 @@ const UpdatePolicy = () => {
         <Grid item xs={3}>
           <Box>
             <div className="flex update-sidebar flexWrap">
+              {!active && (
+                <Button
+                  onClick={() => history.goBack()}
+                  className="back-btn"
+                  variant="primary"
+                  size="small"
+                  // icon={PlusIcon}
+                >
+                  &#x276E; Back to Policy Management List
+                </Button>
+              )}
               <Typography variant="title1" className="b-font title">
                 {policyName}
               </Typography>
