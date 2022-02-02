@@ -189,6 +189,8 @@ const PermissionTable = ({ title, data, updateData, messageContext }) => {
         rowsPerPage={tableRows.length}
         initialSortedColumn="feat_nm"
         initialSortOrder="asc"
+        hasScroll
+        maxHeight="calc(100vh - 300px)"
       />
     </div>
   );
