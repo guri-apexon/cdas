@@ -23,10 +23,10 @@ const CreateRole = lazy(() =>
   import("./pages/Admin/Role/CreateRole/CreateRole")
 );
 const VendorList = lazy(() =>
-  import("../pages/Admin/Vendor/VendorList/VendorList")
+  import("./pages/Admin/Vendor/VendorList/VendorList")
 );
 const CreateVendor = lazy(() =>
-  import("../pages/Admin/Vendor/CreateVendor/CreateVendor")
+  import("./pages/Admin/Vendor/CreateVendor/CreateVendor")
 );
 
 const Empty = () => <></>;
