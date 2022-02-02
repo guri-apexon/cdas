@@ -301,66 +301,13 @@ const PolicyList = () => {
   //   setTableRows([...uniqueRows]);
   // }, [inlineFilters, sortedColumnValue, sortOrderValue]);
 
-  // const getTableData = React.useMemo(
-  //   () => (
-  //     <>
-  //       {loading ? (
-  //         <Progress />
-  //       ) : (
-  //         <>
-  //           <Table
-  //             isLoading={loading}
-  //             title="Policies"
-  //             columns={columns}
-  //             rows={tableRows}
-  //             rowId="policyId"
-  //             hasScroll={true}
-  //             maxHeight="calc(100vh - 162px)"
-  //             initialSortedColumn="policyName"
-  //             initialSortOrder="asc"
-  //             // sortedColumn={sortedColumnValue}
-  //             // sortOrder={sortOrderValue}
-  //             // page={pageNo}
-  //             // rowsPerPage={rowsPerPageRecord}
-  //             // onChange={(rpp, sc, so, filts, page) => {
-  //             //   setRowPerPageRecord(rpp);
-  //             //   setSortedColumnValue(sc);
-  //             //   setSortOrderValue(so);
-  //             //   setInlineFilters(filts);
-  //             //   setPageNo(page);
-  //             //   // console.log("onChange", rpp, sc, so, filts, page);
-  //             // }}
-  //             rowsPerPageOptions={[10, 50, 100, "All"]}
-  //             tablePaginationProps={{
-  //               labelDisplayedRows: ({ from, to, count }) =>
-  //                 `${
-  //                   count === 1 ? "Item " : "Items"
-  //                 } ${from}-${to} of ${count}`,
-  //               truncate: true,
-  //             }}
-  //             showFilterIcon
-  //             CustomHeader={(props) => <CustomButtonHeader {...props} />}
-  //           />
-  //         </>
-  //       )}
-  //     </>
-  //   ),
-  //   [tableRows, loading]
-  // );
-
-  return (
-    <div className="policy-list-wrapper">
-      <div className="page-header">
-        <Typography variant="h2" gutterBottom>
-          Policy Management
-        </Typography>
-      </div>
-      <div className="policy-table">
-        <div className="table">
-          {/* {getTableData} */}
-          {loading ? (
-            <Progress />
-          ) : (
+  const getTableData = React.useMemo(
+    () => (
+      <>
+        {loading ? (
+          <Progress />
+        ) : (
+          <>
             <Table
               isLoading={loading}
               title="Policies"
@@ -394,8 +341,22 @@ const PolicyList = () => {
               showFilterIcon
               CustomHeader={(props) => <CustomButtonHeader {...props} />}
             />
-          )}
-        </div>
+          </>
+        )}
+      </>
+    ),
+    [tableRows, loading]
+  );
+
+  return (
+    <div className="policy-list-wrapper">
+      <div className="page-header">
+        <Typography variant="h2" gutterBottom>
+          Policy Management
+        </Typography>
+      </div>
+      <div className="policy-table">
+        <div className="table">{getTableData}</div>
         <Peek
           open={open}
           followCursor
