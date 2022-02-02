@@ -19,7 +19,7 @@ import Progress from "../../../../components/Progress";
 
 // import { MessageContext } from "../../../components/MessageProvider";
 
-import { getPolicyList } from "../../../../store/actions/PolicyAdminActions";
+import { getVendorList } from "../../../../store/actions/VendorAdminActions";
 
 import {
   TextFieldFilter,
@@ -41,7 +41,7 @@ const VendorList = () => {
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState([]);
   const [tableRows, setTableRows] = useState([]);
-  const [policyLists, setPolicyLists] = useState([]);
+  const [policyLists, setVendorLists] = useState([]);
   // const [rowsPerPageRecord, setRowPerPageRecord] = useState(10);
   // const [pageNo, setPageNo] = useState(0);
   // const [sortedColumnValue, setSortedColumnValue] = useState("policyName");
@@ -53,7 +53,7 @@ const VendorList = () => {
   const policyAdmin = useSelector((state) => state.policyAdmin);
 
   const getData = () => {
-    dispatch(getPolicyList());
+    dispatch(getVendorList());
   };
 
   const createUniqueData = (arrayList) => {
@@ -81,7 +81,7 @@ const VendorList = () => {
 
   useEffect(() => {
     const { policyList, uniqueProducts } = policyAdmin;
-    setPolicyLists(policyList);
+    setVendorLists(policyList);
     setProducts(uniqueProducts);
     setLoading(false);
   }, [policyAdmin.loading]);
@@ -93,7 +93,7 @@ const VendorList = () => {
 
   // const messageContext = useContext(MessageContext);
 
-  const goToPolicy = (e, id) => {
+  const goToVendor = (e, id) => {
     e.preventDefault();
     history.push(`/policy-management/${id}`);
   };
@@ -158,13 +158,13 @@ const VendorList = () => {
         <Link
           onMouseOver={() => handleMouseOver(row)}
           onMouseOut={handleMouseOut}
-          onClick={(e) => goToPolicy(e, id)}
+          onClick={(e) => goToVendor(e, id)}
         >
           {`${rowValue.slice(0, 30)}  [...]`}
         </Link>
       );
     }
-    return <Link onClick={(e) => goToPolicy(e, id)}>{rowValue}</Link>;
+    return <Link onClick={(e) => goToVendor(e, id)}>{rowValue}</Link>;
   };
 
   const DespCell = ({ row, column: { accessor } }) => {
@@ -214,7 +214,7 @@ const VendorList = () => {
       hidden: true,
     },
     {
-      header: "Policy Name",
+      header: "Vendor Name",
       accessor: "policyName",
       customCell: LinkCell,
       sortFunction: compareStrings,
@@ -223,7 +223,7 @@ const VendorList = () => {
       width: "20%",
     },
     {
-      header: "Policy Description",
+      header: "Vendor Description",
       accessor: "policyDescription",
       sortFunction: compareStrings,
       filterFunction: createStringSearchFilter("policyDescription"),
