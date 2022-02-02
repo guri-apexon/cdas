@@ -1,3 +1,4 @@
+/* eslint-disable no-script-url */
 /* eslint-disable react/button-has-type */
 import React, { useContext, useEffect, useState } from "react";
 import Box from "apollo-react/components/Box";
@@ -21,17 +22,6 @@ import { MessageContext } from "../../../../components/Providers/MessageProvider
 import PermissionTable from "./PermissionTable";
 import { getUserInfo, inputAlphaNumeric } from "../../../../utils";
 
-const breadcrumpItems = [
-  { href: "/" },
-  {
-    title: "Policy Management",
-    href: "/policy-management",
-  },
-  {
-    title: "Create New Policy",
-  },
-];
-
 const CreatePolicy = () => {
   const [active, setActive] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -49,6 +39,18 @@ const CreatePolicy = () => {
   const handleChangeTab = (event, v) => {
     setCurrentTab(v);
   };
+
+  const breadcrumpItems = [
+    { href: "javascript:void(0)", onClick: () => history.push("/launchpad") },
+    {
+      href: "javascript:void(0)",
+      title: "Policy Management",
+      onClick: () => history.push("/policy-management"),
+    },
+    {
+      title: "Create New Policy",
+    },
+  ];
   // eslint-disable-next-line consistent-return
   const submitPolicy = async () => {
     const reqBody = {
