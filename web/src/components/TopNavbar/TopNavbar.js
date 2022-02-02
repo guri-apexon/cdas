@@ -114,7 +114,7 @@ const menuItems = [
       },
       {
         text: "System Admin",
-        pathname: "/system-admin",
+        pathname: "/vendor/list",
       },
     ],
   },

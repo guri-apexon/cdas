@@ -5,3 +5,22 @@ content-type: application/json
 
 {
 }
+
+#Response
+[
+      {
+        "policyName": "Newpolocy",
+        "policyDescription": "",
+        "policyId": 10,
+        "productName": "Admin",
+        "policyStatus": "Active"
+      },
+      {
+        "policyName": "NewPolicy01Feb",
+        "policyDescription": "New policy for 01 February",
+        "policyId": 35,
+        "productName": "Admin",
+        "policyStatus": "Active"
+      }
+]
+
