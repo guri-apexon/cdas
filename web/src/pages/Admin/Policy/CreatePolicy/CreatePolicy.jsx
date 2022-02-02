@@ -107,6 +107,7 @@ const CreatePolicy = () => {
     }
   };
   const filterPermission = (arr) => {
+    if (!arr) return [];
     const helper = {};
     return arr.reduce((r, o) => {
       const key = `${o.ctgy_nm}-${o.feat_nm}`;
@@ -136,11 +137,10 @@ const CreatePolicy = () => {
   };
   const getProducts = async () => {
     const productsData = await fetchProducts();
-    setProducts(productsData);
+    if (productsData) setProducts(productsData);
   };
   const updateData = (childData) => {
     const newArr = { ...permissions, [childData.product]: childData.data };
-    console.log("updateData", newArr);
     setPermissions(newArr);
   };
   const getBadgeCount = (product) => {

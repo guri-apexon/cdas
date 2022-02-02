@@ -3,26 +3,29 @@ import { useHistory } from "react-router-dom";
 import { lazy, Suspense, useState, useEffect } from "react";
 import Loader from "apollo-react/components/Loader";
 
-import { getCookie } from "../utils";
-import TopNavbar from "../components/TopNavbar/TopNavbar";
-import AppFooter from "../components/AppFooter/AppFooter";
-import Logout from "../pages/Logout/Logout";
+import { getCookie } from "./utils";
+import TopNavbar from "./components/TopNavbar/TopNavbar";
+import AppFooter from "./components/AppFooter/AppFooter";
+import Logout from "./pages/Logout/Logout";
 
-const LaunchPad = lazy(() => import("../pages/LaunchPad/LaunchPad"));
-const StudySetup = lazy(() => import("../pages/StudySetup/StudySetup"));
+const LaunchPad = lazy(() => import("./pages/LaunchPad/LaunchPad"));
+const StudySetup = lazy(() => import("./pages/StudySetup/StudySetup"));
 const PolicyList = lazy(() =>
-  import("../pages/Admin/Policy/ListPolicy/PolicyList")
+  import("./pages/Admin/Policy/ListPolicy/PolicyList")
 );
 const CreatePolicy = lazy(() =>
-  import("../pages/Admin/Policy/CreatePolicy/CreatePolicy")
+  import("./pages/Admin/Policy/CreatePolicy/CreatePolicy")
 );
 const UpdatePolicy = lazy(() =>
-  import("../pages/Admin/Policy/UpdatePolicy/UpdatePolicy")
+  import("./pages/Admin/Policy/UpdatePolicy/UpdatePolicy")
+);
+const CreateRole = lazy(() =>
+  import("./pages/Admin/Role/CreateRole/CreateRole")
 );
 
 const Empty = () => <></>;
 
-const CDASWrapper = () => {
+const RoutesWrapper = () => {
   const [loggedIn, setLoggedIn] = useState(false);
   const [checkedOnce, setCheckedOnce] = useState(false);
   const history = useHistory();
@@ -94,6 +97,7 @@ const CDASWrapper = () => {
               exact
               render={() => <CreatePolicy />}
             />
+            <Route path="/create-role" exact render={() => <CreateRole />} />
             <Route
               path="/user-management"
               exact
@@ -142,4 +146,4 @@ const CDASWrapper = () => {
   );
 };
 
-export default CDASWrapper;
+export default RoutesWrapper;
