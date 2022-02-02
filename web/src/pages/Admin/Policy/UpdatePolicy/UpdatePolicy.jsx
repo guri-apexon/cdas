@@ -18,10 +18,10 @@ import {
   updatePolicyService,
   fetchProducts,
   getPolicyPermissions,
-} from "../../../services/ApiServices";
-import { MessageContext } from "../../../components/Providers/MessageProvider";
+} from "../../../../services/ApiServices";
+import { MessageContext } from "../../../../components/Providers/MessageProvider";
 import PermissionTable from "./PermissionTable";
-import { getUserInfo, inputAlphaNumeric } from "../../../utils";
+import { getUserInfo, inputAlphaNumeric } from "../../../../utils";
 
 const breadcrumpItems = [
   { href: "/" },
