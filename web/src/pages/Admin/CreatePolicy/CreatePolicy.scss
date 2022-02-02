@@ -32,8 +32,9 @@
     }
     .permission-table-wrapper{
         position: relative;
-        height: 80vh;
-        @extend .customscroll;
+        div[class*=" Table-scrollRoot-"]{
+            @extend .customscroll;
+        }
         tfoot{
             display: none;
         }

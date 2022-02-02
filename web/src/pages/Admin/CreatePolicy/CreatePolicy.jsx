@@ -142,16 +142,14 @@ const CreatePolicy = () => {
     setPermissions(newArr);
   };
   const getBadgeCount = (product) => {
-    let count = 0;
     if (!permissions[product]) {
-      return count;
+      return 0;
     }
-    permissions[product].forEach((category) => {
-      count += Object.keys(category.permsn_nm).filter((x) => {
+    return permissions[product].filter((category) => {
+      return Object.keys(category.permsn_nm).find((x) => {
         return category.permsn_nm[x] === true;
-      }).length;
-    });
-    return count;
+      });
+    }).length;
   };
   useEffect(() => {
     fetchPermissions();
@@ -230,6 +228,7 @@ const CreatePolicy = () => {
               products.map((product, i) => {
                 return (
                   <Tab
+                    key={product.prod_id}
                     label={
                       // eslint-disable-next-line react/jsx-wrap-multilines
                       <Badge
@@ -251,6 +250,7 @@ const CreatePolicy = () => {
                 }
                 return (
                   <PermissionTable
+                    key={product.prod_id}
                     messageContext={messageContext}
                     title={product.prod_nm}
                     updateData={updateData}

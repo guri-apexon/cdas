@@ -186,16 +186,14 @@ const UpdatePolicy = () => {
     setPermissions(newArr);
   };
   const getBadgeCount = (product) => {
-    let count = 0;
     if (!permissions[product]) {
-      return count;
+      return 0;
     }
-    permissions[product].forEach((category) => {
-      count += category.permsn_nm.filter((x) => {
+    return permissions[product].filter((category) => {
+      return category.permsn_nm.find((x) => {
         return x.value === true;
-      }).length;
-    });
-    return count;
+      });
+    }).length;
   };
   const cancelEdit = () => {
     history.push("/policy-management");
