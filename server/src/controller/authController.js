@@ -38,6 +38,7 @@ const getToken = (code, clientId, clientSecret, callbackUrl, ssoUrl) => {
 // Handler for the /sda path
 exports.authHandler = async (req, res) => {
   // Get the token
+  const REACT_APP_URL = process.env.REACT_APP_URL;
   try {
     // read the code from the request
     const { code } = req.query;
@@ -111,16 +112,15 @@ exports.authHandler = async (req, res) => {
 
     // res.cookie("userDetails", userDetails);
 
-    console.debug(userDetails);
     Logger.info({
       message: "authHandler",
     });
 
-    res.redirect("http://localhost:3000/launchpad");
+    res.redirect(`${REACT_APP_URL}/launchpad`);
   } catch (e) {
     // console.error(e);
     Logger.error(e);
-    res.redirect("http://localhost:3000/not-authenticated");
+    res.redirect(`${REACT_APP_URL}/not-authenticated`);
   }
 };
 

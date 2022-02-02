@@ -2,7 +2,7 @@
 /* eslint-disable prettier/prettier */
 /* eslint-disable no-shadow */
 import { withRouter } from "react-router";
-import { useState } from "react";
+import { useState, useContext } from "react";
 import NavigationBar from "apollo-react/components/NavigationBar";
 import makeStyles from "@material-ui/core/styles/makeStyles";
 import { neutral7 } from "apollo-react/colors";
@@ -21,6 +21,7 @@ import NavigationPanel from "../NavigationPanel/NavigationPanel";
 import { deleteAllCookies, getUserInfo } from "../../utils/index";
 // eslint-disable-next-line import/named
 import { userLogOut } from "../../services/ApiServices";
+import { MessageContext } from "../Providers/MessageProvider";
 
 const styles = {
   root: {
@@ -123,6 +124,7 @@ const useStyles = makeStyles(styles);
 
 const TopNavbar = ({ history, location: { pathname }, setLoggedIn }) => {
   const classes = useStyles();
+  const messageContext = useContext(MessageContext);
   const [panelOpen, setpanelOpen] = useState(true);
   const [notLoggedOutErr, setNotLoggedOutErr] = useState(false);
   const [open, setOpen] = useState(false);
@@ -130,7 +132,9 @@ const TopNavbar = ({ history, location: { pathname }, setLoggedIn }) => {
   const profileMenuProps = {
     name: userInfo.fullName,
     title: userInfo.userEmail,
-    email: <span style={{ fontSize: '13px' }}>Last Login: {userInfo.lastLogin}</span>,
+    email: (
+      <span style={{ fontSize: "13px" }}>Last Login: {userInfo.lastLogin}</span>
+    ),
     // eslint-disable-next-line no-use-before-define
     logoutButtonProps: { onClick: () => LogOut() },
     menuItems: [],
@@ -171,60 +175,70 @@ const TopNavbar = ({ history, location: { pathname }, setLoggedIn }) => {
     setpanelOpen(false);
   };
   return (
-    <div id="topNavbar">
-      <Backdrop style={{ zIndex: 1 }} open={open}>
-        <CircularProgress variant="indeterminate" size="small" />
-      </Backdrop>
+    <>
+      <div id="topNavbar">
+        <Backdrop style={{ zIndex: 1 }} open={open}>
+          <CircularProgress variant="indeterminate" size="small" />
+        </Backdrop>
+        <Banner
+          variant="error"
+          open={notLoggedOutErr}
+          onClose={() => setNotLoggedOutErr(false)}
+          message="Error: There is some error in logging out!"
+        />
+        <NavigationBar
+          LogoComponent={() => (
+            <div className={classes.centerAligned}>
+              <Button onClick={toggleMenu} className={classes.fullNavHeight}>
+                <App className={classes.appIcon} />
+              </Button>
+              <Typography
+                className={classes.navLogo}
+                onClick={() => history.push("launchpad")}
+              >
+                IQVIA™
+                <span style={{ paddingLeft: 3 }} className={classes.bold}>
+                  Clinical Data Analytics Suite
+                </span>
+              </Typography>
+            </div>
+          )}
+          position="static"
+          menuItems={menuItems}
+          profileMenuProps={profileMenuProps}
+          // eslint-disable-next-line no-shadow
+          onClick={({ pathname }) => history.push(pathname)}
+          checkIsActive={(item) =>
+            item.pathname
+              ? item.pathname === pathname
+              : item.menuItems.some((item) => item.pathname === pathname)
+          }
+          waves
+          notificationsMenuProps={notificationsMenuProps}
+          otherButtons={
+            // eslint-disable-next-line react/jsx-wrap-multilines
+            <div className={classes.centerAligned}>
+              <Button
+                onClick={() => history.push("help")}
+                className={classes.fullNavHeight}
+              >
+                <Question className={classes.appIcon} />
+              </Button>
+            </div>
+          }
+          className={classes.nav}
+        />
+        <NavigationPanel open={panelOpen} onClose={onPanelClose} />
+      </div>
       <Banner
-        variant="error"
-        open={notLoggedOutErr}
-        onClose={() => setNotLoggedOutErr(false)}
-        message="Error: There is some error in logging out!"
+        variant={messageContext.errorMessage.variant}
+        open={messageContext.errorMessage.show}
+        onClose={messageContext.bannerCloseHandle}
+        message={messageContext.errorMessage.messages}
+        id={`Message-Banner--${messageContext.errorMessage.variant}`}
+        className={`Message-Banner top-${messageContext.errorMessage.top}`}
       />
-      <NavigationBar
-        LogoComponent={() => (
-          <div className={classes.centerAligned}>
-            <Button onClick={toggleMenu} className={classes.fullNavHeight}>
-              <App className={classes.appIcon} />
-            </Button>
-            <Typography
-              className={classes.navLogo}
-              onClick={() => history.push("launchpad")}
-            >
-              IQVIA™
-              <span style={{ paddingLeft: 3 }} className={classes.bold}>
-                Clinical Data Analytics Suite
-              </span>
-            </Typography>
-          </div>
-        )}
-        position="static"
-        menuItems={menuItems}
-        profileMenuProps={profileMenuProps}
-        // eslint-disable-next-line no-shadow
-        onClick={({ pathname }) => history.push(pathname)}
-        checkIsActive={(item) =>
-          item.pathname
-            ? item.pathname === pathname
-            : item.menuItems.some((item) => item.pathname === pathname)
-        }
-        waves
-        notificationsMenuProps={notificationsMenuProps}
-        otherButtons={
-          // eslint-disable-next-line react/jsx-wrap-multilines
-          <div className={classes.centerAligned}>
-            <Button
-              onClick={() => history.push("help")}
-              className={classes.fullNavHeight}
-            >
-              <Question className={classes.appIcon} />
-            </Button>
-          </div>
-        }
-        className={classes.nav}
-      />
-      <NavigationPanel open={panelOpen} onClose={onPanelClose} />
-    </div>
+    </>
   );
 };
 

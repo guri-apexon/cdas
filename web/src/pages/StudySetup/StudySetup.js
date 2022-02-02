@@ -9,7 +9,7 @@ import Backdrop from "apollo-react/components/Backdrop";
 import CircularProgress from "apollo-react/components/CircularProgress";
 import StudyNotOnboarded from "./StudyNotOnboarded";
 import StudyTable from "./StudyTable";
-import { ReactComponent as StudyDataIcon } from "./Icon_StudyData_72x72.svg";
+import { ReactComponent as StudyDataIcon } from "../../components/Icons/Icon_StudyData_72x72.svg";
 
 import {
   getStudyboardData,

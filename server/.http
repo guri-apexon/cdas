@@ -1,0 +1,7 @@
+### Get policy list
+
+POST http://localhost:443/v1/api/policy/list HTTP/1.1
+content-type: application/json
+
+{
+}
