@@ -1,7 +1,7 @@
 import React from "react";
 import { BrowserRouter, useHistory } from "react-router-dom";
 import "./App.scss";
-import CDASWrapper from "./CDASWrapper/CDASWrapper";
+import RoutesWrapper from "./RoutesWrapper";
 import AppProvider from "./components/Providers/AppProvider";
 import MessageProvider from "./components/Providers/MessageProvider";
 
@@ -12,7 +12,7 @@ const App = () => {
       <AppProvider>
         <MessageProvider>
           <BrowserRouter basename="/" history={history}>
-            <CDASWrapper />
+            <RoutesWrapper />
           </BrowserRouter>
         </MessageProvider>
       </AppProvider>
