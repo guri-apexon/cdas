@@ -191,10 +191,10 @@ const VendorList = () => {
         size="small"
         variant="secondary"
         icon={PlusIcon}
-        onClick={() => history.push("/create-policy")}
+        onClick={() => history.push("/vendor/create")}
         style={{ marginRight: "8px", border: "none" }}
       >
-        Create new policy
+        Add vendor
       </Button>
       <Button
         size="small"
@@ -352,7 +352,7 @@ const VendorList = () => {
     <div className="policy-list-wrapper">
       <div className="page-header">
         <Typography variant="h2" gutterBottom>
-          Policy Management
+          Vendor Admin
         </Typography>
       </div>
       <div className="policy-table">

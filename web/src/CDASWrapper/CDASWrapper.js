@@ -19,6 +19,12 @@ const CreatePolicy = lazy(() =>
 const UpdatePolicy = lazy(() =>
   import("../pages/Admin/Policy/UpdatePolicy/UpdatePolicy")
 );
+const VendorList = lazy(() =>
+  import("../pages/Admin/Vendor/VendorList/VendorList")
+);
+const CreateVendor = lazy(() =>
+  import("../pages/Admin/Vendor/CreateVendor/CreateVendor")
+);
 
 const Empty = () => <></>;
 
@@ -120,10 +126,16 @@ const CDASWrapper = () => {
               exact
               render={() => <Redirect to="/launchpad" />}
             />
+            <Route path="/vendor/list" exact render={() => <VendorList />} />
             <Route
-              path="/study-admin"
+              path="/vendor/edit/:id"
               exact
-              render={() => <Redirect to="/launchpad" />}
+              render={() => <CreateVendor />}
+            />
+            <Route
+              path="/vendor/create"
+              exact
+              render={() => <CreateVendor />}
             />
             <Redirect from="/" to="/launchpad" />
           </Switch>
