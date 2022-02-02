@@ -10,12 +10,14 @@ import Logout from "../pages/Logout/Logout";
 
 const LaunchPad = lazy(() => import("../pages/LaunchPad/LaunchPad"));
 const StudySetup = lazy(() => import("../pages/StudySetup/StudySetup"));
-const PolicyList = lazy(() => import("../pages/Admin/Policy/PolicyList"));
+const PolicyList = lazy(() =>
+  import("../pages/Admin/Policy/ListPolicy/PolicyList")
+);
 const CreatePolicy = lazy(() =>
-  import("../pages/Admin/CreatePolicy/CreatePolicy")
+  import("../pages/Admin/Policy/CreatePolicy/CreatePolicy")
 );
 const UpdatePolicy = lazy(() =>
-  import("../pages/Admin/UpdatePolicy/UpdatePolicy")
+  import("../pages/Admin/Policy/UpdatePolicy/UpdatePolicy")
 );
 
 const Empty = () => <></>;

@@ -15,19 +15,19 @@ import Tooltip from "apollo-react/components/Tooltip";
 import { useHistory } from "react-router-dom";
 import Switch from "apollo-react/components/Switch";
 import Typography from "apollo-react/components/Typography";
-import Progress from "../../../components/Progress";
+import Progress from "../../../../components/Progress";
 
 // import { MessageContext } from "../../../components/MessageProvider";
 
-import { getPolicyList } from "../../../store/actions/PolicyAdminActions";
+import { getPolicyList } from "../../../../store/actions/PolicyAdminActions";
 
 import {
   TextFieldFilter,
   createStringArraySearchFilter,
   createStringArrayIncludedFilter,
-} from "../../../utils/index";
+} from "../../../../utils/index";
 
-import "./PolicyList.scss";
+import "./VendorList.scss";
 
 const ProductsCell = ({ row, column: { accessor } }) => {
   const rowValue = row[accessor];
@@ -36,7 +36,7 @@ const ProductsCell = ({ row, column: { accessor } }) => {
 
 const statusList = ["Active", "Inactive"];
 
-const PolicyList = () => {
+const VendorList = () => {
   const history = useHistory();
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState([]);
@@ -301,13 +301,66 @@ const PolicyList = () => {
   //   setTableRows([...uniqueRows]);
   // }, [inlineFilters, sortedColumnValue, sortOrderValue]);
 
-  const getTableData = React.useMemo(
-    () => (
-      <>
-        {loading ? (
-          <Progress />
-        ) : (
-          <>
+  // const getTableData = React.useMemo(
+  //   () => (
+  //     <>
+  //       {loading ? (
+  //         <Progress />
+  //       ) : (
+  //         <>
+  //           <Table
+  //             isLoading={loading}
+  //             title="Policies"
+  //             columns={columns}
+  //             rows={tableRows}
+  //             rowId="policyId"
+  //             hasScroll={true}
+  //             maxHeight="calc(100vh - 162px)"
+  //             initialSortedColumn="policyName"
+  //             initialSortOrder="asc"
+  //             // sortedColumn={sortedColumnValue}
+  //             // sortOrder={sortOrderValue}
+  //             // page={pageNo}
+  //             // rowsPerPage={rowsPerPageRecord}
+  //             // onChange={(rpp, sc, so, filts, page) => {
+  //             //   setRowPerPageRecord(rpp);
+  //             //   setSortedColumnValue(sc);
+  //             //   setSortOrderValue(so);
+  //             //   setInlineFilters(filts);
+  //             //   setPageNo(page);
+  //             //   // console.log("onChange", rpp, sc, so, filts, page);
+  //             // }}
+  //             rowsPerPageOptions={[10, 50, 100, "All"]}
+  //             tablePaginationProps={{
+  //               labelDisplayedRows: ({ from, to, count }) =>
+  //                 `${
+  //                   count === 1 ? "Item " : "Items"
+  //                 } ${from}-${to} of ${count}`,
+  //               truncate: true,
+  //             }}
+  //             showFilterIcon
+  //             CustomHeader={(props) => <CustomButtonHeader {...props} />}
+  //           />
+  //         </>
+  //       )}
+  //     </>
+  //   ),
+  //   [tableRows, loading]
+  // );
+
+  return (
+    <div className="policy-list-wrapper">
+      <div className="page-header">
+        <Typography variant="h2" gutterBottom>
+          Policy Management
+        </Typography>
+      </div>
+      <div className="policy-table">
+        <div className="table">
+          {/* {getTableData} */}
+          {loading ? (
+            <Progress />
+          ) : (
             <Table
               isLoading={loading}
               title="Policies"
@@ -341,22 +394,8 @@ const PolicyList = () => {
               showFilterIcon
               CustomHeader={(props) => <CustomButtonHeader {...props} />}
             />
-          </>
-        )}
-      </>
-    ),
-    [tableRows, loading]
-  );
-
-  return (
-    <div className="policy-list-wrapper">
-      <div className="page-header">
-        <Typography variant="h2" gutterBottom>
-          Policy Management
-        </Typography>
-      </div>
-      <div className="policy-table">
-        <div className="table">{getTableData}</div>
+          )}
+        </div>
         <Peek
           open={open}
           followCursor
@@ -382,4 +421,4 @@ const PolicyList = () => {
   );
 };
 
-export default PolicyList;
+export default VendorList;
