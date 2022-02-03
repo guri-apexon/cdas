@@ -49,7 +49,6 @@ const AddStudyModal = ({ open, onClose }) => {
     };
     setLoading(true);
     const response = await onboardStudy(reqBody);
-    console.log("response", response);
     setLoading(false);
     if (response.status === "BAD_REQUEST") {
       messageContext.showErrorMessage(response.message, 0);
@@ -177,14 +176,14 @@ const AddStudyModal = ({ open, onClose }) => {
                 </Box>
                 <Box m={2}>
                   <Label>Project code</Label>
-                  <Value>{selectedStudy.project_code}</Value>
+                  <Value>{selectedStudy.proj_cd}</Value>
                 </Box>
                 <Box m={2}>
                   <Label>Protocol phase</Label>
                   <Value>{selectedStudy.phase}</Value>
                 </Box>
                 <Box m={2}>
-                  <Label>Theraputic area</Label>
+                  <Label>Therapeutic area</Label>
                   <Value>{selectedStudy.thptc_area}</Value>
                 </Box>
                 <Box m={2}>
