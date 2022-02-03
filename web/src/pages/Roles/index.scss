@@ -1,0 +1,16 @@
+.role-header {
+  padding: 3%;
+}
+.roles-table {
+  background-color: #f8f9fb;
+  min-height: 100vh;
+  margin: 1.5% 2%;
+  .table {
+    margin: 30px;
+    background-color: #ffffff;
+
+    div[class^="MuiSwitch-sizeSmall-"] {
+      top: -8px;
+    }
+  }
+}
