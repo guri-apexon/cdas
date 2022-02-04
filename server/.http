@@ -24,3 +24,20 @@ content-type: application/json
       }
 ]
 
+### Get policy list For Role
+
+GET http://localhost:443/v1/api/policy/list HTTP/1.1
+content-type: application/json
+
+### Create Role
+
+POST http://localhost:443/v1/api/role/create HTTP/1.1
+content-type: application/json
+
+{
+  "name": "NewRole", 
+  "description": "Role Description",
+  "policies": [1,2,3,4], 
+  "userId": "u1112428",
+  "status": "1"
+}
