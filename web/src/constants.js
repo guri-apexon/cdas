@@ -19,6 +19,10 @@ export const POLICY_LIST = "POLICY_LIST";
 export const POLICY_LIST_SUCCESS = "POLICY_LIST_SUCCESS";
 export const POLICY_LIST_FAILURE = "POLICY_LIST_FAILURE";
 
+export const ROLE_LIST_FETCH = "ROLE_LIST_FETCH";
+export const ROLE_LIST_FAILURE = "ROLE_LIST_FAILURE";
+export const ROLE_LIST_SUCCESS = "ROLE_LIST_SUCCESS";
+
 export const STUDY_NOTONBOARDED_STATUS = "STUDY_NOTONBOARDED_STATUS";
 export const STUDY_NOTONBOARDED_SUCCESS = "STUDY_NOTONBOARDED_SUCCESS";
 export const STUDY_NOTONBOARDED_FAILURE = "STUDY_NOTONBOARDED_FAILURE";
@@ -28,6 +32,7 @@ export const STUDYBOARD_DATA_FETCH = "v1/api/study/list";
 export const STUDYSEARCH = "v1/api/study/search-study";
 export const NOT_ONBOARDED_FETCH = "v1/api/study/notonboarded-studies-stat";
 export const POLICY_LIST_FETCH = "v1/api/policy/list";
+export const ROLE_FETCH = "v1/api/role/";
 
 export const baseURL =
   process.env.REACT_APP_API_URL ||

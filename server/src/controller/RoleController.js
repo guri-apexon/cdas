@@ -14,7 +14,10 @@ exports.createRole = function (req, res) {
 
 exports.listRoles = async function (req, res) {
   try {
-    let q = `SELECT r.role_id,r.role_nm ,r.role_desc,p2.prod_nm 
+    Logger.info({
+      message: "listRoles",
+    });
+    let q = `SELECT r.role_id,r.role_nm ,r.role_desc,r.role_stat,p2.prod_nm 
     FROM cdascfg."role" r 
     INNER JOIN cdascfg.role_policy rp 
     ON r.role_id = rp.role_id
@@ -37,16 +40,19 @@ exports.listRoles = async function (req, res) {
           }
         }
         delete each.prod_nm;
+        each.role_stat = each.role_stat === "1" ? "active" : "Inactive";
         each.products = products ? products : [];
       }
     }
+    console.log(tempRows);
     return apiResponse.successResponseWithData(
       res,
       "Operation success",
       tempRows ? tempRows : []
     );
   } catch (error) {
-    console.log(error);
+    Logger.error("catch :listRoles");
+    Logger.error(error.message);
     return apiResponse.ErrorResponse(res, error.message);
   }
 };
