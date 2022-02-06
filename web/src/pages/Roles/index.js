@@ -1,6 +1,6 @@
 import { Typography } from "@material-ui/core";
 import React, { useMemo, useState, useEffect } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import Paper from "apollo-react/components/Paper";
 import { useHistory } from "react-router-dom";
 import Table, {
@@ -22,6 +22,7 @@ import {
   createStringArrayIncludedFilter,
 } from "../../utils/index";
 import "./index.scss";
+import { fetchRoles } from "../../store/actions/RolesActions";
 
 const ProductsCell = ({ row, column: { accessor } }) => {
   const rowValue = row[accessor];
@@ -36,44 +37,24 @@ const Role = () => {
   const [products, setProducts] = useState([]);
   const [tableRows, setTableRows] = useState([]);
   const [roleLists, setroleLists] = useState([]);
+  const Roles = useSelector((state) => state.Roles);
   const [open, setOpen] = useState(false);
   const [curRow, setCurRow] = useState({});
   const dispatch = useDispatch();
 
+  const fetchData = () => {
+    dispatch(fetchRoles());
+  };
+
   useEffect(() => {
-    const Roles = [
-      {
-        roleID: 1,
-        roleName: "Data Strategist",
-        roleDescription: "abc",
-        productsIncluded: "admin, mapping",
-        roleStatus: "active",
-      },
-      {
-        roleID: 2,
-        roleName: "Sponsor",
-        roleDescription: "xyz",
-        productsIncluded: "ingestion, mapping",
-        roleStatus: "Inactive",
-      },
-      {
-        roleID: 3,
-        roleName: "Data Reviewer",
-        roleDescription: "lmn",
-        productsIncluded: "ingestion, review",
-        roleStatus: "active",
-      },
-      {
-        roleID: 4,
-        roleName: "Data Monitor",
-        roleDescription: "pqr",
-        productsIncluded: "admin, review",
-        roleStatus: "Inactive",
-      },
-    ];
-    setTableRows(Roles);
-    setLoading(false);
+    fetchData();
   }, []);
+
+  useEffect(() => {
+    const { roles } = Roles;
+    setTableRows(roles);
+    setLoading(false);
+  }, [Roles]);
 
   const goToRole = (e, id) => {
     e.preventDefault();
@@ -91,26 +72,24 @@ const Role = () => {
 
   const handleInActivate = (e, id) => {
     e.preventDefault();
-    const selectedData = tableRows.filter((d) => d.roleID === id);
-    const unSelectedData = tableRows.filter((d) => d.roleID !== id);
+    const selectedData = tableRows.filter((d) => d.role_id === id);
+    const unSelectedData = tableRows.filter((d) => d.role_id !== id);
     selectedData[0].roleStatus = "Inactive";
     setTableRows([...unSelectedData, ...selectedData]);
-    // console.log("tableRows", tableRows, products, id);
   };
 
   const handleActivate = (e, id) => {
     e.preventDefault();
-    const selectedData = tableRows.filter((d) => d.roleID === id);
-    const unSelectedData = tableRows.filter((d) => d.roleID !== id);
+    const selectedData = tableRows.filter((d) => d.role_id === id);
+    const unSelectedData = tableRows.filter((d) => d.role_id !== id);
     selectedData[0].roleStatus = "Active";
     setTableRows([...unSelectedData, ...selectedData]);
-    // console.log("tableRows", tableRows, products, id);
   };
 
   const StatusCell = ({ row, column: { accessor } }) => {
     const data = row[accessor];
-    const id = row.roleID;
-    if (data === "Active") {
+    const id = row.role_id;
+    if (data === "active") {
       return (
         <Tooltip title="Active" disableFocusListener>
           <Switch
@@ -132,40 +111,40 @@ const Role = () => {
     );
   };
 
-  //   const LinkCell = ({ row, column: { accessor } }) => {
-  //     const rowValue = row[accessor];
-  //     const id = row.roleID;
-  //     if (rowValue.length > 30) {
-  //       return (
-  //         <Link
-  //           onMouseOver={() => handleMouseOver(row)}
-  //           onMouseOut={handleMouseOut}
-  //           onClick={(e) => goToRole(e, id)}
-  //         >
-  //           {`${rowValue.slice(0, 30)}  [...]`}
-  //         </Link>
-  //       );
-  //     }
-  //     return <Link onClick={(e) => goToRole(e, id)}>{rowValue}</Link>;
-  //   };
-
-  //   const DespCell = ({ row, column: { accessor } }) => {
-  //     const data = row[accessor];
-  //     if (data.length < 80) {
-  //       return <>{data}</>;
-  //     }
+  // const LinkCell = ({ row, column: { accessor } }) => {
+  //   const rowValue = row[accessor];
+  //   const id = row.role_id;
+  //   if (rowValue.length > 30) {
   //     return (
-  //       <>
-  //         {data.slice(0, 50)}
-  //         <Link
-  //           onMouseOver={() => handleMouseOver(row)}
-  //           onMouseOut={handleMouseOut}
-  //         >
-  //           {`  [...]`}
-  //         </Link>
-  //       </>
+  //       <Link
+  //         onMouseOver={() => handleMouseOver(row)}
+  //         onMouseOut={handleMouseOut}
+  //         onClick={(e) => goToRole(e, id)}
+  //       >
+  //         {`${rowValue.slice(0, 30)}  [...]`}
+  //       </Link>
   //     );
-  //   };
+  //   }
+  //   return <Link onClick={(e) => goToRole(e, id)}>{rowValue}</Link>;
+  // };
+
+  // const DespCell = ({ row, column: { accessor } }) => {
+  //   const data = row[accessor];
+  //   if (data.length < 80) {
+  //     return <>{data}</>;
+  //   }
+  //   return (
+  //     <>
+  //       {data.slice(0, 50)}
+  //       <Link
+  //         onMouseOver={() => handleMouseOver(row)}
+  //         onMouseOut={handleMouseOut}
+  //       >
+  //         {`  [...]`}
+  //       </Link>
+  //     </>
+  //   );
+  // };
 
   const CustomButtonHeader = ({ toggleFilters }) => (
     <div>
@@ -192,33 +171,33 @@ const Role = () => {
   const columns = [
     {
       header: "",
-      accessor: "roleID",
+      accessor: "role_id",
       hidden: true,
     },
     {
       header: "Role Name",
-      accessor: "roleName",
+      accessor: "role_nm",
       //   customCell: LinkCell,
       sortFunction: compareStrings,
-      filterFunction: createStringSearchFilter("roleName"),
+      filterFunction: createStringSearchFilter("role_nm"),
       filterComponent: TextFieldFilter,
       width: "20%",
     },
     {
       header: "Role Description",
-      accessor: "roleDescription",
+      accessor: "role_desc",
       sortFunction: compareStrings,
-      filterFunction: createStringSearchFilter("roleDescription"),
+      filterFunction: createStringSearchFilter("role_desc"),
       filterComponent: TextFieldFilter,
       //   customCell: DespCell,
       width: "40%",
     },
     {
       header: "Products Included",
-      accessor: "productsIncluded",
-      customCell: ProductsCell,
+      accessor: "products",
+      // customCell: ProductsCell,
       sortFunction: compareStrings,
-      filterFunction: createStringArrayIncludedFilter("productsIncluded"),
+      filterFunction: createStringArrayIncludedFilter("products"),
       filterComponent: createSelectFilterComponent(products, {
         size: "small",
         multiple: true,
@@ -227,10 +206,10 @@ const Role = () => {
     },
     {
       header: "Status",
-      accessor: "roleStatus",
+      accessor: "role_stat",
       customCell: StatusCell,
-      sortFunction: compareStrings,
-      filterFunction: createStringArraySearchFilter("roleStatus"),
+      // sortFunction: compareStrings,
+      filterFunction: createStringArraySearchFilter("role_stat"),
       filterComponent: createSelectFilterComponent(statusList, {
         size: "small",
         multiple: true,
@@ -249,28 +228,32 @@ const Role = () => {
     );
   };
 
-  const getTableData = useMemo(
+  const renderTable = useMemo(
     () => (
       <>
-        <Table
-          isLoading={loading}
-          title="Roles"
-          columns={columns}
-          rows={tableRows}
-          rowId="roleID"
-          hasScroll={true}
-          maxHeight="calc(100vh - 162px)"
-          initialSortedColumn="roleName"
-          initialSortOrder="asc"
-          rowsPerPageOptions={[10, 50, 100, "All"]}
-          tablePaginationProps={{
-            labelDisplayedRows: ({ from, to, count }) =>
-              `${count === 1 ? "Item " : "Items"} ${from}-${to} of ${count}`,
-            truncate: true,
-          }}
-          showFilterIcon
-          CustomHeader={(props) => <CustomButtonHeader {...props} />}
-        />
+        {loading ? (
+          <Progress />
+        ) : (
+          <Table
+            isLoading={loading}
+            title="Roles"
+            columns={columns}
+            rows={tableRows}
+            rowId="role_id"
+            hasScroll={true}
+            maxHeight="calc(100vh - 162px)"
+            // initialSortedColumn="role_nm"
+            initialSortOrder="asc"
+            rowsPerPageOptions={[10, 50, 100, "All"]}
+            tablePaginationProps={{
+              labelDisplayedRows: ({ from, to, count }) =>
+                `${count === 1 ? "Item " : "Items"} ${from}-${to} of ${count}`,
+              truncate: true,
+            }}
+            showFilterIcon
+            CustomHeader={(props) => <CustomButtonHeader {...props} />}
+          />
+        )}
       </>
     ),
     [tableRows, loading]
@@ -279,7 +262,9 @@ const Role = () => {
   return (
     <div>
       <Header />
-      <div className="roles-table">{getTableData}</div>
+      <div className="roles-table">
+        {tableRows.length > 0 ? renderTable : null}
+      </div>
     </div>
   );
 };
