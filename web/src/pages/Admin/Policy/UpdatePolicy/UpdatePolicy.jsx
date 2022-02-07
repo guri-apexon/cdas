@@ -310,6 +310,8 @@ const UpdatePolicy = () => {
               products.map((product, i) => {
                 return (
                   <Tab
+                    key={product.prod_id}
+                    disabled={product.active_product === 0}
                     label={
                       // eslint-disable-next-line react/jsx-wrap-multilines
                       <Badge
@@ -326,7 +328,7 @@ const UpdatePolicy = () => {
           <div className="product-content">
             {products &&
               products.map((product, i) => {
-                if (currentTab !== i) {
+                if (currentTab !== i || product.active_product === 0) {
                   return false;
                 }
                 return (

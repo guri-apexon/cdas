@@ -23,6 +23,10 @@ export const VENDOR_LIST = "VENDOR_LIST";
 export const VENDOR_LIST_SUCCESS = "VENDOR_LIST_SUCCESS";
 export const VENDOR_LIST_FAILURE = "VENDOR_LIST_FAILURE";
 
+export const ROLE_LIST_FETCH = "ROLE_LIST_FETCH";
+export const ROLE_LIST_FAILURE = "ROLE_LIST_FAILURE";
+export const ROLE_LIST_SUCCESS = "ROLE_LIST_SUCCESS";
+
 export const STUDY_NOTONBOARDED_STATUS = "STUDY_NOTONBOARDED_STATUS";
 export const STUDY_NOTONBOARDED_SUCCESS = "STUDY_NOTONBOARDED_SUCCESS";
 export const STUDY_NOTONBOARDED_FAILURE = "STUDY_NOTONBOARDED_FAILURE";
@@ -36,6 +40,7 @@ export const VENDOR_BASE = "v1/api/vendor";
 // export const VENDOR_LIST_FETCH = `${VENDOR_BASE}/list`;
 // export const ADD_VENDOR = `${VENDOR_BASE}/create`;
 // export const UPDATE_VENDOR = `${VENDOR_BASE}/update`;
+export const ROLE_FETCH = "v1/api/role/";
 
 export const baseURL =
   process.env.REACT_APP_API_URL ||

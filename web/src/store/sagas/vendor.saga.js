@@ -8,7 +8,7 @@ import {
 } from "../../constants";
 
 // eslint-disable-next-line import/prefer-default-export
-export function* fetchVendorListData() {
+export function* fetchVendorList() {
   try {
     const fetchData = yield call(
       axios.post,
