@@ -96,30 +96,36 @@ const VendorList = () => {
 
   const goToVendor = (e, id) => {
     e.preventDefault();
-    history.push(`/vendor-management/${id}`);
+    history.push(`/vendor/edit/${id}`);
   };
 
-  const handleInActivate = (e, id) => {
+  const handleInActivate = async (e, id) => {
     e.preventDefault();
-    const selectedData = tableRows.filter((d) => d.vendorId === id);
-    const unSelectedData = tableRows.filter((d) => d.vendorId !== id);
-    selectedData[0].vendorStatus = "Inactive";
-    setTableRows([...unSelectedData, ...selectedData]);
+    const update = await statusUpdate(id, 0);
+    if (update) {
+      const selectedData = tableRows.filter((d) => d.vId === id);
+      const unSelectedData = tableRows.filter((d) => d.vId !== id);
+      selectedData[0].vStatus = "Inactive";
+      setTableRows([...unSelectedData, ...selectedData]);
+    }
     // console.log("tableRows", tableRows, products, id);
   };
 
-  const handleActivate = (e, id) => {
+  const handleActivate = async (e, id) => {
     e.preventDefault();
-    const selectedData = tableRows.filter((d) => d.vendorId === id);
-    const unSelectedData = tableRows.filter((d) => d.vendorId !== id);
-    selectedData[0].vendorStatus = "Active";
-    setTableRows([...unSelectedData, ...selectedData]);
+    const update = await statusUpdate(id, 1);
+    if (update) {
+      const selectedData = tableRows.filter((d) => d.vId === id);
+      const unSelectedData = tableRows.filter((d) => d.vId !== id);
+      selectedData[0].vStatus = "Active";
+      setTableRows([...unSelectedData, ...selectedData]);
+    }
     // console.log("tableRows", tableRows, products, id);
   };
 
   const StatusCell = ({ row, column: { accessor } }) => {
     const data = row[accessor];
-    const id = row.vendorId;
+    const id = row.vId;
     if (data === "Active") {
       return (
         <Tooltip title="Active" disableFocusListener>
@@ -153,7 +159,7 @@ const VendorList = () => {
 
   const LinkCell = ({ row, column: { accessor } }) => {
     const rowValue = row[accessor];
-    const id = row.vendorId;
+    const id = row.vId;
     if (rowValue.length > 30) {
       return (
         <Link
@@ -211,7 +217,7 @@ const VendorList = () => {
   const columns = [
     {
       header: "",
-      accessor: "vendorId",
+      accessor: "vId",
       hidden: true,
     },
     {
@@ -258,7 +264,7 @@ const VendorList = () => {
       accessor: "vStatus",
       customCell: StatusCell,
       sortFunction: compareStrings,
-      filterFunction: createStringArraySearchFilter("vendorStatus"),
+      filterFunction: createStringArraySearchFilter("vStatus"),
       filterComponent: createSelectFilterComponent(statusList, {
         size: "small",
         multiple: true,
@@ -323,7 +329,7 @@ const VendorList = () => {
   //             title="Policies"
   //             columns={columns}
   //             rows={tableRows}
-  //             rowId="vendorId"
+  //             rowId="vId"
   //             hasScroll={true}
   //             maxHeight="calc(100vh - 162px)"
   //             initialSortedColumn="vendorName"
@@ -376,7 +382,7 @@ const VendorList = () => {
               title="Policies"
               columns={columns}
               rows={tableRows}
-              rowId="vendorId"
+              rowId="vId"
               hasScroll={true}
               maxHeight="calc(100vh - 162px)"
               initialSortedColumn="vName"

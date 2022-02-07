@@ -1,5 +1,8 @@
 import axios from "axios";
 import { baseURL, STUDYSEARCH, VENDOR_BASE } from "../constants";
+import { getCookie } from "../utils";
+
+const userId = getCookie("user.id");
 
 export const searchStudy = async (searchQuery = "") => {
   try {
@@ -78,11 +81,15 @@ export const updateVendorService = async (reqBody) => {
   }
 };
 
-export const statusUpdate = async (reqBody) => {
+export const statusUpdate = async (vId, vStatus) => {
   try {
     return new Promise((resolve, reject) => {
       axios
-        .post(`${baseURL}/${VENDOR_BASE}/statusUpdate`)
+        .post(`${baseURL}/${VENDOR_BASE}/statusUpdate`, {
+          vId,
+          vStatus,
+          userId,
+        })
         .then((res) => {
           resolve(res.data);
         })
