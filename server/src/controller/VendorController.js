@@ -1,28 +1,34 @@
 const DB = require("../config/db");
 const apiResponse = require("../helpers/apiResponse");
 const Logger = require("../config/logger");
+const _ = require("lodash");
 const constants = require("../config/constants");
 
 const { DB_SCHEMA_NAME: schemaName } = constants;
 
-exports.getVendorsList = function (req, res) {
+exports.getVendorsList = async (req, res) => {
   try {
     Logger.info({
       message: "vendorList",
     });
 
-    let query = `SELECT v.vend_id as "vId", vend_nm as "vName", vend_nm_stnd as "vNStd",  description as "vDescription", active as "vStatus", extrnl_sys_nm as "vESN", vc.contact_nm as "vContactName" FROM ${schemaName}.vendor v
-    inner join ${schemaName}.vendor_contact vc on v.vend_id = vc.vend_id WHERE vc.act_flg=1`;
-    let dbQuery = DB.executeQuery(query);
+    let query = `SELECT v.vend_id as "vId", vend_nm as "vName", vend_nm_stnd as "vNStd",  description as "vDescription", active as "status", extrnl_sys_nm as "vESN", vc.contact_nm as "contactName" FROM ${schemaName}.vendor v
+    left join ${schemaName}.vendor_contact vc on v.vend_id = vc.vend_id`;
 
-    dbQuery.then((response) => {
-      const vendors = response.rows || [];
-      return apiResponse.successResponseWithData(
-        res,
-        "Operation success",
-        vendors
-      );
+    let dbQuery = await DB.executeQuery(query);
+
+    const vendors = await dbQuery.rows.map((e) => {
+      e.vStatus = e.status === 1 ? "Active" : "Inactive";
+      e.vContactName = e.contactName ?? "";
+      let newData = _.omit(e, ["status", "contactName"]);
+      return newData;
     });
+
+    return apiResponse.successResponseWithData(
+      res,
+      "Operation success",
+      vendors
+    );
   } catch (err) {
     //throw error in json response with status 500.
     Logger.error("catch :vendorList");
@@ -55,6 +61,34 @@ exports.getVendorById = function (req, res) {
     //throw error in json response with status 500.
     console.log(err);
     Logger.error("catch :getVendorById");
+    Logger.error(err);
+
+    return apiResponse.ErrorResponse(res, err);
+  }
+};
+
+exports.activeStatusUpdate = function (req, res) {
+  try {
+    const { vId, vStatus, userId } = req.body;
+    const curDate = new Date();
+    Logger.info({
+      message: "activeStatusUpdate",
+    });
+
+    const query = `UPDATE ${schemaName}.vendor SET active=$1, updt_tm=$2, updated_by=$3 WHERE vend_id=$4`;
+
+    DB.executeQuery(query, [vStatus, curDate, userId, vId]).then((response) => {
+      const vendorDetail = response.row || null;
+      return apiResponse.successResponseWithData(
+        res,
+        "Operation success",
+        vendorDetail
+      );
+    });
+  } catch (err) {
+    //throw error in json response with status 500.
+    console.log(err);
+    Logger.error("catch :activeStatusUpdate");
     Logger.error(err);
 
     return apiResponse.ErrorResponse(res, err);

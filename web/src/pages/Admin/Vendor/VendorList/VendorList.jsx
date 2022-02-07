@@ -19,6 +19,7 @@ import Progress from "../../../../components/Progress";
 
 // import { MessageContext } from "../../../components/MessageProvider";
 
+import { statusUpdate } from "../../../../services/ApiServices";
 import { getVendorList } from "../../../../store/actions/VendorAdminAction";
 
 import {
@@ -42,38 +43,38 @@ const VendorList = () => {
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState([]);
   const [tableRows, setTableRows] = useState([]);
-  const [policyLists, setVendorLists] = useState([]);
+  const [vendorLists, setVendorLists] = useState([]);
   // const [rowsPerPageRecord, setRowPerPageRecord] = useState(10);
   // const [pageNo, setPageNo] = useState(0);
-  // const [sortedColumnValue, setSortedColumnValue] = useState("policyName");
+  // const [sortedColumnValue, setSortedColumnValue] = useState("vendorName");
   // const [sortOrderValue, setSortOrderValue] = useState("asc");
   // const [inlineFilters, setInlineFilters] = useState([]);
   const [open, setOpen] = useState(false);
   const [curRow, setCurRow] = useState({});
   const dispatch = useDispatch();
-  const policyAdmin = useSelector((state) => state.policyAdmin);
+  const vendorAdmin = useSelector((state) => state.vendorAdmin);
 
   const getData = () => {
     dispatch(getVendorList());
   };
 
   const createUniqueData = (arrayList) => {
-    const uniquePolicies = Array.from(
+    const uniqueList = Array.from(
       arrayList
-        .reduce((acc, { productName, policyId, ...r }) => {
-          const current = acc.get(policyId) || {
+        .reduce((acc, { vContactName, vId, ...r }) => {
+          const current = acc.get(vId) || {
             ...r,
-            policyId,
-            productsIncluded: "",
+            vId,
+            contactsJoined: "",
           };
-          return acc.set(policyId, {
+          return acc.set(vId, {
             ...current,
-            productsIncluded: `${current.productsIncluded} ${productName},`,
+            contactsJoined: `${current.contactsJoined} ${vContactName},`,
           });
         }, new Map())
         .values()
     );
-    return uniquePolicies;
+    return uniqueList;
   };
 
   useEffect(() => {
@@ -81,45 +82,44 @@ const VendorList = () => {
   }, []);
 
   useEffect(() => {
-    const { policyList, uniqueProducts } = policyAdmin;
-    setVendorLists(policyList);
-    setProducts(uniqueProducts);
+    const { vendorList } = vendorAdmin;
+    setVendorLists(vendorList);
     setLoading(false);
-  }, [policyAdmin.loading]);
+  }, [vendorAdmin.loading]);
 
   useEffect(() => {
-    const uniquePolicies = createUniqueData(policyLists);
-    setTableRows(uniquePolicies);
-  }, [policyLists]);
+    const uniqueList = createUniqueData(vendorLists);
+    setTableRows(uniqueList);
+  }, [vendorLists]);
 
   // const messageContext = useContext(MessageContext);
 
   const goToVendor = (e, id) => {
     e.preventDefault();
-    history.push(`/policy-management/${id}`);
+    history.push(`/vendor-management/${id}`);
   };
 
   const handleInActivate = (e, id) => {
     e.preventDefault();
-    const selectedData = tableRows.filter((d) => d.policyId === id);
-    const unSelectedData = tableRows.filter((d) => d.policyId !== id);
-    selectedData[0].policyStatus = "Inactive";
+    const selectedData = tableRows.filter((d) => d.vendorId === id);
+    const unSelectedData = tableRows.filter((d) => d.vendorId !== id);
+    selectedData[0].vendorStatus = "Inactive";
     setTableRows([...unSelectedData, ...selectedData]);
     // console.log("tableRows", tableRows, products, id);
   };
 
   const handleActivate = (e, id) => {
     e.preventDefault();
-    const selectedData = tableRows.filter((d) => d.policyId === id);
-    const unSelectedData = tableRows.filter((d) => d.policyId !== id);
-    selectedData[0].policyStatus = "Active";
+    const selectedData = tableRows.filter((d) => d.vendorId === id);
+    const unSelectedData = tableRows.filter((d) => d.vendorId !== id);
+    selectedData[0].vendorStatus = "Active";
     setTableRows([...unSelectedData, ...selectedData]);
     // console.log("tableRows", tableRows, products, id);
   };
 
   const StatusCell = ({ row, column: { accessor } }) => {
     const data = row[accessor];
-    const id = row.policyId;
+    const id = row.vendorId;
     if (data === "Active") {
       return (
         <Tooltip title="Active" disableFocusListener>
@@ -153,7 +153,7 @@ const VendorList = () => {
 
   const LinkCell = ({ row, column: { accessor } }) => {
     const rowValue = row[accessor];
-    const id = row.policyId;
+    const id = row.vendorId;
     if (rowValue.length > 30) {
       return (
         <Link
@@ -211,7 +211,7 @@ const VendorList = () => {
   const columns = [
     {
       header: "",
-      accessor: "policyId",
+      accessor: "vendorId",
       hidden: true,
     },
     {
@@ -236,12 +236,9 @@ const VendorList = () => {
       header: "Contact Names",
       accessor: "contactsJoined",
       customCell: ProductsCell,
-      // sortFunction: compareStrings,
-      // filterFunction: createStringArrayIncludedFilter("contactsJoined"),
-      // filterComponent: createSelectFilterComponent(contacts, {
-      //   size: "small",
-      //   multiple: true,
-      // }),
+      sortFunction: compareStrings,
+      filterFunction: createStringSearchFilter("contactsJoined"),
+      filterComponent: TextFieldFilter,
       width: "30%",
     },
     {
@@ -261,7 +258,7 @@ const VendorList = () => {
       accessor: "vStatus",
       customCell: StatusCell,
       sortFunction: compareStrings,
-      filterFunction: createStringArraySearchFilter("policyStatus"),
+      filterFunction: createStringArraySearchFilter("vendorStatus"),
       filterComponent: createSelectFilterComponent(statusList, {
         size: "small",
         multiple: true,
@@ -308,7 +305,7 @@ const VendorList = () => {
   // };
 
   // useEffect(() => {
-  //   const rows = applyFilter(newColumns, policyLists, inlineFilters);
+  //   const rows = applyFilter(newColumns, vendorLists, inlineFilters);
   //   const uniqueRows = createUniqueData(rows);
   //   console.log("filtered", rows, uniqueRows);
   //   setTableRows([...uniqueRows]);
@@ -326,10 +323,10 @@ const VendorList = () => {
   //             title="Policies"
   //             columns={columns}
   //             rows={tableRows}
-  //             rowId="policyId"
+  //             rowId="vendorId"
   //             hasScroll={true}
   //             maxHeight="calc(100vh - 162px)"
-  //             initialSortedColumn="policyName"
+  //             initialSortedColumn="vendorName"
   //             initialSortOrder="asc"
   //             // sortedColumn={sortedColumnValue}
   //             // sortOrder={sortOrderValue}
@@ -362,13 +359,13 @@ const VendorList = () => {
   // );
 
   return (
-    <div className="policy-list-wrapper">
+    <div className="vendor-list-wrapper">
       <div className="page-header">
         <Typography variant="h2" gutterBottom>
           Vendor Admin
         </Typography>
       </div>
-      <div className="policy-table">
+      <div className="vendor-table">
         <div className="table">
           {/* {getTableData} */}
           {loading ? (
@@ -379,7 +376,7 @@ const VendorList = () => {
               title="Policies"
               columns={columns}
               rows={tableRows}
-              rowId="policyId"
+              rowId="vendorId"
               hasScroll={true}
               maxHeight="calc(100vh - 162px)"
               initialSortedColumn="vName"
@@ -421,10 +418,10 @@ const VendorList = () => {
                 gutterBottom
                 style={{ fontWeight: 600 }}
               >
-                {curRow.policyName}
+                {curRow.vendorName}
               </Typography>
               <Typography variant="body2">
-                {curRow.policyDescription}
+                {curRow.vendorDescription}
               </Typography>
             </div>
           }

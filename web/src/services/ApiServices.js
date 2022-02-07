@@ -78,13 +78,13 @@ export const updateVendorService = async (reqBody) => {
   }
 };
 
-export const getVendorsList = async () => {
+export const statusUpdate = async (reqBody) => {
   try {
     return new Promise((resolve, reject) => {
       axios
-        .get(`${baseURL}/${VENDOR_BASE}/list`)
+        .post(`${baseURL}/${VENDOR_BASE}/statusUpdate`)
         .then((res) => {
-          resolve(res.data.data);
+          resolve(res.data);
         })
         .catch((err) => {
           console.log("Err", err);

@@ -54,6 +54,38 @@ content-type: application/json
 # ]
 
 
+
+POST http://localhost:443/v1/api/vendor/statusUpdate HTTP/1.1
+content-type: application/json
+
+{
+  "vId": 1, 
+  "vStatus": 0, 
+  "userId" : "u1105372"
+}
+
+###Response
+# [
+#     {
+#       "vId": "1",
+#       "vName": "Invicro",
+#       "vNStd": "Invicro",
+#       "vDescription": "InvicroGDMPM-DAS Vendor",
+#       "vStatus": 1,
+#       "vESN": "GDMPM-DAS",
+#       "vContactName": "bob"
+#     },
+#     {
+#       "vId": "1",
+#       "vName": "Invicro",
+#       "vNStd": "Invicro",
+#       "vDescription": "InvicroGDMPM-DAS Vendor",
+#       "vStatus": 1,
+#       "vESN": "GDMPM-DAS",
+#       "vContactName": "max"
+#     },
+# ]
+
 # POST http://localhost:443/v1/api/vendor/vesn/list HTTP/1.1
 # content-type: application/json
 
