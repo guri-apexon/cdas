@@ -61,31 +61,68 @@ exports.getVendorById = function (req, res) {
   }
 };
 
+exports.getESNList = async (req, res) => {
+  // extrnl_sys_nm
+  try {
+    Logger.info({
+      message: "getESNList",
+    });
+
+    let query = `SELECT DISTINCT v.extrnl_sys_nm as "vESN" FROM ${schemaName}.vendor v`;
+    let dbQuery = DB.executeQuery(query);
+
+    dbQuery.then((response) => {
+      const vESN = response.rows.map((e) => {
+        return { label: e.vESN, value: e.vESN };
+      }) || [{ lable: "", value: "" }];
+      return apiResponse.successResponseWithData(
+        res,
+        "Operation success",
+        vESN
+      );
+    });
+  } catch (err) {
+    //throw error in json response with status 500.
+    Logger.error("catch :getESNList");
+    Logger.error(err);
+
+    return apiResponse.ErrorResponse(res, err);
+  }
+};
+
 exports.createVendor = async (req, res) => {
   try {
-    const {
-      vId,
-      vName,
-      vNStd,
-      vDescription,
-      vStatus,
-      vESN,
-      vContacts,
-      userId,
-    } = req.body;
+    const { vName, vNStd, vDescription, vStatus, vESN, vContacts, userId } =
+      req.body;
 
     Logger.info({
       message: "createVendor",
     });
 
     const curDate = new Date();
+
+    const vId = 1112;
+    // const vCId = "";
+    // console.log(
+    //   "data",
+    //   curDate,
+    //   vId,
+    //   vName,
+    //   vNStd,
+    //   vDescription,
+    //   vStatus,
+    //   vESN,
+    //   userId,
+    //   userName
+    // );
+
     const insertQuery = `INSERT INTO ${schemaName}.vendor
     (vend_id, vend_nm, vend_nm_stnd, description, active, extrnl_sys_nm, insrt_tm, updt_tm, created_by, updated_by)
     VALUES($2, $3, $4, $5, $6, $7, $1, $1, $8, $8)`;
 
     const contactQuery = `INSERT INTO ${schemaName}.vendor_contact
-    (vend_contact_id, vend_id, contact_nm, emailid, created_by, created_on, updated_by, updated_on)
-    VALUES($1, $2, $3, $4, $5, $6, $5, $6)`;
+    (vend_id, contact_nm, emailid, created_by, created_on, updated_by, updated_on, act_flg)
+    VALUES($1, $2, $3, $4, $5, $4, $5, 1)`;
 
     const inset = await DB.executeQuery(insertQuery, [
       curDate,
@@ -98,18 +135,21 @@ exports.createVendor = async (req, res) => {
       userId,
     ]);
 
-    vContacts.map((e) => {
+    const contactInset = await vContacts.map((e) => {
       DB.executeQuery(contactQuery, [
-        vCId,
         vId,
         e.contactName,
         e.emailId,
-        userId,
+        userName,
         curDate,
       ]);
     });
 
-    return apiResponse.successResponseWithData(res, "Operation success", inset);
+    return apiResponse.successResponseWithData(
+      res,
+      "Operation success",
+      contactInset
+    );
   } catch (err) {
     //throw error in json response with status 500.
     Logger.error("catch :createVendor");
@@ -130,16 +170,17 @@ exports.updateVendor = async (req, res) => {
       vESN,
       vContacts,
       userId,
+      userName,
     } = req.body;
 
     Logger.info({
-      message: "createVendor",
+      message: "updateVendor",
     });
 
     const curDate = new Date();
     const updateQuery = `UPDATE ${schemaName}.vendor SET vend_nm=$1, vend_nm_stnd=$2, description=$3, active=$4, extrnl_sys_nm=$5, updt_tm=$6, updated_by=$7 WHERE vend_id=$8`;
 
-    const contactQuery = `UPDATE ${schemaName}.vendor_contact SET contact_nm=$2, emailid=$3, updated_by=$4, updated_on=$5 WHERE vend_contact_id=$1`;
+    const contactQuery = `UPDATE ${schemaName}.vendor_contact SET contact_nm=$2, emailid=$3, updated_by=$4, updated_on=$5, act_flg=$6 WHERE vend_contact_id=$1`;
 
     const update = await DB.executeQuery(updateQuery, [
       vName,
@@ -152,20 +193,25 @@ exports.updateVendor = async (req, res) => {
       vId,
     ]);
 
-    vContacts.map((e) => {
+    const contactUp = await vContacts.map((e) => {
       DB.executeQuery(contactQuery, [
-        vCId,
+        e.vCId,
         e.contactName,
         e.emailId,
-        userId,
+        userName,
         curDate,
+        e.status,
       ]);
     });
 
-    return apiResponse.successResponseWithData(res, "Operation success", inset);
+    return apiResponse.successResponseWithData(
+      res,
+      "Operation success",
+      contactUp
+    );
   } catch (err) {
     //throw error in json response with status 500.
-    Logger.error("catch :createVendor");
+    Logger.error("catch :updateVendor");
     Logger.error(err);
 
     return apiResponse.ErrorResponse(res, err);
