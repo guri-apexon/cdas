@@ -94,8 +94,8 @@ const PolicyList = () => {
       }
       return e;
     });
-    console.log("unique", Sorted, uniquePolicies);
-    return uniquePolicies;
+    // console.log("unique", Sorted, uniquePolicies);
+    return Sorted;
   };
 
   useEffect(() => {

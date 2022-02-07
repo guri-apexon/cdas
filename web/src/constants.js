@@ -28,6 +28,10 @@ export const STUDYBOARD_DATA_FETCH = "v1/api/study/list";
 export const STUDYSEARCH = "v1/api/study/search-study";
 export const NOT_ONBOARDED_FETCH = "v1/api/study/notonboarded-studies-stat";
 export const POLICY_LIST_FETCH = "v1/api/policy/list";
+export const VENDOR_BASE = "v1/api/vendor";
+// export const VENDOR_LIST_FETCH = `${VENDOR_BASE}/list`;
+// export const ADD_VENDOR = `${VENDOR_BASE}/create`;
+// export const UPDATE_VENDOR = `${VENDOR_BASE}/update`;
 
 export const baseURL =
   process.env.REACT_APP_API_URL ||

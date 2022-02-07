@@ -1,5 +1,5 @@
 import axios from "axios";
-import { baseURL, STUDYSEARCH } from "../constants";
+import { baseURL, STUDYSEARCH, VENDOR_BASE } from "../constants";
 
 export const searchStudy = async (searchQuery = "") => {
   try {
@@ -44,6 +44,74 @@ export const updatePolicyService = async (reqBody) => {
   }
 };
 
+export const addVendorService = async (reqBody) => {
+  try {
+    return new Promise((resolve, reject) => {
+      axios
+        .post(`${baseURL}/${VENDOR_BASE}/create`, reqBody)
+        .then((res) => {
+          resolve(res.data);
+        })
+        .catch((err) => {
+          reject(err.response.data);
+        });
+    });
+  } catch (err) {
+    return console.log("Error", err);
+  }
+};
+
+export const updateVendorService = async (reqBody) => {
+  try {
+    return new Promise((resolve, reject) => {
+      axios
+        .post(`${baseURL}/${VENDOR_BASE}/update`, reqBody)
+        .then((res) => {
+          resolve(res.data);
+        })
+        .catch((err) => {
+          reject(err.response.data);
+        });
+    });
+  } catch (err) {
+    return console.log("Error", err);
+  }
+};
+
+export const getVendorsList = async () => {
+  try {
+    return new Promise((resolve, reject) => {
+      axios
+        .get(`${baseURL}/${VENDOR_BASE}/list`)
+        .then((res) => {
+          resolve(res.data.data);
+        })
+        .catch((err) => {
+          console.log("Err", err);
+        });
+    });
+  } catch (err) {
+    return console.log("Error", err);
+  }
+};
+
+export const getVendorDetails = async (vId = "") => {
+  try {
+    return new Promise((resolve, reject) => {
+      axios
+        .get(`${baseURL}/${VENDOR_BASE}/Details/${vId}`)
+        .then((res) => {
+          resolve(res.data.data);
+        })
+        .catch((err) => {
+          console.log("Err", err);
+        });
+    });
+  } catch (err) {
+    return console.log("Error", err);
+  }
+};
+
 export const getPolicyPermissions = async (policyId = "") => {
   try {
     return new Promise((resolve, reject) => {
@@ -60,6 +128,7 @@ export const getPolicyPermissions = async (policyId = "") => {
     return console.log("Error", err);
   }
 };
+
 export const fetchProducts = async () => {
   try {
     return new Promise((resolve, reject) => {
@@ -76,6 +145,7 @@ export const fetchProducts = async () => {
     return console.log("Error", err);
   }
 };
+
 export const onboardStudy = (reqBody) => {
   try {
     return new Promise((resolve, reject) => {

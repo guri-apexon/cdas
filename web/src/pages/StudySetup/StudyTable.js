@@ -132,7 +132,7 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
 
   const status = studyData.uniqueProtocolStatus;
 
-  const CustomButtonHeader = ({ toggleFilters, downloadFile }) => (
+  const CustomButtonHeader = ({ toggleFilters, rows, downloadFile }) => (
     <div>
       <Button
         size="small"
@@ -148,6 +148,7 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
         variant="secondary"
         icon={FilterIcon}
         onClick={toggleFilters}
+        disabled={rows.length <= 0}
       >
         Filter
       </Button>
@@ -333,7 +334,8 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
     if (exportRows.length <= 0) {
       e.preventDefault();
       messageContext.showErrorMessage(
-        `There is no data on the screen to download because of which an empty file has been downloaded.`
+        `There is no data on the screen to download because of which an empty file has been downloaded.`,
+        56
       );
     } else {
       messageContext.showSuccessMessage(`File downloaded successfully.`);
@@ -402,7 +404,11 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
                 },
               }}
               CustomHeader={(props) => (
-                <CustomButtonHeader downloadFile={downloadFile} {...props} />
+                <CustomButtonHeader
+                  downloadFile={downloadFile}
+                  rows={tableRows}
+                  {...props}
+                />
               )}
             />
           </>
