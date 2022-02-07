@@ -58,24 +58,24 @@ const VendorList = () => {
     dispatch(getVendorList());
   };
 
-  const createUniqueData = (arrayList) => {
-    const uniqueList = Array.from(
-      arrayList
-        .reduce((acc, { vContactName, vId, ...r }) => {
-          const current = acc.get(vId) || {
-            ...r,
-            vId,
-            contactsJoined: "",
-          };
-          return acc.set(vId, {
-            ...current,
-            contactsJoined: `${current.contactsJoined} ${vContactName},`,
-          });
-        }, new Map())
-        .values()
-    );
-    return uniqueList;
-  };
+  // const createUniqueData = (arrayList) => {
+  //   const uniqueList = Array.from(
+  //     arrayList
+  //       .reduce((acc, { vContactName, vId, ...r }) => {
+  //         const current = acc.get(vId) || {
+  //           ...r,
+  //           vId,
+  //           contactsJoined: "",
+  //         };
+  //         return acc.set(vId, {
+  //           ...current,
+  //           contactsJoined: `${current.contactsJoined} ${vContactName},`,
+  //         });
+  //       }, new Map())
+  //       .values()
+  //   );
+  //   return uniqueList;
+  // };
 
   useEffect(() => {
     getData();
@@ -83,14 +83,14 @@ const VendorList = () => {
 
   useEffect(() => {
     const { vendorList } = vendorAdmin;
-    setVendorLists(vendorList);
+    setTableRows(vendorList);
     setLoading(false);
   }, [vendorAdmin.loading]);
 
-  useEffect(() => {
-    const uniqueList = createUniqueData(vendorLists);
-    setTableRows(uniqueList);
-  }, [vendorLists]);
+  // useEffect(() => {
+  //   const uniqueList = vendorLists);
+  //   setTableRows(uniqueList);
+  // }, [vendorLists]);
 
   // const messageContext = useContext(MessageContext);
 
@@ -240,10 +240,9 @@ const VendorList = () => {
     },
     {
       header: "Contact Names",
-      accessor: "contactsJoined",
-      customCell: ProductsCell,
+      accessor: "vContactName",
       sortFunction: compareStrings,
-      filterFunction: createStringSearchFilter("contactsJoined"),
+      filterFunction: createStringSearchFilter("vContactName"),
       filterComponent: TextFieldFilter,
       width: "30%",
     },

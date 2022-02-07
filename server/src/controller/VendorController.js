@@ -12,15 +12,14 @@ exports.getVendorsList = async (req, res) => {
       message: "vendorList",
     });
 
-    let query = `SELECT v.vend_id as "vId", vend_nm as "vName", vend_nm_stnd as "vNStd",  description as "vDescription", active as "status", extrnl_sys_nm as "vESN", vc.contact_nm as "contactName" FROM ${schemaName}.vendor v
-    left join ${schemaName}.vendor_contact vc on v.vend_id = vc.vend_id`;
+    let query = `select v.vend_id as "vId", vend_nm as "vName", vend_nm_stnd as "vNStd", description as "vDescription", active as "status", extrnl_sys_nm as "vESN", vc.Ven_Contact_nm as "vContactName" from ${schemaName}.vendor v 
+    left join (select vc.vend_id , string_agg(vc.contact_nm,', ') as Ven_Contact_nm from ${schemaName}.vendor_contact vc where act_flg =1 group by vc.vend_id) vc on v.vend_id =vc.vend_id`;
 
     let dbQuery = await DB.executeQuery(query);
 
     const vendors = await dbQuery.rows.map((e) => {
       e.vStatus = e.status === 1 ? "Active" : "Inactive";
-      e.vContactName = e.contactName ?? "";
-      let newData = _.omit(e, ["status", "contactName"]);
+      let newData = _.omit(e, ["status"]);
       return newData;
     });
 
