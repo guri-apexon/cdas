@@ -1,14 +1,17 @@
+/* eslint-disable jsx-a11y/anchor-is-valid */
 /* eslint-disable react/button-has-type */
 import React, { useContext, useEffect, useState } from "react";
 import Box from "apollo-react/components/Box";
-import { useHistory } from "react-router";
+import { useHistory, useParams } from "react-router";
 import BreadcrumbsUI from "apollo-react/components/Breadcrumbs";
 import Switch from "apollo-react/components/Switch";
 import ButtonGroup from "apollo-react/components/ButtonGroup";
+import Button from "apollo-react/components/Button";
 import TextField from "apollo-react/components/TextField";
 import Select from "apollo-react/components/Select";
 import "./CreateVendor.scss";
 import Typography from "apollo-react/components/Typography";
+import Link from "apollo-react/components/Link";
 import Grid from "apollo-react/components/Grid";
 import MenuItem from "apollo-react/components/MenuItem";
 import {
@@ -37,10 +40,12 @@ const CreateVendor = () => {
   const [vDescription, setVDescription] = useState("");
   const [vESN, setVESN] = useState("");
   const [vContacts, setVContacts] = useState({});
-  const [products, setProducts] = useState([]);
+  const [contacts, setContacts] = useState([]);
   const messageContext = useContext(MessageContext);
   const userInfo = getUserInfo();
   const history = useHistory();
+  const params = useParams();
+
   const handleActive = (e, checked) => {
     setActive(checked);
   };
@@ -119,30 +124,39 @@ const CreateVendor = () => {
     <div className="create-vendor-wrapper">
       <Box className="top-content">
         <BreadcrumbsUI className="breadcrump" items={breadcrumpItems} />
-        <div className="flex top-actions">
-          <Switch
-            label="Active"
-            className="inline-checkbox"
-            checked={active}
-            onChange={handleActive}
-            size="small"
-          />
-          <ButtonGroup
-            alignItems="right"
-            buttonProps={[
-              {
-                label: "Cancel",
-                size: "small",
-                onClick: () => history.push("/vendor/list"),
-              },
-              {
-                label: "Save",
-                size: "small",
-                disabled: loading,
-                onClick: submitVendor,
-              },
-            ]}
-          />
+        <div className="flex full-cover">
+          <div>
+            <span style={{ marginBottom: 16 }}>
+              <Link onClick={() => history.push("/vendor/list")} size="small">
+                &#x276E; Back to Vendor List
+              </Link>
+            </span>
+          </div>
+          <div className="flex top-actions">
+            <Switch
+              label="Active"
+              className="inline-checkbox"
+              checked={active}
+              onChange={handleActive}
+              size="small"
+            />
+            <ButtonGroup
+              alignItems="right"
+              buttonProps={[
+                {
+                  label: "Cancel",
+                  size: "small",
+                  onClick: () => history.push("/vendor/list"),
+                },
+                {
+                  label: "Save",
+                  size: "small",
+                  disabled: loading,
+                  onClick: submitVendor,
+                },
+              ]}
+            />
+          </div>
         </div>
       </Box>
       <Grid container spacing={2}>
@@ -152,7 +166,7 @@ const CreateVendor = () => {
               <Typography variant="title1" className="b-font title">
                 New Vendor
               </Typography>
-              <br />
+              {/* <br /> */}
               <TextField
                 id="vName"
                 size="small"
@@ -189,12 +203,11 @@ const CreateVendor = () => {
             </div>
           </Box>
         </Grid>
-        <Grid item xs={9} className="products-wrapper">
+        <Grid item xs={9} className="contacts-wrapper">
           <br />
-          <div className="product-content">
+          <div className="contact-content">
             <ContactsTable
               messageContext={messageContext}
-              title="CDAS Admin"
               updateData={updateData}
               data={[]}
             />

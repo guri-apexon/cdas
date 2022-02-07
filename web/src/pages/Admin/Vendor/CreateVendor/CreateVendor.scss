@@ -11,6 +11,10 @@
       margin-top: 4px;
     }
   }
+  .full-cover {
+    justify-content: space-between;
+    margin: 8px 0px;
+  }
   .top-actions {
     justify-content: end;
     label {
@@ -21,15 +25,16 @@
     max-width: 75%;
     .title {
       font-size: 24px;
+      margin-bottom: 4px;
     }
   }
   .products-wrapper {
     margin-top: 10px;
-    .product-content {
-      margin-top: 20px;
+    .contact-content {
+      margin-top: 32px;
     }
   }
-  .permission-table-wrapper {
+  .table-wrapper {
     position: relative;
     height: 80vh;
     tfoot {

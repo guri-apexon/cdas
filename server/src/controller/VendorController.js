@@ -37,24 +37,24 @@ exports.getVendorsList = async (req, res) => {
   }
 };
 
-exports.getVendorById = function (req, res) {
+exports.getVendorById = async (req, res) => {
   try {
     const id = req.params.vendor_id;
     Logger.info({
       message: "getVendorById",
     });
 
-    const query = `SELECT v.vend_id as "vId", vend_nm as "vName", vend_nm_stnd as "vNStd",  description as "vDescription", active as "vStatus", extrnl_sys_nm as "vESN", vc.contact_nm as "vContact" FROM ${schemaName}.vendor v 
-    inner join ${schemaName}.vendor_contact vc on v.vend_id = vc.vend_id
-    where vc.act_flg=1 AND vc.vend_id = $1`;
+    console.log(id);
 
-    DB.executeQuery(query, [id]).then((response) => {
-      const vendorDetail = response.rows || null;
-      return apiResponse.successResponseWithData(
-        res,
-        "Operation success",
-        vendorDetail
-      );
+    const query = `SELECT v.vend_id as "vId", vend_nm as "vName", description as "vDescription", active as "vStatus", extrnl_sys_nm as "vESN" FROM ${schemaName}.vendor v WHERE v.vend_id = $1`;
+    const query2 = `SELECT vc.contact_nm as "vContactName", vc.emailid as "vEmailId" FROM ${schemaName}.vendor_contact vc where vc.vend_id = $1`;
+
+    const vendor = await DB.executeQuery(query, [id]);
+    const contact = await DB.executeQuery(query2, [id]);
+
+    return apiResponse.successResponseWithData(res, "Operation success", {
+      vendor: vendor.rows,
+      contacts: contact.rows,
     });
   } catch (err) {
     //throw error in json response with status 500.

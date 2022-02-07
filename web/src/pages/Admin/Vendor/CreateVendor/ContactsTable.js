@@ -14,23 +14,22 @@ const fieldStyles = {
   },
 };
 
-const checkRequired = (value) => {
-  if (!value || (typeof value === "string" && !value.trim())) {
-    return "Required";
-  }
-  return false;
-};
+// const checkRequired = (value) => {
+//   if (!value || (typeof value === "string" && !value.trim())) {
+//     return "Required";
+//   }
+//   return false;
+// };
 
 const EditableCell = ({ row, column: { accessor: key } }) => {
-  const errorText = checkRequired(row[key]);
+  // const errorText = checkRequired(row[key]);
   return row.editMode ? (
     <TextField
       size="small"
       fullWidth
       value={row[key]}
       type={key === "columnName" ? "emailId" : "text"}
-      onChange={(e) => row.editRow(row.vCId, key, e.target.value, errorText)}
-      error={!row.isInitLoad && errorText ? true : false}
+      onChange={(e) => row.editRow(row.vCId, key, e.target.value)}
       {...fieldStyles}
     />
   ) : (
@@ -54,7 +53,7 @@ const ActionCell = ({ row }) => {
   );
 };
 
-const ContactsTable = ({ title, data, messageContext }) => {
+const ContactsTable = ({ messageContext }) => {
   const initialRows = [
     {
       vCId: 1,
@@ -114,7 +113,7 @@ const ContactsTable = ({ title, data, messageContext }) => {
     },
     {
       header: "",
-      width: 100,
+      width: 50,
       customCell: ActionCell,
       align: "right",
     },
@@ -132,6 +131,7 @@ const ContactsTable = ({ title, data, messageContext }) => {
       },
     ]);
   };
+
   const onRowDelete = (vCId) => {
     setTableRows(tableRows.filter((row) => row.vCId !== vCId));
     setEditedRows(editedRows.filter((row) => row.vCId !== vCId));
@@ -160,13 +160,13 @@ const ContactsTable = ({ title, data, messageContext }) => {
 
   const editMode = true;
   return (
-    <div className="permission-table-wrapper">
+    <div className="table-wrapper">
       <div className="search-header">
         <CustomHeader addAContact={addAContact} />
       </div>
       <Table
         title="Vendor Contacts"
-        subtitle={title}
+        subtitle="CDAS Admin"
         columns={columns}
         rows={(editMode ? editedRows : tableRows).map((row) => ({
           ...row,
