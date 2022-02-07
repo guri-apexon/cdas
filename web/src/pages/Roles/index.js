@@ -261,7 +261,7 @@ const Role = () => {
   );
 
   return (
-    <div>
+    <div className="role-container-wrapper">
       <Header />
       <div className="roles-table">
         {tableRows.length > 0 ? renderTable : null}
