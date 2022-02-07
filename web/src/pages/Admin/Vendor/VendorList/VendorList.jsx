@@ -19,7 +19,7 @@ import Progress from "../../../../components/Progress";
 
 // import { MessageContext } from "../../../components/MessageProvider";
 
-import { getVendorList } from "../../../../store/actions/VendorAdminActions";
+import { getVendorList } from "../../../../store/actions/VendorAdminAction";
 
 import {
   TextFieldFilter,
@@ -35,6 +35,7 @@ const ProductsCell = ({ row, column: { accessor } }) => {
 };
 
 const statusList = ["Active", "Inactive"];
+const vESNList = ["None", "CDR", "GDMPM-DAS", "IQB", "TDSE", "Wingspan"];
 
 const VendorList = () => {
   const history = useHistory();
@@ -215,37 +216,49 @@ const VendorList = () => {
     },
     {
       header: "Vendor Name",
-      accessor: "policyName",
+      accessor: "vName",
       customCell: LinkCell,
       sortFunction: compareStrings,
-      filterFunction: createStringSearchFilter("policyName"),
+      filterFunction: createStringSearchFilter("vName"),
       filterComponent: TextFieldFilter,
       width: "20%",
     },
     {
       header: "Vendor Description",
-      accessor: "policyDescription",
+      accessor: "vDescription",
       sortFunction: compareStrings,
-      filterFunction: createStringSearchFilter("policyDescription"),
+      filterFunction: createStringSearchFilter("vDescription"),
       filterComponent: TextFieldFilter,
       customCell: DespCell,
-      width: "40%",
+      width: "25%",
     },
     {
-      header: "Products Included",
-      accessor: "productsIncluded",
+      header: "Contact Names",
+      accessor: "contactsJoined",
       customCell: ProductsCell,
-      sortFunction: compareStrings,
-      filterFunction: createStringArrayIncludedFilter("productsIncluded"),
-      filterComponent: createSelectFilterComponent(products, {
-        size: "small",
-        multiple: true,
-      }),
+      // sortFunction: compareStrings,
+      // filterFunction: createStringArrayIncludedFilter("contactsJoined"),
+      // filterComponent: createSelectFilterComponent(contacts, {
+      //   size: "small",
+      //   multiple: true,
+      // }),
       width: "30%",
     },
     {
+      header: "External System",
+      accessor: "vESN",
+      customCell: ProductsCell,
+      sortFunction: compareStrings,
+      filterFunction: createStringArrayIncludedFilter("vESN"),
+      filterComponent: createSelectFilterComponent(vESNList, {
+        size: "small",
+        multiple: true,
+      }),
+      width: "15%",
+    },
+    {
       header: "Status",
-      accessor: "policyStatus",
+      accessor: "vStatus",
       customCell: StatusCell,
       sortFunction: compareStrings,
       filterFunction: createStringArraySearchFilter("policyStatus"),
@@ -369,7 +382,7 @@ const VendorList = () => {
               rowId="policyId"
               hasScroll={true}
               maxHeight="calc(100vh - 162px)"
-              initialSortedColumn="policyName"
+              initialSortedColumn="vName"
               initialSortOrder="asc"
               // sortedColumn={sortedColumnValue}
               // sortOrder={sortOrderValue}

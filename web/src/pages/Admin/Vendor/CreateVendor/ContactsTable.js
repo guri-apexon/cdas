@@ -28,14 +28,9 @@ const EditableCell = ({ row, column: { accessor: key } }) => {
       size="small"
       fullWidth
       value={row[key]}
-      inputProps={{
-        maxLength: row.fileType === "SAS" && key === "columnName" ? 32 : null,
-      }}
-      onChange={(e) =>
-        row.editRow(row.uniqueId, key, e.target.value, errorText)
-      }
+      type={key === "columnName" ? "emailId" : "text"}
+      onChange={(e) => row.editRow(row.vCId, key, e.target.value, errorText)}
       error={!row.isInitLoad && errorText ? true : false}
-      helperText={!row.isInitLoad ? errorText : ""}
       {...fieldStyles}
     />
   ) : (

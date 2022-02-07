@@ -54,11 +54,11 @@ content-type: application/json
 # ]
 
 
-POST http://localhost:443/v1/api/vendor/vesn/list HTTP/1.1
-content-type: application/json
+# POST http://localhost:443/v1/api/vendor/vesn/list HTTP/1.1
+# content-type: application/json
 
-{
-}
+# {
+# }
 
 ###Response
 #  "data": [

@@ -61,34 +61,34 @@ exports.getVendorById = function (req, res) {
   }
 };
 
-exports.getESNList = async (req, res) => {
-  // extrnl_sys_nm
-  try {
-    Logger.info({
-      message: "getESNList",
-    });
+// exports.getESNList = async (req, res) => {
+//   // extrnl_sys_nm
+//   try {
+//     Logger.info({
+//       message: "getESNList",
+//     });
 
-    let query = `SELECT DISTINCT v.extrnl_sys_nm as "vESN" FROM ${schemaName}.vendor v`;
-    let dbQuery = DB.executeQuery(query);
+//     let query = `SELECT DISTINCT v.extrnl_sys_nm as "vESN" FROM ${schemaName}.vendor v`;
+//     let dbQuery = DB.executeQuery(query);
 
-    dbQuery.then((response) => {
-      const vESN = response.rows.map((e) => {
-        return { label: e.vESN, value: e.vESN };
-      }) || [{ lable: "", value: "" }];
-      return apiResponse.successResponseWithData(
-        res,
-        "Operation success",
-        vESN
-      );
-    });
-  } catch (err) {
-    //throw error in json response with status 500.
-    Logger.error("catch :getESNList");
-    Logger.error(err);
+//     dbQuery.then((response) => {
+//       const vESN = response.rows.map((e) => {
+//         return { label: e.vESN, value: e.vESN };
+//       }) || [{ lable: "", value: "" }];
+//       return apiResponse.successResponseWithData(
+//         res,
+//         "Operation success",
+//         vESN
+//       );
+//     });
+//   } catch (err) {
+//     //throw error in json response with status 500.
+//     Logger.error("catch :getESNList");
+//     Logger.error(err);
 
-    return apiResponse.ErrorResponse(res, err);
-  }
-};
+//     return apiResponse.ErrorResponse(res, err);
+//   }
+// };
 
 exports.createVendor = async (req, res) => {
   try {

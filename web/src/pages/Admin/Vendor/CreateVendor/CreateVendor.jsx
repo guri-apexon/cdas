@@ -13,7 +13,6 @@ import Grid from "apollo-react/components/Grid";
 import MenuItem from "apollo-react/components/MenuItem";
 import {
   addVendorService,
-  fetchProducts,
   getVendorDetails,
 } from "../../../../services/ApiServices";
 import { MessageContext } from "../../../../components/Providers/MessageProvider";
@@ -109,7 +108,12 @@ const CreateVendor = () => {
     setVContacts(newArr);
   };
 
-  const options = ["GDMPM-DASAx", "GDMPM-DASAxaq", "GDMPM-DASAC"];
+  const options = ["None", "CDR", "GDMPM-DAS", "IQB", "TDSE", "Wingspan"];
+
+  const handleSelection = (e) => {
+    // console.log(e);
+    setVESN(e.target.value);
+  };
 
   return (
     <div className="create-vendor-wrapper">
@@ -160,9 +164,10 @@ const CreateVendor = () => {
                 size="small"
                 fullWidth
                 label="External System Name"
+                placeholder="Select system name"
                 canDeselect={false}
                 value={vESN}
-                onChange={setVESN}
+                onChange={(e) => handleSelection(e)}
               >
                 {options.map((option) => (
                   <MenuItem key={option} value={option}>

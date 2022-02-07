@@ -2,27 +2,26 @@ import { put, call } from "redux-saga/effects";
 import axios from "axios";
 import {
   baseURL,
-  POLICY_LIST_FETCH,
-  POLICY_LIST_FAILURE,
-  POLICY_LIST_SUCCESS,
+  VENDOR_BASE,
+  VENDOR_LIST_FAILURE,
+  VENDOR_LIST_SUCCESS,
 } from "../../constants";
 
 // eslint-disable-next-line import/prefer-default-export
-export function* fetchPolicyListData() {
+export function* fetchVendorListData() {
   try {
-    const fetchSBData = yield call(
+    const fetchData = yield call(
       axios.post,
-      `${baseURL}/${POLICY_LIST_FETCH}`,
+      `${baseURL}/${VENDOR_BASE}/list`,
       {}
     );
 
-    // console.log("study", fetchSBData);
+    console.log("study", fetchData);
     yield put({
-      type: POLICY_LIST_SUCCESS,
-      policyList: fetchSBData.data.data.policyList,
-      uniqueProducts: fetchSBData.data.data.uniqueProducts,
+      type: VENDOR_LIST_SUCCESS,
+      vendorList: fetchData.data.data,
     });
   } catch (e) {
-    yield put({ type: POLICY_LIST_FAILURE, message: e.message });
+    yield put({ type: VENDOR_LIST_FAILURE, message: e.message });
   }
 }

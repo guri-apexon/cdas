@@ -2,31 +2,29 @@ import produce from "immer";
 // import moment from "moment";
 
 import {
-  POLICY_LIST,
-  POLICY_LIST_SUCCESS,
-  POLICY_LIST_FAILURE,
+  VENDOR_LIST,
+  VENDOR_LIST_SUCCESS,
+  VENDOR_LIST_FAILURE,
 } from "../../constants";
 
 export const initialState = {
-  policyList: [],
-  uniqueProducts: [],
+  vendorList: [],
   loading: false,
 };
 
-const PolicyAdminReducer = (state = initialState, action) =>
+const VendorAdminReducer = (state = initialState, action) =>
   produce(state, (newState) => {
     switch (action.type) {
-      case POLICY_LIST:
+      case VENDOR_LIST:
         newState.loading = true;
         break;
 
-      case POLICY_LIST_SUCCESS:
+      case VENDOR_LIST_SUCCESS:
         newState.loading = false;
-        newState.policyList = action.policyList;
-        newState.uniqueProducts = action.uniqueProducts;
+        newState.vendorList = action.vendorList;
         break;
 
-      case POLICY_LIST_FAILURE:
+      case VENDOR_LIST_FAILURE:
         newState.loading = false;
         break;
 
@@ -35,4 +33,4 @@ const PolicyAdminReducer = (state = initialState, action) =>
     }
   });
 
-export default PolicyAdminReducer;
+export default VendorAdminReducer;
