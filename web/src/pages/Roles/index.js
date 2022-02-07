@@ -51,10 +51,11 @@ const Role = () => {
   }, []);
 
   useEffect(() => {
-    const { roles } = Roles;
+    const { roles, uniqueProducts } = Roles;
     setTableRows(roles);
+    setProducts(uniqueProducts);
     setLoading(false);
-  }, [Roles]);
+  }, [Roles.loading]);
 
   const goToRole = (e, id) => {
     e.preventDefault();
@@ -111,40 +112,40 @@ const Role = () => {
     );
   };
 
-  // const LinkCell = ({ row, column: { accessor } }) => {
-  //   const rowValue = row[accessor];
-  //   const id = row.role_id;
-  //   if (rowValue.length > 30) {
-  //     return (
-  //       <Link
-  //         onMouseOver={() => handleMouseOver(row)}
-  //         onMouseOut={handleMouseOut}
-  //         onClick={(e) => goToRole(e, id)}
-  //       >
-  //         {`${rowValue.slice(0, 30)}  [...]`}
-  //       </Link>
-  //     );
-  //   }
-  //   return <Link onClick={(e) => goToRole(e, id)}>{rowValue}</Link>;
-  // };
+  const LinkCell = ({ row, column: { accessor } }) => {
+    const rowValue = row[accessor];
+    const id = row.role_id;
+    if (rowValue.length > 30) {
+      return (
+        <Link
+          onMouseOver={() => handleMouseOver(row)}
+          onMouseOut={handleMouseOut}
+          onClick={(e) => goToRole(e, id)}
+        >
+          {`${rowValue.slice(0, 30)}  [...]`}
+        </Link>
+      );
+    }
+    return <Link onClick={(e) => goToRole(e, id)}>{rowValue}</Link>;
+  };
 
-  // const DespCell = ({ row, column: { accessor } }) => {
-  //   const data = row[accessor];
-  //   if (data.length < 80) {
-  //     return <>{data}</>;
-  //   }
-  //   return (
-  //     <>
-  //       {data.slice(0, 50)}
-  //       <Link
-  //         onMouseOver={() => handleMouseOver(row)}
-  //         onMouseOut={handleMouseOut}
-  //       >
-  //         {`  [...]`}
-  //       </Link>
-  //     </>
-  //   );
-  // };
+  const DespCell = ({ row, column: { accessor } }) => {
+    const data = row[accessor];
+    if (data.length < 80) {
+      return <>{data}</>;
+    }
+    return (
+      <>
+        {data.slice(0, 50)}
+        <Link
+          onMouseOver={() => handleMouseOver(row)}
+          onMouseOut={handleMouseOut}
+        >
+          {`  [...]`}
+        </Link>
+      </>
+    );
+  };
 
   const CustomButtonHeader = ({ toggleFilters }) => (
     <div>
@@ -177,7 +178,7 @@ const Role = () => {
     {
       header: "Role Name",
       accessor: "role_nm",
-      //   customCell: LinkCell,
+      customCell: LinkCell,
       sortFunction: compareStrings,
       filterFunction: createStringSearchFilter("role_nm"),
       filterComponent: TextFieldFilter,
@@ -189,13 +190,13 @@ const Role = () => {
       sortFunction: compareStrings,
       filterFunction: createStringSearchFilter("role_desc"),
       filterComponent: TextFieldFilter,
-      //   customCell: DespCell,
+      customCell: DespCell,
       width: "40%",
     },
     {
       header: "Products Included",
       accessor: "products",
-      // customCell: ProductsCell,
+      customCell: ProductsCell,
       sortFunction: compareStrings,
       filterFunction: createStringArrayIncludedFilter("products"),
       filterComponent: createSelectFilterComponent(products, {
@@ -265,6 +266,24 @@ const Role = () => {
       <div className="roles-table">
         {tableRows.length > 0 ? renderTable : null}
       </div>
+      <Peek
+        open={open}
+        followCursor
+        placement="bottom"
+        content={
+          // eslint-disable-next-line react/jsx-wrap-multilines
+          <div style={{ maxWidth: 400 }}>
+            <Typography
+              variant="title2"
+              gutterBottom
+              style={{ fontWeight: 600 }}
+            >
+              {curRow.role_nm}
+            </Typography>
+            <Typography variant="body2">{curRow.role_desc}</Typography>
+          </div>
+        }
+      />
     </div>
   );
 };

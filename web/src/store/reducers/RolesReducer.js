@@ -8,6 +8,7 @@ import {
 
 export const initialState = {
   roles: [],
+  uniqueProducts: [],
   loading: false,
 };
 
@@ -20,7 +21,8 @@ const roleReducer = (state = initialState, action) =>
 
       case ROLE_LIST_SUCCESS:
         newState.loading = false;
-        newState.roles = action.roles;
+        newState.roles = action.roles.roles;
+        newState.uniqueProducts = action.roles.uniqueProducts;
         break;
 
       case ROLE_LIST_FAILURE:

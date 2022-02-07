@@ -10,11 +10,10 @@ import {
 // eslint-disable-next-line import/prefer-default-export
 export function* fetchRoles() {
   try {
-    const roleData = yield call(axios.get, `${baseURL}/${ROLE_FETCH}`, {});
-
+    const { data } = yield call(axios.get, `${baseURL}/${ROLE_FETCH}`, {});
     yield put({
       type: ROLE_LIST_SUCCESS,
-      roles: roleData.data.data,
+      roles: data.data,
     });
   } catch (e) {
     yield put({ type: ROLE_LIST_FAILURE, message: e.message });
