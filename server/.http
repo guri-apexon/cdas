@@ -6,21 +6,117 @@ content-type: application/json
 {
 }
 
-#Response
-[
-      {
-        "policyName": "Newpolocy",
-        "policyDescription": "",
-        "policyId": 10,
-        "productName": "Admin",
-        "policyStatus": "Active"
-      },
-      {
-        "policyName": "NewPolicy01Feb",
-        "policyDescription": "New policy for 01 February",
-        "policyId": 35,
-        "productName": "Admin",
-        "policyStatus": "Active"
-      }
-]
+###Response
+# [
+#       {
+#         "policyName": "Newpolocy",
+#         "policyDescription": "",
+#         "policyId": 10,
+#         "productName": "Admin",
+#         "policyStatus": "Active"
+#       },
+#       {
+#         "policyName": "NewPolicy01Feb",
+#         "policyDescription": "New policy for 01 February",
+#         "policyId": 35,
+#         "productName": "Admin",
+#         "policyStatus": "Active"
+#       }
+# ]
 
+
+POST http://localhost:443/v1/api/vendor/list HTTP/1.1
+content-type: application/json
+
+{
+}
+
+###Response
+# [
+#     {
+#       "vId": "1",
+#       "vName": "Invicro",
+#       "vNStd": "Invicro",
+#       "vDescription": "InvicroGDMPM-DAS Vendor",
+#       "vStatus": 1,
+#       "vESN": "GDMPM-DAS",
+#       "vContactName": "bob"
+#     },
+#     {
+#       "vId": "1",
+#       "vName": "Invicro",
+#       "vNStd": "Invicro",
+#       "vDescription": "InvicroGDMPM-DAS Vendor",
+#       "vStatus": 1,
+#       "vESN": "GDMPM-DAS",
+#       "vContactName": "max"
+#     },
+# ]
+
+
+POST http://localhost:443/v1/api/vendor/details/1 HTTP/1.1
+content-type: application/json
+
+{
+}
+
+###Response
+# [
+#     {
+#       "vId": "1",
+#       "vName": "Invicro",
+#       "vNStd": "Invicro",
+#       "vDescription": "InvicroGDMPM-DAS Vendor",
+#       "vStatus": 1,
+#       "vESN": "GDMPM-DAS",
+#       "vContactName": "bob"
+#     },
+#     {
+#       "vId": "1",
+#       "vName": "Invicro",
+#       "vNStd": "Invicro",
+#       "vDescription": "InvicroGDMPM-DAS Vendor",
+#       "vStatus": 1,
+#       "vESN": "GDMPM-DAS",
+#       "vContactName": "max"
+#     },
+# ]
+
+
+POST http://localhost:443/v1/api/vendor/create HTTP/1.1
+content-type: application/json
+
+{
+      "vId": 1112,
+      "vName": "test",
+      "vNStd": "test",
+      "vDescription" : "description",
+      "vStatus": 1,
+      "vESN": "",
+      "vContacts": [{
+
+      }],
+      "userId": "u1105372"
+}
+
+###Response
+# [
+#     {
+#       "vId": "1",
+#       "vName": "Invicro",
+#       "vNStd": "Invicro",
+#       "vDescription": "InvicroGDMPM-DAS Vendor",
+#       "vStatus": 1,
+#       "vESN": "GDMPM-DAS",
+#       "vContactName": "bob"
+#     },
+#     {
+#       "vId": "1",
+#       "vName": "Invicro",
+#       "vNStd": "Invicro",
+#       "vDescription": "InvicroGDMPM-DAS Vendor",
+#       "vStatus": 1,
+#       "vESN": "GDMPM-DAS",
+#       "vContactName": "max"
+#     },
+# ]

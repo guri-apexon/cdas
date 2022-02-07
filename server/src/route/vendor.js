@@ -3,9 +3,8 @@ const VendorController = require("../controller/VendorController");
 
 var router = express.Router();
 
-router.get("/list", VendorController.getVendorList);
-router.get("/list/:vendor_id", VendorController.getVendorById);
-router.get("/search-vendor/:query", VendorController.searchVendorList);
+router.post("/list", VendorController.getVendorsList);
+router.post("/details/:vendor_id", VendorController.getVendorById);
 router.post("/create", VendorController.createVendor);
 router.post("/update", VendorController.updateVendor);
 

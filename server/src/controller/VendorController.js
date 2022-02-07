@@ -5,50 +5,23 @@ const constants = require("../config/constants");
 
 const { DB_SCHEMA_NAME: schemaName } = constants;
 
-exports.searchVendorList = function (req, res) {
+exports.getVendorsList = function (req, res) {
   try {
-    const searchParam = req.params.query.toLowerCase();
-    const searchQuery = `SELECT vend_id,vend_nm,vend_nm_stnd,description,active,extrnl_sys_nm from ${schemaName}.vendor 
-            WHERE (LOWER(vend_nm) LIKE $1 OR 
-            LOWER(vend_nm_stnd) LIKE $2) and active = 1
-            `;
     Logger.info({
       message: "vendorList",
     });
 
-    DB.executeQuery(searchQuery, [`%${searchParam}%`, `%${searchParam}%`]).then(
-      (response) => {
-        const vendors = response.rows || [];
-        return apiResponse.successResponseWithData(res, "Operation success", {
-          records: vendors,
-          totalSize: response.rowCount,
-        });
-      }
-    );
-  } catch (err) {
-    //throw error in json response with status 500.
-    Logger.error("catch :vendorList");
-    Logger.error(err);
-
-    return apiResponse.ErrorResponse(res, err);
-  }
-};
-
-exports.getVendorList = function (req, res) {
-  try {
-    let select = `vend_id,vend_id as value, vend_nm as label, vend_nm,vend_nm_stnd,description,active,extrnl_sys_nm`;
-    let searchQuery = `SELECT ${select} from ${schemaName}.vendor where active=1 order by vend_nm asc`;
-    let dbQuery = DB.executeQuery(searchQuery);
-    Logger.info({
-      message: "vendorList",
-    });
+    let query = `SELECT v.vend_id as "vId", vend_nm as "vName", vend_nm_stnd as "vNStd",  description as "vDescription", active as "vStatus", extrnl_sys_nm as "vESN", vc.contact_nm as "vContactName" FROM ${schemaName}.vendor v
+    inner join ${schemaName}.vendor_contact vc on v.vend_id = vc.vend_id WHERE vc.act_flg=1`;
+    let dbQuery = DB.executeQuery(query);
 
     dbQuery.then((response) => {
       const vendors = response.rows || [];
-      return apiResponse.successResponseWithData(res, "Operation success", {
-        records: vendors,
-        totalSize: response.rowCount,
-      });
+      return apiResponse.successResponseWithData(
+        res,
+        "Operation success",
+        vendors
+      );
     });
   } catch (err) {
     //throw error in json response with status 500.
@@ -62,24 +35,26 @@ exports.getVendorList = function (req, res) {
 exports.getVendorById = function (req, res) {
   try {
     const id = req.params.vendor_id;
-    const searchQuery = `SELECT vend_id,vend_nm,vend_nm_stnd,description,active,extrnl_sys_nm from ${schemaName}.vendor 
-            WHERE vend_id = $1`;
     Logger.info({
-      message: "vendorList",
+      message: "getVendorById",
     });
 
-    DB.executeQuery(searchQuery, [id]).then((response) => {
-      const vendors = response.rows[0] || null;
+    const query = `SELECT v.vend_id as "vId", vend_nm as "vName", vend_nm_stnd as "vNStd",  description as "vDescription", active as "vStatus", extrnl_sys_nm as "vESN", vc.contact_nm as "vContact" FROM ${schemaName}.vendor v 
+    inner join ${schemaName}.vendor_contact vc on v.vend_id = vc.vend_id
+    where vc.act_flg=1 AND vc.vend_id = $1`;
+
+    DB.executeQuery(query, [id]).then((response) => {
+      const vendorDetail = response.rows || null;
       return apiResponse.successResponseWithData(
         res,
         "Operation success",
-        vendors
+        vendorDetail
       );
     });
   } catch (err) {
     //throw error in json response with status 500.
     console.log(err);
-    Logger.error("catch :vendorList");
+    Logger.error("catch :getVendorById");
     Logger.error(err);
 
     return apiResponse.ErrorResponse(res, err);
@@ -89,28 +64,51 @@ exports.getVendorById = function (req, res) {
 exports.createVendor = async (req, res) => {
   try {
     const {
-      verdorId,
-      vendorName,
-      vendorNameStd,
-      description,
-      externalSystemName,
+      vId,
+      vName,
+      vNStd,
+      vDescription,
+      vStatus,
+      vESN,
+      vContacts,
+      userId,
     } = req.body;
-    const curDate = new Date();
-    const insertQuery = `INSERT INTO ${schemaName}.vendor
-    (vend_id, vend_nm, vend_nm_stnd, description, active, extrnl_sys_nm, insrt_tm, updt_tm)
-    VALUES($2, $3, $4, $5, 0, $6, $1, $1)`;
 
     Logger.info({
       message: "createVendor",
     });
+
+    const curDate = new Date();
+    const insertQuery = `INSERT INTO ${schemaName}.vendor
+    (vend_id, vend_nm, vend_nm_stnd, description, active, extrnl_sys_nm, insrt_tm, updt_tm, created_by, updated_by)
+    VALUES($2, $3, $4, $5, $6, $7, $1, $1, $8, $8)`;
+
+    const contactQuery = `INSERT INTO ${schemaName}.vendor_contact
+    (vend_contact_id, vend_id, contact_nm, emailid, created_by, created_on, updated_by, updated_on)
+    VALUES($1, $2, $3, $4, $5, $6, $5, $6)`;
+
     const inset = await DB.executeQuery(insertQuery, [
       curDate,
-      verdorId,
-      vendorName,
-      vendorNameStd,
-      description,
-      externalSystemName,
+      vId,
+      vName,
+      vNStd,
+      vDescription,
+      vStatus,
+      vESN,
+      userId,
     ]);
+
+    vContacts.map((e) => {
+      DB.executeQuery(contactQuery, [
+        vCId,
+        vId,
+        e.contactName,
+        e.emailId,
+        userId,
+        curDate,
+      ]);
+    });
+
     return apiResponse.successResponseWithData(res, "Operation success", inset);
   } catch (err) {
     //throw error in json response with status 500.
@@ -124,33 +122,50 @@ exports.createVendor = async (req, res) => {
 exports.updateVendor = async (req, res) => {
   try {
     const {
-      verdorId,
-      vendorName,
-      vendorStatus,
-      description,
-      externalSystemName,
+      vId,
+      vName,
+      vNStd,
+      vDescription,
+      vStatus,
+      vESN,
+      vContacts,
+      userId,
     } = req.body;
-    const curDate = new Date();
-    const query = `UPDATE ${constants.DB_SCHEMA_NAME}.vendor
-    SET vend_nm=$3, description=$4, active=$5, updt_tm=$1
-    WHERE vend_id=$2 AND extrnl_sys_nm=$6`;
 
     Logger.info({
-      message: "updateVendor",
+      message: "createVendor",
     });
 
-    const up = await DB.executeQuery(query, [
+    const curDate = new Date();
+    const updateQuery = `UPDATE ${schemaName}.vendor SET vend_nm=$1, vend_nm_stnd=$2, description=$3, active=$4, extrnl_sys_nm=$5, updt_tm=$6, updated_by=$7 WHERE vend_id=$8`;
+
+    const contactQuery = `UPDATE ${schemaName}.vendor_contact SET contact_nm=$2, emailid=$3, updated_by=$4, updated_on=$5 WHERE vend_contact_id=$1`;
+
+    const update = await DB.executeQuery(updateQuery, [
+      vName,
+      vNStd,
+      vDescription,
+      vStatus,
+      vESN,
       curDate,
-      verdorId,
-      vendorName,
-      description,
-      vendorStatus,
-      externalSystemName,
+      userId,
+      vId,
     ]);
-    return apiResponse.successResponseWithData(res, "Operation success", up);
+
+    vContacts.map((e) => {
+      DB.executeQuery(contactQuery, [
+        vCId,
+        e.contactName,
+        e.emailId,
+        userId,
+        curDate,
+      ]);
+    });
+
+    return apiResponse.successResponseWithData(res, "Operation success", inset);
   } catch (err) {
     //throw error in json response with status 500.
-    Logger.error("catch :updateVendor");
+    Logger.error("catch :createVendor");
     Logger.error(err);
 
     return apiResponse.ErrorResponse(res, err);
