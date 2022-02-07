@@ -6,9 +6,11 @@ import BreadcrumbsUI from "apollo-react/components/Breadcrumbs";
 import Switch from "apollo-react/components/Switch";
 import ButtonGroup from "apollo-react/components/ButtonGroup";
 import TextField from "apollo-react/components/TextField";
+import Select from "apollo-react/components/Select";
 import "./CreateVendor.scss";
 import Typography from "apollo-react/components/Typography";
 import Grid from "apollo-react/components/Grid";
+import MenuItem from "apollo-react/components/MenuItem";
 import {
   addVendorService,
   fetchProducts,
@@ -22,7 +24,7 @@ const breadcrumpItems = [
   { href: "/" },
   {
     title: "Vendors",
-    href: "/vendor-management",
+    href: "/vendor/list",
   },
   {
     title: "Create New Vendor",
@@ -51,7 +53,7 @@ const CreateVendor = () => {
       vESN,
       vContacts,
       userId: userInfo.user_id,
-      status: active ? "Active" : "Inactive",
+      vStatus: active ? "Active" : "Inactive",
     };
     if (vName === "") {
       messageContext.showErrorMessage("Vendor Name shouldn't be empty");
@@ -81,7 +83,7 @@ const CreateVendor = () => {
     addVendorService(reqBody)
       .then((res) => {
         messageContext.showSuccessMessage(res.message || "Successfully Done");
-        history.push("/vendor-management");
+        history.push("/vendor/list");
         setLoading(false);
       })
       .catch((err) => {
@@ -89,6 +91,7 @@ const CreateVendor = () => {
         setLoading(false);
       });
   };
+
   const handleChange = (e) => {
     const val = e.target.value;
     if (e.target.id === "vName") {
@@ -99,61 +102,15 @@ const CreateVendor = () => {
       setVDescription(val);
     }
   };
-  const filterPermission = (arr) => {
-    const helper = {};
-    return arr.reduce((r, o) => {
-      const key = `${o.ctgy_nm}-${o.feat_nm}`;
-      if (!helper[key]) {
-        helper[key] = { ...o, permsn_nm: { [o.permsn_nm]: false } };
-        r.push(helper[key]);
-      } else {
-        helper[key].permsn_nm = {
-          ...helper[key].permsn_nm,
-          [o.permsn_nm]: false,
-        };
-      }
-      return r;
-    }, []);
-  };
-  const fetchPermissions = async () => {
-    const vContactsData = await getVendorDetails();
-    const filteredData = filterPermission(vContactsData);
-    const permissionArr = {};
-    products.forEach((product) => {
-      const filtered = filteredData.filter(
-        (x) => x.prod_nm === product.prod_nm
-      );
-      permissionArr[product.prod_nm] = filtered;
-    });
-    setVContacts(permissionArr);
-  };
-  const getProducts = async () => {
-    const productsData = await fetchProducts();
-    setProducts(productsData);
-  };
+
   const updateData = (childData) => {
     const newArr = { ...vContacts, [childData.product]: childData.data };
     console.log("updateData", newArr);
     setVContacts(newArr);
   };
-  const getBadgeCount = (product) => {
-    let count = 0;
-    if (!vContacts[product]) {
-      return count;
-    }
-    vContacts[product].forEach((category) => {
-      count += Object.keys(category.permsn_nm).filter((x) => {
-        return category.permsn_nm[x] === true;
-      }).length;
-    });
-    return count;
-  };
-  useEffect(() => {
-    fetchPermissions();
-  }, [products]);
-  useEffect(() => {
-    getProducts();
-  }, []);
+
+  const options = ["GDMPM-DASAx", "GDMPM-DASAxaq", "GDMPM-DASAC"];
+
   return (
     <div className="create-vendor-wrapper">
       <Box className="top-content">
@@ -172,7 +129,7 @@ const CreateVendor = () => {
               {
                 label: "Cancel",
                 size: "small",
-                onClick: () => history.push("/vendor-management"),
+                onClick: () => history.push("/vendor/list"),
               },
               {
                 label: "Save",
@@ -199,6 +156,20 @@ const CreateVendor = () => {
                 placeholder="Name your vendor"
                 onChange={handleChange}
               />
+              <Select
+                size="small"
+                fullWidth
+                label="External System Name"
+                canDeselect={false}
+                value={vESN}
+                onChange={setVESN}
+              >
+                {options.map((option) => (
+                  <MenuItem key={option} value={option}>
+                    {option}
+                  </MenuItem>
+                ))}
+              </Select>
               <TextField
                 id="vDescription"
                 size="small"

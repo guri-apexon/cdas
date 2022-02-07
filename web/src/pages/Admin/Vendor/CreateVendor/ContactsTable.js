@@ -3,10 +3,75 @@ import React, { memo, useEffect, useState } from "react";
 import Table, { compareStrings } from "apollo-react/components/Table";
 import Button from "apollo-react/components/Button";
 import PlusIcon from "apollo-react-icons/Plus";
+import TextField from "apollo-react/components/TextField";
+import Trash from "apollo-react-icons/Trash";
+import IconButton from "apollo-react/components/IconButton";
+
+const fieldStyles = {
+  style: {
+    marginTop: 3,
+    marginLeft: -8,
+  },
+};
+
+const checkRequired = (value) => {
+  if (!value || (typeof value === "string" && !value.trim())) {
+    return "Required";
+  }
+  return false;
+};
+
+const EditableCell = ({ row, column: { accessor: key } }) => {
+  const errorText = checkRequired(row[key]);
+  return row.editMode ? (
+    <TextField
+      size="small"
+      fullWidth
+      value={row[key]}
+      inputProps={{
+        maxLength: row.fileType === "SAS" && key === "columnName" ? 32 : null,
+      }}
+      onChange={(e) =>
+        row.editRow(row.uniqueId, key, e.target.value, errorText)
+      }
+      error={!row.isInitLoad && errorText ? true : false}
+      helperText={!row.isInitLoad ? errorText : ""}
+      {...fieldStyles}
+    />
+  ) : (
+    row[key]
+  );
+};
+
+const ActionCell = ({ row }) => {
+  const eMode = row.editMode ?? true;
+  const { vCId, onRowDelete } = row;
+  return eMode ? (
+    <IconButton
+      size="small"
+      onClick={() => onRowDelete(vCId)}
+      style={{ marginTop: 5 }}
+    >
+      <Trash />
+    </IconButton>
+  ) : (
+    <></>
+  );
+};
 
 const ContactsTable = ({ title, data, messageContext }) => {
-  const [tableRows, settableRows] = useState(data);
-  const [filteredData, setFilteredData] = useState(data);
+  const initialRows = [
+    {
+      vCId: 1,
+      contactName: "",
+      emailId: "",
+      isInitLoad: true,
+      isHavingError: false,
+    },
+  ];
+
+  const [tableRows, setTableRows] = useState(initialRows);
+  const [editedRows, setEditedRows] = useState(initialRows);
 
   const handleChange = (e, row) => {};
   const checkboxCell = ({ row, column: { accessor } }) => {
@@ -32,6 +97,7 @@ const ContactsTable = ({ title, data, messageContext }) => {
           icon={<PlusIcon />}
           size="small"
           style={{ marginRight: "8px", marginTop: "16px", border: "none" }}
+          onClick={addAContact}
         >
           Add Contact
         </Button>
@@ -42,23 +108,62 @@ const ContactsTable = ({ title, data, messageContext }) => {
   const columns = [
     {
       header: "Contact Name",
-      accessor: "ctgy_nm",
+      accessor: "contactName",
       sortFunction: compareStrings,
+      customCell: EditableCell,
     },
     {
       header: "Email Address",
-      accessor: "Download",
-      customCell: checkboxCell,
+      accessor: "emailId",
+      customCell: EditableCell,
     },
     {
       header: "",
-      accessor: "Enable",
       width: 100,
-      customCell: checkboxCell,
+      customCell: ActionCell,
+      align: "right",
     },
   ];
 
-  const addAContact = () => {};
+  const addAContact = () => {
+    setEditedRows((rw) => [
+      ...rw,
+      {
+        vCId: rw.length + 1,
+        contactName: "",
+        emailId: "",
+        isInitLoad: true,
+        isHavingError: false,
+      },
+    ]);
+  };
+  const onRowDelete = (vCId) => {
+    setTableRows(tableRows.filter((row) => row.vCId !== vCId));
+    setEditedRows(editedRows.filter((row) => row.vCId !== vCId));
+  };
+
+  const editRow = (vCId, key, value, errorTxt) => {
+    // console.log(uniqueId, "ColumdId");
+    setEditedRows((rws) =>
+      rws.map((row) => {
+        if (row.vCId === vCId) {
+          if (row.isInitLoad) {
+            return {
+              ...row,
+              [key]: value,
+            };
+          }
+          return {
+            ...row,
+            [key]: value,
+          };
+        }
+        return row;
+      })
+    );
+  };
+
+  const editMode = true;
   return (
     <div className="permission-table-wrapper">
       <div className="search-header">
@@ -68,9 +173,13 @@ const ContactsTable = ({ title, data, messageContext }) => {
         title="Vendor Contacts"
         subtitle={title}
         columns={columns}
-        rows={filteredData}
-        rowsPerPage={tableRows.length}
-        initialSortedColumn="ctgy_nm"
+        rows={(editMode ? editedRows : tableRows).map((row) => ({
+          ...row,
+          onRowDelete,
+          editRow,
+          editMode,
+        }))}
+        initialSortedColumn="contactName"
         initialSortOrder="asc"
       />
     </div>
