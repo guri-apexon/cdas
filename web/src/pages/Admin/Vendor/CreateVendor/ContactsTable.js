@@ -21,21 +21,53 @@ const fieldStyles = {
 //   return false;
 // };
 
-const EditableCell = ({ row, column: { accessor: key } }) => {
-  // const errorText = checkRequired(row[key]);
-  return row.editMode ? (
+// const EditableCell = ({ row, column: { accessor: key } }) => {
+//   // const errorText = checkRequired(row[key]);
+//   return row.editMode ? (
+//     <TextField
+//       size="small"
+//       fullWidth
+//       value={row[key]}
+//       type={key === "columnName" ? "emailId" : "text"}
+//       onChange={(e) => row.editRow(row.vCId, key, e.target.value)}
+//       {...fieldStyles}
+//     />
+//   ) : (
+//     row[key]
+//   );
+// };
+
+// const EditableCell = ({ row, column: { accessor: key } }) =>
+//   row.editMode ? (
+//     <TextField
+//       size="small"
+//       fullWidth
+//       value={row.editedRow[key]}
+//       onChange={(e) => row.editRow(key, e.target.value)}
+//       type={key === "columnName" ? "emailId" : "text"}
+//       error={!row.editedRow[key]}
+//       helperText={!row.editedRow[key] && "Required"}
+//       {...fieldStyles}
+//     />
+//   ) : (
+//     row[key]
+//   );
+
+const EditableCell = ({ row, column: { accessor: key } }) =>
+  row.editMode ? (
     <TextField
       size="small"
       fullWidth
       value={row[key]}
-      type={key === "columnName" ? "emailId" : "text"}
+      type={key === "contactName" ? "email" : "text"}
       onChange={(e) => row.editRow(row.vCId, key, e.target.value)}
+      // error={!row[key]}
+      // helperText={!row[key] && "Required"}
       {...fieldStyles}
     />
   ) : (
     row[key]
   );
-};
 
 const ActionCell = ({ row }) => {
   const eMode = row.editMode ?? true;
@@ -53,6 +85,20 @@ const ActionCell = ({ row }) => {
   );
 };
 
+const CustomHeader = ({ addAContact }) => (
+  <>
+    <Button
+      variant="secondary"
+      icon={<PlusIcon />}
+      size="small"
+      style={{ marginRight: "8px", marginTop: "16px", border: "none" }}
+      onClick={addAContact}
+    >
+      Add Contact
+    </Button>
+  </>
+);
+
 const ContactsTable = ({ messageContext }) => {
   const initialRows = [
     {
@@ -66,38 +112,6 @@ const ContactsTable = ({ messageContext }) => {
 
   const [tableRows, setTableRows] = useState(initialRows);
   const [editedRows, setEditedRows] = useState(initialRows);
-
-  const handleChange = (e, row) => {};
-  const checkboxCell = ({ row, column: { accessor } }) => {
-    if (!row.permsn_nm.hasOwnProperty(accessor)) {
-      return false;
-    }
-    return (
-      <input
-        type="checkbox"
-        className="custom-checkbox"
-        data-accessor={accessor}
-        checked={row.permsn_nm[accessor]}
-        onChange={(e) => handleChange(e, row)}
-      />
-    );
-  };
-
-  const CustomHeader = ({ addAContact }) => {
-    return (
-      <>
-        <Button
-          variant="secondary"
-          icon={<PlusIcon />}
-          size="small"
-          style={{ marginRight: "8px", marginTop: "16px", border: "none" }}
-          onClick={addAContact}
-        >
-          Add Contact
-        </Button>
-      </>
-    );
-  };
 
   const columns = [
     {
@@ -137,33 +151,29 @@ const ContactsTable = ({ messageContext }) => {
     setEditedRows(editedRows.filter((row) => row.vCId !== vCId));
   };
 
-  const editRow = (vCId, key, value, errorTxt) => {
-    // console.log(uniqueId, "ColumdId");
-    setEditedRows((rws) =>
-      rws.map((row) => {
-        if (row.vCId === vCId) {
-          if (row.isInitLoad) {
-            return {
-              ...row,
-              [key]: value,
-            };
-          }
-          return {
-            ...row,
-            [key]: value,
-          };
-        }
-        return row;
-      })
+  const editRow = (vCId, key, value) => {
+    setEditedRows((rows) =>
+      rows.map((row) => (row.vCId === vCId ? { ...row, [key]: value } : row))
     );
   };
+
+  // const editRow = (vCId, key, value) => {
+  //   setEditedRows((rws) =>
+  //     rws.map((row) => {
+  //       if (row.vCId === vCId) {
+  //         return {
+  //           ...row,
+  //           [key]: value,
+  //         };
+  //       }
+  //       return row;
+  //     })
+  //   );
+  // };
 
   const editMode = true;
   return (
     <div className="table-wrapper">
-      <div className="search-header">
-        <CustomHeader addAContact={addAContact} />
-      </div>
       <Table
         title="Vendor Contacts"
         subtitle="CDAS Admin"
@@ -174,8 +184,15 @@ const ContactsTable = ({ messageContext }) => {
           editRow,
           editMode,
         }))}
-        initialSortedColumn="contactName"
+        initialSortedColumn="vCId"
         initialSortOrder="asc"
+        tablePaginationProps={{
+          labelDisplayedRows: ({ from, to, count }) =>
+            `${count === 1 ? "Items" : "Items"} ${from}-${to} of ${count}`,
+          truncate: true,
+        }}
+        CustomHeader={CustomHeader}
+        headerProps={{ addAContact }}
       />
     </div>
   );

@@ -59,7 +59,7 @@ POST http://localhost:443/v1/api/vendor/statusUpdate HTTP/1.1
 content-type: application/json
 
 {
-  "vId": 1, 
+  "vId": 25, 
   "vStatus": 0, 
   "userId" : "u1105372"
 }
@@ -160,12 +160,12 @@ content-type: application/json
 #     ],
 #     "contacts": [
 #       {
-#         "vContactName": "contac name 1",
-#         "vEmailId": "contact@test.com"
+#         "name": "contac name 1",
+#         "email": "contact@test.com"
 #       },
 #       {
-#         "vContactName": "contac name 2",
-#         "vEmailId": "contact2@test.com"
+#         "name": "contac name 2",
+#         "email": "contact2@test.com"
 #       }
 #     ]
 #   }
@@ -182,12 +182,12 @@ content-type: application/json
       "vESN": "GDMPM-DASS",
       "vContacts": [
         {
-          "contactName": "contac name 1",
-          "emailId": "contact@test.com"
+          "name": "contac name 1",
+          "email": "contact@test.com"
         },
         {
-          "contactName": "contac name 2",
-          "emailId": "contact2@test.com"
+          "name": "contac name 2",
+          "email": "contact2@test.com"
         }
       ],
       "userId": "u1105372",

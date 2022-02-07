@@ -109,9 +109,11 @@ exports.noOnboardedStat = function (req, res) {
 
 exports.getStudyList = async (req, res) => {
   try {
-    //
-    const query = `SELECT prot_id, prot_nbr as protocolnumber, spnsr_nm as sponsorname, phase, prot_stat as protocolstatus, cs.insrt_tm as dateadded, cs.updt_tm as dateedited, ob_stat as onboardingprogress, cs.usr_descr as assignmentcount, thptc_area as therapeuticarea, proj_cd as projectcode FROM ${schemaName}.study cs INNER JOIN ${schemaName}.sponsor cs2 ON cs2.spnsr_id = cs.spnsr_id ORDER BY cs.insrt_tm`;
-    const query2 = `SELECT prot_id, COUNT(DISTINCT usr_id) FROM ${schemaName}.study_user csa GROUP BY prot_id`;
+    const query = `SELECT s.prot_id, prot_nbr as protocolnumber, phase, prot_stat as protocolstatus, spnsr_nm as sponsorname, s.insrt_tm as dateadded, s.updt_tm as dateedited, ob_stat as onboardingprogress, s.usr_descr as assignmentcount, thptc_area as therapeuticarea, proj_cd as projectcode FROM ${schemaName}.study s 
+    inner join ${schemaName}.study_sponsor ss on s.prot_id = ss.prot_id 
+    INNER JOIN ${schemaName}.sponsor cs2 ON cs2.spnsr_id = ss.spnsr_id ORDER BY s.insrt_tm`;
+
+    const query2 = `SELECT prot_id, COUNT(DISTINCT usr_id) FROM ${schemaName}.study_user GROUP BY prot_id`;
     const query3 = `SELECT DISTINCT phase FROM ${schemaName}.study`;
     const query4 = `SELECT DISTINCT prot_stat as protocolstatus FROM ${schemaName}.study`;
 

@@ -95,6 +95,9 @@ export const statusUpdate = async (vId, vStatus) => {
         })
         .catch((err) => {
           console.log("Err", err);
+          if (err.response) {
+            resolve(err.response.data);
+          }
         });
     });
   } catch (err) {

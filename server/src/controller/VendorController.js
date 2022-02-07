@@ -47,7 +47,7 @@ exports.getVendorById = async (req, res) => {
     console.log(id);
 
     const query = `SELECT v.vend_id as "vId", vend_nm as "vName", description as "vDescription", active as "vStatus", extrnl_sys_nm as "vESN" FROM ${schemaName}.vendor v WHERE v.vend_id = $1`;
-    const query2 = `SELECT vc.contact_nm as "vContactName", vc.emailid as "vEmailId" FROM ${schemaName}.vendor_contact vc where vc.vend_id = $1`;
+    const query2 = `SELECT vc.contact_nm as "name", vc.emailid as "email" FROM ${schemaName}.vendor_contact vc where vc.vend_id = $1`;
 
     const vendor = await DB.executeQuery(query, [id]);
     const contact = await DB.executeQuery(query2, [id]);
@@ -66,7 +66,7 @@ exports.getVendorById = async (req, res) => {
   }
 };
 
-exports.activeStatusUpdate = function (req, res) {
+exports.activeStatusUpdate = async (req, res) => {
   try {
     const { vId, vStatus, userId } = req.body;
     const curDate = new Date();
@@ -74,16 +74,31 @@ exports.activeStatusUpdate = function (req, res) {
       message: "activeStatusUpdate",
     });
 
-    const query = `UPDATE ${schemaName}.vendor SET active=$1, updt_tm=$2, updated_by=$3 WHERE vend_id=$4`;
+    const $q1 = `select distinct vend_id from ${schemaName}.dataflow d`;
+    const $query = `UPDATE ${schemaName}.vendor SET active=$1, updt_tm=$2, updated_by=$3 WHERE vend_id=$4`;
 
-    DB.executeQuery(query, [vStatus, curDate, userId, vId]).then((response) => {
-      const vendorDetail = response.row || null;
+    const q1 = await DB.executeQuery($q1);
+    const existingInDF = q1.rows.map((e) => parseInt(e.vend_id));
+    // console.log(existingInDF.includes(vId), existingInDF, vId);
+    if (existingInDF.includes(parseInt(vId))) {
+      return apiResponse.validationErrorWithData(
+        res,
+        "Operation failed",
+        "Vendor cannot be inactivated until removed from all data flows using this Vendor."
+      );
+    } else {
+      const details = await DB.executeQuery($query, [
+        vStatus,
+        curDate,
+        userId,
+        vId,
+      ]);
       return apiResponse.successResponseWithData(
         res,
         "Operation success",
-        vendorDetail
+        details.row || null
       );
-    });
+    }
   } catch (err) {
     //throw error in json response with status 500.
     console.log(err);
@@ -169,13 +184,7 @@ exports.createVendor = async (req, res) => {
     ]);
 
     const contactInset = await vContacts.map((e) => {
-      DB.executeQuery(contactQuery, [
-        vId,
-        e.contactName,
-        e.emailId,
-        userName,
-        curDate,
-      ]);
+      DB.executeQuery(contactQuery, [vId, e.name, e.email, userName, curDate]);
     });
 
     return apiResponse.successResponseWithData(

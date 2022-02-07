@@ -1,5 +1,5 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Table, {
   createSelectFilterComponent,
@@ -17,7 +17,7 @@ import Switch from "apollo-react/components/Switch";
 import Typography from "apollo-react/components/Typography";
 import Progress from "../../../../components/Progress";
 
-// import { MessageContext } from "../../../components/MessageProvider";
+import { MessageContext } from "../../../../components/Providers/MessageProvider";
 
 import { statusUpdate } from "../../../../services/ApiServices";
 import { getVendorList } from "../../../../store/actions/VendorAdminAction";
@@ -40,6 +40,7 @@ const vESNList = ["None", "CDR", "GDMPM-DAS", "IQB", "TDSE", "Wingspan"];
 
 const VendorList = () => {
   const history = useHistory();
+  const messageContext = useContext(MessageContext);
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState([]);
   const [tableRows, setTableRows] = useState([]);
@@ -92,8 +93,6 @@ const VendorList = () => {
   //   setTableRows(uniqueList);
   // }, [vendorLists]);
 
-  // const messageContext = useContext(MessageContext);
-
   const goToVendor = (e, id) => {
     e.preventDefault();
     history.push(`/vendor/edit/${id}`);
@@ -103,10 +102,15 @@ const VendorList = () => {
     e.preventDefault();
     const update = await statusUpdate(id, 0);
     if (update) {
-      const selectedData = tableRows.filter((d) => d.vId === id);
-      const unSelectedData = tableRows.filter((d) => d.vId !== id);
-      selectedData[0].vStatus = "Inactive";
-      setTableRows([...unSelectedData, ...selectedData]);
+      console.log(update.data);
+      if (update.status === 0) {
+        messageContext.showErrorMessage(update.data, 56);
+      }
+      getData();
+      // const selectedData = tableRows.filter((d) => d.vId === id);
+      // const unSelectedData = tableRows.filter((d) => d.vId !== id);
+      // selectedData[0].vStatus = "Inactive";
+      // setTableRows([...unSelectedData, ...selectedData]);
     }
     // console.log("tableRows", tableRows, products, id);
   };
@@ -115,10 +119,11 @@ const VendorList = () => {
     e.preventDefault();
     const update = await statusUpdate(id, 1);
     if (update) {
-      const selectedData = tableRows.filter((d) => d.vId === id);
-      const unSelectedData = tableRows.filter((d) => d.vId !== id);
-      selectedData[0].vStatus = "Active";
-      setTableRows([...unSelectedData, ...selectedData]);
+      // const selectedData = tableRows.filter((d) => d.vId === id);
+      // const unSelectedData = tableRows.filter((d) => d.vId !== id);
+      // selectedData[0].vStatus = "Active";
+      // setTableRows([...unSelectedData, ...selectedData]);
+      getData();
     }
     // console.log("tableRows", tableRows, products, id);
   };

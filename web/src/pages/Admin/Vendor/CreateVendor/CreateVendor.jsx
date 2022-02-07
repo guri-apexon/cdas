@@ -14,13 +14,18 @@ import Typography from "apollo-react/components/Typography";
 import Link from "apollo-react/components/Link";
 import Grid from "apollo-react/components/Grid";
 import MenuItem from "apollo-react/components/MenuItem";
+import _ from "lodash";
 import {
   addVendorService,
   getVendorDetails,
 } from "../../../../services/ApiServices";
 import { MessageContext } from "../../../../components/Providers/MessageProvider";
 import ContactsTable from "./ContactsTable";
-import { getUserInfo, inputAlphaNumeric } from "../../../../utils";
+import TableEditableAll from "./testTable";
+import {
+  getUserInfo,
+  inputAlphaNumericWithUnderScore,
+} from "../../../../utils";
 
 const breadcrumpItems = [
   { href: "/" },
@@ -39,7 +44,7 @@ const CreateVendor = () => {
   const [vName, setVName] = useState("");
   const [vDescription, setVDescription] = useState("");
   const [vESN, setVESN] = useState("");
-  const [vContacts, setVContacts] = useState({});
+  const [vContacts, setVContacts] = useState([]);
   const [contacts, setContacts] = useState([]);
   const messageContext = useContext(MessageContext);
   const userInfo = getUserInfo();
@@ -57,32 +62,32 @@ const CreateVendor = () => {
       vESN,
       vContacts,
       userId: userInfo.user_id,
-      vStatus: active ? "Active" : "Inactive",
+      userName: userInfo.fullName,
+      vStatus: active ? 1 : 0,
     };
     if (vName === "") {
       messageContext.showErrorMessage("Vendor Name shouldn't be empty");
       return false;
     }
-    let atleastOneSelected = false;
-    if (active) {
-      Object.keys(vContacts).forEach((product) => {
-        vContacts[product].every((category) => {
-          if (!atleastOneSelected) {
-            atleastOneSelected = Object.keys(category.permsn_nm).find((x) => {
-              return category.permsn_nm[x] === true;
-            });
-          }
-          if (atleastOneSelected) return false;
-          return true;
-        });
-      });
-      if (!atleastOneSelected) {
-        messageContext.showErrorMessage(
-          "Please complete all mandatory information and then click Save"
-        );
-        return false;
+    if (vESN === "") {
+      messageContext.showErrorMessage(
+        "Vendor External System Name need to be selected"
+      );
+      return false;
+    }
+
+    const startList = contacts.map((e) => e.isStarted);
+    const nameValid = contacts.map((e) => e.isNameValid);
+    const emailValid = contacts.map((e) => e.isEmailValid);
+
+    if (startList.every((v) => v === true)) {
+      if (nameValid.every((v) => v === true)) {
+        if (emailValid.every((v) => v === true)) {
+          const test = "";
+        }
       }
     }
+
     setLoading(true);
     addVendorService(reqBody)
       .then((res) => {
@@ -99,7 +104,7 @@ const CreateVendor = () => {
   const handleChange = (e) => {
     const val = e.target.value;
     if (e.target.id === "vName") {
-      inputAlphaNumeric(e, (v) => {
+      inputAlphaNumericWithUnderScore(e, (v) => {
         setVName(v);
       });
     } else if (e.target.id === "vDescription") {
@@ -107,16 +112,19 @@ const CreateVendor = () => {
     }
   };
 
-  const updateData = (childData) => {
-    const newArr = { ...vContacts, [childData.product]: childData.data };
-    console.log("updateData", newArr);
-    setVContacts(newArr);
+  const updateData = async (data) => {
+    const goodContacts = await data.map((e) => {
+      const newData = _.omit(e, ["isEmailValid", "isNameValid", "isStarted"]);
+      return newData;
+    });
+    // console.log("updateData", data, goodContacts);
+    setContacts(data);
+    setVContacts(goodContacts);
   };
 
   const options = ["None", "CDR", "GDMPM-DAS", "IQB", "TDSE", "Wingspan"];
 
   const handleSelection = (e) => {
-    // console.log(e);
     setVESN(e.target.value);
   };
 
@@ -206,11 +214,8 @@ const CreateVendor = () => {
         <Grid item xs={9} className="contacts-wrapper">
           <br />
           <div className="contact-content">
-            <ContactsTable
-              messageContext={messageContext}
-              updateData={updateData}
-              data={[]}
-            />
+            {/* <ContactsTable /> */}
+            <TableEditableAll updateData={updateData} />
           </div>
         </Grid>
       </Grid>
