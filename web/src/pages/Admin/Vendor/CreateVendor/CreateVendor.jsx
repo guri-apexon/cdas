@@ -80,6 +80,7 @@ const CreateVendor = () => {
   const params = useParams();
   const dispatch = useDispatch();
   const vendor = useSelector((state) => state.vendor);
+  const { isDBData, selectedVendor, selectedContacts } = vendor;
 
   useEffect(() => {
     if (params.id) {
@@ -87,7 +88,17 @@ const CreateVendor = () => {
     }
   }, [params]);
 
-  useEffect(() => {}, []);
+  useEffect(() => {
+    if (isDBData) {
+      // console.log("inside inner update");
+      setVId(selectedVendor.vId);
+      setVESN(selectedVendor.vESN);
+      setVName(selectedVendor.vName);
+      setVDescription(selectedVendor.vDescription);
+      setActive(selectedVendor.vStatus === 1 ? true : false);
+    }
+    // console.log("inside update");
+  }, [isDBData]);
 
   // getVendorDetails(params.id).then((res) => {
   //   // console.log(res.vendor);
