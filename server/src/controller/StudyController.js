@@ -6,6 +6,7 @@ const _ = require("lodash");
 const axios = require("axios");
 const request = require("request");
 const constants = require("../config/constants");
+const { DB_SCHEMA_NAME: schemaName } = constants;
 
 exports.onboardStudy = async function (req, res) {
   const { sponsorName, studyId } = req.body;
@@ -26,13 +27,17 @@ exports.onboardStudy = async function (req, res) {
       }
     )
     .then((response) => {
-      return apiResponse.successResponseWithData(res, "Operation success", response?.data);
+      return apiResponse.successResponseWithData(
+        res,
+        "Operation success",
+        response?.data
+      );
     })
     .catch((err) => {
-      if(err.response?.data){
+      if (err.response?.data) {
         return res.json(err.response.data);
-      }else{
-        return apiResponse.ErrorResponse(res, 'Something went wrong');
+      } else {
+        return apiResponse.ErrorResponse(res, "Something went wrong");
       }
     });
 };
@@ -79,7 +84,7 @@ exports.noOnboardedStat = function (req, res) {
   try {
     const query = `SELECT 
       COUNT(DISTINCT CASE WHEN ob_stat = 'In Progress'   THEN prot_id END) inprogress_count,
-      COUNT(DISTINCT CASE WHEN ob_stat = 'Failed' THEN prot_id END) faliure_count FROM ${constants.DB_SCHEMA_NAME}.study`;
+      COUNT(DISTINCT CASE WHEN ob_stat = 'Failed' THEN prot_id END) faliure_count FROM ${schemaName}.study`;
     DB.executeQuery(query).then((response) => {
       const studies = response.rows || [];
       if (studies.length > 0) {
@@ -104,11 +109,13 @@ exports.noOnboardedStat = function (req, res) {
 
 exports.getStudyList = async (req, res) => {
   try {
-    //
-    const query = `SELECT prot_id, prot_nbr as protocolnumber, spnsr_nm as sponsorname, phase, prot_stat as protocolstatus, cs.insrt_tm as dateadded, cs.updt_tm as dateedited, ob_stat as onboardingprogress, cs.usr_descr as assignmentcount, thptc_area as therapeuticarea, proj_cd as projectcode FROM ${constants.DB_SCHEMA_NAME}.study cs INNER JOIN ${constants.DB_SCHEMA_NAME}.sponsor cs2 ON cs2.spnsr_id = cs.spnsr_id ORDER BY cs.insrt_tm`;
-    const query2 = `SELECT prot_id, COUNT(DISTINCT usr_id) FROM ${constants.DB_SCHEMA_NAME}.study_user csa GROUP BY prot_id`;
-    const query3 = `SELECT DISTINCT phase FROM ${constants.DB_SCHEMA_NAME}.study`;
-    const query4 = `SELECT DISTINCT prot_stat as protocolstatus FROM ${constants.DB_SCHEMA_NAME}.study`;
+    const query = `SELECT s.prot_id, prot_nbr as protocolnumber, phase, prot_stat as protocolstatus, spnsr_nm as sponsorname, s.insrt_tm as dateadded, s.updt_tm as dateedited, ob_stat as onboardingprogress, s.usr_descr as assignmentcount, thptc_area as therapeuticarea, proj_cd as projectcode FROM ${schemaName}.study s 
+    inner join ${schemaName}.study_sponsor ss on s.prot_id = ss.prot_id 
+    INNER JOIN ${schemaName}.sponsor cs2 ON cs2.spnsr_id = ss.spnsr_id ORDER BY s.insrt_tm`;
+
+    const query2 = `SELECT prot_id, COUNT(DISTINCT usr_id) FROM ${schemaName}.study_user GROUP BY prot_id`;
+    const query3 = `SELECT DISTINCT phase FROM ${schemaName}.study`;
+    const query4 = `SELECT DISTINCT prot_stat as protocolstatus FROM ${schemaName}.study`;
 
     Logger.info({
       message: "getStudyList",

@@ -1,194 +1,198 @@
 /* eslint-disable no-prototype-builtins */
 import React, { memo, useEffect, useState } from "react";
 import Table, { compareStrings } from "apollo-react/components/Table";
-import Search from "apollo-react/components/Search";
+import Button from "apollo-react/components/Button";
+import PlusIcon from "apollo-react-icons/Plus";
+import TextField from "apollo-react/components/TextField";
+import Trash from "apollo-react-icons/Trash";
+import IconButton from "apollo-react/components/IconButton";
 
-const CustomHeader = ({ setSearchText, searchTxt }) => {
-  const [txt, setText] = useState(searchTxt);
-  const setTextHandler = (e) => {
-    setText(e.target.value);
-    setSearchText(e.target.value);
-  };
-  const onKeyPress = (e) => {
-    if (e.key === "Enter") {
-      setSearchText(e.target.value);
-    }
-  };
-  return (
-    <>
-      <Search
-        placeholder="Search"
-        size="small"
-        value={txt}
-        // autoFocus={txt.length}
-        onKeyPress={onKeyPress}
-        onChange={setTextHandler}
-      />
-    </>
+const fieldStyles = {
+  style: {
+    marginTop: 3,
+    marginLeft: -8,
+  },
+};
+
+// const checkRequired = (value) => {
+//   if (!value || (typeof value === "string" && !value.trim())) {
+//     return "Required";
+//   }
+//   return false;
+// };
+
+// const EditableCell = ({ row, column: { accessor: key } }) => {
+//   // const errorText = checkRequired(row[key]);
+//   return row.editMode ? (
+//     <TextField
+//       size="small"
+//       fullWidth
+//       value={row[key]}
+//       type={key === "columnName" ? "emailId" : "text"}
+//       onChange={(e) => row.editRow(row.vCId, key, e.target.value)}
+//       {...fieldStyles}
+//     />
+//   ) : (
+//     row[key]
+//   );
+// };
+
+// const EditableCell = ({ row, column: { accessor: key } }) =>
+//   row.editMode ? (
+//     <TextField
+//       size="small"
+//       fullWidth
+//       value={row.editedRow[key]}
+//       onChange={(e) => row.editRow(key, e.target.value)}
+//       type={key === "columnName" ? "emailId" : "text"}
+//       error={!row.editedRow[key]}
+//       helperText={!row.editedRow[key] && "Required"}
+//       {...fieldStyles}
+//     />
+//   ) : (
+//     row[key]
+//   );
+
+const EditableCell = ({ row, column: { accessor: key } }) =>
+  row.editMode ? (
+    <TextField
+      size="small"
+      fullWidth
+      value={row[key]}
+      type={key === "contactName" ? "email" : "text"}
+      onChange={(e) => row.editRow(row.vCId, key, e.target.value)}
+      // error={!row[key]}
+      // helperText={!row[key] && "Required"}
+      {...fieldStyles}
+    />
+  ) : (
+    row[key]
+  );
+
+const ActionCell = ({ row }) => {
+  const eMode = row.editMode ?? true;
+  const { vCId, onRowDelete } = row;
+  return eMode ? (
+    <IconButton
+      size="small"
+      onClick={() => onRowDelete(vCId)}
+      style={{ marginTop: 5 }}
+    >
+      <Trash />
+    </IconButton>
+  ) : (
+    <></>
   );
 };
 
-const ContactsTable = ({ title, data, updateData, messageContext }) => {
-  const [tableRows, settableRows] = useState(data);
-  const [filteredData, setFilteredData] = useState(data);
-  const [searchTxt, setSearchText] = useState("");
-  const FeatureCell = ({ row, column: { accessor } }) => {
-    return <span className="b-font">{row[accessor]}</span>;
-  };
-  const handleChange = (e, row) => {
-    const { checked, accessor } = e.target;
-    const type = e.target.getAttribute("data-accessor");
-    row.permsn_nm[type] = checked;
-    switch (type) {
-      case "Create":
-        if (checked) {
-          if (row.permsn_nm.hasOwnProperty("Read"))
-            row.permsn_nm.Read = checked;
-        }
-        break;
-      case "Update":
-        if (checked) {
-          if (row.permsn_nm.hasOwnProperty("Read"))
-            row.permsn_nm.Read = checked;
-        }
-        if (!checked) {
-          if (row.permsn_nm.hasOwnProperty("Delete"))
-            row.permsn_nm.Delete = checked;
-        }
-        break;
-      case "Read":
-        if (!checked) {
-          messageContext.showErrorMessage(
-            "Deselecting Read will automatically remove the options for all other options",
-            null,
-            "info"
-          );
-          if (row.permsn_nm.hasOwnProperty("Create"))
-            row.permsn_nm.Create = false;
-          if (row.permsn_nm.hasOwnProperty("Update"))
-            row.permsn_nm.Update = false;
-          if (row.permsn_nm.hasOwnProperty("Delete"))
-            row.permsn_nm.Delete = false;
-          if (row.permsn_nm.hasOwnProperty("Download"))
-            row.permsn_nm.Download = false;
-        }
-        break;
-      case "Delete":
-        if (checked) {
-          if (row.permsn_nm.hasOwnProperty("Read"))
-            row.permsn_nm.Read = checked;
-          if (row.permsn_nm.hasOwnProperty("Update"))
-            row.permsn_nm.Update = checked;
-        }
-        break;
-      case "Download":
-        if (checked) {
-          if (row.permsn_nm.hasOwnProperty("Read"))
-            row.permsn_nm.Read = checked;
-        }
-        break;
-      default:
-        break;
-    }
-    const tableData = [
-      ...new Set([...filteredData, ...tableRows].map((obj) => obj)),
-    ];
-    // settableRows(tableData);
-    updateData({ product: title, data: tableData });
-  };
-  const checkboxCell = ({ row, column: { accessor } }) => {
-    if (!row.permsn_nm.hasOwnProperty(accessor)) {
-      return false;
-    }
-    return (
-      <input
-        type="checkbox"
-        className="custom-checkbox"
-        data-accessor={accessor}
-        checked={row.permsn_nm[accessor]}
-        onChange={(e) => handleChange(e, row)}
-      />
-    );
-  };
-  const columns = [
+const CustomHeader = ({ addAContact }) => (
+  <>
+    <Button
+      variant="secondary"
+      icon={<PlusIcon />}
+      size="small"
+      style={{ marginRight: "8px", marginTop: "16px", border: "none" }}
+      onClick={addAContact}
+    >
+      Add Contact
+    </Button>
+  </>
+);
+
+const ContactsTable = ({ messageContext }) => {
+  const initialRows = [
     {
-      header: "Category",
-      accessor: "ctgy_nm",
-      sortFunction: compareStrings,
-      width: 150,
-    },
-    {
-      header: <span className="b-font">Features</span>,
-      accessor: "feat_nm",
-      sortFunction: compareStrings,
-      customCell: FeatureCell,
-    },
-    {
-      header: "Read",
-      accessor: "Read",
-      width: 100,
-      customCell: checkboxCell,
-    },
-    {
-      header: "Update",
-      accessor: "Update",
-      width: 100,
-      customCell: checkboxCell,
-    },
-    {
-      header: "Create",
-      accessor: "Create",
-      width: 100,
-      customCell: checkboxCell,
-    },
-    {
-      header: "Delete",
-      accessor: "Delete",
-      width: 100,
-      customCell: checkboxCell,
-    },
-    {
-      header: "Download",
-      accessor: "Download",
-      width: 100,
-      customCell: checkboxCell,
-    },
-    {
-      header: "Enable",
-      accessor: "Enable",
-      width: 100,
-      customCell: checkboxCell,
+      vCId: 1,
+      contactName: "",
+      emailId: "",
+      isInitLoad: true,
+      isHavingError: false,
     },
   ];
-  const handleCheckox = (e, checked) => {
-    console.log("columnName", checked);
+
+  const [tableRows, setTableRows] = useState(initialRows);
+  const [editedRows, setEditedRows] = useState(initialRows);
+
+  const columns = [
+    {
+      header: "Contact Name",
+      accessor: "contactName",
+      sortFunction: compareStrings,
+      customCell: EditableCell,
+    },
+    {
+      header: "Email Address",
+      accessor: "emailId",
+      customCell: EditableCell,
+    },
+    {
+      header: "",
+      width: 50,
+      customCell: ActionCell,
+      align: "right",
+    },
+  ];
+
+  const addAContact = () => {
+    setEditedRows((rw) => [
+      ...rw,
+      {
+        vCId: rw.length + 1,
+        contactName: "",
+        emailId: "",
+        isInitLoad: true,
+        isHavingError: false,
+      },
+    ]);
   };
-  useEffect(() => {
-    const newRows = tableRows.filter((row) => {
-      return (
-        row.feat_nm.toLowerCase().includes(searchTxt) ||
-        row.ctgy_nm.toLowerCase().includes(searchTxt)
-      );
-    });
-    setFilteredData(newRows);
-  }, [searchTxt]);
-  useEffect(() => {
-    settableRows(data);
-    if (filteredData.length === 0) setFilteredData(data);
-  }, [data]);
+
+  const onRowDelete = (vCId) => {
+    setTableRows(tableRows.filter((row) => row.vCId !== vCId));
+    setEditedRows(editedRows.filter((row) => row.vCId !== vCId));
+  };
+
+  const editRow = (vCId, key, value) => {
+    setEditedRows((rows) =>
+      rows.map((row) => (row.vCId === vCId ? { ...row, [key]: value } : row))
+    );
+  };
+
+  // const editRow = (vCId, key, value) => {
+  //   setEditedRows((rws) =>
+  //     rws.map((row) => {
+  //       if (row.vCId === vCId) {
+  //         return {
+  //           ...row,
+  //           [key]: value,
+  //         };
+  //       }
+  //       return row;
+  //     })
+  //   );
+  // };
+
+  const editMode = true;
   return (
-    <div className="permission-table-wrapper">
-      <div className="search-header">
-        <CustomHeader searchTxt={searchTxt} setSearchText={setSearchText} />
-      </div>
+    <div className="table-wrapper">
       <Table
-        title="Permissions"
-        subtitle={title}
+        title="Vendor Contacts"
+        subtitle="CDAS Admin"
         columns={columns}
-        rows={filteredData}
-        rowsPerPage={tableRows.length}
-        initialSortedColumn="feat_nm"
+        rows={(editMode ? editedRows : tableRows).map((row) => ({
+          ...row,
+          onRowDelete,
+          editRow,
+          editMode,
+        }))}
+        initialSortedColumn="vCId"
         initialSortOrder="asc"
+        tablePaginationProps={{
+          labelDisplayedRows: ({ from, to, count }) =>
+            `${count === 1 ? "Items" : "Items"} ${from}-${to} of ${count}`,
+          truncate: true,
+        }}
+        CustomHeader={CustomHeader}
+        headerProps={{ addAContact }}
       />
     </div>
   );

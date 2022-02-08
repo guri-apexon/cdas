@@ -29,10 +29,10 @@ import {
 
 import "./PolicyList.scss";
 
-const ProductsCell = ({ row, column: { accessor } }) => {
-  const rowValue = row[accessor];
-  return <>{rowValue.slice(0, -1)}</>;
-};
+// const ProductsCell = ({ row, column: { accessor } }) => {
+//   const rowValue = row[accessor];
+//   return <>{rowValue.slice(0, -1)}</>;
+// };
 
 const statusList = ["Active", "Inactive"];
 
@@ -57,22 +57,45 @@ const PolicyList = () => {
   };
 
   const createUniqueData = (arrayList) => {
+    // const uniquePolicies = Array.from(
+    //   arrayList
+    //     .reduce((acc, { productName, policyId, ...r }) => {
+    //       const current = acc.get(policyId) || {
+    //         ...r,
+    //         policyId,
+    //         productsIncluded: "",
+    //       };
+    //       return acc.set(policyId, {
+    //         ...current,
+    //         productsIncluded: `${current.productsIncluded} ${productName},`,
+    //       });
+    //     }, new Map())
+    //     .values()
+    // );
     const uniquePolicies = Array.from(
       arrayList
         .reduce((acc, { productName, policyId, ...r }) => {
           const current = acc.get(policyId) || {
             ...r,
             policyId,
-            productsIncluded: "",
+            productsIncluded: [],
           };
           return acc.set(policyId, {
             ...current,
-            productsIncluded: `${current.productsIncluded} ${productName},`,
+            productsIncluded: [...current.productsIncluded, productName],
           });
         }, new Map())
         .values()
     );
-    return uniquePolicies;
+    const Sorted = uniquePolicies.map((e) => {
+      if (e.productsIncluded.length) {
+        e.productsIncluded.sort();
+        e.productsIncluded = e.productsIncluded.join(", ");
+      }
+      return e;
+    });
+    // console.log("unique", Sorted, uniquePolicies);
+    return Sorted;
   };
 
   useEffect(() => {
@@ -234,7 +257,7 @@ const PolicyList = () => {
     {
       header: "Products Included",
       accessor: "productsIncluded",
-      customCell: ProductsCell,
+      // customCell: ProductsCell,
       sortFunction: compareStrings,
       filterFunction: createStringArrayIncludedFilter("productsIncluded"),
       filterComponent: createSelectFilterComponent(products, {
