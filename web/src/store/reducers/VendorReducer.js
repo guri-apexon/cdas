@@ -41,8 +41,8 @@ const VendorReducer = (state = initialState, action) =>
       case VENDOR_DETAILS_SUCCESS:
         newState.loading = false;
         newState.isDBData = true;
-        newState.selectedContacts = action.selectedContacts;
-        newState.selectedVendor = action.selectedVendor;
+        newState.selectedContacts = action.contacts;
+        newState.selectedVendor = action.vendor;
         break;
 
       case VENDOR_DETAILS_FAILURE:

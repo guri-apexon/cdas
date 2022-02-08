@@ -4,6 +4,7 @@ import {
   STUDYBOARD_DATA,
   STUDY_NOTONBOARDED_STATUS,
   POLICY_LIST,
+  GET_VENDOR_DETAILS,
   VENDOR_LIST,
   ROLE_LIST_FETCH,
 } from "../../constants";
@@ -14,13 +15,14 @@ import {
 
 import { fetchRoles } from "./role.saga";
 import { fetchPolicies } from "./policy.saga";
-import { fetchVendorList } from "./vendor.saga";
+import { fetchVendorList, fetchVendorDetails } from "./vendor.saga";
 
 function* cdasCoreSaga() {
   yield takeEvery(STUDYBOARD_DATA, fetchStudyboardData);
   yield takeLatest(STUDY_NOTONBOARDED_STATUS, fetchNotOnStudyboardStatus);
   yield takeEvery(POLICY_LIST, fetchPolicies);
   yield takeEvery(VENDOR_LIST, fetchVendorList);
+  yield takeEvery(GET_VENDOR_DETAILS, fetchVendorDetails);
   yield takeEvery(ROLE_LIST_FETCH, fetchRoles);
 }
 
