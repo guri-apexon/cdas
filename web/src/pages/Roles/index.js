@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/anchor-is-valid */
 import { Typography } from "@material-ui/core";
 import React, { useMemo, useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -75,7 +76,8 @@ const Role = () => {
     e.preventDefault();
     const selectedData = tableRows.filter((d) => d.role_id === id);
     const unSelectedData = tableRows.filter((d) => d.role_id !== id);
-    selectedData[0].roleStatus = "Inactive";
+    console.log(selectedData, "selectedData");
+    selectedData[0].role_stat = "Inactive";
     setTableRows([...unSelectedData, ...selectedData]);
   };
 
@@ -83,7 +85,7 @@ const Role = () => {
     e.preventDefault();
     const selectedData = tableRows.filter((d) => d.role_id === id);
     const unSelectedData = tableRows.filter((d) => d.role_id !== id);
-    selectedData[0].roleStatus = "Active";
+    selectedData[0].role_stat = "Active";
     setTableRows([...unSelectedData, ...selectedData]);
   };
 
