@@ -53,7 +53,7 @@ exports.getVendorById = async (req, res) => {
     const contact = await DB.executeQuery(query2, [id]);
 
     return apiResponse.successResponseWithData(res, "Operation success", {
-      vendor: vendor.rows,
+      vendor: vendor.rows[0],
       contacts: contact.rows,
     });
   } catch (err) {

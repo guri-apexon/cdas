@@ -44,12 +44,30 @@ const CreateVendor = () => {
   const [vName, setVName] = useState("");
   const [vDescription, setVDescription] = useState("");
   const [vESN, setVESN] = useState("");
+  const [vId, setVId] = useState();
   const [vContacts, setVContacts] = useState([]);
   const [contacts, setContacts] = useState([]);
   const messageContext = useContext(MessageContext);
   const userInfo = getUserInfo();
   const history = useHistory();
   const params = useParams();
+
+  useEffect(() => {
+    if (params.id) {
+      getVendorDetails(params.id).then((res) => {
+        console.log(res.vendor);
+        if (res.vendor) {
+          // eslint-disable-next-line no-shadow
+          const { vDescription, vESN, vName, vStatus, vId } = res.vendor;
+          setActive(vStatus === 1 ? "Active" : "Inactive");
+          setVDescription(vDescription);
+          setVESN(vESN);
+          setVName(vName);
+          setVId(vId);
+        }
+      });
+    }
+  }, [params]);
 
   const handleActive = (e, checked) => {
     setActive(checked);
@@ -76,17 +94,17 @@ const CreateVendor = () => {
       return false;
     }
 
-    const startList = contacts.map((e) => e.isStarted);
-    const nameValid = contacts.map((e) => e.isNameValid);
-    const emailValid = contacts.map((e) => e.isEmailValid);
+    // const startList = contacts.map((e) => e.isStarted);
+    // const nameValid = contacts.map((e) => e.isNameValid);
+    // const emailValid = contacts.map((e) => e.isEmailValid);
 
-    if (startList.every((v) => v === true)) {
-      if (nameValid.every((v) => v === true)) {
-        if (emailValid.every((v) => v === true)) {
-          const test = "";
-        }
-      }
-    }
+    // if (startList.every((v) => v === true)) {
+    //   if (nameValid.every((v) => v === true)) {
+    //     if (emailValid.every((v) => v === true)) {
+    //       const test = "";
+    //     }
+    //   }
+    // }
 
     setLoading(true);
     addVendorService(reqBody)

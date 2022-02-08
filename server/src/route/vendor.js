@@ -6,7 +6,7 @@ var router = express.Router();
 router.post("/list", VendorController.getVendorsList);
 router.post("/statusUpdate", VendorController.activeStatusUpdate);
 // router.post("/vesn/list", VendorController.getESNList);
-router.post("/details/:vendor_id", VendorController.getVendorById);
+router.get("/details/:vendor_id", VendorController.getVendorById);
 router.post("/create", VendorController.createVendor);
 router.post("/update", VendorController.updateVendor);
 
