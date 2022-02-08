@@ -27,7 +27,7 @@ import { fetchRoles } from "../../store/actions/RolesActions";
 
 const ProductsCell = ({ row, column: { accessor } }) => {
   const rowValue = row[accessor];
-  return <>{rowValue.slice(0, -1)}</>;
+  return <>{rowValue}</>;
 };
 
 const statusList = ["Active", "Inactive"];
@@ -76,7 +76,7 @@ const Role = () => {
     e.preventDefault();
     const selectedData = tableRows.filter((d) => d.role_id === id);
     const unSelectedData = tableRows.filter((d) => d.role_id !== id);
-    selectedData[0].roleStatus = "Inactive";
+    // selectedData[0].role_stat = "Inactive";
     setTableRows([...unSelectedData, ...selectedData]);
   };
 
@@ -84,7 +84,7 @@ const Role = () => {
     e.preventDefault();
     const selectedData = tableRows.filter((d) => d.role_id === id);
     const unSelectedData = tableRows.filter((d) => d.role_id !== id);
-    selectedData[0].roleStatus = "Active";
+    // selectedData[0].role_stat = "Active";
     setTableRows([...unSelectedData, ...selectedData]);
   };
 
