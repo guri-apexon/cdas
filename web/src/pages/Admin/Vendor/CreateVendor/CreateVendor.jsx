@@ -14,6 +14,7 @@ import Typography from "apollo-react/components/Typography";
 import Link from "apollo-react/components/Link";
 import Grid from "apollo-react/components/Grid";
 import MenuItem from "apollo-react/components/MenuItem";
+import Modal from "apollo-react/components/Modal";
 import _ from "lodash";
 import {
   addVendorService,
@@ -38,8 +39,31 @@ const breadcrumpItems = [
   },
 ];
 
+const ConfirmModal = React.memo(({ open, cancel, stayHere, loading }) => {
+  return (
+    <Modal
+      open={open}
+      className="save-confirm"
+      variant="warning"
+      title="Lose your work?"
+      message="Your unsaved changes will be lost. Are you sure you want to leave this page?"
+      buttonProps={[
+        { label: "Leave without saving", onClick: cancel, disabled: loading },
+        {
+          label: "Stay on this page",
+          onClick: stayHere,
+          disabled: loading,
+        },
+      ]}
+      id="neutral"
+    />
+  );
+});
+
 const CreateVendor = () => {
   const [active, setActive] = useState(true);
+  const [isAnyUpdate, setIsAnyUpdate] = useState(false);
+  const [confirm, setConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [vName, setVName] = useState("");
   const [vDescription, setVDescription] = useState("");
@@ -73,8 +97,15 @@ const CreateVendor = () => {
     }
   }, [params]);
 
+  const updateChanges = () => {
+    if (!isAnyUpdate) {
+      setIsAnyUpdate(true);
+    }
+  };
+
   const handleActive = (e, checked) => {
     setActive(checked);
+    updateChanges();
   };
   // eslint-disable-next-line consistent-return
   const submitVendor = async () => {
@@ -125,6 +156,7 @@ const CreateVendor = () => {
 
   const handleChange = (e) => {
     const val = e.target.value;
+    updateChanges();
     if (e.target.id === "vName") {
       inputAlphaNumericWithUnderScore(e, (v) => {
         setVName(v);
@@ -142,16 +174,41 @@ const CreateVendor = () => {
     // console.log("updateData", data, goodContacts);
     setContacts(data);
     setVContacts(goodContacts);
+    updateChanges();
   };
 
   const options = ["None", "CDR", "GDMPM-DAS", "IQB", "TDSE", "Wingspan"];
 
   const handleSelection = (e) => {
     setVESN(e.target.value);
+    updateChanges();
+  };
+
+  const cancelEdit = () => {
+    setConfirm(false);
+    history.goBack();
+  };
+
+  const stayHere = () => {
+    setConfirm(false);
+  };
+
+  const handleCancel = () => {
+    if (isAnyUpdate) {
+      setConfirm(true);
+    } else {
+      history.push("/vendor/list");
+    }
   };
 
   return (
     <div className="create-vendor-wrapper">
+      <ConfirmModal
+        open={confirm}
+        cancel={cancelEdit}
+        loading={loading}
+        stayHere={stayHere}
+      />
       <Box className="top-content">
         <BreadcrumbsUI className="breadcrump" items={breadcrumpItems} />
         <div className="flex full-cover">
@@ -176,7 +233,7 @@ const CreateVendor = () => {
                 {
                   label: "Cancel",
                   size: "small",
-                  onClick: () => history.push("/vendor/list"),
+                  onClick: handleCancel,
                 },
                 {
                   label: "Save",
