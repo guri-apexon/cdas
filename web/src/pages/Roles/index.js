@@ -27,7 +27,7 @@ import { fetchRoles } from "../../store/actions/RolesActions";
 
 const ProductsCell = ({ row, column: { accessor } }) => {
   const rowValue = row[accessor];
-  return <>{rowValue.slice(0, -1)}</>;
+  return <>{rowValue}</>;
 };
 
 const statusList = ["Active", "Inactive"];
