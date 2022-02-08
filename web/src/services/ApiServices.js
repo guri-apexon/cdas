@@ -112,6 +112,7 @@ export const getVendorDetails = async (vId = "") => {
         .get(`${baseURL}/${VENDOR_BASE}/Details/${vId}`)
         .then((res) => {
           resolve(res.data.data);
+          console.log(res.data.data);
         })
         .catch((err) => {
           console.log("Err", err);

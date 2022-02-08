@@ -163,6 +163,14 @@ const TableEditableAll = ({ updateData }) => {
   const [rows, setRows] = useState(initialRows);
   const [editedRows, setEditedRows] = useState(initialRows);
 
+  // if (sendContacts.length > 1) {
+  //   // setRows(sendContacts);
+  //   // setEditedRows(sendContacts);
+  // } else {
+  // setRows(initialRows);
+  // setEditedRows(initialRows);
+  // }
+
   const addAContact = () => {
     setEditedRows((rw) => [
       ...rw,

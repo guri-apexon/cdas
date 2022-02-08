@@ -22,7 +22,7 @@ import {
 } from "../../../../services/ApiServices";
 import { MessageContext } from "../../../../components/Providers/MessageProvider";
 import ContactsTable from "./ContactsTable";
-import TableEditableAll from "./testTable";
+import TableEditableAll from "./ContactTable";
 import {
   getUserInfo,
   inputAlphaNumericWithUnderScore,
@@ -43,6 +43,7 @@ const ConfirmModal = React.memo(({ open, cancel, stayHere, loading }) => {
   return (
     <Modal
       open={open}
+      onClose={stayHere}
       className="save-confirm"
       variant="warning"
       title="Lose your work?"
@@ -71,6 +72,7 @@ const CreateVendor = () => {
   const [vId, setVId] = useState();
   const [vContacts, setVContacts] = useState([]);
   const [contacts, setContacts] = useState([]);
+  const [sendContacts, setSendContacts] = useState([]);
   const messageContext = useContext(MessageContext);
   const userInfo = getUserInfo();
   const history = useHistory();
@@ -90,6 +92,9 @@ const CreateVendor = () => {
           setVESN(vESN);
           setVName(vName);
           setVId(vId);
+          if (res.contacts) {
+            setSendContacts(res.contacts);
+          }
         } else {
           history.push("/vendor/list");
         }
@@ -203,18 +208,20 @@ const CreateVendor = () => {
 
   return (
     <div className="create-vendor-wrapper">
-      <ConfirmModal
-        open={confirm}
-        cancel={cancelEdit}
-        loading={loading}
-        stayHere={stayHere}
-      />
+      {isAnyUpdate && (
+        <ConfirmModal
+          open={confirm}
+          cancel={cancelEdit}
+          loading={loading}
+          stayHere={stayHere}
+        />
+      )}
       <Box className="top-content">
         <BreadcrumbsUI className="breadcrump" items={breadcrumpItems} />
         <div className="flex full-cover">
           <div>
             <span style={{ marginBottom: 16 }}>
-              <Link onClick={() => history.push("/vendor/list")} size="small">
+              <Link onClick={handleCancel} size="small">
                 &#x276E; Back to Vendor List
               </Link>
             </span>
