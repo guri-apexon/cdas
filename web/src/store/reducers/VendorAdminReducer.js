@@ -5,11 +5,17 @@ import {
   VENDOR_LIST,
   VENDOR_LIST_SUCCESS,
   VENDOR_LIST_FAILURE,
+  GET_VENDOR_DETAILS,
+  VENDOR_DETAILS_FAILURE,
+  VENDOR_DETAILS_SUCCESS,
 } from "../../constants";
 
 export const initialState = {
   vendorList: [],
   loading: false,
+  selectedVendor: {},
+  selectedContacts: [],
+  isDBData: false,
 };
 
 const VendorAdminReducer = (state = initialState, action) =>
@@ -26,6 +32,22 @@ const VendorAdminReducer = (state = initialState, action) =>
 
       case VENDOR_LIST_FAILURE:
         newState.loading = false;
+        break;
+
+      case GET_VENDOR_DETAILS:
+        newState.loading = true;
+        break;
+
+      case VENDOR_DETAILS_SUCCESS:
+        newState.loading = false;
+        newState.isDBData = true;
+        newState.selectedContacts = action.selectedContacts;
+        newState.selectedVendor = action.selectedVendor;
+        break;
+
+      case VENDOR_DETAILS_FAILURE:
+        newState.loading = false;
+        newState.isDBData = false;
         break;
 
       default:

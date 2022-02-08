@@ -21,7 +21,7 @@ import {
   getVendorDetails,
 } from "../../../../services/ApiServices";
 import { MessageContext } from "../../../../components/Providers/MessageProvider";
-import ContactsTable from "./ContactsTable";
+// import ContactsTable from "./ContactsTable";
 import TableEditableAll from "./ContactTable";
 import {
   getUserInfo,
