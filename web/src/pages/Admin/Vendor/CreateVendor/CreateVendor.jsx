@@ -55,15 +55,19 @@ const CreateVendor = () => {
   useEffect(() => {
     if (params.id) {
       getVendorDetails(params.id).then((res) => {
-        console.log(res.vendor);
+        // console.log(res.vendor);
         if (res.vendor) {
           // eslint-disable-next-line no-shadow
           const { vDescription, vESN, vName, vStatus, vId } = res.vendor;
-          setActive(vStatus === 1 ? "Active" : "Inactive");
+          setActive(vStatus === 1 ? true : false);
+
+          // console.log("existing data", vId, vName, vDescription);
           setVDescription(vDescription);
           setVESN(vESN);
           setVName(vName);
           setVId(vId);
+        } else {
+          history.push("/vendor/list");
         }
       });
     }
@@ -196,6 +200,7 @@ const CreateVendor = () => {
               <TextField
                 id="vName"
                 size="small"
+                value={vName}
                 label="Vendor Name"
                 placeholder="Name your vendor"
                 onChange={handleChange}
@@ -221,6 +226,7 @@ const CreateVendor = () => {
                 label="Vendor Description"
                 placeholder="Describe your vendor"
                 rows="18"
+                value={vDescription}
                 multiline={true}
                 minHeight={150}
                 sizeAdjustable

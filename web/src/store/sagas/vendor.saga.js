@@ -16,7 +16,7 @@ export function* fetchVendorList() {
       {}
     );
 
-    console.log("study", fetchData);
+    // console.log("study", fetchData);
     yield put({
       type: VENDOR_LIST_SUCCESS,
       vendorList: fetchData.data.data,
