@@ -18,7 +18,7 @@ export const initialState = {
   isDBData: false,
 };
 
-const VendorAdminReducer = (state = initialState, action) =>
+const VendorReducer = (state = initialState, action) =>
   produce(state, (newState) => {
     switch (action.type) {
       case VENDOR_LIST:
@@ -55,4 +55,4 @@ const VendorAdminReducer = (state = initialState, action) =>
     }
   });
 
-export default VendorAdminReducer;
+export default VendorReducer;

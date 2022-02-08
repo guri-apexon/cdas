@@ -53,7 +53,8 @@ const VendorList = () => {
   const [open, setOpen] = useState(false);
   const [curRow, setCurRow] = useState({});
   const dispatch = useDispatch();
-  const vendorAdmin = useSelector((state) => state.vendorAdmin);
+  // const vendorAdmin = useSelector((state) => state.admin.vendor);
+  const vendorAdmin = useSelector((state) => state.vendor);
 
   const getData = () => {
     dispatch(getVendorList());

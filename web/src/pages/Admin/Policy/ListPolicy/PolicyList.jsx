@@ -50,7 +50,7 @@ const PolicyList = () => {
   const [open, setOpen] = useState(false);
   const [curRow, setCurRow] = useState({});
   const dispatch = useDispatch();
-  const policyAdmin = useSelector((state) => state.policyAdmin);
+  const policyAdmin = useSelector((state) => state.policy);
 
   const getData = () => {
     dispatch(getPolicyList());

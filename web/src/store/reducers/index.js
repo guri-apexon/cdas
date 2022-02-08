@@ -1,13 +1,13 @@
 /* eslint-disable import/prefer-default-export */
 import { combineReducers } from "redux";
 import StudyBoardReaducer from "./StudyBoardReducer";
-import PolicyAdminReducer from "./PolicyAdminReducer";
-import VendorAdminReducer from "./VendorAdminReducer";
+import PolicyReducer from "./PolicyReducer";
+import VendorReducer from "./VendorReducer";
 import RolesReducer from "./RolesReducer";
 
 export const appReducer = combineReducers({
   studyBoard: StudyBoardReaducer,
-  policyAdmin: PolicyAdminReducer,
-  vendorAdmin: VendorAdminReducer,
+  policy: PolicyReducer,
+  vendor: VendorReducer,
   Roles: RolesReducer,
 });
