@@ -76,7 +76,8 @@ const Role = () => {
     e.preventDefault();
     const selectedData = tableRows.filter((d) => d.role_id === id);
     const unSelectedData = tableRows.filter((d) => d.role_id !== id);
-    selectedData[0].roleStatus = "Inactive";
+    console.log(selectedData, "selectedData");
+    selectedData[0].role_stat = "Inactive";
     setTableRows([...unSelectedData, ...selectedData]);
   };
 
@@ -84,7 +85,7 @@ const Role = () => {
     e.preventDefault();
     const selectedData = tableRows.filter((d) => d.role_id === id);
     const unSelectedData = tableRows.filter((d) => d.role_id !== id);
-    selectedData[0].roleStatus = "Active";
+    selectedData[0].role_stat = "Active";
     setTableRows([...unSelectedData, ...selectedData]);
   };
 
