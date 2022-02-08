@@ -18,7 +18,7 @@ export const initialState = {
   isDBData: false,
 };
 
-const VendorAdminReducer = (state = initialState, action) =>
+const VendorReducer = (state = initialState, action) =>
   produce(state, (newState) => {
     switch (action.type) {
       case VENDOR_LIST:
@@ -41,8 +41,8 @@ const VendorAdminReducer = (state = initialState, action) =>
       case VENDOR_DETAILS_SUCCESS:
         newState.loading = false;
         newState.isDBData = true;
-        newState.selectedContacts = action.selectedContacts;
-        newState.selectedVendor = action.selectedVendor;
+        newState.selectedContacts = action.contacts;
+        newState.selectedVendor = action.vendor;
         break;
 
       case VENDOR_DETAILS_FAILURE:
@@ -55,4 +55,4 @@ const VendorAdminReducer = (state = initialState, action) =>
     }
   });
 
-export default VendorAdminReducer;
+export default VendorReducer;

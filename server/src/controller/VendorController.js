@@ -39,12 +39,11 @@ exports.getVendorsList = async (req, res) => {
 
 exports.getVendorById = async (req, res) => {
   try {
-    const id = req.params.vendor_id;
+    const id = parseInt(req.params.vendor_id);
     Logger.info({
       message: "getVendorById",
     });
-
-    console.log(id);
+    // console.log(id);
 
     const query = `SELECT v.vend_id as "vId", vend_nm as "vName", description as "vDescription", active as "vStatus", extrnl_sys_nm as "vESN" FROM ${schemaName}.vendor v WHERE v.vend_id = $1`;
     const query2 = `SELECT vc.contact_nm as "name", vc.emailid as "email", vc.vend_contact_id as "vCId" FROM ${schemaName}.vendor_contact vc where vc.vend_id = $1`;

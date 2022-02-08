@@ -7,8 +7,9 @@ export const getVendorList = () => {
   };
 };
 
-export const selectVendor = () => {
+export const selectVendor = (vId) => {
   return {
     type: GET_VENDOR_DETAILS,
+    vId,
   };
 };

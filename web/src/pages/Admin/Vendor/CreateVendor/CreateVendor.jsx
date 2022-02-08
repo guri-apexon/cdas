@@ -1,12 +1,12 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 /* eslint-disable react/button-has-type */
 import React, { useContext, useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import Box from "apollo-react/components/Box";
 import { useHistory, useParams } from "react-router";
 import BreadcrumbsUI from "apollo-react/components/Breadcrumbs";
 import Switch from "apollo-react/components/Switch";
 import ButtonGroup from "apollo-react/components/ButtonGroup";
-import Button from "apollo-react/components/Button";
 import TextField from "apollo-react/components/TextField";
 import Select from "apollo-react/components/Select";
 import "./CreateVendor.scss";
@@ -20,6 +20,7 @@ import {
   addVendorService,
   getVendorDetails,
 } from "../../../../services/ApiServices";
+import { selectVendor } from "../../../../store/actions/VendorAdminAction";
 import { MessageContext } from "../../../../components/Providers/MessageProvider";
 // import ContactsTable from "./ContactsTable";
 import TableEditableAll from "./ContactTable";
@@ -77,30 +78,36 @@ const CreateVendor = () => {
   const userInfo = getUserInfo();
   const history = useHistory();
   const params = useParams();
+  const dispatch = useDispatch();
+  const vendor = useSelector((state) => state.vendor);
 
   useEffect(() => {
     if (params.id) {
-      getVendorDetails(params.id).then((res) => {
-        // console.log(res.vendor);
-        if (res.vendor) {
-          // eslint-disable-next-line no-shadow
-          const { vDescription, vESN, vName, vStatus, vId } = res.vendor;
-          setActive(vStatus === 1 ? true : false);
-
-          // console.log("existing data", vId, vName, vDescription);
-          setVDescription(vDescription);
-          setVESN(vESN);
-          setVName(vName);
-          setVId(vId);
-          if (res.contacts) {
-            setSendContacts(res.contacts);
-          }
-        } else {
-          history.push("/vendor/list");
-        }
-      });
+      dispatch(selectVendor(params.id));
     }
   }, [params]);
+
+  useEffect(() => {}, []);
+
+  // getVendorDetails(params.id).then((res) => {
+  //   // console.log(res.vendor);
+  //   if (res.vendor) {
+  //     // eslint-disable-next-line no-shadow
+  //     const { vDescription, vESN, vName, vStatus, vId } = res.vendor;
+  //     setActive(vStatus === 1 ? true : false);
+
+  //     // console.log("existing data", vId, vName, vDescription);
+  //     setVDescription(vDescription);
+  //     setVESN(vESN);
+  //     setVName(vName);
+  //     setVId(vId);
+  //     if (res.contacts) {
+  //       setSendContacts(res.contacts);
+  //     }
+  //   } else {
+  //     history.push("/vendor/list");
+  //   }
+  // });
 
   const updateChanges = () => {
     if (!isAnyUpdate) {

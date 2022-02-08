@@ -15,25 +15,20 @@ import Tooltip from "apollo-react/components/Tooltip";
 import { useHistory } from "react-router-dom";
 import Switch from "apollo-react/components/Switch";
 import Typography from "apollo-react/components/Typography";
+
 import Progress from "../../../../components/Progress";
-
 import { MessageContext } from "../../../../components/Providers/MessageProvider";
-
 import { statusUpdate } from "../../../../services/ApiServices";
-import { getVendorList } from "../../../../store/actions/VendorAdminAction";
-
+import {
+  getVendorList,
+  selectVendor,
+} from "../../../../store/actions/VendorAdminAction";
 import {
   TextFieldFilter,
   createStringArraySearchFilter,
   createStringArrayIncludedFilter,
 } from "../../../../utils/index";
-
 import "./VendorList.scss";
-
-const ProductsCell = ({ row, column: { accessor } }) => {
-  const rowValue = row[accessor];
-  return <>{rowValue.slice(0, -1)}</>;
-};
 
 const statusList = ["Active", "Inactive"];
 const vESNList = ["None", "CDR", "GDMPM-DAS", "IQB", "TDSE", "Wingspan"];
@@ -42,41 +37,15 @@ const VendorList = () => {
   const history = useHistory();
   const messageContext = useContext(MessageContext);
   const [loading, setLoading] = useState(true);
-  const [products, setProducts] = useState([]);
   const [tableRows, setTableRows] = useState([]);
-  const [vendorLists, setVendorLists] = useState([]);
-  // const [rowsPerPageRecord, setRowPerPageRecord] = useState(10);
-  // const [pageNo, setPageNo] = useState(0);
-  // const [sortedColumnValue, setSortedColumnValue] = useState("vendorName");
-  // const [sortOrderValue, setSortOrderValue] = useState("asc");
-  // const [inlineFilters, setInlineFilters] = useState([]);
   const [open, setOpen] = useState(false);
   const [curRow, setCurRow] = useState({});
   const dispatch = useDispatch();
-  const vendorAdmin = useSelector((state) => state.vendorAdmin);
+  const vendorAdmin = useSelector((state) => state.vendor);
 
   const getData = () => {
     dispatch(getVendorList());
   };
-
-  // const createUniqueData = (arrayList) => {
-  //   const uniqueList = Array.from(
-  //     arrayList
-  //       .reduce((acc, { vContactName, vId, ...r }) => {
-  //         const current = acc.get(vId) || {
-  //           ...r,
-  //           vId,
-  //           contactsJoined: "",
-  //         };
-  //         return acc.set(vId, {
-  //           ...current,
-  //           contactsJoined: `${current.contactsJoined} ${vContactName},`,
-  //         });
-  //       }, new Map())
-  //       .values()
-  //   );
-  //   return uniqueList;
-  // };
 
   useEffect(() => {
     getData();
@@ -88,13 +57,9 @@ const VendorList = () => {
     setLoading(false);
   }, [vendorAdmin.loading]);
 
-  // useEffect(() => {
-  //   const uniqueList = vendorLists);
-  //   setTableRows(uniqueList);
-  // }, [vendorLists]);
-
   const goToVendor = (e, id) => {
     e.preventDefault();
+    selectVendor(id);
     history.push(`/vendor/edit/${id}`);
   };
 
@@ -107,25 +72,15 @@ const VendorList = () => {
         messageContext.showErrorMessage(update.data, 56);
       }
       getData();
-      // const selectedData = tableRows.filter((d) => d.vId === id);
-      // const unSelectedData = tableRows.filter((d) => d.vId !== id);
-      // selectedData[0].vStatus = "Inactive";
-      // setTableRows([...unSelectedData, ...selectedData]);
     }
-    // console.log("tableRows", tableRows, products, id);
   };
 
   const handleActivate = async (e, id) => {
     e.preventDefault();
     const update = await statusUpdate(id, 1);
     if (update) {
-      // const selectedData = tableRows.filter((d) => d.vId === id);
-      // const unSelectedData = tableRows.filter((d) => d.vId !== id);
-      // selectedData[0].vStatus = "Active";
-      // setTableRows([...unSelectedData, ...selectedData]);
       getData();
     }
-    // console.log("tableRows", tableRows, products, id);
   };
 
   const StatusCell = ({ row, column: { accessor } }) => {
@@ -165,17 +120,17 @@ const VendorList = () => {
   const LinkCell = ({ row, column: { accessor } }) => {
     const rowValue = row[accessor];
     const id = row.vId;
-    if (rowValue.length > 30) {
-      return (
-        <Link
-          onMouseOver={() => handleMouseOver(row)}
-          onMouseOut={handleMouseOut}
-          onClick={(e) => goToVendor(e, id)}
-        >
-          {`${rowValue.slice(0, 30)}  [...]`}
-        </Link>
-      );
-    }
+    // if (rowValue.length > 30) {
+    //   return (
+    //     <Link
+    //       onMouseOver={() => handleMouseOver(row)}
+    //       onMouseOut={handleMouseOut}
+    //       onClick={(e) => goToVendor(e, id)}
+    //     >
+    //       {`${rowValue.slice(0, 30)}  [...]`}
+    //     </Link>
+    //   );
+    // }
     return <Link onClick={(e) => goToVendor(e, id)}>{rowValue}</Link>;
   };
 
@@ -254,7 +209,6 @@ const VendorList = () => {
     {
       header: "External System",
       accessor: "vESN",
-      customCell: ProductsCell,
       sortFunction: compareStrings,
       filterFunction: createStringArrayIncludedFilter("vESN"),
       filterComponent: createSelectFilterComponent(vESNList, {
@@ -277,97 +231,6 @@ const VendorList = () => {
     },
   ];
 
-  // const newColumns = [
-  //   columns[0],
-  //   columns[1],
-  //   columns[2],
-  //   {
-  //     header: "Products Included",
-  //     accessor: "productName",
-  //     customCell: ProductsCell,
-  //     sortFunction: compareStrings,
-  //     filterFunction: createStringArraySearchFilter("productName"),
-  //     filterComponent: createSelectFilterComponent(products, {
-  //       size: "small",
-  //       multiple: true,
-  //     }),
-  //   },
-  //   columns[4],
-  // ];
-
-  // const applyFilter = (cols, rows, filts) => {
-  //   let filteredRows = rows;
-  //   console.log("productsIncluded", cols);
-  //   Object.values(cols).forEach((column) => {
-  //     if (column.filterFunction) {
-  //       filteredRows = filteredRows.filter((row) => {
-  //         return column.filterFunction(row, filts);
-  //       });
-  //       if (column.sortFunction) {
-  //         filteredRows.sort(
-  //           column.sortFunction(sortedColumnValue, sortOrderValue)
-  //         );
-  //       }
-  //     }
-  //   });
-  //   // console.log("try", Object.values(cols));
-  //   return filteredRows;
-  // };
-
-  // useEffect(() => {
-  //   const rows = applyFilter(newColumns, vendorLists, inlineFilters);
-  //   const uniqueRows = createUniqueData(rows);
-  //   console.log("filtered", rows, uniqueRows);
-  //   setTableRows([...uniqueRows]);
-  // }, [inlineFilters, sortedColumnValue, sortOrderValue]);
-
-  // const getTableData = React.useMemo(
-  //   () => (
-  //     <>
-  //       {loading ? (
-  //         <Progress />
-  //       ) : (
-  //         <>
-  //           <Table
-  //             isLoading={loading}
-  //             title="Policies"
-  //             columns={columns}
-  //             rows={tableRows}
-  //             rowId="vId"
-  //             hasScroll={true}
-  //             maxHeight="calc(100vh - 162px)"
-  //             initialSortedColumn="vendorName"
-  //             initialSortOrder="asc"
-  //             // sortedColumn={sortedColumnValue}
-  //             // sortOrder={sortOrderValue}
-  //             // page={pageNo}
-  //             // rowsPerPage={rowsPerPageRecord}
-  //             // onChange={(rpp, sc, so, filts, page) => {
-  //             //   setRowPerPageRecord(rpp);
-  //             //   setSortedColumnValue(sc);
-  //             //   setSortOrderValue(so);
-  //             //   setInlineFilters(filts);
-  //             //   setPageNo(page);
-  //             //   // console.log("onChange", rpp, sc, so, filts, page);
-  //             // }}
-  //             rowsPerPageOptions={[10, 50, 100, "All"]}
-  //             tablePaginationProps={{
-  //               labelDisplayedRows: ({ from, to, count }) =>
-  //                 `${
-  //                   count === 1 ? "Item " : "Items"
-  //                 } ${from}-${to} of ${count}`,
-  //               truncate: true,
-  //             }}
-  //             showFilterIcon
-  //             CustomHeader={(props) => <CustomButtonHeader {...props} />}
-  //           />
-  //         </>
-  //       )}
-  //     </>
-  //   ),
-  //   [tableRows, loading]
-  // );
-
   return (
     <div className="vendor-list-wrapper">
       <div className="page-header">
@@ -377,7 +240,6 @@ const VendorList = () => {
       </div>
       <div className="vendor-table">
         <div className="table">
-          {/* {getTableData} */}
           {loading ? (
             <Progress />
           ) : (
@@ -391,18 +253,6 @@ const VendorList = () => {
               maxHeight="calc(100vh - 162px)"
               initialSortedColumn="vName"
               initialSortOrder="asc"
-              // sortedColumn={sortedColumnValue}
-              // sortOrder={sortOrderValue}
-              // page={pageNo}
-              // rowsPerPage={rowsPerPageRecord}
-              // onChange={(rpp, sc, so, filts, page) => {
-              //   setRowPerPageRecord(rpp);
-              //   setSortedColumnValue(sc);
-              //   setSortOrderValue(so);
-              //   setInlineFilters(filts);
-              //   setPageNo(page);
-              //   // console.log("onChange", rpp, sc, so, filts, page);
-              // }}
               rowsPerPageOptions={[10, 50, 100, "All"]}
               tablePaginationProps={{
                 labelDisplayedRows: ({ from, to, count }) =>
@@ -428,11 +278,9 @@ const VendorList = () => {
                 gutterBottom
                 style={{ fontWeight: 600 }}
               >
-                {curRow.vendorName}
+                Description
               </Typography>
-              <Typography variant="body2">
-                {curRow.vendorDescription}
-              </Typography>
+              <Typography variant="body2">{curRow.vDescription}</Typography>
             </div>
           }
         />

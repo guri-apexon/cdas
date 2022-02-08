@@ -29,13 +29,14 @@ export function* fetchVendorList() {
 export function* fetchVendorDetails(action) {
   try {
     const fetchData = yield call(
-      axios.post,
-      `${baseURL}/${VENDOR_BASE}/details/${action.vId}`,
-      {}
+      axios.get,
+      `${baseURL}/${VENDOR_BASE}/details/${action.vId}`
     );
+    // console.log("data", fetchData);
     yield put({
       type: VENDOR_DETAILS_SUCCESS,
-      vendorList: fetchData.data.data,
+      vendor: fetchData.data.data.vendor,
+      contacts: fetchData.data.data.contacts,
     });
   } catch (e) {
     yield put({ type: VENDOR_DETAILS_FAILURE, message: e.message });
