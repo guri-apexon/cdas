@@ -245,7 +245,8 @@ const VendorList = () => {
           ) : (
             <Table
               isLoading={loading}
-              title="Policies"
+              title="Vendors"
+              subtitle={`${tableRows.length} vendors`}
               columns={columns}
               rows={tableRows}
               rowId="vId"

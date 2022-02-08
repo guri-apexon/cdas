@@ -51,10 +51,14 @@ exports.getVendorById = async (req, res) => {
     const vendor = await DB.executeQuery(query, [id]);
     const contact = await DB.executeQuery(query2, [id]);
 
-    return apiResponse.successResponseWithData(res, "Operation success", {
-      vendor: vendor.rows[0],
-      contacts: contact.rows,
-    });
+    if (vendor.rows[0]) {
+      return apiResponse.successResponseWithData(res, "Operation success", {
+        vendor: vendor.rows[0],
+        contacts: contact.rows,
+      });
+    } else {
+      return apiResponse.ErrorResponse(res, "No Data found");
+    }
   } catch (err) {
     //throw error in json response with status 500.
     console.log(err);
