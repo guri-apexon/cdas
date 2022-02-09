@@ -33,7 +33,7 @@ const CreateRole = () => {
   const dispatch = useDispatch();
   const history = useHistory();
   const [active, setActive] = useState(true);
-  const [confirm, setConfirm] = useState(false);
+  const [confirmObj, setConfirmObj] = useState(null);
   const [loading, setLoading] = useState(false);
   const [peekRow, setPeekRow] = useState(null);
   const [selectedPolicy, setSelectedPolicy] = useState(null);
@@ -89,6 +89,7 @@ const CreateRole = () => {
     {
       header: "Policy Name",
       accessor: "policyName",
+      sortFunction: compareStrings,
       width: 200,
       filterFunction: createStringSearchFilter("policyName"),
       filterComponent: TextFieldFilter,
@@ -115,6 +116,7 @@ const CreateRole = () => {
     {
       header: "Policy Description",
       accessor: "policyDescription",
+      sortFunction: compareStrings,
       customCell: DescriptionCell,
       filterFunction: createStringSearchFilter("policyDescription"),
       filterComponent: TextFieldFilter,
@@ -123,6 +125,7 @@ const CreateRole = () => {
       header: "Product Included",
       accessor: "products",
       width: 350,
+      sortFunction: compareStrings,
       filterFunction: createStringArrayIncludedFilter("products"),
       filterComponent: createSelectFilterComponent(products, {
         size: "small",
@@ -208,8 +211,8 @@ const CreateRole = () => {
         rowId="policyId"
         hasScroll
         maxHeight="calc(100vh - 360px)"
-        // initialSortedColumn="policyName"
-        // initialSortOrder="asc"
+        initialSortedColumn="policyName"
+        initialSortOrder="asc"
         rowsPerPageOptions={[10, 50, 100, "All"]}
         tablePaginationProps={{
           labelDisplayedRows: ({ from, to, count }) =>
@@ -219,30 +222,61 @@ const CreateRole = () => {
       />
     );
   }, [policies]);
+
+  const setConfirmCancel = () => {
+    const confirm = {
+      subtitle: "You has started the new role. Do you still want to cancel?",
+      cancelLabel: "Yes, Cancel it",
+      cancelAction: () => {
+        history.push("/role-management");
+      },
+      submitLabel: "No, Let's Finish",
+    };
+    setConfirmObj(confirm);
+  };
+  // eslint-disable-next-line consistent-return
+  const setConfirmViewPolicy = (param) => {
+    if (!param) {
+      setSelectedPolicy(null);
+      return false;
+    }
+    const confirm = {
+      subtitle: "if you redirect to detail page will cause changes to be lost",
+      cancelLabel: "Redirect",
+      cancelAction: () => {
+        setSelectedPolicy(null);
+        history.push(`policy-management/${selectedPolicy.policyId}`);
+      },
+      submitLabel: "Ok, Leave it",
+    };
+    setConfirmObj(confirm);
+  };
   return (
     <div className="create-role-wrapper">
       <Box className="top-content">
-        <Modal
-          open={confirm}
-          onClose={() => setConfirm(false)}
-          className="save-confirm"
-          variant="warning"
-          title="Save before exiting?"
-          message="You has started the new role. Do you still want to cancel?"
-          buttonProps={[
-            {
-              label: "Yes, Cancel it",
-              onClick: () => history.push("/role-management"),
-              disabled: loading,
-            },
-            {
-              label: "Continue",
-              onClick: () => setConfirm(false),
-              disabled: loading,
-            },
-          ]}
-          id="neutral"
-        />
+        {confirmObj && (
+          <Modal
+            open={confirmObj ? true : false}
+            onClose={() => setConfirmObj(null)}
+            className="save-confirm"
+            variant="warning"
+            title="Save before exiting?"
+            message={confirmObj.subtitle}
+            buttonProps={[
+              {
+                label: confirmObj.cancelLabel,
+                onClick: () => confirmObj.cancelAction(),
+                disabled: loading,
+              },
+              {
+                label: confirmObj.submitLabel,
+                onClick: () => setConfirmObj(null),
+                disabled: loading,
+              },
+            ]}
+            id="neutral"
+          />
+        )}
         <BreadcrumbsUI className="breadcrump" items={breadcrumpItems} />
         <div className="flex top-actions">
           <Switch
@@ -258,7 +292,7 @@ const CreateRole = () => {
               {
                 label: "Cancel",
                 size: "small",
-                onClick: () => setConfirm(true),
+                onClick: () => setConfirmCancel(),
               },
               {
                 label: "Save",
@@ -328,7 +362,7 @@ const CreateRole = () => {
       {selectedPolicy && (
         <PolicySnapshot
           policy={selectedPolicy}
-          closeSnapshot={() => setSelectedPolicy(null)}
+          closeSnapshot={setConfirmViewPolicy}
         />
       )}
     </div>

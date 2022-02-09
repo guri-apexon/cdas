@@ -11,9 +11,14 @@ const PolicySnapshot = ({ policy, closeSnapshot }) => {
   const [policyProducts, setPolicyProducts] = useState([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const onClose = (v) => {
-    setOpen(false);
-    if (closeSnapshot) closeSnapshot();
+  const onClose = (param) => {
+    let viewDetail;
+    if (param && param.target) {
+      setOpen(false);
+    } else {
+      viewDetail = true;
+    }
+    if (closeSnapshot) closeSnapshot(viewDetail);
   };
   const fetchPolicyPermission = async () => {
     const permissionsData = await getPolicySnapshot(policy.policyId);
@@ -48,9 +53,7 @@ const PolicySnapshot = ({ policy, closeSnapshot }) => {
             buttonProps={[
               {
                 size: "small",
-                onClick: () =>
-                  policy &&
-                  history.push(`policy-management/${policy?.policyId}`),
+                onClick: () => onClose(true),
                 label: "View full policy",
               },
               {
