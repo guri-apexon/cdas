@@ -105,24 +105,6 @@ export const statusUpdate = async (vId, vStatus) => {
   }
 };
 
-export const getVendorDetails = async (vId = "") => {
-  try {
-    return new Promise((resolve, reject) => {
-      axios
-        .get(`${baseURL}/${VENDOR_BASE}/Details/${vId}`)
-        .then((res) => {
-          resolve(res.data.data);
-          console.log(res.data.data);
-        })
-        .catch((err) => {
-          console.log("Err", err);
-        });
-    });
-  } catch (err) {
-    return console.log("Error", err);
-  }
-};
-
 export const getPolicyPermissions = async (policyId = "") => {
   try {
     return new Promise((resolve, reject) => {

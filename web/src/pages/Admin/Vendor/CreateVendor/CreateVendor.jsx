@@ -18,7 +18,7 @@ import Modal from "apollo-react/components/Modal";
 import _ from "lodash";
 import {
   addVendorService,
-  getVendorDetails,
+  updateVendorService,
 } from "../../../../services/ApiServices";
 import { selectVendor } from "../../../../store/actions/VendorAdminAction";
 import { MessageContext } from "../../../../components/Providers/MessageProvider";
@@ -150,22 +150,41 @@ const CreateVendor = () => {
     // }
 
     setLoading(true);
-    addVendorService(reqBody)
-      .then((res) => {
-        messageContext.showSuccessMessage(res.message || "Successfully Done");
-        history.push("/vendor/list");
-        setLoading(false);
-      })
-      .catch((err) => {
-        if (err.data) {
-          messageContext.showErrorMessage(err.data, 56);
-        } else {
-          messageContext.showErrorMessage(
-            err.message || "Something went wrong"
-          );
+    if (isCreatePage) {
+      addVendorService(reqBody)
+        .then((res) => {
+          messageContext.showSuccessMessage(res.message || "Successfully Done");
+          history.push("/vendor/list");
           setLoading(false);
-        }
-      });
+        })
+        .catch((err) => {
+          if (err.data) {
+            messageContext.showErrorMessage(err.data, 56);
+          } else {
+            messageContext.showErrorMessage(
+              err.message || "Something went wrong"
+            );
+            setLoading(false);
+          }
+        });
+    } else if (isEditPage) {
+      updateVendorService(reqBody)
+        .then((res) => {
+          messageContext.showSuccessMessage(res.message || "Successfully Done");
+          history.push("/vendor/list");
+          setLoading(false);
+        })
+        .catch((err) => {
+          if (err.data) {
+            messageContext.showErrorMessage(err.data, 56);
+          } else {
+            messageContext.showErrorMessage(
+              err.message || "Something went wrong"
+            );
+            setLoading(false);
+          }
+        });
+    }
   };
 
   const handleChange = (e) => {
