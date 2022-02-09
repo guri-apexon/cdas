@@ -2,6 +2,7 @@ const DB = require("../config/db");
 const apiResponse = require("../helpers/apiResponse");
 const Logger = require("../config/logger");
 const _ = require("lodash");
+const helper = require("../helpers/customFunction");
 const constants = require("../config/constants");
 
 const { DB_SCHEMA_NAME: schemaName } = constants;
@@ -143,8 +144,16 @@ exports.activeStatusUpdate = async (req, res) => {
 
 exports.createVendor = async (req, res) => {
   try {
-    const { vName, vNStd, vDescription, vStatus, vESN, vContacts, userId } =
-      req.body;
+    const {
+      vName,
+      vNStd,
+      vDescription,
+      vStatus,
+      vESN,
+      vContacts,
+      userId,
+      userName,
+    } = req.body;
 
     Logger.info({
       message: "createVendor",
@@ -152,20 +161,7 @@ exports.createVendor = async (req, res) => {
 
     const curDate = new Date();
 
-    const vId = 1112;
-    // const vCId = "";
-    // console.log(
-    //   "data",
-    //   curDate,
-    //   vId,
-    //   vName,
-    //   vNStd,
-    //   vDescription,
-    //   vStatus,
-    //   vESN,
-    //   userId,
-    //   userName
-    // );
+    const vId = helper.generateUniqueID();
 
     const insertQuery = `INSERT INTO ${schemaName}.vendor
     (vend_id, vend_nm, vend_nm_stnd, description, active, extrnl_sys_nm, insrt_tm, updt_tm, created_by, updated_by)
@@ -223,37 +219,48 @@ exports.updateVendor = async (req, res) => {
     });
 
     const curDate = new Date();
+    const $q1 = `select distinct vend_id from ${schemaName}.dataflow d`;
     const updateQuery = `UPDATE ${schemaName}.vendor SET vend_nm=$1, vend_nm_stnd=$2, description=$3, active=$4, extrnl_sys_nm=$5, updt_tm=$6, updated_by=$7 WHERE vend_id=$8`;
-
-    const contactQuery = `UPDATE ${schemaName}.vendor_contact SET contact_nm=$2, emailid=$3, updated_by=$4, updated_on=$5, act_flg=$6 WHERE vend_contact_id=$1`;
-
-    const update = await DB.executeQuery(updateQuery, [
-      vName,
-      vNStd,
-      vDescription,
-      vStatus,
-      vESN,
-      curDate,
-      userId,
-      vId,
-    ]);
-
-    const contactUp = await vContacts.map((e) => {
-      DB.executeQuery(contactQuery, [
-        e.vCId,
-        e.contactName,
-        e.emailId,
-        userName,
+    const contactQuery = `UPDATE ${schemaName}.vendor_contact SET contact_nm=$2, emailid=$3, updated_by=$4, updated_on=$5, act_flg=$6 WHERE vend_contact_id=$1 AND vend_id=$7`;
+    const q1 = await DB.executeQuery($q1);
+    const existingInDF = q1.rows.map((e) => parseInt(e.vend_id));
+    // console.log(existingInDF.includes(vId), existingInDF, vId);
+    if (existingInDF.includes(parseInt(vId))) {
+      return apiResponse.validationErrorWithData(
+        res,
+        "Operation failed",
+        "Vendor cannot be inactivated until removed from all data flows using this Vendor."
+      );
+    } else {
+      const update = await DB.executeQuery(updateQuery, [
+        vName,
+        vNStd,
+        vDescription,
+        vStatus,
+        vESN,
         curDate,
-        e.status,
+        userId,
+        vId,
       ]);
-    });
 
-    return apiResponse.successResponseWithData(
-      res,
-      "Operation success",
-      contactUp
-    );
+      const contactUp = await vContacts.map((e) => {
+        DB.executeQuery(contactQuery, [
+          e.vCId,
+          e.contactName,
+          e.emailId,
+          userName,
+          curDate,
+          e.status,
+          vId,
+        ]);
+      });
+
+      return apiResponse.successResponseWithData(
+        res,
+        "Operation success",
+        contactUp
+      );
+    }
   } catch (err) {
     //throw error in json response with status 500.
     Logger.error("catch :updateVendor");

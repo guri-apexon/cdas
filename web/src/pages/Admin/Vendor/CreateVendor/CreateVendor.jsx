@@ -117,6 +117,7 @@ const CreateVendor = () => {
   // eslint-disable-next-line consistent-return
   const submitVendor = async () => {
     const reqBody = {
+      vId,
       vName,
       vDescription,
       vESN,
@@ -156,8 +157,14 @@ const CreateVendor = () => {
         setLoading(false);
       })
       .catch((err) => {
-        messageContext.showErrorMessage(err.message || "Something went wrong");
-        setLoading(false);
+        if (err.data) {
+          messageContext.showErrorMessage(err.data, 56);
+        } else {
+          messageContext.showErrorMessage(
+            err.message || "Something went wrong"
+          );
+          setLoading(false);
+        }
       });
   };
 
