@@ -26,7 +26,7 @@ import "./index.scss";
 import { fetchRoles, updateStatus } from "../../store/actions/RolesActions";
 
 const ProductsCell = ({ row, column: { accessor } }) => {
-  const rowValue = row[accessor];
+  const rowValue = row[accessor].split(",").sort().join(", ");
   return <>{rowValue}</>;
 };
 
@@ -92,6 +92,7 @@ const Role = () => {
       return (
         <Tooltip title="Active" disableFocusListener>
           <Switch
+            className="inline-checkbox"
             checked={true}
             onChange={(e) => handleStatus(e, id, "Active")}
             size="small"
@@ -102,6 +103,7 @@ const Role = () => {
     return (
       <Tooltip title="Inactive" disableFocusListener>
         <Switch
+          className="inline-checkbox"
           checked={false}
           onChange={(e) => handleStatus(e, id, "InActive")}
           size="small"
