@@ -70,7 +70,7 @@ const CreateVendor = () => {
   const [vName, setVName] = useState("");
   const [vDescription, setVDescription] = useState("");
   const [vESN, setVESN] = useState("");
-  const [vId, setVId] = useState();
+  const [vId, setVId] = useState("");
   const [vContacts, setVContacts] = useState([]);
   const [contacts, setContacts] = useState([]);
   const messageContext = useContext(MessageContext);
@@ -79,7 +79,7 @@ const CreateVendor = () => {
   const params = useParams();
   const dispatch = useDispatch();
   const vendor = useSelector((state) => state.vendor);
-  const { isDBData, selectedVendor } = vendor;
+  const { isEditPage, isCreatePage, selectedVendor } = vendor;
 
   useEffect(() => {
     if (params.id) {
@@ -88,8 +88,13 @@ const CreateVendor = () => {
   }, [params]);
 
   useEffect(() => {
-    if (isDBData) {
-      // console.log("inside inner update");
+    if (isCreatePage) {
+      setVId("");
+      setVESN("");
+      setVName("");
+      setVDescription("");
+      setActive(true);
+    } else if (isEditPage) {
       setVId(selectedVendor.vId);
       setVESN(selectedVendor.vESN);
       setVName(selectedVendor.vName);
@@ -97,27 +102,7 @@ const CreateVendor = () => {
       setActive(selectedVendor.vStatus === 1 ? true : false);
     }
     // console.log("inside update");
-  }, [isDBData]);
-
-  // getVendorDetails(params.id).then((res) => {
-  //   // console.log(res.vendor);
-  //   if (res.vendor) {
-  //     // eslint-disable-next-line no-shadow
-  //     const { vDescription, vESN, vName, vStatus, vId } = res.vendor;
-  //     setActive(vStatus === 1 ? true : false);
-
-  //     // console.log("existing data", vId, vName, vDescription);
-  //     setVDescription(vDescription);
-  //     setVESN(vESN);
-  //     setVName(vName);
-  //     setVId(vId);
-  //     if (res.contacts) {
-  //       setSendContacts(res.contacts);
-  //     }
-  //   } else {
-  //     history.push("/vendor/list");
-  //   }
-  // });
+  }, [isEditPage, isCreatePage, params]);
 
   const updateChanges = () => {
     if (!isAnyUpdate) {
@@ -137,7 +122,7 @@ const CreateVendor = () => {
       vESN,
       vContacts,
       userId: userInfo.user_id,
-      userName: userInfo.fullName,
+      userName: userInfo.firstName,
       vStatus: active ? 1 : 0,
     };
     if (vName === "") {

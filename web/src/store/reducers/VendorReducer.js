@@ -8,6 +8,7 @@ import {
   GET_VENDOR_DETAILS,
   VENDOR_DETAILS_FAILURE,
   VENDOR_DETAILS_SUCCESS,
+  CREATE_VENDOR,
 } from "../../constants";
 
 export const initialState = {
@@ -15,7 +16,8 @@ export const initialState = {
   loading: false,
   selectedVendor: {},
   selectedContacts: [],
-  isDBData: false,
+  isEditPage: false,
+  isCreatePage: true,
 };
 
 const VendorReducer = (state = initialState, action) =>
@@ -40,14 +42,22 @@ const VendorReducer = (state = initialState, action) =>
 
       case VENDOR_DETAILS_SUCCESS:
         newState.loading = false;
-        newState.isDBData = true;
+        newState.isEditPage = true;
+        newState.isCreatePage = false;
         newState.selectedContacts = action.contacts;
         newState.selectedVendor = action.vendor;
         break;
 
       case VENDOR_DETAILS_FAILURE:
         newState.loading = false;
-        newState.isDBData = false;
+        newState.isEditPage = false;
+        break;
+
+      case CREATE_VENDOR:
+        newState.isEditPage = false;
+        newState.isCreatePage = true;
+        newState.selectedContacts = [];
+        newState.selectedVendor = {};
         break;
 
       default:

@@ -170,7 +170,7 @@ const TableEditableAll = ({ updateData }) => {
   const [rows, setRows] = useState(initialRows);
   const [editedRows, setEditedRows] = useState(initialRows);
   const vendor = useSelector((state) => state.vendor);
-  const { isDBData, selectedContacts } = vendor;
+  const { isEditPage, isCreatePage, selectedContacts } = vendor;
 
   const addAContact = () => {
     setEditedRows((rw) => [
@@ -187,20 +187,19 @@ const TableEditableAll = ({ updateData }) => {
   };
 
   useEffect(() => {
-    if (isDBData) {
-      // console.log("inside inner update");
-      // const contacts = [...selectedContacts];
+    if (isCreatePage) {
+      setEditedRows(initialRows);
+    } else if (isEditPage) {
       const updated = selectedContacts.map((c) => ({
         ...c,
         isEmailValid: true,
         isNameValid: true,
         isStarted: false,
       }));
-      // console.log(selectedContacts, updated);
       setEditedRows([...updated]);
     }
     // console.log("inside update");
-  }, [isDBData]);
+  }, [isEditPage, isCreatePage]);
 
   useEffect(() => {
     updateData(editedRows);
