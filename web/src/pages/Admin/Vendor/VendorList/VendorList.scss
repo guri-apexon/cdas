@@ -7,9 +7,9 @@
     padding: 30px;
   }
 }
-.policy-table {
+.vendor-table {
   background-color: #f8f9fb;
-  min-height: 100vh;
+  min-height: calc(100vh - 242px);
   .table {
     margin: 30px;
     background-color: #ffffff;

@@ -22,6 +22,7 @@ import { statusUpdate } from "../../../../services/ApiServices";
 import {
   getVendorList,
   selectVendor,
+  createVendor,
 } from "../../../../store/actions/VendorAdminAction";
 import {
   TextFieldFilter,
@@ -152,13 +153,18 @@ const VendorList = () => {
     );
   };
 
-  const CustomButtonHeader = ({ toggleFilters }) => (
+  const handleAddVendor = () => {
+    dispatch(createVendor());
+    history.push("/vendor/create");
+  };
+
+  const CustomButtonHeader = ({ toggleFilters, addVendor }) => (
     <div>
       <Button
         size="small"
         variant="secondary"
         icon={PlusIcon}
-        onClick={() => history.push("/vendor/create")}
+        onClick={addVendor}
         style={{ marginRight: "8px", border: "none" }}
       >
         Add vendor
@@ -263,7 +269,9 @@ const VendorList = () => {
                 truncate: true,
               }}
               showFilterIcon
-              CustomHeader={(props) => <CustomButtonHeader {...props} />}
+              CustomHeader={(props) => (
+                <CustomButtonHeader {...props} addVendor={handleAddVendor} />
+              )}
             />
           )}
         </div>
