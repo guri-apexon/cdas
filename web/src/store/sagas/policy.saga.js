@@ -8,13 +8,18 @@ import {
 } from "../../constants";
 
 // eslint-disable-next-line import/prefer-default-export
-export function* fetchPolicies() {
+export function* fetchPolicies(param) {
   try {
-    const fetchSBData = yield call(
-      axios.post,
-      `${baseURL}/${POLICY_LIST_FETCH}`,
-      {}
-    );
+    let fetchSBData;
+    if (param.filtered) {
+      fetchSBData = yield call(axios.get, `${baseURL}/${POLICY_LIST_FETCH}`);
+    } else {
+      fetchSBData = yield call(
+        axios.post,
+        `${baseURL}/${POLICY_LIST_FETCH}`,
+        {}
+      );
+    }
 
     // console.log("study", fetchSBData);
     yield put({
