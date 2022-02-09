@@ -157,6 +157,62 @@ exports.getProducts = function (req, res) {
   }
 };
 
+exports.getSnapshot = function (req, res) {
+  try {
+    const {policyId} = req.params;
+    if(!policyId) return apiResponse.ErrorResponse(res, 'Policy not found');
+    
+    const searchQuery = `select row_number() over(order by prod_nm asc) as indx ,prod_nm,ctgy_nm ,feat_nm ,permsn_nm , plcy_prod_permsn_id
+    from (select distinct p2.prod_nm ,c.ctgy_nm ,f.feat_nm ,p.permsn_nm , ppp.plcy_prod_permsn_id
+    from ${constants.DB_SCHEMA_NAME}.product_permission pp
+    left outer join ${constants.DB_SCHEMA_NAME}.policy_product_permission ppp on (pp.prod_permsn_id=ppp.prod_permsn_id and ppp.plcy_id='${policyId}' and ppp.act_flg=1)
+    left outer join ${constants.DB_SCHEMA_NAME}.category c on (c.ctgy_id=pp.ctgy_id)
+    left outer join ${constants.DB_SCHEMA_NAME}.feature f on (f.feat_id=pp.feat_id)
+    left outer join ${constants.DB_SCHEMA_NAME}."permission" p on (p.permsn_id=pp.permsn_id)
+    left outer join ${constants.DB_SCHEMA_NAME}.product p2 on (p2.prod_id=pp.prod_id) WHERE ppp.plcy_prod_permsn_id is not null) oprd;`;
+    DB.executeQuery(searchQuery).then(async (response) => {
+      let permissions = response?.rows || [];
+      if(permissions?.length){
+        const helper = {};
+        permissions = permissions.reduce((r, o) => {
+          const key = `${o.prod_nm}: ${o.feat_nm}`;
+          if (!helper[key]) {
+            helper[key] = {
+              label: key,
+              category: [{ name: o.ctgy_nm, values: [o.permsn_nm] }],
+            };
+            r.push(helper[key]);
+          } else {
+            const filtered = helper[key].category.find((x) => x.name === o.ctgy_nm);
+            if (filtered) {
+              filtered.values.push(o.permsn_nm);
+            } else {
+              helper[key] = {
+                ...helper[key],
+                category: [
+                  ...helper[key].category,
+                  {
+                    name: o.ctgy_nm,
+                    values: [o.permsn_nm],
+                  },
+                ],
+              };
+            }
+          }
+          return r;
+        }, []);
+      }
+      return apiResponse.successResponseWithData(
+        res,
+        "Snapshot retrieved successfully",
+        permissions
+      );
+    });
+  } catch (err) {
+    return apiResponse.ErrorResponse(res, err);
+  }
+};
+
 exports.listPermission = function (req, res) {
   try {
     const { policyId } = req.params;
@@ -204,6 +260,27 @@ exports.listPermission = function (req, res) {
 exports.getPolicyList = async (req, res) => {
   try {
     Logger.info({ message: "getPolicyList" });
+    if(req.method==="GET"){
+      const query = `select distinct p.plcy_nm as "policyName", p.plcy_desc as "policyDescription", p.plcy_id as "policyId", string_agg(distinct p2.prod_nm, ', ') AS products, p.plcy_stat as "policyStatus" from ${constants.DB_SCHEMA_NAME}."policy" p
+      inner join ${constants.DB_SCHEMA_NAME}.policy_product_permission ppp on (p.plcy_id=ppp.plcy_id)
+      inner JOIN ${constants.DB_SCHEMA_NAME}.product_permission pp ON ppp.prod_permsn_id = pp.prod_permsn_id
+      inner JOIN ${constants.DB_SCHEMA_NAME}.product p2 ON p2.prod_id = pp.prod_id
+      where ppp.act_flg =1
+      GROUP  BY p.plcy_id;`;
+      const $q1 = await DB.executeQuery(query);
+      const products = [];
+      await $q1.rows.forEach(function (obj) {
+        var str = obj.products.split(",");
+        str.forEach(function (v) {
+          var user = v.trim();
+          if (products.indexOf(user) === -1) products.push(user);
+        });
+      });
+      return apiResponse.successResponseWithData(res, "Policy retrieved successfully", {
+        policyList: $q1.rows,
+        uniqueProducts: products,
+      });
+    }
     // const query = `select p.plcy_nm as "policyName", p.plcy_desc as "policyDescription", p.plcy_id as "policyId", p2.prod_nm as "productName", p.plcy_stat as "policyStatus" from ${schemaName}."policy" p
     // inner join ${schemaName}.policy_product pp on (pp.plcy_id=p.plcy_id)
     // inner join ${schemaName}.product p2 on (pp.prod_id=p2.prod_id)

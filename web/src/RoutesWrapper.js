@@ -33,7 +33,7 @@ const CreateVendor = lazy(() =>
 const Empty = () => <></>;
 
 const RoutesWrapper = () => {
-  const [loggedIn, setLoggedIn] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(null);
   const [checkedOnce, setCheckedOnce] = useState(false);
   const history = useHistory();
   const location = useLocation();
@@ -50,7 +50,6 @@ const RoutesWrapper = () => {
 
   useEffect(() => {
     const userId = getCookie("user.id");
-    // console.log("Wrapper-props:", JSON.stringify(props));
     if (userId) {
       setLoggedIn(true);
     } else {
@@ -70,12 +69,14 @@ const RoutesWrapper = () => {
       // eslint-disable-next-line no-lonely-if
       if (!checkedOnce) {
         window.location.href = `${process.env.REACT_APP_LAUNCH_URL}`;
-        console.log("dotenv :", process.env.REACT_APP_LAUNCH_URL);
         setCheckedOnce(true);
       }
     }
   }, [checkedOnce, history]);
 
+  // if (loggedIn == null) {
+  //   return false;
+  // }
   return (
     <Suspense fallback={<Loader isInner />}>
       {loggedIn ? (
