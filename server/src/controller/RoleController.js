@@ -11,7 +11,7 @@ exports.createRole = function (req, res) {
   try {
     const { name, description, policies, userId, status } = req.body;
     if(!policies?.length || !Array.isArray(policies) || !userId){
-      return apiResponse.ErrorResponse(res, "Please fill mandatory fields to proceed.");
+      return apiResponse.ErrorResponse(res, "Please complete all mandatory information and then click Save");
       return false;
     }
     const currentTime = helpers.getCurrentTime();

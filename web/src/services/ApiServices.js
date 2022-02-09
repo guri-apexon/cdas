@@ -77,6 +77,23 @@ export const getPolicyPermissions = async (policyId = "") => {
     return console.log("Error", err);
   }
 };
+
+export const getPolicySnapshot = async (policyId = "") => {
+  try {
+    return new Promise((resolve, reject) => {
+      axios
+        .get(`${baseURL}/v1/api/policy/snapshot/${policyId}`)
+        .then((res) => {
+          resolve(res.data.data);
+        })
+        .catch((err) => {
+          console.log("Err", err);
+        });
+    });
+  } catch (err) {
+    return console.log("Error", err);
+  }
+};
 export const fetchProducts = async () => {
   try {
     return new Promise((resolve, reject) => {

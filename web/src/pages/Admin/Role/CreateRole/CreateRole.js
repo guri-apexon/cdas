@@ -1,12 +1,15 @@
+/* eslint-disable jsx-a11y/anchor-is-valid */
 import Box from "apollo-react/components/Box";
 import React, { useContext, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import BreadcrumbsUI from "apollo-react/components/Breadcrumbs";
 import Switch from "apollo-react/components/Switch";
+import Peek from "apollo-react/components/Peek";
 import ButtonGroup from "apollo-react/components/ButtonGroup";
 import TextField from "apollo-react/components/TextField";
 import Typography from "apollo-react/components/Typography";
 import Grid from "apollo-react/components/Grid";
+import Modal from "apollo-react/components/Modal";
 import Link from "apollo-react/components/Link";
 import Table, {
   createSelectFilterComponent,
@@ -17,7 +20,12 @@ import { useHistory } from "react-router";
 import { MessageContext } from "../../../../components/Providers/MessageProvider";
 import { getPolicyList } from "../../../../store/actions/PolicyAdminActions";
 import "./CreateRole.scss";
-import { getUserInfo, inputAlphaNumeric } from "../../../../utils";
+import {
+  createStringArrayIncludedFilter,
+  getUserInfo,
+  inputAlphaNumeric,
+  TextFieldFilter,
+} from "../../../../utils";
 import { addRoleService } from "../../../../services/ApiServices";
 import PolicySnapshot from "./PolicySnapshot";
 
@@ -25,12 +33,15 @@ const CreateRole = () => {
   const dispatch = useDispatch();
   const history = useHistory();
   const [active, setActive] = useState(true);
+  const [confirm, setConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [peekRow, setPeekRow] = useState(null);
   const [selectedPolicy, setSelectedPolicy] = useState(null);
   const messageContext = useContext(MessageContext);
   const [roleName, setRoleName] = useState("");
   const [roleDesc, setRoleDesc] = useState("");
   const [policies, setPolicies] = useState([]);
+  const [products, setProducts] = useState([]);
   const userInfo = getUserInfo();
   const policyAdmin = useSelector((state) => state.policyAdmin);
   const getPolicies = () => {
@@ -51,6 +62,24 @@ const CreateRole = () => {
       </>
     );
   };
+
+  const DescriptionCell = ({ row, column: { accessor } }) => {
+    const data = row[accessor];
+    if (data.length < 80) {
+      return <>{data}</>;
+    }
+    return (
+      <>
+        {data.slice(0, 50)}
+        <Link
+          onMouseOver={() => setPeekRow(row)}
+          onMouseOut={() => setPeekRow(null)}
+        >
+          {`  [...]`}
+        </Link>
+      </>
+    );
+  };
   const tableColumns = [
     {
       header: "Included",
@@ -60,20 +89,45 @@ const CreateRole = () => {
     {
       header: "Policy Name",
       accessor: "policyName",
+      width: 200,
+      filterFunction: createStringSearchFilter("policyName"),
+      filterComponent: TextFieldFilter,
       customCell: ({ row, column: { accessor } }) => {
+        const data = row[accessor];
+        if (data.length < 40) {
+          return <Link onClick={() => setSelectedPolicy(row)}>{data}</Link>;
+        }
         return (
-          // eslint-disable-next-line jsx-a11y/anchor-is-valid
-          <Link onClick={() => setSelectedPolicy(row)}>{row[accessor]}</Link>
+          <>
+            <Link onClick={() => setSelectedPolicy(row)}>
+              {data.slice(0, 20)}
+            </Link>
+            <Link
+              onMouseOver={() => setPeekRow(row)}
+              onMouseOut={() => setPeekRow(null)}
+            >
+              {`  [...]`}
+            </Link>
+          </>
         );
       },
     },
     {
       header: "Policy Description",
       accessor: "policyDescription",
+      customCell: DescriptionCell,
+      filterFunction: createStringSearchFilter("policyDescription"),
+      filterComponent: TextFieldFilter,
     },
     {
       header: "Product Included",
       accessor: "products",
+      width: 350,
+      filterFunction: createStringArrayIncludedFilter("products"),
+      filterComponent: createSelectFilterComponent(products, {
+        size: "small",
+        multiple: true,
+      }),
     },
   ];
   const breadcrumpItems = [
@@ -100,16 +154,13 @@ const CreateRole = () => {
       setRoleDesc(val);
     }
   };
-  const handleChangeTab = (event, v) => {
-    console.log("V", v);
-  };
   // eslint-disable-next-line consistent-return
   const submitRole = () => {
     const reqBody = {
       policies: policies.filter((x) => x.selected).map((x) => x.policyId),
       name: roleName,
       description: roleDesc,
-      status: active,
+      status: active ? "1" : "0",
       userId: userInfo.user_id,
     };
     if (roleName === "") {
@@ -141,6 +192,7 @@ const CreateRole = () => {
     if (policyAdmin.policyList?.length) {
       const data = JSON.parse(JSON.stringify(policyAdmin.policyList));
       setPolicies(data);
+      setProducts(policyAdmin.uniqueProducts || []);
     }
   }, [policyAdmin]);
   useEffect(() => {
@@ -154,8 +206,8 @@ const CreateRole = () => {
         columns={tableColumns}
         rows={policies}
         rowId="policyId"
-        hasScroll={true}
-        maxHeight="calc(100vh - 162px)"
+        hasScroll
+        maxHeight="calc(100vh - 360px)"
         // initialSortedColumn="policyName"
         // initialSortOrder="asc"
         rowsPerPageOptions={[10, 50, 100, "All"]}
@@ -164,13 +216,33 @@ const CreateRole = () => {
             `${count === 1 ? "Policy " : "Policies"} ${from}-${to} of ${count}`,
           truncate: true,
         }}
-        showFilterIcon
       />
     );
   }, [policies]);
   return (
     <div className="create-role-wrapper">
       <Box className="top-content">
+        <Modal
+          open={confirm}
+          onClose={() => setConfirm(false)}
+          className="save-confirm"
+          variant="warning"
+          title="Save before exiting?"
+          message="You has started the new role. Do you still want to cancel?"
+          buttonProps={[
+            {
+              label: "Yes, Cancel it",
+              onClick: () => history.push("/role-management"),
+              disabled: loading,
+            },
+            {
+              label: "Continue",
+              onClick: () => setConfirm(false),
+              disabled: loading,
+            },
+          ]}
+          id="neutral"
+        />
         <BreadcrumbsUI className="breadcrump" items={breadcrumpItems} />
         <div className="flex top-actions">
           <Switch
@@ -186,7 +258,7 @@ const CreateRole = () => {
               {
                 label: "Cancel",
                 size: "small",
-                onClick: () => history.push("/policy-management"),
+                onClick: () => setConfirm(true),
               },
               {
                 label: "Save",
@@ -229,12 +301,36 @@ const CreateRole = () => {
         </Grid>
         <Grid item xs={9} className="policies-wrapper">
           {getPolicyTable}
+          {peekRow && (
+            <Peek
+              open={peekRow}
+              followCursor
+              placement="bottom"
+              content={
+                // eslint-disable-next-line react/jsx-wrap-multilines
+                <div style={{ maxWidth: 400 }}>
+                  <Typography
+                    variant="title2"
+                    gutterBottom
+                    style={{ fontWeight: 600 }}
+                  >
+                    {peekRow.policyName}
+                  </Typography>
+                  <Typography variant="body2">
+                    {peekRow.policyDescription}
+                  </Typography>
+                </div>
+              }
+            />
+          )}
         </Grid>
       </Grid>
-      <PolicySnapshot
-        policy={selectedPolicy}
-        closeSnapshot={() => setSelectedPolicy(null)}
-      />
+      {selectedPolicy && (
+        <PolicySnapshot
+          policy={selectedPolicy}
+          closeSnapshot={() => setSelectedPolicy(null)}
+        />
+      )}
     </div>
   );
 };

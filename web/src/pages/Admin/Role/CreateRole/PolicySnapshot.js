@@ -3,21 +3,34 @@ import Blade from "apollo-react/components/Blade";
 import Typography from "apollo-react/components/Typography";
 import ButtonGroup from "apollo-react/components/ButtonGroup";
 import { useHistory } from "react-router";
+import ApolloProgress from "apollo-react/components/ApolloProgress";
+import { getPolicySnapshot } from "../../../../services/ApiServices";
 
 const PolicySnapshot = ({ policy, closeSnapshot }) => {
   const history = useHistory();
-  const [policyProducts, setPolicyroducts] = useState([]);
+  const [policyProducts, setPolicyProducts] = useState([]);
   const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
   const onClose = (v) => {
-    console.log("onClose", v);
     setOpen(false);
+    if (closeSnapshot) closeSnapshot();
+  };
+  const fetchPolicyPermission = async () => {
+    const permissionsData = await getPolicySnapshot(policy.policyId);
+    console.log("permissionsData", permissionsData);
+    setPolicyProducts(permissionsData);
+    setLoading(false);
   };
   useEffect(() => {
     if (policy) {
-      console.log("policy", policy);
       setOpen(true);
+      setLoading(true);
+      fetchPolicyPermission();
     }
   }, [policy]);
+  useEffect(() => {
+    console.log("Update Snapshot");
+  }, []);
   return (
     <>
       <Blade
@@ -49,11 +62,39 @@ const PolicySnapshot = ({ policy, closeSnapshot }) => {
           />
         }
       >
-        <Typography variant="body2" className="">
-          {`Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas sodales ultrices
-        arcu non elementum. Cras rutrum, urna non cursus luctus, mauris metus rhoncus sem,
-        vitae faucibus augue nibh sed tellus.`}
-        </Typography>
+        {loading ? (
+          <div className="loader">
+            <ApolloProgress />
+          </div>
+        ) : (
+          policyProducts.map((product) => {
+            const Categories = product.category.map((category) => {
+              const permissionList = category.values.map((permission) => {
+                return (
+                  <Typography key={permission} className="b-font">
+                    {permission}
+                  </Typography>
+                );
+              });
+              return (
+                <div key={category.name} className="flex category-content">
+                  <Typography className="category-name">
+                    {category.name}
+                  </Typography>
+                  <div className="permission-list">{permissionList}</div>
+                </div>
+              );
+            });
+            return (
+              <div key={product.label}>
+                <Typography className="product-title">
+                  {product.label}
+                </Typography>
+                {Categories}
+              </div>
+            );
+          })
+        )}
       </Blade>
     </>
   );

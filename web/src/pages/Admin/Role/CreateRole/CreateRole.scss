@@ -1,4 +1,13 @@
+@import '../../../../styles/customscroll.scss';
 .create-role-wrapper{
+    .policies-wrapper{
+        div[class*=" Table-scrollRoot-"]{
+            @extend .customscroll;
+        }
+        .policy-name{
+            max-width: 200px;
+        }
+    }
     padding: 0 28px;
     .breadcrump{
         margin-left: -8px;
@@ -27,6 +36,38 @@
         div[class^=Blade-header-]{
             h3{
                 font-size: 20px;
+            }
+            p{
+                max-width: 80%;
+                text-overflow: ellipsis;
+                overflow: hidden;
+            }
+        }
+        div[class^=Blade-body-]{
+            padding: 0;
+            margin-top: -17px;
+            @extend .customscroll;
+        }
+        .loader{
+            display: flex;
+            justify-content: center;
+            min-height: 70vh;
+            align-items: center;
+        }
+        .product-title{
+            background-color: #F6F7FB;
+            height: 48px;
+            font-weight: 600;
+            border-top: 1px solid #E9E9E9;
+            border-bottom: 1px solid #E9E9E9;
+            display: flex;
+            align-items: center;
+            padding: 0 35px;
+        }
+        .category-content{
+            padding: 20px 50px;
+            .category-name{
+                width: 50%;
             }
         }
     }
