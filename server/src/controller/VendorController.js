@@ -161,26 +161,31 @@ exports.createVendor = async (req, res) => {
 
     const curDate = new Date();
 
-    const vId = helper.generateUniqueID();
+    // const vId = helper.generateUniqueID();
 
     const insertQuery = `INSERT INTO ${schemaName}.vendor
-    (vend_id, vend_nm, vend_nm_stnd, description, active, extrnl_sys_nm, insrt_tm, updt_tm, created_by, updated_by)
-    VALUES($2, $3, $4, $5, $6, $7, $1, $1, $8, $8)`;
+    (vend_nm, vend_nm_stnd, description, active, extrnl_sys_nm, insrt_tm, updt_tm, created_by, updated_by)
+    VALUES($1, $2, $3, $4, $5, $7, $7, $6, $6)`;
+
+    const idQuery = `SELECT vend_id FROM cdascfg.vendor v ORDER BY insrt_tm DESC LIMIT 1`;
 
     const contactQuery = `INSERT INTO ${schemaName}.vendor_contact
     (vend_id, contact_nm, emailid, created_by, created_on, updated_by, updated_on, act_flg)
     VALUES($1, $2, $3, $4, $5, $4, $5, 1)`;
 
     const inset = await DB.executeQuery(insertQuery, [
-      curDate,
-      vId,
       vName,
       vNStd,
       vDescription,
       vStatus,
       vESN,
       userId,
+      curDate,
     ]);
+
+    const getId = await DB.executeQuery(idQuery);
+
+    const vId = getId.rows[0].vend_id;
 
     const contactInset = await vContacts.map((e) => {
       DB.executeQuery(contactQuery, [vId, e.name, e.email, userName, curDate]);
