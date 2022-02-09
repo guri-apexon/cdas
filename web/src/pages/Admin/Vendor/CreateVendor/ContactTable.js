@@ -2,11 +2,14 @@
 /* eslint-disable no-useless-escape */
 /* eslint-disable no-prototype-builtins */
 import React, { useEffect, useState } from "react";
-
+import { useSelector } from "react-redux";
 import Button from "apollo-react/components/Button";
 import Trash from "apollo-react-icons/Trash";
 import IconButton from "apollo-react/components/IconButton";
-import Table, { compareStrings } from "apollo-react/components/Table";
+import Table, {
+  compareStrings,
+  compareNumbers,
+} from "apollo-react/components/Table";
 import TextField from "apollo-react/components/TextField";
 
 // const initialRows = [
@@ -57,10 +60,12 @@ const initialRows = [
   },
 ];
 
-const CustomHeader = ({ addAContact }) => (
-  <Button size="small" variant="secondary" onClick={addAContact}>
-    Add Contact
-  </Button>
+const CustomButtonHeader = ({ addAContact }) => (
+  <div>
+    <Button size="small" variant="secondary" onClick={addAContact}>
+      Add Contact
+    </Button>
+  </div>
 );
 
 const fieldStyles = {
@@ -135,6 +140,7 @@ const columns = [
   {
     header: "ID",
     accessor: "vCId",
+    sortFunction: compareNumbers,
     hidden: true,
   },
   {
@@ -153,6 +159,7 @@ const columns = [
   },
   {
     header: "",
+    accessor: "action",
     width: 50,
     customCell: ActionCell,
     align: "right",
@@ -162,20 +169,14 @@ const columns = [
 const TableEditableAll = ({ updateData }) => {
   const [rows, setRows] = useState(initialRows);
   const [editedRows, setEditedRows] = useState(initialRows);
-
-  // if (sendContacts.length > 1) {
-  //   // setRows(sendContacts);
-  //   // setEditedRows(sendContacts);
-  // } else {
-  // setRows(initialRows);
-  // setEditedRows(initialRows);
-  // }
+  const vendor = useSelector((state) => state.vendor);
+  const { isDBData, selectedContacts } = vendor;
 
   const addAContact = () => {
     setEditedRows((rw) => [
       ...rw,
       {
-        vCId: rw.length + 1,
+        vCId: `u${rw.length + 1}`,
         name: "",
         email: "",
         isEmailValid: false,
@@ -184,6 +185,22 @@ const TableEditableAll = ({ updateData }) => {
       },
     ]);
   };
+
+  useEffect(() => {
+    if (isDBData) {
+      // console.log("inside inner update");
+      // const contacts = [...selectedContacts];
+      const updated = selectedContacts.map((c) => ({
+        ...c,
+        isEmailValid: true,
+        isNameValid: true,
+        isStarted: false,
+      }));
+      // console.log(selectedContacts, updated);
+      setEditedRows([...updated]);
+    }
+    // console.log("inside update");
+  }, [isDBData]);
 
   useEffect(() => {
     updateData(editedRows);
@@ -251,7 +268,7 @@ const TableEditableAll = ({ updateData }) => {
         editName,
         editMode,
       }))}
-      initialSortedColumn="name"
+      initialSortedColumn="vCId"
       initialSortOrder="asc"
       rowProps={{ hover: false }}
       height="480px"
@@ -260,8 +277,9 @@ const TableEditableAll = ({ updateData }) => {
           `${count === 1 ? "Items" : "Items"} ${from}-${to} of ${count}`,
         truncate: true,
       }}
-      CustomHeader={CustomHeader}
-      headerProps={{ addAContact }}
+      CustomHeader={(props) => (
+        <CustomButtonHeader addAContact={addAContact} {...props} />
+      )}
     />
   );
 };

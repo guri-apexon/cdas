@@ -73,14 +73,13 @@ const CreateVendor = () => {
   const [vId, setVId] = useState();
   const [vContacts, setVContacts] = useState([]);
   const [contacts, setContacts] = useState([]);
-  const [sendContacts, setSendContacts] = useState([]);
   const messageContext = useContext(MessageContext);
   const userInfo = getUserInfo();
   const history = useHistory();
   const params = useParams();
   const dispatch = useDispatch();
   const vendor = useSelector((state) => state.vendor);
-  const { isDBData, selectedVendor, selectedContacts } = vendor;
+  const { isDBData, selectedVendor } = vendor;
 
   useEffect(() => {
     if (params.id) {
