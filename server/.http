@@ -191,7 +191,7 @@ POST http://localhost:443/v1/api/vendor/create HTTP/1.1
 content-type: application/json
 
 {
-      "vName": "test",
+      "vName": "test31",
       "vNStd": "test",
       "vDescription" : "description",
       "vStatus": 1,
