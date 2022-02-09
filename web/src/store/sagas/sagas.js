@@ -7,13 +7,15 @@ import {
   GET_VENDOR_DETAILS,
   VENDOR_LIST,
   ROLE_LIST_FETCH,
+  UPDATE_ROLE_STATUS,
 } from "../../constants";
 import {
   fetchStudyboardData,
   fetchNotOnStudyboardStatus,
 } from "./studyboard.saga";
 
-import { fetchRoles } from "./role.saga";
+import { fetchRoles, updateRoleStatus } from "./role.saga";
+
 import { fetchPolicies } from "./policy.saga";
 import { fetchVendorList, fetchVendorDetails } from "./vendor.saga";
 
@@ -24,6 +26,7 @@ function* cdasCoreSaga() {
   yield takeEvery(VENDOR_LIST, fetchVendorList);
   yield takeEvery(GET_VENDOR_DETAILS, fetchVendorDetails);
   yield takeEvery(ROLE_LIST_FETCH, fetchRoles);
+  yield takeEvery(UPDATE_ROLE_STATUS, updateRoleStatus);
 }
 
 export default cdasCoreSaga;
