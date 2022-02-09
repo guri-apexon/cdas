@@ -48,6 +48,7 @@ export const updatePolicyService = async (reqBody) => {
 };
 
 export const addVendorService = async (reqBody) => {
+  // console.log("add", reqBody);
   try {
     return new Promise((resolve, reject) => {
       axios
@@ -65,6 +66,7 @@ export const addVendorService = async (reqBody) => {
 };
 
 export const updateVendorService = async (reqBody) => {
+  // console.log("edit", reqBody);
   try {
     return new Promise((resolve, reject) => {
       axios

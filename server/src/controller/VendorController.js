@@ -161,7 +161,7 @@ exports.createVendor = async (req, res) => {
 
     const curDate = new Date();
 
-    const vId = helper.generateUniqueID();
+    // const vId = helper.generateUniqueID();
 
     const insertQuery = `INSERT INTO ${schemaName}.vendor
     (vend_id, vend_nm, vend_nm_stnd, description, active, extrnl_sys_nm, insrt_tm, updt_tm, created_by, updated_by)
