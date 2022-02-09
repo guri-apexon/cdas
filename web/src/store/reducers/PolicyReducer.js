@@ -13,7 +13,7 @@ export const initialState = {
   loading: false,
 };
 
-const PolicyAdminReducer = (state = initialState, action) =>
+const PolicyReducer = (state = initialState, action) =>
   produce(state, (newState) => {
     switch (action.type) {
       case POLICY_LIST:
@@ -35,4 +35,4 @@ const PolicyAdminReducer = (state = initialState, action) =>
     }
   });
 
-export default PolicyAdminReducer;
+export default PolicyReducer;

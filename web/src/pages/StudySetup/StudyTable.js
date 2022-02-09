@@ -115,7 +115,12 @@ const SelectiveCell = ({ row, column: { accessor } }) => {
   );
 };
 
-export default function StudyTable({ studyData, refreshData, selectedFilter }) {
+export default function StudyTable({
+  studyData,
+  studyboardData,
+  refreshData,
+  selectedFilter,
+}) {
   const [loading, setLoading] = useState(true);
   const [rowsPerPageRecord, setRowPerPageRecord] = useState(10);
   const [pageNo, setPageNo] = useState(0);
@@ -124,15 +129,9 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
   const [inlineFilters, setInlineFilters] = useState([]);
   const messageContext = useContext(MessageContext);
 
-  const studyboardData = selectedFilter
-    ? studyData?.studyboardData.filter(
-        (data) => data.onboardingprogress === selectedFilter
-      )
-    : studyData.studyboardData;
-
   const status = studyData.uniqueProtocolStatus;
 
-  const CustomButtonHeader = ({ toggleFilters, downloadFile }) => (
+  const CustomButtonHeader = ({ toggleFilters, rows, downloadFile }) => (
     <div>
       <Button
         size="small"
@@ -148,6 +147,7 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
         variant="secondary"
         icon={FilterIcon}
         onClick={toggleFilters}
+        disabled={rows.length <= 0}
       >
         Filter
       </Button>
@@ -228,10 +228,27 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
       customCell: SelectiveCell,
       sortFunction: compareStrings,
       filterFunction: createStringArraySearchFilter("onboardingprogress"),
-      filterComponent: createSelectFilterComponent(obs, {
-        size: "small",
-        multiple: true,
-      }),
+      filterComponent: createAutocompleteFilter(
+        Array.from(
+          new Set(
+            studyboardData
+              .map((r) => ({ label: r.onboardingprogress }))
+              .map((item) => item.label)
+          )
+        )
+          .map((label) => {
+            return { label };
+          })
+          .sort((a, b) => {
+            if (a.label < b.label) {
+              return -1;
+            }
+            if (a.label > b.label) {
+              return 1;
+            }
+            return 0;
+          })
+      ),
     },
     {
       header: "Assignment Count",
@@ -333,7 +350,8 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
     if (exportRows.length <= 0) {
       e.preventDefault();
       messageContext.showErrorMessage(
-        `There is no data on the screen to download because of which an empty file has been downloaded.`
+        `There is no data on the screen to download because of which an empty file has been downloaded.`,
+        56
       );
     } else {
       messageContext.showSuccessMessage(`File downloaded successfully.`);
@@ -402,7 +420,11 @@ export default function StudyTable({ studyData, refreshData, selectedFilter }) {
                 },
               }}
               CustomHeader={(props) => (
-                <CustomButtonHeader downloadFile={downloadFile} {...props} />
+                <CustomButtonHeader
+                  downloadFile={downloadFile}
+                  rows={tableRows}
+                  {...props}
+                />
               )}
             />
           </>

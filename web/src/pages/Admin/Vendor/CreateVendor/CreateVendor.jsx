@@ -1,192 +1,284 @@
+/* eslint-disable jsx-a11y/anchor-is-valid */
 /* eslint-disable react/button-has-type */
 import React, { useContext, useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import Box from "apollo-react/components/Box";
-import { useHistory } from "react-router";
+import { useHistory, useParams } from "react-router";
 import BreadcrumbsUI from "apollo-react/components/Breadcrumbs";
 import Switch from "apollo-react/components/Switch";
 import ButtonGroup from "apollo-react/components/ButtonGroup";
 import TextField from "apollo-react/components/TextField";
+import Select from "apollo-react/components/Select";
 import "./CreateVendor.scss";
 import Typography from "apollo-react/components/Typography";
+import Link from "apollo-react/components/Link";
 import Grid from "apollo-react/components/Grid";
-import Tab from "apollo-react/components/Tab";
-import Tabs from "apollo-react/components/Tabs";
-import Badge from "apollo-react/components/Badge";
+import MenuItem from "apollo-react/components/MenuItem";
+import Modal from "apollo-react/components/Modal";
+import _ from "lodash";
 import {
-  addPolicyService,
-  fetchProducts,
-  getPolicyPermissions,
+  addVendorService,
+  updateVendorService,
 } from "../../../../services/ApiServices";
+import { selectVendor } from "../../../../store/actions/VendorAdminAction";
 import { MessageContext } from "../../../../components/Providers/MessageProvider";
-import ContactsTable from "./ContactsTable";
-import { getUserInfo, inputAlphaNumeric } from "../../../../utils";
+// import ContactsTable from "./ContactsTable";
+import TableEditableAll from "./ContactTable";
+import {
+  getUserInfo,
+  inputAlphaNumericWithUnderScore,
+} from "../../../../utils";
 
 const breadcrumpItems = [
   { href: "/" },
   {
-    title: "Policy Management",
-    href: "/policy-management",
+    title: "Vendors",
+    href: "/vendor/list",
   },
   {
-    title: "Create New Policy",
+    title: "Create New Vendor",
   },
 ];
 
-const CreatePolicy = () => {
+const ConfirmModal = React.memo(({ open, cancel, stayHere, loading }) => {
+  return (
+    <Modal
+      open={open}
+      onClose={stayHere}
+      className="save-confirm"
+      variant="warning"
+      title="Lose your work?"
+      message="Your unsaved changes will be lost. Are you sure you want to leave this page?"
+      buttonProps={[
+        { label: "Leave without saving", onClick: cancel, disabled: loading },
+        {
+          label: "Stay on this page",
+          onClick: stayHere,
+          disabled: loading,
+        },
+      ]}
+      id="neutral"
+    />
+  );
+});
+
+const CreateVendor = () => {
   const [active, setActive] = useState(true);
+  const [isAnyUpdate, setIsAnyUpdate] = useState(false);
+  const [confirm, setConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [currentTab, setCurrentTab] = useState(0);
-  const [policyName, setPolicyName] = useState("");
-  const [policyDesc, setPolicyDesc] = useState("");
-  const [permissions, setPermissions] = useState({});
-  const [products, setProducts] = useState([]);
+  const [vName, setVName] = useState("");
+  const [vDescription, setVDescription] = useState("");
+  const [vESN, setVESN] = useState("");
+  const [vId, setVId] = useState("");
+  const [vContacts, setVContacts] = useState([]);
+  const [contacts, setContacts] = useState([]);
   const messageContext = useContext(MessageContext);
   const userInfo = getUserInfo();
   const history = useHistory();
+  const params = useParams();
+  const dispatch = useDispatch();
+  const vendor = useSelector((state) => state.vendor);
+  const { isEditPage, isCreatePage, selectedVendor } = vendor;
+
+  useEffect(() => {
+    if (params.id) {
+      dispatch(selectVendor(params.id));
+    }
+  }, [params]);
+
+  useEffect(() => {
+    if (isCreatePage) {
+      setVId("");
+      setVESN("");
+      setVName("");
+      setVDescription("");
+      setActive(true);
+    } else if (isEditPage) {
+      setVId(selectedVendor.vId);
+      setVESN(selectedVendor.vESN);
+      setVName(selectedVendor.vName);
+      setVDescription(selectedVendor.vDescription);
+      setActive(selectedVendor.vStatus === 1 ? true : false);
+    }
+    // console.log("inside update");
+  }, [isEditPage, isCreatePage, params]);
+
+  const updateChanges = () => {
+    if (!isAnyUpdate) {
+      setIsAnyUpdate(true);
+    }
+  };
+
   const handleActive = (e, checked) => {
     setActive(checked);
-  };
-  const handleChangeTab = (event, v) => {
-    setCurrentTab(v);
+    updateChanges();
   };
   // eslint-disable-next-line consistent-return
-  const submitPolicy = async () => {
+  const submitVendor = async () => {
     const reqBody = {
-      policyName,
-      policyDesc,
-      permissions,
+      vId,
+      vName,
+      vDescription,
+      vESN,
+      vContacts,
       userId: userInfo.user_id,
-      status: active ? "Active" : "Inactive",
+      userName: userInfo.firstName,
+      vStatus: active ? 1 : 0,
     };
-    if (policyName === "") {
-      messageContext.showErrorMessage("Policy Name shouldn't be empty");
+    if (vName === "") {
+      messageContext.showErrorMessage("Vendor Name shouldn't be empty");
       return false;
     }
-    let atleastOneSelected = false;
-    if (active) {
-      Object.keys(permissions).forEach((product) => {
-        permissions[product].every((category) => {
-          if (!atleastOneSelected) {
-            atleastOneSelected = Object.keys(category.permsn_nm).find((x) => {
-              return category.permsn_nm[x] === true;
-            });
-          }
-          if (atleastOneSelected) return false;
-          return true;
-        });
-      });
-      if (!atleastOneSelected) {
-        messageContext.showErrorMessage(
-          "Please complete all mandatory information and then click Save"
-        );
-        return false;
-      }
+    if (vESN === "") {
+      messageContext.showErrorMessage(
+        "Vendor External System Name need to be selected"
+      );
+      return false;
     }
+
+    // const startList = contacts.map((e) => e.isStarted);
+    // const nameValid = contacts.map((e) => e.isNameValid);
+    // const emailValid = contacts.map((e) => e.isEmailValid);
+
+    // if (startList.every((v) => v === true)) {
+    //   if (nameValid.every((v) => v === true)) {
+    //     if (emailValid.every((v) => v === true)) {
+    //       const test = "";
+    //     }
+    //   }
+    // }
+
     setLoading(true);
-    addPolicyService(reqBody)
-      .then((res) => {
-        messageContext.showSuccessMessage(res.message || "Successfully Done");
-        history.push("/policy-management");
-        setLoading(false);
-      })
-      .catch((err) => {
-        messageContext.showErrorMessage(err.message || "Something went wrong");
-        setLoading(false);
-      });
+    if (isCreatePage) {
+      addVendorService(reqBody)
+        .then((res) => {
+          messageContext.showSuccessMessage(res.message || "Successfully Done");
+          history.push("/vendor/list");
+          setLoading(false);
+        })
+        .catch((err) => {
+          if (err.data) {
+            messageContext.showErrorMessage(err.data, 56);
+          } else {
+            messageContext.showErrorMessage(
+              err.message || "Something went wrong"
+            );
+            setLoading(false);
+          }
+        });
+    } else if (isEditPage) {
+      updateVendorService(reqBody)
+        .then((res) => {
+          messageContext.showSuccessMessage(res.message || "Successfully Done");
+          history.push("/vendor/list");
+          setLoading(false);
+        })
+        .catch((err) => {
+          if (err.data) {
+            messageContext.showErrorMessage(err.data, 56);
+          } else {
+            messageContext.showErrorMessage(
+              err.message || "Something went wrong"
+            );
+            setLoading(false);
+          }
+        });
+    }
   };
+
   const handleChange = (e) => {
     const val = e.target.value;
-    if (e.target.id === "policyName") {
-      inputAlphaNumeric(e, (v) => {
-        setPolicyName(v);
+    updateChanges();
+    if (e.target.id === "vName") {
+      inputAlphaNumericWithUnderScore(e, (v) => {
+        setVName(v);
       });
-    } else if (e.target.id === "policyDesc") {
-      setPolicyDesc(val);
+    } else if (e.target.id === "vDescription") {
+      setVDescription(val);
     }
   };
-  const filterPermission = (arr) => {
-    const helper = {};
-    return arr.reduce((r, o) => {
-      const key = `${o.ctgy_nm}-${o.feat_nm}`;
-      if (!helper[key]) {
-        helper[key] = { ...o, permsn_nm: { [o.permsn_nm]: false } };
-        r.push(helper[key]);
-      } else {
-        helper[key].permsn_nm = {
-          ...helper[key].permsn_nm,
-          [o.permsn_nm]: false,
-        };
-      }
-      return r;
-    }, []);
-  };
-  const fetchPermissions = async () => {
-    const permissionsData = await getPolicyPermissions();
-    const filteredData = filterPermission(permissionsData);
-    const permissionArr = {};
-    products.forEach((product) => {
-      const filtered = filteredData.filter(
-        (x) => x.prod_nm === product.prod_nm
-      );
-      permissionArr[product.prod_nm] = filtered;
+
+  const updateData = async (data) => {
+    const goodContacts = await data.map((e) => {
+      const newData = _.omit(e, ["isEmailValid", "isNameValid", "isStarted"]);
+      return newData;
     });
-    setPermissions(permissionArr);
+    // console.log("updateData", data, goodContacts);
+    setContacts(data);
+    setVContacts(goodContacts);
+    updateChanges();
   };
-  const getProducts = async () => {
-    const productsData = await fetchProducts();
-    setProducts(productsData);
+
+  const options = ["None", "CDR", "GDMPM-DAS", "IQB", "TDSE", "Wingspan"];
+
+  const handleSelection = (e) => {
+    setVESN(e.target.value);
+    updateChanges();
   };
-  const updateData = (childData) => {
-    const newArr = { ...permissions, [childData.product]: childData.data };
-    console.log("updateData", newArr);
-    setPermissions(newArr);
+
+  const cancelEdit = () => {
+    setConfirm(false);
+    history.goBack();
   };
-  const getBadgeCount = (product) => {
-    let count = 0;
-    if (!permissions[product]) {
-      return count;
+
+  const stayHere = () => {
+    setConfirm(false);
+  };
+
+  const handleCancel = () => {
+    if (isAnyUpdate) {
+      setConfirm(true);
+    } else {
+      history.push("/vendor/list");
     }
-    permissions[product].forEach((category) => {
-      count += Object.keys(category.permsn_nm).filter((x) => {
-        return category.permsn_nm[x] === true;
-      }).length;
-    });
-    return count;
   };
-  useEffect(() => {
-    fetchPermissions();
-  }, [products]);
-  useEffect(() => {
-    getProducts();
-  }, []);
+
   return (
-    <div className="create-policy-wrapper">
+    <div className="create-vendor-wrapper">
+      {isAnyUpdate && (
+        <ConfirmModal
+          open={confirm}
+          cancel={cancelEdit}
+          loading={loading}
+          stayHere={stayHere}
+        />
+      )}
       <Box className="top-content">
         <BreadcrumbsUI className="breadcrump" items={breadcrumpItems} />
-        <div className="flex top-actions">
-          <Switch
-            label="Active"
-            className="inline-checkbox"
-            checked={active}
-            onChange={handleActive}
-            size="small"
-          />
-          <ButtonGroup
-            alignItems="right"
-            buttonProps={[
-              {
-                label: "Cancel",
-                size: "small",
-                onClick: () => history.push("/policy-management"),
-              },
-              {
-                label: "Save",
-                size: "small",
-                disabled: loading,
-                onClick: submitPolicy,
-              },
-            ]}
-          />
+        <div className="flex full-cover">
+          <div>
+            <span style={{ marginBottom: 16 }}>
+              <Link onClick={handleCancel} size="small">
+                &#x276E; Back to Vendor List
+              </Link>
+            </span>
+          </div>
+          <div className="flex top-actions">
+            <Switch
+              label="Active"
+              className="inline-checkbox"
+              checked={active}
+              onChange={handleActive}
+              size="small"
+            />
+            <ButtonGroup
+              alignItems="right"
+              buttonProps={[
+                {
+                  label: "Cancel",
+                  size: "small",
+                  onClick: handleCancel,
+                },
+                {
+                  label: "Save",
+                  size: "small",
+                  disabled: loading,
+                  onClick: submitVendor,
+                },
+              ]}
+            />
+          </div>
         </div>
       </Box>
       <Grid container spacing={2}>
@@ -194,22 +286,39 @@ const CreatePolicy = () => {
           <Box>
             <div className="flex create-sidebar flexWrap">
               <Typography variant="title1" className="b-font title">
-                New Policy
+                New Vendor
               </Typography>
-              <br />
+              {/* <br /> */}
               <TextField
-                id="policyName"
+                id="vName"
                 size="small"
-                label="Policy Name"
-                placeholder="Name your policy"
+                value={vName}
+                label="Vendor Name"
+                placeholder="Name your vendor"
                 onChange={handleChange}
               />
-              <TextField
-                id="policyDesc"
+              <Select
                 size="small"
-                label="Policy Description"
-                placeholder="Describe your policy"
+                fullWidth
+                label="External System Name"
+                placeholder="Select system name"
+                canDeselect={false}
+                value={vESN}
+                onChange={(e) => handleSelection(e)}
+              >
+                {options.map((option) => (
+                  <MenuItem key={option} value={option}>
+                    {option}
+                  </MenuItem>
+                ))}
+              </Select>
+              <TextField
+                id="vDescription"
+                size="small"
+                label="Vendor Description"
+                placeholder="Describe your vendor"
                 rows="18"
+                value={vDescription}
                 multiline={true}
                 minHeight={150}
                 sizeAdjustable
@@ -218,46 +327,11 @@ const CreatePolicy = () => {
             </div>
           </Box>
         </Grid>
-        <Grid item xs={9} className="products-wrapper">
+        <Grid item xs={9} className="contacts-wrapper">
           <br />
-          <Tabs
-            value={currentTab}
-            onChange={handleChangeTab}
-            truncate
-            className="product-tabs"
-          >
-            {products &&
-              products.map((product, i) => {
-                return (
-                  <Tab
-                    label={
-                      // eslint-disable-next-line react/jsx-wrap-multilines
-                      <Badge
-                        badgeContent={getBadgeCount(product.prod_nm)}
-                        max={999}
-                      >
-                        {product.prod_nm}
-                      </Badge>
-                    }
-                  />
-                );
-              })}
-          </Tabs>
-          <div className="product-content">
-            {products &&
-              products.map((product, i) => {
-                if (currentTab !== i) {
-                  return false;
-                }
-                return (
-                  <ContactsTable
-                    messageContext={messageContext}
-                    title={product.prod_nm}
-                    updateData={updateData}
-                    data={permissions[product.prod_nm] || []}
-                  />
-                );
-              })}
+          <div className="contact-content">
+            {/* <ContactsTable /> */}
+            <TableEditableAll updateData={updateData} />
           </div>
         </Grid>
       </Grid>
@@ -265,4 +339,4 @@ const CreatePolicy = () => {
   );
 };
 
-export default CreatePolicy;
+export default CreateVendor;

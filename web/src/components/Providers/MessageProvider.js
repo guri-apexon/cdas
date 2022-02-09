@@ -26,7 +26,7 @@ const MessageProvider = ({ children }) => {
     }
     setTimeout(() => {
       setErrorMessage({ show: false });
-    }, 5000);
+    }, 7500);
   };
 
   const showSuccessMessage = (message, top = null) => {

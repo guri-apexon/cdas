@@ -1,5 +1,5 @@
 import { Route, Switch, Redirect } from "react-router";
-import { useHistory } from "react-router-dom";
+import { useLocation, useHistory } from "react-router-dom";
 import { lazy, Suspense, useState, useEffect } from "react";
 import Loader from "apollo-react/components/Loader";
 
@@ -33,9 +33,10 @@ const CreateVendor = lazy(() =>
 const Empty = () => <></>;
 
 const RoutesWrapper = () => {
-  const [loggedIn, setLoggedIn] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(null);
   const [checkedOnce, setCheckedOnce] = useState(false);
   const history = useHistory();
+  const location = useLocation();
 
   useEffect(() => {
     const userId = getCookie("user.id");
@@ -49,7 +50,6 @@ const RoutesWrapper = () => {
 
   useEffect(() => {
     const userId = getCookie("user.id");
-    // console.log("Wrapper-props:", JSON.stringify(props));
     if (userId) {
       setLoggedIn(true);
     } else {
@@ -59,19 +59,24 @@ const RoutesWrapper = () => {
 
   useEffect(() => {
     const userId = getCookie("user.id");
-    console.log(userId);
+    // console.log(userId);
     if (userId) {
-      history.push("/");
+      if (location.pathname === "/checkAuthentication") {
+        history.push(`/launchpad`);
+      }
+      history.push(location.pathname);
     } else {
       // eslint-disable-next-line no-lonely-if
       if (!checkedOnce) {
         window.location.href = `${process.env.REACT_APP_LAUNCH_URL}`;
-        console.log("dotenv :", process.env.REACT_APP_LAUNCH_URL);
         setCheckedOnce(true);
       }
     }
   }, [checkedOnce, history]);
 
+  // if (loggedIn == null) {
+  //   return false;
+  // }
   return (
     <Suspense fallback={<Loader isInner />}>
       {loggedIn ? (
