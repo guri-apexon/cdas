@@ -67,7 +67,7 @@ exports.listRoles = async function (req, res) {
     });
     let q = `SELECT r.role_id,r.role_nm ,r.role_desc,r.role_stat,p2.prod_nm 
     FROM ${constants.DB_SCHEMA_NAME}."role" r 
-    FULL OUTER JOIN ${constants.DB_SCHEMA_NAME}.role_policy rp 
+    INNER JOIN ${constants.DB_SCHEMA_NAME}.role_policy rp 
     ON r.role_id = rp.role_id
     FULL OUTER join ${constants.DB_SCHEMA_NAME}.policy_product pp 
     on pp.plcy_id = rp.plcy_id 
