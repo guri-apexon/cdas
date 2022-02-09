@@ -19,7 +19,7 @@ import Table, {
 import { useHistory } from "react-router";
 import { MessageContext } from "../../../../components/Providers/MessageProvider";
 import { getPolicyList } from "../../../../store/actions/PolicyAdminActions";
-import "./CreateRole.scss";
+import "./UpdateRole.scss";
 import {
   createStringArrayIncludedFilter,
   getUserInfo,
@@ -29,7 +29,7 @@ import {
 import { addRoleService } from "../../../../services/ApiServices";
 import PolicySnapshot from "./PolicySnapshot";
 
-const CreateRole = () => {
+const UpdateRole = () => {
   const dispatch = useDispatch();
   const history = useHistory();
   const [active, setActive] = useState(true);
@@ -370,4 +370,4 @@ const CreateRole = () => {
   );
 };
 
-export default CreateRole;
+export default UpdateRole;

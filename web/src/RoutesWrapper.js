@@ -23,6 +23,9 @@ const UpdatePolicy = lazy(() =>
 const CreateRole = lazy(() =>
   import("./pages/Admin/Role/CreateRole/CreateRole")
 );
+const UpdateRole = lazy(() =>
+  import("./pages/Admin/Role/UpdateRole/UpdateRole")
+);
 const VendorList = lazy(() =>
   import("./pages/Admin/Vendor/VendorList/VendorList")
 );
@@ -74,9 +77,6 @@ const RoutesWrapper = () => {
     }
   }, [checkedOnce, history]);
 
-  // if (loggedIn == null) {
-  //   return false;
-  // }
   return (
     <Suspense fallback={<Loader isInner />}>
       {loggedIn ? (
@@ -111,6 +111,11 @@ const RoutesWrapper = () => {
             />
             <Route path="/role-management" exact render={() => <Role />} />
             <Route path="/create-role" exact render={() => <CreateRole />} />
+            <Route
+              path="/role-management/:id"
+              exact
+              render={() => <UpdateRole />}
+            />
             <Route
               path="/user-management"
               exact
