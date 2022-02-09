@@ -1,5 +1,5 @@
 import { Route, Switch, Redirect } from "react-router";
-import { useHistory } from "react-router-dom";
+import { useLocation, useHistory } from "react-router-dom";
 import { lazy, Suspense, useState, useEffect } from "react";
 import Loader from "apollo-react/components/Loader";
 
@@ -36,6 +36,7 @@ const RoutesWrapper = () => {
   const [loggedIn, setLoggedIn] = useState(null);
   const [checkedOnce, setCheckedOnce] = useState(false);
   const history = useHistory();
+  const location = useLocation();
 
   useEffect(() => {
     const userId = getCookie("user.id");
@@ -58,9 +59,12 @@ const RoutesWrapper = () => {
 
   useEffect(() => {
     const userId = getCookie("user.id");
+    // console.log(userId);
     if (userId) {
-      // history.push("/");
-      console.log("userId:", userId);
+      if (location.pathname === "/checkAuthentication") {
+        history.push(`/launchpad`);
+      }
+      history.push(location.pathname);
     } else {
       // eslint-disable-next-line no-lonely-if
       if (!checkedOnce) {
@@ -70,9 +74,9 @@ const RoutesWrapper = () => {
     }
   }, [checkedOnce, history]);
 
-  if (loggedIn == null) {
-    return false;
-  }
+  // if (loggedIn == null) {
+  //   return false;
+  // }
   return (
     <Suspense fallback={<Loader isInner />}>
       {loggedIn ? (

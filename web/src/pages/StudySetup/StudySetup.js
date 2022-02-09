@@ -37,6 +37,12 @@ const StudySetup = () => {
     refreshData();
   }, []);
 
+  const { studyboardData: Studydata } = studyData;
+
+  const studyboardData = selectedFilter
+    ? Studydata.filter((e) => e.onboardingprogress === selectedFilter)
+    : Studydata;
+
   return (
     <div className="study-setup-wrapper">
       <Backdrop style={{ zIndex: 9 }} open={studyData?.loading ?? false}>
@@ -72,6 +78,7 @@ const StudySetup = () => {
       />
       <StudyTable
         studyData={studyData}
+        studyboardData={studyboardData}
         refreshData={refreshData}
         selectedFilter={selectedFilter}
       />

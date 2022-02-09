@@ -56,13 +56,9 @@ body {
 }
 .Message-Banner {
   z-index: 1100 !important;
-}
-.Message-Banner.top-56 {
   top: 56px !important;
 }
-.Message-Banner.top-0 {
-  top: 0 !important;
-}
+
 label.inline-checkbox {
   flex-direction: row-reverse;
   align-items: center;

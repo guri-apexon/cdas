@@ -3,6 +3,7 @@ const apiResponse = require("../helpers/apiResponse");
 const Logger = require("../config/logger");
 const moment = require("moment");
 const constants = require("../config/constants");
+const { DB_SCHEMA_NAME: schemaName } = constants;
 
 exports.createPolicy = function (req, res) {
   try {
@@ -19,7 +20,7 @@ exports.createPolicy = function (req, res) {
       currentTime,
     ];
     DB.executeQuery(
-      `INSERT into ${constants.DB_SCHEMA_NAME}.policy(plcy_nm, plcy_desc, plcy_stat, created_by, created_on, updated_by, updated_on) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+      `INSERT into ${schemaName}.policy(plcy_nm, plcy_desc, plcy_stat, created_by, created_on, updated_by, updated_on) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
       policyValues
     )
       .then((response) => {
@@ -30,13 +31,13 @@ exports.createPolicy = function (req, res) {
           if (productPermission.length) {
             productPermission.forEach((category) => {
               Object.keys(category.permsn_nm).forEach((permissionName) => {
-                if(category.permsn_nm[permissionName]){
-                  permissionQuery += `INSERT into ${constants.DB_SCHEMA_NAME}.policy_product_permission(plcy_id, prod_permsn_id, act_flg, created_by, created_on, updated_by, updated_on)
-                select distinct ${policy.plcy_id}, pp.prod_permsn_id, 1, '${userId}', current_timestamp, '${userId}', current_timestamp from ${constants.DB_SCHEMA_NAME}.product_permission pp
-                left join ${constants.DB_SCHEMA_NAME}.product p2 on (pp.prod_id=p2.prod_id)
-                left join ${constants.DB_SCHEMA_NAME}.category c on (c.ctgy_id=pp.ctgy_id)
-                left join ${constants.DB_SCHEMA_NAME}.feature f on (f.feat_id=pp.feat_id)
-                left join ${constants.DB_SCHEMA_NAME}."permission" p on (p.permsn_id=pp.permsn_id)
+                if (category.permsn_nm[permissionName]) {
+                  permissionQuery += `INSERT into ${schemaName}.policy_product_permission(plcy_id, prod_permsn_id, act_flg, created_by, created_on, updated_by, updated_on)
+                select distinct ${policy.plcy_id}, pp.prod_permsn_id, 1, '${userId}', current_timestamp, '${userId}', current_timestamp from ${schemaName}.product_permission pp
+                left join ${schemaName}.product p2 on (pp.prod_id=p2.prod_id)
+                left join ${schemaName}.category c on (c.ctgy_id=pp.ctgy_id)
+                left join ${schemaName}.feature f on (f.feat_id=pp.feat_id)
+                left join ${schemaName}."permission" p on (p.permsn_id=pp.permsn_id)
                 where p2.prod_nm ='${product}' and c.ctgy_nm ='${category.ctgy_nm}' and f.feat_nm ='${category.feat_nm}' and p.permsn_nm ='${permissionName}';`;
                 }
               });
@@ -56,7 +57,10 @@ exports.createPolicy = function (req, res) {
           });
       })
       .catch((err) => {
-        const errMessage = err.code==23505 ? "Policy Name should be unique - Please update the name and Save again" : err.detail;
+        const errMessage =
+          err.code == 23505
+            ? "Policy Name should be unique - Please update the name and Save again"
+            : err.detail;
         return apiResponse.ErrorResponse(res, errMessage);
       });
   } catch (err) {
@@ -64,10 +68,10 @@ exports.createPolicy = function (req, res) {
   }
 };
 
-
 exports.updatePolicy = function (req, res) {
   try {
-    const { policyName, policyDesc, permissions, userId, status, policyId } = req.body;
+    const { policyName, policyDesc, permissions, userId, status, policyId } =
+      req.body;
     const productsArr = Object.keys(permissions);
     const currentTime = moment().format("YYYY-MM-DD HH:mm:ss");
     const policyValues = [
@@ -76,44 +80,59 @@ exports.updatePolicy = function (req, res) {
       status,
       userId,
       currentTime,
-      policyId
+      policyId,
     ];
-    DB.executeQuery(`UPDATE ${constants.DB_SCHEMA_NAME}.policy set plcy_nm=$1, plcy_desc=$2, plcy_stat=$3, updated_by=$4, updated_on=$5 WHERE plcy_id=$6 RETURNING *`, policyValues).then((response) => {
-      const policy = response.rows[0];
-      let permissionQuery = '';
-      productsArr.forEach((product, i)=>{
-        const productPermission = permissions[product];
-        if(productPermission.length){
-          productPermission.forEach((category)=>{
-            category.permsn_nm.forEach((permission)=>{
-              if(permission.updated){
-                if(permission.id){
-                  permissionQuery += `UPDATE ${constants.DB_SCHEMA_NAME}.policy_product_permission set act_flg=${permission.value ? '1' : 'null'} WHERE plcy_prod_permsn_id=${permission.id};`;
-                }else{
-                  if(permission.value){
-                    permissionQuery += `INSERT into ${constants.DB_SCHEMA_NAME}.policy_product_permission(plcy_id, prod_permsn_id, act_flg, created_by, created_on, updated_by, updated_on)
+    DB.executeQuery(
+      `UPDATE ${constants.DB_SCHEMA_NAME}.policy set plcy_nm=$1, plcy_desc=$2, plcy_stat=$3, updated_by=$4, updated_on=$5 WHERE plcy_id=$6 RETURNING *`,
+      policyValues
+    )
+      .then((response) => {
+        const policy = response.rows[0];
+        let permissionQuery = "";
+        productsArr.forEach((product, i) => {
+          const productPermission = permissions[product];
+          if (productPermission.length) {
+            productPermission.forEach((category) => {
+              category.permsn_nm.forEach((permission) => {
+                if (permission.updated) {
+                  if (permission.id) {
+                    permissionQuery += `UPDATE ${
+                      constants.DB_SCHEMA_NAME
+                    }.policy_product_permission set act_flg=${
+                      permission.value ? "1" : "null"
+                    } WHERE plcy_prod_permsn_id=${permission.id};`;
+                  } else {
+                    if (permission.value) {
+                      permissionQuery += `INSERT into ${constants.DB_SCHEMA_NAME}.policy_product_permission(plcy_id, prod_permsn_id, act_flg, created_by, created_on, updated_by, updated_on)
                     select distinct ${policy.plcy_id}, pp.prod_permsn_id, 1, '${userId}', current_timestamp, '${userId}', current_timestamp from ${constants.DB_SCHEMA_NAME}.product_permission pp
                     left join ${constants.DB_SCHEMA_NAME}.product p2 on (pp.prod_id=p2.prod_id)
                     left join ${constants.DB_SCHEMA_NAME}.category c on (c.ctgy_id=pp.ctgy_id)
                     left join ${constants.DB_SCHEMA_NAME}.feature f on (f.feat_id=pp.feat_id)
                     left join ${constants.DB_SCHEMA_NAME}."permission" p on (p.permsn_id=pp.permsn_id)
                     where p2.prod_nm ='${product}' and c.ctgy_nm ='${category.ctgy_nm}' and f.feat_nm ='${category.feat_nm}' and p.permsn_nm ='${permission.name}';`;
+                    }
                   }
                 }
-              }
+              });
             });
+          }
+        });
+        DB.executeQuery(permissionQuery)
+          .then((response) => {
+            return apiResponse.successResponseWithData(
+              res,
+              "Updated Successfully",
+              []
+            );
+          })
+          .catch((err) => {
+            return apiResponse.ErrorResponse(res, err.detail);
           });
-        }
-      });
-      DB.executeQuery(permissionQuery).then((response) => {
-        return apiResponse.successResponseWithData(res, "Updated Successfully", []);
-      }).catch(err=>{
+      })
+      .catch((err) => {
+        console.log("err", err);
         return apiResponse.ErrorResponse(res, err.detail);
       });
-    }).catch(err=>{
-      console.log("err", err);
-      return apiResponse.ErrorResponse(res, err.detail);
-    });
   } catch (err) {
     return apiResponse.ErrorResponse(res, err);
   }
@@ -196,30 +215,36 @@ exports.getSnapshot = function (req, res) {
 
 exports.listPermission = function (req, res) {
   try {
-    const {policyId} = req.params;
+    const { policyId } = req.params;
     const searchQuery = `select row_number() over(order by prod_nm asc) as indx ,prod_nm,ctgy_nm ,feat_nm ,permsn_nm ,select_check_box, plcy_prod_permsn_id
     from (select distinct p2.prod_nm ,c.ctgy_nm ,f.feat_nm ,p.permsn_nm , ppp.plcy_prod_permsn_id,
-    case when ppp.plcy_prod_permsn_id is not null ${(policyId ? "and ppp.act_flg='1'" : '')} then '1' else '0' end as select_check_box
-    from ${constants.DB_SCHEMA_NAME}.product_permission pp
-    left outer join ${constants.DB_SCHEMA_NAME}.policy_product_permission ppp on (pp.prod_permsn_id=ppp.prod_permsn_id and ${(policyId ? `ppp.plcy_id='${policyId}'` : 'ppp.act_flg=1')} )
-    left outer join ${constants.DB_SCHEMA_NAME}.category c on (c.ctgy_id=pp.ctgy_id)
-    left outer join ${constants.DB_SCHEMA_NAME}.feature f on (f.feat_id=pp.feat_id)
-    left outer join ${constants.DB_SCHEMA_NAME}."permission" p on (p.permsn_id=pp.permsn_id)
-    left outer join ${constants.DB_SCHEMA_NAME}.product p2 on (p2.prod_id=pp.prod_id)) oprd;`;
+    case when ppp.plcy_prod_permsn_id is not null ${
+      policyId ? "and ppp.act_flg='1'" : ""
+    } then '1' else '0' end as select_check_box
+    from ${schemaName}.product_permission pp
+    left outer join ${schemaName}.policy_product_permission ppp on (pp.prod_permsn_id=ppp.prod_permsn_id and ${
+      policyId ? `ppp.plcy_id='${policyId}'` : "ppp.act_flg=1"
+    } )
+    left outer join ${schemaName}.category c on (c.ctgy_id=pp.ctgy_id)
+    left outer join ${schemaName}.feature f on (f.feat_id=pp.feat_id)
+    left outer join ${schemaName}."permission" p on (p.permsn_id=pp.permsn_id)
+    left outer join ${schemaName}.product p2 on (p2.prod_id=pp.prod_id)) oprd;`;
     DB.executeQuery(searchQuery).then(async (response) => {
       const permissions = response?.rows || [];
-      if(policyId){
-        await DB.executeQuery(`SELECT * from ${constants.DB_SCHEMA_NAME}.policy WHERE plcy_id=${policyId}`).then((policyRes) => {
+      if (policyId) {
+        await DB.executeQuery(
+          `SELECT * from ${schemaName}.policy WHERE plcy_id=${policyId}`
+        ).then((policyRes) => {
           return apiResponse.successResponseWithData(
             res,
             "Permissions retrieved successfully",
             {
               policyDetails: policyRes.rows[0],
-              data: permissions
+              data: permissions,
             }
           );
         });
-      }else{
+      } else {
         return apiResponse.successResponseWithData(
           res,
           "Permissions retrieved successfully",
@@ -255,27 +280,28 @@ exports.getPolicyList = async (req, res) => {
         policyList: $q1.rows,
         uniqueProducts: products,
       });
-    }else{
-      // const query = `select p.plcy_nm as "policyName", p.plcy_desc as "policyDescription", p.plcy_id as "policyId", p2.prod_nm as "productName", p.plcy_stat as "policyStatus" from ${constants.DB_SCHEMA_NAME}."policy" p
-      // inner join ${constants.DB_SCHEMA_NAME}.policy_product pp on (pp.plcy_id=p.plcy_id)
-      // inner join ${constants.DB_SCHEMA_NAME}.product p2 on (pp.prod_id=p2.prod_id)
-      // where pp.act_flg =1`;
-  
-      const query = `select distinct p.plcy_nm as "policyName", p.plcy_desc as "policyDescription", p.plcy_id as "policyId", p2.prod_nm as "productName", p.plcy_stat as "policyStatus" from ${constants.DB_SCHEMA_NAME}."policy" p
-      inner join ${constants.DB_SCHEMA_NAME}.policy_product_permission ppp on (p.plcy_id=ppp.plcy_id)
-      inner JOIN ${constants.DB_SCHEMA_NAME}.product_permission pp ON ppp.prod_permsn_id = pp.prod_permsn_id
-      inner JOIN ${constants.DB_SCHEMA_NAME}.product p2 ON p2.prod_id = pp.prod_id
-      where ppp.act_flg =1`;
-  
-      const $q1 = await DB.executeQuery(query);
-      const uniqueProducts = await $q1.rows
-        .map((e) => e.productName)
-        .filter((it, i, ar) => ar.indexOf(it) === i);
-      return apiResponse.successResponseWithData(res, "Operation success", {
-        policyList: $q1.rows,
-        uniqueProducts,
-      });
     }
+    // const query = `select p.plcy_nm as "policyName", p.plcy_desc as "policyDescription", p.plcy_id as "policyId", p2.prod_nm as "productName", p.plcy_stat as "policyStatus" from ${schemaName}."policy" p
+    // inner join ${schemaName}.policy_product pp on (pp.plcy_id=p.plcy_id)
+    // inner join ${schemaName}.product p2 on (pp.prod_id=p2.prod_id)
+    // where pp.act_flg =1`;
+
+    const query = `select distinct p.plcy_nm as "policyName", p.plcy_desc as "policyDescription", p.plcy_id as "policyId", p2.prod_nm as "productName", p.plcy_stat as "policyStatus" from ${schemaName}."policy" p
+    inner join ${schemaName}.policy_product_permission ppp on (p.plcy_id=ppp.plcy_id)
+    inner JOIN ${schemaName}.product_permission pp ON ppp.prod_permsn_id = pp.prod_permsn_id
+    inner JOIN ${schemaName}.product p2 ON p2.prod_id = pp.prod_id
+    where ppp.act_flg =1`;
+
+    const $q1 = await DB.executeQuery(query);
+
+    const uniqueProducts = await $q1.rows
+      .map((e) => e.productName)
+      .filter((it, i, ar) => ar.indexOf(it) === i);
+
+    return apiResponse.successResponseWithData(res, "Operation success", {
+      policyList: $q1.rows,
+      uniqueProducts,
+    });
   } catch (err) {
     //throw error in json response with status 500.
     Logger.error("catch :getPolicyList");

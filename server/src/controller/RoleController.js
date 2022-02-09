@@ -64,6 +64,11 @@ exports.listRoles = async function (req, res) {
     on p2.prod_id = pp.prod_id`;
     let { rows } = await DB.executeQuery(q);
     let tempRows = _.uniqBy(rows, "role_id");
+    let _Products = _.uniqBy(rows, "prod_nm");
+    let uniqueProducts = [];
+    for (let el of _Products) {
+      uniqueProducts.push(el.prod_nm);
+    }
     if (rows.length > 0) {
       for (let each of tempRows) {
         let products = "";
@@ -81,11 +86,11 @@ exports.listRoles = async function (req, res) {
         each.products = products ? products : [];
       }
     }
-    console.log(tempRows);
+    const responseBody = { roles: tempRows, uniqueProducts };
     return apiResponse.successResponseWithData(
       res,
       "Operation success",
-      tempRows ? tempRows : []
+      responseBody
     );
   } catch (error) {
     Logger.error("catch :listRoles");

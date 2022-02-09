@@ -1,5 +1,6 @@
-.create-policy-wrapper {
+.create-vendor-wrapper {
   padding: 0 28px;
+  min-height: calc(100vh - 152px);
   .breadcrump {
     margin-left: -8px;
     margin-bottom: 0;
@@ -11,6 +12,10 @@
       margin-top: 4px;
     }
   }
+  .full-cover {
+    justify-content: space-between;
+    margin: 8px 0px;
+  }
   .top-actions {
     justify-content: end;
     label {
@@ -21,25 +26,20 @@
     max-width: 75%;
     .title {
       font-size: 24px;
+      margin-bottom: 4px;
     }
   }
   .products-wrapper {
     margin-top: 10px;
-    .product-content {
-      margin-top: 20px;
+    .contact-content {
+      margin-top: 32px;
     }
   }
-  .permission-table-wrapper {
+  .table-wrapper {
     position: relative;
     height: 80vh;
     tfoot {
       display: none;
-    }
-    .search-header {
-      position: absolute;
-      right: 20px;
-      top: 6px;
-      z-index: 2;
     }
   }
 }
