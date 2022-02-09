@@ -38,6 +38,10 @@ const VendorReducer = (state = initialState, action) =>
 
       case GET_VENDOR_DETAILS:
         newState.loading = true;
+        newState.isEditPage = false;
+        newState.isCreatePage = true;
+        newState.selectedContacts = [];
+        newState.selectedVendor = {};
         break;
 
       case VENDOR_DETAILS_SUCCESS:
@@ -51,6 +55,9 @@ const VendorReducer = (state = initialState, action) =>
       case VENDOR_DETAILS_FAILURE:
         newState.loading = false;
         newState.isEditPage = false;
+        newState.isCreatePage = true;
+        newState.selectedContacts = [];
+        newState.selectedVendor = {};
         break;
 
       case CREATE_VENDOR:
