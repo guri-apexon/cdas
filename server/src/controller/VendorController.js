@@ -187,15 +187,19 @@ exports.createVendor = async (req, res) => {
 
     const vId = getId.rows[0].vend_id;
 
-    const contactInset = await vContacts.map((e) => {
-      DB.executeQuery(contactQuery, [vId, e.name, e.email, userName, curDate]);
-    });
+    if (vContacts.length > 1) {
+      const contactInset = await vContacts.map((e) => {
+        DB.executeQuery(contactQuery, [
+          vId,
+          e.name,
+          e.email,
+          userName,
+          curDate,
+        ]);
+      });
+    }
 
-    return apiResponse.successResponseWithData(
-      res,
-      "Operation success",
-      contactInset
-    );
+    return apiResponse.successResponse(res, "Operation success");
   } catch (err) {
     //throw error in json response with status 500.
     Logger.error("catch :createVendor");
@@ -248,23 +252,21 @@ exports.updateVendor = async (req, res) => {
         vId,
       ]);
 
-      const contactUp = await vContacts.map((e) => {
-        DB.executeQuery(contactQuery, [
-          e.vCId,
-          e.contactName,
-          e.emailId,
-          userName,
-          curDate,
-          e.status,
-          vId,
-        ]);
-      });
+      if (vContacts.length > 1) {
+        const contactUp = await vContacts.map((e) => {
+          DB.executeQuery(contactQuery, [
+            e.vCId,
+            e.contactName,
+            e.emailId,
+            userName,
+            curDate,
+            e.status,
+            vId,
+          ]);
+        });
+      }
 
-      return apiResponse.successResponseWithData(
-        res,
-        "Operation success",
-        contactUp
-      );
+      return apiResponse.successResponse(res, "Operation success");
     }
   } catch (err) {
     //throw error in json response with status 500.
