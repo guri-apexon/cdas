@@ -78,23 +78,27 @@ exports.listRoles = async function (req, res) {
     let _Products = _.uniqBy(rows, "prod_nm");
     let uniqueProducts = [];
     for (let el of _Products) {
-      uniqueProducts.push(el.prod_nm);
+      if (el.prod_nm !== null) {
+        uniqueProducts.push(el.prod_nm);
+      }
     }
     if (rows.length > 0) {
       for (let each of tempRows) {
         let products = "";
         for (let obj of rows) {
           if (each.role_id === obj.role_id) {
-            if (products !== "") {
-              products = products + ", " + obj.prod_nm;
-            } else {
-              products = obj.prod_nm;
+            if (each.prod_nm !== null && obj.prod_nm !== null) {
+              if (products !== "") {
+                products = products + ", " + obj.prod_nm;
+              } else {
+                products = obj.prod_nm;
+              }
             }
           }
         }
         delete each.prod_nm;
         each.role_stat = each.role_stat === "1" ? "active" : "Inactive";
-        each.products = products ? products : [];
+        each.products = products;
       }
     }
     const responseBody = { roles: tempRows, uniqueProducts };
@@ -104,6 +108,7 @@ exports.listRoles = async function (req, res) {
       responseBody
     );
   } catch (error) {
+    console.log(error);
     Logger.error("catch :listRoles");
     Logger.error(error.message);
     return apiResponse.ErrorResponse(res, error.message);

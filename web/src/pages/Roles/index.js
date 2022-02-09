@@ -113,36 +113,42 @@ const Role = () => {
   const LinkCell = ({ row, column: { accessor } }) => {
     const rowValue = row[accessor];
     const id = row.role_id;
-    if (rowValue.length > 30) {
-      return (
-        <Link
-          onMouseOver={() => handleMouseOver(row)}
-          onMouseOut={handleMouseOut}
-          onClick={(e) => goToRole(e, id)}
-        >
-          {`${rowValue.slice(0, 30)}  [...]`}
-        </Link>
-      );
+    if (rowValue) {
+      if (rowValue.length > 30) {
+        return (
+          <Link
+            onMouseOver={() => handleMouseOver(row)}
+            onMouseOut={handleMouseOut}
+            onClick={(e) => goToRole(e, id)}
+          >
+            {`${rowValue.slice(0, 30)}  [...]`}
+          </Link>
+        );
+      }
+      return <Link onClick={(e) => goToRole(e, id)}>{rowValue}</Link>;
     }
-    return <Link onClick={(e) => goToRole(e, id)}>{rowValue}</Link>;
+    return null;
   };
 
   const DespCell = ({ row, column: { accessor } }) => {
     const data = row[accessor];
-    if (data.length < 80) {
-      return <>{data}</>;
+    if (data) {
+      if (data.length < 80) {
+        return <>{data}</>;
+      }
+      return (
+        <>
+          {data.slice(0, 50)}
+          <Link
+            onMouseOver={() => handleMouseOver(row)}
+            onMouseOut={handleMouseOut}
+          >
+            {`  [...]`}
+          </Link>
+        </>
+      );
     }
-    return (
-      <>
-        {data.slice(0, 50)}
-        <Link
-          onMouseOver={() => handleMouseOver(row)}
-          onMouseOut={handleMouseOut}
-        >
-          {`  [...]`}
-        </Link>
-      </>
-    );
+    return null;
   };
 
   const CustomButtonHeader = ({ toggleFilters }) => (
