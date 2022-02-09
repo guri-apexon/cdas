@@ -23,7 +23,7 @@ import {
   createStringArrayIncludedFilter,
 } from "../../utils/index";
 import "./index.scss";
-import { fetchRoles } from "../../store/actions/RolesActions";
+import { fetchRoles, updateStatus } from "../../store/actions/RolesActions";
 
 const ProductsCell = ({ row, column: { accessor } }) => {
   const rowValue = row[accessor];
@@ -56,7 +56,7 @@ const Role = () => {
     setTableRows(roles);
     setProducts(uniqueProducts);
     setLoading(false);
-  }, [Roles.loading]);
+  }, [Roles]);
 
   const goToRole = (e, id) => {
     e.preventDefault();
@@ -72,20 +72,17 @@ const Role = () => {
     setCurRow(row);
   };
 
-  const handleInActivate = (e, id) => {
+  const handleStatus = async (e, id, status) => {
     e.preventDefault();
-    const selectedData = tableRows.filter((d) => d.role_id === id);
-    const unSelectedData = tableRows.filter((d) => d.role_id !== id);
-    // selectedData[0].role_stat = "Inactive";
-    setTableRows([...unSelectedData, ...selectedData]);
-  };
-
-  const handleActivate = (e, id) => {
-    e.preventDefault();
-    const selectedData = tableRows.filter((d) => d.role_id === id);
-    const unSelectedData = tableRows.filter((d) => d.role_id !== id);
-    // selectedData[0].role_stat = "Active";
-    setTableRows([...unSelectedData, ...selectedData]);
+    try {
+      // eslint-disable-next-line no-underscore-dangle
+      const _status = status === "Active" ? 0 : 1;
+      const payload = { role_id: id, role_stat: _status };
+      await dispatch(updateStatus(payload));
+      await dispatch(fetchRoles());
+    } catch (error) {
+      console.log("error", error);
+    }
   };
 
   const StatusCell = ({ row, column: { accessor } }) => {
@@ -96,7 +93,7 @@ const Role = () => {
         <Tooltip title="Active" disableFocusListener>
           <Switch
             checked={true}
-            onChange={(e) => handleInActivate(e, id)}
+            onChange={(e) => handleStatus(e, id, "Active")}
             size="small"
           />
         </Tooltip>
@@ -106,7 +103,7 @@ const Role = () => {
       <Tooltip title="Inactive" disableFocusListener>
         <Switch
           checked={false}
-          onChange={(e) => handleActivate(e, id)}
+          onChange={(e) => handleStatus(e, id, "InActive")}
           size="small"
         />
       </Tooltip>
@@ -210,7 +207,7 @@ const Role = () => {
       header: "Status",
       accessor: "role_stat",
       customCell: StatusCell,
-      // sortFunction: compareStrings,
+      sortFunction: compareStrings,
       filterFunction: createStringArraySearchFilter("role_stat"),
       filterComponent: createSelectFilterComponent(statusList, {
         size: "small",
@@ -244,7 +241,7 @@ const Role = () => {
             rowId="role_id"
             hasScroll={true}
             maxHeight="calc(100vh - 162px)"
-            // initialSortedColumn="role_nm"
+            initialSortedColumn="role_nm"
             initialSortOrder="asc"
             rowsPerPageOptions={[10, 50, 100, "All"]}
             tablePaginationProps={{

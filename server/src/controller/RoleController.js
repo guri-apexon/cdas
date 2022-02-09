@@ -61,3 +61,16 @@ exports.listRoles = async function (req, res) {
     return apiResponse.ErrorResponse(res, error.message);
   }
 };
+
+exports.updateStatus = async (req, res) => {
+  try {
+    const { role_id, role_stat } = req.body;
+    let query = `update cdascfg.role set role_stat = '${role_stat}' where role_id = ${role_id}`;
+    await DB.executeQuery(query);
+    return apiResponse.successResponseWithData(res, "Update success");
+  } catch (error) {
+    Logger.error("catch :update status role");
+    Logger.error(error.message);
+    return apiResponse.ErrorResponse(res, error.message);
+  }
+};

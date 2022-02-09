@@ -4,6 +4,10 @@ import {
   ROLE_LIST_FETCH,
   ROLE_LIST_FAILURE,
   ROLE_LIST_SUCCESS,
+  UPDATE_ROLE_STATUS,
+  UPDATE_ROLE_STATUS_SUCCESS,
+  UPDATE_ROLE_STATUS_FAILURE,
+  // eslint-disable-next-line import/named
 } from "../../constants";
 
 export const initialState = {
@@ -23,6 +27,18 @@ const roleReducer = (state = initialState, action) =>
         newState.loading = false;
         newState.roles = action.roles.roles;
         newState.uniqueProducts = action.roles.uniqueProducts;
+        break;
+
+      case UPDATE_ROLE_STATUS:
+        newState.loading = true;
+        break;
+
+      case UPDATE_ROLE_STATUS_SUCCESS:
+        newState.loading = false;
+        break;
+
+      case UPDATE_ROLE_STATUS_FAILURE:
+        newState.loading = true;
         break;
 
       case ROLE_LIST_FAILURE:
