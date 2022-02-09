@@ -43,7 +43,7 @@ const CreateRole = () => {
   const [policies, setPolicies] = useState([]);
   const [products, setProducts] = useState([]);
   const userInfo = getUserInfo();
-  const policyAdmin = useSelector((state) => state.policyAdmin);
+  const policyStore = useSelector((state) => state.policy);
   const getPolicies = () => {
     dispatch(getPolicyList(true));
   };
@@ -189,12 +189,12 @@ const CreateRole = () => {
       });
   };
   useEffect(() => {
-    if (policyAdmin.policyList?.length) {
-      const data = JSON.parse(JSON.stringify(policyAdmin.policyList));
+    if (policyStore.policyList?.length) {
+      const data = JSON.parse(JSON.stringify(policyStore.policyList));
       setPolicies(data);
-      setProducts(policyAdmin.uniqueProducts || []);
+      setProducts(policyStore.uniqueProducts || []);
     }
-  }, [policyAdmin]);
+  }, [policyStore]);
   useEffect(() => {
     getPolicies();
   }, []);
