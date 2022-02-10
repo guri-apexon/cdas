@@ -65,6 +65,7 @@ const ConfirmModal = React.memo(({ open, cancel, stayHere, loading }) => {
 
 const CreateVendor = () => {
   const [active, setActive] = useState(true);
+  const [disableSave, setDisableSave] = useState(false);
   const [isAnyUpdate, setIsAnyUpdate] = useState(false);
   const [confirm, setConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -218,6 +219,22 @@ const CreateVendor = () => {
     updateChanges();
   };
 
+  useEffect(() => {
+    if (contacts.length > 1) {
+      const email = contacts.map((e) => e.isEmailValid);
+      const name = contacts.map((e) => e.isNameValid);
+      // const started = contacts.map((e) => e.isStarted);
+      const isValid = (currentValue) => currentValue === true;
+      if (!(email.every(isValid) && name.every(isValid))) {
+        setDisableSave(true);
+      } else {
+        setDisableSave(false);
+      }
+    } else {
+      setDisableSave(false);
+    }
+  }, [contacts]);
+
   const options = ["None", "CDR", "GDMPM-DAS", "IQB", "TDSE", "Wingspan"];
 
   const handleSelection = (e) => {
@@ -287,7 +304,7 @@ const CreateVendor = () => {
                 {
                   label: "Save",
                   size: "small",
-                  disabled: loading,
+                  disabled: loading || disableSave,
                   onClick: submitVendor,
                 },
               ]}
@@ -296,6 +313,7 @@ const CreateVendor = () => {
         </div>
       </Box>
       <Grid container spacing={2}>
+        {console.log("save", disableSave)}
         <Grid item xs={3}>
           <Box>
             <div className="flex create-sidebar flexWrap">
