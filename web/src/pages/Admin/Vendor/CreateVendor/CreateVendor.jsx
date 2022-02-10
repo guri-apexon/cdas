@@ -19,6 +19,7 @@ import _ from "lodash";
 import {
   addVendorService,
   updateVendorService,
+  deleteVendorContact,
 } from "../../../../services/ApiServices";
 import { selectVendor } from "../../../../store/actions/VendorAdminAction";
 import { MessageContext } from "../../../../components/Providers/MessageProvider";
@@ -167,8 +168,8 @@ const CreateVendor = () => {
             messageContext.showErrorMessage(
               err.message || "Something went wrong"
             );
-            setLoading(false);
           }
+          setLoading(false);
         });
     } else if (isEditPage) {
       updateVendorService(reqBody)
@@ -179,13 +180,16 @@ const CreateVendor = () => {
         })
         .catch((err) => {
           if (err.data) {
-            messageContext.showErrorMessage(err.data, 56);
+            messageContext.showErrorMessage(
+              err.data ||
+                "vendor name and external system name combination already exists."
+            );
           } else {
             messageContext.showErrorMessage(
               err.message || "Something went wrong"
             );
-            setLoading(false);
           }
+          setLoading(false);
         });
     }
   };
@@ -205,6 +209,7 @@ const CreateVendor = () => {
   const updateData = async (data) => {
     const goodContacts = await data.map((e) => {
       const newData = _.omit(e, ["isEmailValid", "isNameValid", "isStarted"]);
+      newData.status = 1;
       return newData;
     });
     // console.log("updateData", data, goodContacts);
@@ -234,6 +239,12 @@ const CreateVendor = () => {
       setConfirm(true);
     } else {
       history.push("/vendor/list");
+    }
+  };
+
+  const deleteAContact = (vCId) => {
+    if (isEditPage) {
+      deleteVendorContact({ vId, vCId, userName: userInfo.firstName });
     }
   };
 
@@ -334,7 +345,10 @@ const CreateVendor = () => {
           <br />
           <div className="contact-content">
             {/* <ContactsTable /> */}
-            <TableEditableAll updateData={updateData} />
+            <TableEditableAll
+              deleteAContact={deleteAContact}
+              updateData={updateData}
+            />
           </div>
         </Grid>
       </Grid>

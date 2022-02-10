@@ -47,7 +47,7 @@ exports.getVendorById = async (req, res) => {
     // console.log(id);
 
     const query = `SELECT v.vend_id as "vId", vend_nm as "vName", description as "vDescription", active as "vStatus", extrnl_sys_nm as "vESN" FROM ${schemaName}.vendor v WHERE v.vend_id = $1`;
-    const query2 = `SELECT vc.contact_nm as "name", vc.emailid as "email", vc.vend_contact_id as "vCId" FROM ${schemaName}.vendor_contact vc where vc.vend_id = $1`;
+    const query2 = `SELECT vc.contact_nm as "name", vc.emailid as "email", vc.vend_contact_id as "vCId" FROM ${schemaName}.vendor_contact vc where vc.vend_id = $1 AND vc.act_flg=1`;
 
     const vendor = await DB.executeQuery(query, [id]);
     const contact = await DB.executeQuery(query2, [id]);
@@ -187,8 +187,8 @@ exports.createVendor = async (req, res) => {
 
     const vId = getId.rows[0].vend_id;
 
-    if (vContacts.length > 1) {
-      const contactInset = await vContacts.map((e) => {
+    if (vContacts.length > 0) {
+      await vContacts.map((e) => {
         DB.executeQuery(contactQuery, [
           vId,
           e.name,
@@ -236,7 +236,8 @@ exports.updateVendor = async (req, res) => {
     const curDate = new Date();
     const $q1 = `select distinct vend_id from ${schemaName}.dataflow d`;
     const updateQuery = `UPDATE ${schemaName}.vendor SET vend_nm=$1, vend_nm_stnd=$2, description=$3, active=$4, extrnl_sys_nm=$5, updt_tm=$6, updated_by=$7 WHERE vend_id=$8`;
-    const contactQuery = `UPDATE ${schemaName}.vendor_contact SET contact_nm=$2, emailid=$3, updated_by=$4, updated_on=$5, act_flg=$6 WHERE vend_contact_id=$1 AND vend_id=$7`;
+    const contactQuery = `UPDATE ${schemaName}.vendor_contact SET contact_nm=$2, emailid=$3, updated_by=$4, updated_on=$5, act_flg=$6 WHERE vend_id=$1`;
+    const deleteQuery = `delete from ${schemaName}.vendor_contact vc where vend_id=$1 and act_flg <> 0`;
     const q1 = await DB.executeQuery($q1);
     const existingInDF = q1.rows.map((e) => parseInt(e.vend_id));
     // console.log(existingInDF.includes(vId), existingInDF, vId);
@@ -247,7 +248,8 @@ exports.updateVendor = async (req, res) => {
         "Vendor cannot be inactivated until removed from all data flows using this Vendor."
       );
     } else {
-      const update = await DB.executeQuery(updateQuery, [
+      // await DB.executeQuery(deleteQuery, [vId]);
+      await DB.executeQuery(updateQuery, [
         vName,
         vNStd,
         vDescription,
@@ -258,16 +260,15 @@ exports.updateVendor = async (req, res) => {
         vId,
       ]);
 
-      if (vContacts.length > 1) {
-        const contactUp = await vContacts.map((e) => {
+      if (vContacts.length > 0) {
+        await vContacts.map((e) => {
           DB.executeQuery(contactQuery, [
-            e.vCId,
-            e.contactName,
-            e.emailId,
+            vId,
+            e.name,
+            e.email,
             userName,
             curDate,
-            e.status,
-            vId,
+            1,
           ]);
         });
       }
@@ -279,6 +280,23 @@ exports.updateVendor = async (req, res) => {
     Logger.error("catch :updateVendor");
     Logger.error(err);
 
+    return apiResponse.ErrorResponse(res, err);
+  }
+};
+
+exports.deleteContact = async (req, res) => {
+  try {
+    const { vId, vCId, userName } = req.body;
+    // console.log(req.body);
+    Logger.info({ message: "deleteVendor" });
+    const curDate = new Date();
+    const deleteQuery = `UPDATE ${schemaName}.vendor_contact SET act_flg=$3, updated_by=$4, updated_on=$5 WHERE vend_id=$1 AND vend_contact_id=$2`;
+    await DB.executeQuery(deleteQuery, [vId, vCId, 0, userName, curDate]);
+    return apiResponse.successResponse(res, "Operation success");
+  } catch (err) {
+    //throw error in json response with status 500.
+    Logger.error("catch :deleteVendor");
+    Logger.error(err);
     return apiResponse.ErrorResponse(res, err);
   }
 };
