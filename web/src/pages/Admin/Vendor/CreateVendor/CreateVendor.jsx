@@ -159,7 +159,10 @@ const CreateVendor = () => {
         })
         .catch((err) => {
           if (err.data) {
-            messageContext.showErrorMessage(err.data, 56);
+            messageContext.showErrorMessage(
+              err.data ||
+                "vendor name and external system name combination already exists."
+            );
           } else {
             messageContext.showErrorMessage(
               err.message || "Something went wrong"

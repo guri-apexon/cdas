@@ -204,8 +204,14 @@ exports.createVendor = async (req, res) => {
     //throw error in json response with status 500.
     Logger.error("catch :createVendor");
     Logger.error(err);
-
-    return apiResponse.ErrorResponse(res, err);
+    if (err.code === "23505") {
+      return apiResponse.validationErrorWithData(
+        res,
+        "Operation failed",
+        "vendor name and external system name combination already exists."
+      );
+    }
+    return apiResponse.ErrorResponseW(res, err);
   }
 };
 
