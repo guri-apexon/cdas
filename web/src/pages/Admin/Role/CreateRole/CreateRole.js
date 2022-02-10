@@ -85,13 +85,13 @@ const CreateRole = () => {
       header: "Included",
       accessor: "",
       customCell: selectionCell,
-      width: 100,
+      width: "10%",
     },
     {
       header: "Policy Name",
       accessor: "policyName",
       sortFunction: compareStrings,
-      width: 200,
+      width: "20%",
       filterFunction: createStringSearchFilter("policyName"),
       filterComponent: TextFieldFilter,
       customCell: ({ row, column: { accessor } }) => {
@@ -121,11 +121,12 @@ const CreateRole = () => {
       customCell: DescriptionCell,
       filterFunction: createStringSearchFilter("policyDescription"),
       filterComponent: TextFieldFilter,
+      width: "35%",
     },
     {
       header: "Product Included",
       accessor: "products",
-      width: 350,
+      width: "35%",
       sortFunction: compareStrings,
       filterFunction: createStringArrayIncludedFilter("products"),
       filterComponent: createSelectFilterComponent(products, {
