@@ -65,13 +65,17 @@ exports.listRoles = async function (req, res) {
     Logger.info({
       message: "listRoles",
     });
-    let q = `SELECT r.role_id,r.role_nm ,r.role_desc,r.role_stat,p2.prod_nm 
-    FROM ${constants.DB_SCHEMA_NAME}."role" r 
-    INNER JOIN ${constants.DB_SCHEMA_NAME}.role_policy rp 
+    let q = `SELECT distinct r.role_id,r.role_nm ,r.role_desc,r.role_stat,p2.prod_nm
+    FROM ${constants.DB_SCHEMA_NAME}."role" r
+    INNER JOIN ${constants.DB_SCHEMA_NAME}.role_policy rp
     ON r.role_id = rp.role_id
-    FULL OUTER join ${constants.DB_SCHEMA_NAME}.policy_product pp 
-    on pp.plcy_id = rp.plcy_id 
-    FULL OUTER join ${constants.DB_SCHEMA_NAME}.product p2 
+    INNER join ${constants.DB_SCHEMA_NAME}."policy" p
+    on p.plcy_id = rp.plcy_id
+    inner join ${constants.DB_SCHEMA_NAME}.policy_product_permission ppp
+    on ppp.plcy_id = rp.plcy_id
+    inner join ${constants.DB_SCHEMA_NAME}.product_permission pp
+    on pp.prod_permsn_id = ppp.prod_permsn_id
+    inner join ${constants.DB_SCHEMA_NAME}.product p2
     on p2.prod_id = pp.prod_id`;
     let { rows } = await DB.executeQuery(q);
     let tempRows = _.uniqBy(rows, "role_id");
