@@ -166,7 +166,7 @@ const columns = [
   },
 ];
 
-const TableEditableAll = ({ updateData }) => {
+const TableEditableAll = ({ updateData, deleteAContact }) => {
   const [rows, setRows] = useState(initialRows);
   const [editedRows, setEditedRows] = useState(initialRows);
   const vendor = useSelector((state) => state.vendor);
@@ -176,7 +176,7 @@ const TableEditableAll = ({ updateData }) => {
     setEditedRows((rw) => [
       ...rw,
       {
-        vCId: `u${rw.length + 1}`,
+        vCId: rw.length + 1,
         name: "",
         email: "",
         isEmailValid: false,
@@ -250,6 +250,10 @@ const TableEditableAll = ({ updateData }) => {
 
   const onRowDelete = (vCId) => {
     setEditedRows(editedRows.filter((row) => row.vCId !== vCId));
+    const allIds = selectedContacts.map((e) => e.vCId);
+    if (allIds.includes(vCId)) {
+      deleteAContact(vCId);
+    }
   };
 
   const editMode = true;
