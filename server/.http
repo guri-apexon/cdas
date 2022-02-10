@@ -195,7 +195,7 @@ content-type: application/json
       "vNStd": "test",
       "vDescription" : "description",
       "vStatus": 1,
-      "vESN": "GDMPM-DASS",
+      "vESN": "GDMPM-DAS",
       "vContacts": [
         {
           "name": "contac name 1",

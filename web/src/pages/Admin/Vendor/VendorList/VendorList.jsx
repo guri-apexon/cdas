@@ -137,7 +137,7 @@ const VendorList = () => {
 
   const DespCell = ({ row, column: { accessor } }) => {
     const data = row[accessor];
-    if (data.length < 80) {
+    if (data.length < 50) {
       return <>{data}</>;
     }
     return (
@@ -237,6 +237,44 @@ const VendorList = () => {
     },
   ];
 
+  const getTableData = React.useMemo(
+    () => (
+      <>
+        {loading ? (
+          <Progress />
+        ) : (
+          <>
+            <Table
+              isLoading={loading}
+              title="Vendors"
+              subtitle={`${tableRows.length} vendors`}
+              columns={columns}
+              rows={tableRows}
+              rowId="vId"
+              hasScroll={true}
+              maxHeight="calc(100vh - 162px)"
+              initialSortedColumn="vName"
+              initialSortOrder="asc"
+              rowsPerPageOptions={[10, 50, 100, "All"]}
+              tablePaginationProps={{
+                labelDisplayedRows: ({ from, to, count }) =>
+                  `${
+                    count === 1 ? "Item " : "Items"
+                  } ${from}-${to} of ${count}`,
+                truncate: true,
+              }}
+              showFilterIcon
+              CustomHeader={(props) => (
+                <CustomButtonHeader {...props} addVendor={handleAddVendor} />
+              )}
+            />
+          </>
+        )}
+      </>
+    ),
+    [tableRows, loading]
+  );
+
   return (
     <div className="vendor-list-wrapper">
       <div className="page-header">
@@ -245,7 +283,8 @@ const VendorList = () => {
         </Typography>
       </div>
       <div className="vendor-table">
-        <div className="table">
+        <div className="table">{getTableData}</div>
+        {/* <div className="table">
           {loading ? (
             <Progress />
           ) : (
@@ -274,7 +313,7 @@ const VendorList = () => {
               )}
             />
           )}
-        </div>
+        </div> */}
         <Peek
           open={open}
           followCursor
