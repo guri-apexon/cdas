@@ -1,5 +1,10 @@
 import axios from "axios";
-import { baseURL, STUDYSEARCH, VENDOR_BASE } from "../constants";
+import {
+  baseURL,
+  POLICY_LIST_FETCH,
+  STUDYSEARCH,
+  VENDOR_BASE,
+} from "../constants";
 import { getCookie } from "../utils";
 
 const userId = getCookie("user.id");
@@ -35,6 +40,23 @@ export const addRoleService = async (reqBody) => {
     return new Promise((resolve, reject) => {
       axios
         .post(`${baseURL}/v1/api/role/create`, reqBody)
+        .then((res) => {
+          resolve(res.data);
+        })
+        .catch((err) => {
+          reject(err.response.data);
+        });
+    });
+  } catch (err) {
+    return console.log("Error", err);
+  }
+};
+
+export const updateRoleService = async (reqBody) => {
+  try {
+    return new Promise((resolve, reject) => {
+      axios
+        .post(`${baseURL}/v1/api/role/update`, reqBody)
         .then((res) => {
           resolve(res.data);
         })
@@ -168,6 +190,40 @@ export const getPolicySnapshot = async (policyId = "") => {
         })
         .catch((err) => {
           console.log("Err", err);
+        });
+    });
+  } catch (err) {
+    return console.log("Error", err);
+  }
+};
+
+export const getRolePolicies = async (roleId) => {
+  try {
+    return new Promise((resolve, reject) => {
+      axios
+        .get(`${baseURL}/${POLICY_LIST_FETCH}/${roleId}`)
+        .then((res) => {
+          resolve(res.data.data);
+        })
+        .catch((err) => {
+          console.log("Err", err);
+        });
+    });
+  } catch (err) {
+    return console.log("Error", err);
+  }
+};
+
+export const getRoleDetails = async (roleId) => {
+  try {
+    return new Promise((resolve, reject) => {
+      axios
+        .get(`${baseURL}/v1/api/role/${roleId}`)
+        .then((res) => {
+          resolve(res.data.data);
+        })
+        .catch((err) => {
+          resolve(null);
         });
     });
   } catch (err) {
