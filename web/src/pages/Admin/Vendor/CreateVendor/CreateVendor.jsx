@@ -19,6 +19,7 @@ import _ from "lodash";
 import {
   addVendorService,
   updateVendorService,
+  deleteVendorContact,
 } from "../../../../services/ApiServices";
 import { selectVendor } from "../../../../store/actions/VendorAdminAction";
 import { MessageContext } from "../../../../components/Providers/MessageProvider";
@@ -64,6 +65,7 @@ const ConfirmModal = React.memo(({ open, cancel, stayHere, loading }) => {
 
 const CreateVendor = () => {
   const [active, setActive] = useState(true);
+  const [disableSave, setDisableSave] = useState(false);
   const [isAnyUpdate, setIsAnyUpdate] = useState(false);
   const [confirm, setConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -159,13 +161,16 @@ const CreateVendor = () => {
         })
         .catch((err) => {
           if (err.data) {
-            messageContext.showErrorMessage(err.data, 56);
+            messageContext.showErrorMessage(
+              err.data ||
+                "vendor name and external system name combination already exists."
+            );
           } else {
             messageContext.showErrorMessage(
               err.message || "Something went wrong"
             );
-            setLoading(false);
           }
+          setLoading(false);
         });
     } else if (isEditPage) {
       updateVendorService(reqBody)
@@ -176,13 +181,16 @@ const CreateVendor = () => {
         })
         .catch((err) => {
           if (err.data) {
-            messageContext.showErrorMessage(err.data, 56);
+            messageContext.showErrorMessage(
+              err.data ||
+                "vendor name and external system name combination already exists."
+            );
           } else {
             messageContext.showErrorMessage(
               err.message || "Something went wrong"
             );
-            setLoading(false);
           }
+          setLoading(false);
         });
     }
   };
@@ -202,6 +210,7 @@ const CreateVendor = () => {
   const updateData = async (data) => {
     const goodContacts = await data.map((e) => {
       const newData = _.omit(e, ["isEmailValid", "isNameValid", "isStarted"]);
+      newData.status = 1;
       return newData;
     });
     // console.log("updateData", data, goodContacts);
@@ -209,6 +218,22 @@ const CreateVendor = () => {
     setVContacts(goodContacts);
     updateChanges();
   };
+
+  useEffect(() => {
+    if (contacts.length > 1) {
+      const email = contacts.map((e) => e.isEmailValid);
+      const name = contacts.map((e) => e.isNameValid);
+      // const started = contacts.map((e) => e.isStarted);
+      const isValid = (currentValue) => currentValue === true;
+      if (!(email.every(isValid) && name.every(isValid))) {
+        setDisableSave(true);
+      } else {
+        setDisableSave(false);
+      }
+    } else {
+      setDisableSave(false);
+    }
+  }, [contacts]);
 
   const options = ["None", "CDR", "GDMPM-DAS", "IQB", "TDSE", "Wingspan"];
 
@@ -231,6 +256,12 @@ const CreateVendor = () => {
       setConfirm(true);
     } else {
       history.push("/vendor/list");
+    }
+  };
+
+  const deleteAContact = (vCId) => {
+    if (isEditPage) {
+      deleteVendorContact({ vId, vCId, userName: userInfo.firstName });
     }
   };
 
@@ -273,7 +304,7 @@ const CreateVendor = () => {
                 {
                   label: "Save",
                   size: "small",
-                  disabled: loading,
+                  disabled: loading || disableSave,
                   onClick: submitVendor,
                 },
               ]}
@@ -282,6 +313,7 @@ const CreateVendor = () => {
         </div>
       </Box>
       <Grid container spacing={2}>
+        {console.log("save", disableSave)}
         <Grid item xs={3}>
           <Box>
             <div className="flex create-sidebar flexWrap">
@@ -331,7 +363,10 @@ const CreateVendor = () => {
           <br />
           <div className="contact-content">
             {/* <ContactsTable /> */}
-            <TableEditableAll updateData={updateData} />
+            <TableEditableAll
+              deleteAContact={deleteAContact}
+              updateData={updateData}
+            />
           </div>
         </Grid>
       </Grid>
