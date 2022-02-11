@@ -7,7 +7,6 @@ import { getCookie } from "./utils";
 import TopNavbar from "./components/TopNavbar/TopNavbar";
 import AppFooter from "./components/AppFooter/AppFooter";
 import Logout from "./pages/Logout/Logout";
-import Role from "./pages/Roles";
 
 const LaunchPad = lazy(() => import("./pages/LaunchPad/LaunchPad"));
 const StudySetup = lazy(() => import("./pages/StudySetup/StudySetup"));
@@ -20,6 +19,7 @@ const CreatePolicy = lazy(() =>
 const UpdatePolicy = lazy(() =>
   import("./pages/Admin/Policy/UpdatePolicy/UpdatePolicy")
 );
+const ListRoles = lazy(() => import("./pages/Admin/Role/ListRoles/index"));
 const CreateRole = lazy(() =>
   import("./pages/Admin/Role/CreateRole/CreateRole")
 );
@@ -109,7 +109,7 @@ const RoutesWrapper = () => {
               exact
               render={() => <CreatePolicy />}
             />
-            <Route path="/role-management" exact render={() => <Role />} />
+            <Route path="/role-management" exact render={() => <ListRoles />} />
             <Route path="/create-role" exact render={() => <CreateRole />} />
             <Route
               path="/role-management/:id"

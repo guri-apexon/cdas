@@ -16,14 +16,17 @@ import FilterIcon from "apollo-react-icons/Filter";
 import Link from "apollo-react/components/Link";
 import Switch from "apollo-react/components/Switch";
 import Tooltip from "apollo-react/components/Tooltip";
-import Progress from "../../components/Progress";
+import Progress from "../../../../components/Progress";
 import {
   TextFieldFilter,
   createStringArraySearchFilter,
   createStringArrayIncludedFilter,
-} from "../../utils/index";
+} from "../../../../utils/index";
 import "./index.scss";
-import { fetchRoles, updateStatus } from "../../store/actions/RolesActions";
+import {
+  fetchRoles,
+  updateStatus,
+} from "../../../../store/actions/RolesActions";
 
 const ProductsCell = ({ row, column: { accessor } }) => {
   const rowValue = row[accessor].split(",").sort().join(", ");
@@ -32,7 +35,7 @@ const ProductsCell = ({ row, column: { accessor } }) => {
 
 const statusList = ["Active", "Inactive"];
 
-const Role = () => {
+const ListRoles = () => {
   const history = useHistory();
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState([]);
@@ -294,4 +297,4 @@ const Role = () => {
   );
 };
 
-export default Role;
+export default ListRoles;
