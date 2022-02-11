@@ -261,12 +261,16 @@ exports.getPolicyList = async (req, res) => {
   try {
     Logger.info({ message: "getPolicyList" });
     if(req.method==="GET"){
-      const query = `select distinct p.plcy_nm as "policyName", p.plcy_desc as "policyDescription", p.plcy_id as "policyId", string_agg(distinct p2.prod_nm, ', ') AS products, p.plcy_stat as "policyStatus" from ${constants.DB_SCHEMA_NAME}."policy" p
+      const { roleId } = req.params;
+      const query = `select distinct p.plcy_nm as "policyName", p.plcy_desc as "policyDescription", p.plcy_id as "policyId", string_agg(distinct p2.prod_nm, ', ') AS products, p.plcy_stat as "policyStatus" 
+      ${roleId ? `,case when rp.plcy_id is null or rp.act_flg ='0' then false else true end as "selected", rp.role_plcy_id` : ""}
+      from ${constants.DB_SCHEMA_NAME}."policy" p
+      ${roleId ? `left outer join cdascfg.role_policy rp on rp.plcy_id = p.plcy_id and rp.role_id =${roleId}` : ""}
       inner join ${constants.DB_SCHEMA_NAME}.policy_product_permission ppp on (p.plcy_id=ppp.plcy_id)
       inner JOIN ${constants.DB_SCHEMA_NAME}.product_permission pp ON ppp.prod_permsn_id = pp.prod_permsn_id
       inner JOIN ${constants.DB_SCHEMA_NAME}.product p2 ON p2.prod_id = pp.prod_id
       where ppp.act_flg =1
-      GROUP  BY p.plcy_id;`;
+      GROUP  BY p.plcy_id${roleId ? `, rp.plcy_id, rp.role_plcy_id` : ''};`;
       const $q1 = await DB.executeQuery(query);
       const products = [];
       await $q1.rows.forEach(function (obj) {

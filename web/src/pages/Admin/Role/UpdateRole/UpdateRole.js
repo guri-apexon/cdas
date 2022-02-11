@@ -16,7 +16,7 @@ import Table, {
   createStringSearchFilter,
   compareStrings,
 } from "apollo-react/components/Table";
-import { useHistory } from "react-router";
+import { useHistory, useParams } from "react-router";
 import { MessageContext } from "../../../../components/Providers/MessageProvider";
 import { getPolicyList } from "../../../../store/actions/PolicyAdminActions";
 import "./UpdateRole.scss";
@@ -26,12 +26,18 @@ import {
   inputAlphaNumeric,
   TextFieldFilter,
 } from "../../../../utils";
-import { addRoleService } from "../../../../services/ApiServices";
+import {
+  addRoleService,
+  getRoleDetails,
+  getRolePolicies,
+  updateRoleService,
+} from "../../../../services/ApiServices";
 import PolicySnapshot from "./PolicySnapshot";
 
 const UpdateRole = () => {
   const dispatch = useDispatch();
   const history = useHistory();
+  const params = useParams();
   const [active, setActive] = useState(true);
   const [confirmObj, setConfirmObj] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -43,18 +49,33 @@ const UpdateRole = () => {
   const [policies, setPolicies] = useState([]);
   const [products, setProducts] = useState([]);
   const userInfo = getUserInfo();
-  const policyStore = useSelector((state) => state.policy);
-  const getPolicies = () => {
-    dispatch(getPolicyList(true));
+  const getPolicies = async () => {
+    const roleDetails = await getRoleDetails(params.id);
+    if (!roleDetails) {
+      history.push("/role-management");
+    }
+    setRoleName(roleDetails.role_nm);
+    setRoleDesc(roleDetails.role_desc);
+    setActive(roleDetails.role_stat === "1");
+    const data = await getRolePolicies(params.id);
+    if (data.policyList?.length) {
+      const newData = JSON.parse(JSON.stringify(data.policyList));
+      setPolicies(newData);
+      setProducts(newData.uniqueProducts || []);
+    }
   };
 
-  const selectionCell = ({ row }) => {
+  const SelectionCell = ({ row }) => {
+    const [checked, setChecked] = useState(row.selected);
     const setSelected = (e) => {
       row.selected = e.target.checked;
+      row.updated = true;
+      setChecked(e.target.checked);
     };
     return (
       <>
         <input
+          checked={checked}
           type="checkbox"
           className="custom-checkbox"
           onChange={setSelected}
@@ -84,7 +105,7 @@ const UpdateRole = () => {
     {
       header: "Included",
       accessor: "",
-      customCell: selectionCell,
+      customCell: SelectionCell,
       width: "10%",
     },
     {
@@ -143,7 +164,7 @@ const UpdateRole = () => {
       onClick: () => history.push("/role-management"),
     },
     {
-      title: "Create New Role",
+      title: roleName,
     },
   ];
   const handleActive = (e, checked) => {
@@ -161,29 +182,35 @@ const UpdateRole = () => {
   };
   // eslint-disable-next-line consistent-return
   const submitRole = () => {
-    const reqBody = {
-      policies: policies.filter((x) => x.selected).map((x) => x.policyId),
-      name: roleName,
-      description: roleDesc,
-      status: active ? "1" : "0",
-      userId: userInfo.user_id,
-    };
     if (roleName === "") {
       messageContext.showErrorMessage("Role Name shouldn't be empty");
       return false;
     }
-    if (!reqBody.policies.length) {
+    if (!policies.filter((x) => x.selected).length) {
       messageContext.showErrorMessage(
         "Please complete all mandatory information and then click Save"
       );
       return false;
     }
-    console.log("ReqBody:", reqBody);
+    const filteredPolicies = policies
+      .filter((x) => x.updated)
+      .map((x) => {
+        return { id: x.policyId, value: x.selected, existed: x.role_plcy_id };
+      });
+    const reqBody = {
+      policies: filteredPolicies,
+      name: roleName,
+      description: roleDesc,
+      status: active ? "1" : "0",
+      userId: userInfo.user_id,
+      roleId: params.id,
+    };
+    console.log("ReqBody:", filteredPolicies, params.id);
     setLoading(true);
-    addRoleService(reqBody)
+    updateRoleService(reqBody)
       .then((res) => {
         messageContext.showSuccessMessage(
-          res.message || "Successfully Created"
+          res.message || "Successfully Updated"
         );
         history.push("/role-management");
         setLoading(false);
@@ -193,13 +220,6 @@ const UpdateRole = () => {
         setLoading(false);
       });
   };
-  useEffect(() => {
-    if (policyStore.policyList?.length) {
-      const data = JSON.parse(JSON.stringify(policyStore.policyList));
-      setPolicies(data);
-      setProducts(policyStore.uniqueProducts || []);
-    }
-  }, [policyStore]);
   useEffect(() => {
     getPolicies();
   }, []);
@@ -311,12 +331,13 @@ const UpdateRole = () => {
           <Box>
             <div className="flex create-sidebar flexWrap">
               <Typography variant="title1" className="b-font title">
-                New Role
+                {roleName}
               </Typography>
               <br />
               <TextField
                 id="roleName"
                 size="small"
+                value={roleName}
                 label="Role Name"
                 placeholder="Name your role"
                 onChange={handleChange}
@@ -324,6 +345,7 @@ const UpdateRole = () => {
               <TextField
                 id="roleDesc"
                 size="small"
+                value={roleDesc}
                 label="Role Description"
                 placeholder="Describe your role"
                 rows="18"
