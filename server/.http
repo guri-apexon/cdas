@@ -262,3 +262,17 @@ content-type: application/json
 #       "vContactName": "max"
 #     },
 # ]
+
+
+GET http://localhost:443/v1/api/vendor/vens-list   HTTP/1.1
+content-type: application/json
+
+# "data": [
+#     "CDR",
+#     "GDMPM-DAS",
+#     "TDSE",
+#     "SDTM Designer",
+#     "Wingspan",
+#     "IQB",
+#     "Veeva EDC"
+#   ]

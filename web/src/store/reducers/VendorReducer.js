@@ -5,6 +5,9 @@ import {
   VENDOR_LIST,
   VENDOR_LIST_SUCCESS,
   VENDOR_LIST_FAILURE,
+  VENS_LIST,
+  VENS_LIST_FAILURE,
+  VENS_LIST_SUCCESS,
   GET_VENDOR_DETAILS,
   VENDOR_DETAILS_FAILURE,
   VENDOR_DETAILS_SUCCESS,
@@ -18,6 +21,7 @@ export const initialState = {
   selectedContacts: [],
   isEditPage: false,
   isCreatePage: true,
+  ensList: [],
 };
 
 const VendorReducer = (state = initialState, action) =>
@@ -42,6 +46,19 @@ const VendorReducer = (state = initialState, action) =>
         newState.isCreatePage = true;
         newState.selectedContacts = [];
         newState.selectedVendor = {};
+        break;
+
+      case VENS_LIST:
+        newState.loading = true;
+        break;
+
+      case VENS_LIST_FAILURE:
+        newState.loading = false;
+        break;
+
+      case VENS_LIST_SUCCESS:
+        newState.loading = false;
+        newState.ensList = action.ensList;
         break;
 
       case VENDOR_DETAILS_SUCCESS:

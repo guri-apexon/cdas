@@ -3,6 +3,7 @@ import {
   VENDOR_LIST,
   GET_VENDOR_DETAILS,
   CREATE_VENDOR,
+  VENS_LIST,
 } from "../../constants";
 
 export const getVendorList = () => {
@@ -21,5 +22,11 @@ export const selectVendor = (vId) => {
 export const createVendor = () => {
   return {
     type: CREATE_VENDOR,
+  };
+};
+
+export const getENSList = () => {
+  return {
+    type: VENS_LIST,
   };
 };

@@ -5,6 +5,8 @@ import {
   VENDOR_BASE,
   VENDOR_LIST_FAILURE,
   VENDOR_LIST_SUCCESS,
+  VENS_LIST_FAILURE,
+  VENS_LIST_SUCCESS,
   VENDOR_DETAILS_FAILURE,
   VENDOR_DETAILS_SUCCESS,
 } from "../../constants";
@@ -23,6 +25,22 @@ export function* fetchVendorList() {
     });
   } catch (e) {
     yield put({ type: VENDOR_LIST_FAILURE, message: e.message });
+  }
+}
+
+export function* fetchENSList() {
+  try {
+    const fetchData = yield call(
+      axios.get,
+      `${baseURL}/${VENDOR_BASE}/vens-list`
+    );
+    console.log("data", fetchData);
+    yield put({
+      type: VENS_LIST_SUCCESS,
+      ensList: fetchData.data.data,
+    });
+  } catch (e) {
+    yield put({ type: VENS_LIST_FAILURE, message: e.message });
   }
 }
 

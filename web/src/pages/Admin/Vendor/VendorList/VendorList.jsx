@@ -23,7 +23,8 @@ import {
   getVendorList,
   selectVendor,
   createVendor,
-} from "../../../../store/actions/VendorAdminAction";
+  getENSList,
+} from "../../../../store/actions/VendorAction";
 import {
   TextFieldFilter,
   createStringArraySearchFilter,
@@ -32,31 +33,31 @@ import {
 import "./VendorList.scss";
 
 const statusList = ["Active", "Inactive"];
-const vESNList = ["None", "CDR", "GDMPM-DAS", "IQB", "TDSE", "Wingspan"];
 
 const VendorList = () => {
   const history = useHistory();
   const messageContext = useContext(MessageContext);
-  const [loading, setLoading] = useState(true);
   const [tableRows, setTableRows] = useState([]);
   const [open, setOpen] = useState(false);
   const [curRow, setCurRow] = useState({});
   const dispatch = useDispatch();
-  const vendorAdmin = useSelector((state) => state.vendor);
+  const vendor = useSelector((state) => state.vendor);
+  const { vendorList, loading, ensList } = vendor;
 
   const getData = () => {
     dispatch(getVendorList());
   };
 
   useEffect(() => {
+    if (ensList.length <= 1) {
+      dispatch(getENSList());
+    }
     getData();
   }, []);
 
   useEffect(() => {
-    const { vendorList } = vendorAdmin;
     setTableRows(vendorList);
-    setLoading(false);
-  }, [vendorAdmin.loading]);
+  }, [loading, vendorList]);
 
   const goToVendor = (e, id) => {
     e.preventDefault();
@@ -217,7 +218,7 @@ const VendorList = () => {
       accessor: "vESN",
       sortFunction: compareStrings,
       filterFunction: createStringArrayIncludedFilter("vESN"),
-      filterComponent: createSelectFilterComponent(vESNList, {
+      filterComponent: createSelectFilterComponent(ensList, {
         size: "small",
         multiple: true,
       }),
@@ -272,7 +273,7 @@ const VendorList = () => {
         )}
       </>
     ),
-    [tableRows, loading]
+    [tableRows, loading, ensList]
   );
 
   return (

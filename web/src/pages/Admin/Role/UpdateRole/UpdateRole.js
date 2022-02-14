@@ -18,7 +18,7 @@ import Table, {
 } from "apollo-react/components/Table";
 import { useHistory, useParams } from "react-router";
 import { MessageContext } from "../../../../components/Providers/MessageProvider";
-import { getPolicyList } from "../../../../store/actions/PolicyAdminActions";
+import { getPolicyList } from "../../../../store/actions/PolicyActions";
 import "./UpdateRole.scss";
 import {
   createStringArrayIncludedFilter,
