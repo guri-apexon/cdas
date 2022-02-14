@@ -300,3 +300,22 @@ exports.deleteContact = async (req, res) => {
     return apiResponse.ErrorResponse(res, err);
   }
 };
+
+exports.getENSList = async (req, res) => {
+  try {
+    Logger.info({ message: "getENSList" });
+    const selectQuery = `select lov_nm from ${schemaName}.cdas_core_lov ccl where act_flg = 1`;
+    const list = await DB.executeQuery(selectQuery);
+    const formatted = list.rows.map((e) => e.lov_nm);
+    return apiResponse.successResponseWithData(
+      res,
+      "Operation success",
+      formatted || []
+    );
+  } catch (err) {
+    //throw error in json response with status 500.
+    Logger.error("catch :getENSList");
+    Logger.error(err);
+    return apiResponse.ErrorResponse(res, err);
+  }
+};

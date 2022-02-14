@@ -1,6 +1,6 @@
 import React from "react";
 import { mount } from "enzyme";
-import RolesList from "./index.js";
+import RolesList from "./index";
 
 test("Roles List Table component renders", () => {
   const wrapper = mount(<RolesList />);

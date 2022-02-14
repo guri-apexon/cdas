@@ -10,5 +10,6 @@ router.get("/details/:vendor_id", VendorController.getVendorById);
 router.post("/create", VendorController.createVendor);
 router.post("/update", VendorController.updateVendor);
 router.post("/contact/delete", VendorController.deleteContact);
+router.get("/vens-list", VendorController.getENSList);
 
 module.exports = router;

@@ -3,7 +3,7 @@
 }
 .roles-table {
   background-color: #f8f9fb;
-  min-height: 100vh;
+  min-height: calc(100vh - 316px);
   margin: 1.5% 2%;
   .table {
     margin: 30px;

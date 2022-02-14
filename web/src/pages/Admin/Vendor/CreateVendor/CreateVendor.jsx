@@ -21,7 +21,10 @@ import {
   updateVendorService,
   deleteVendorContact,
 } from "../../../../services/ApiServices";
-import { selectVendor } from "../../../../store/actions/VendorAdminAction";
+import {
+  selectVendor,
+  getENSList,
+} from "../../../../store/actions/VendorAction";
 import { MessageContext } from "../../../../components/Providers/MessageProvider";
 // import ContactsTable from "./ContactsTable";
 import TableEditableAll from "./ContactTable";
@@ -81,13 +84,20 @@ const CreateVendor = () => {
   const params = useParams();
   const dispatch = useDispatch();
   const vendor = useSelector((state) => state.vendor);
-  const { isEditPage, isCreatePage, selectedVendor } = vendor;
+  const { isEditPage, isCreatePage, selectedVendor, ensList } = vendor;
+
+  useEffect(() => {});
 
   useEffect(() => {
     if (params.id) {
       dispatch(selectVendor(params.id));
     }
   }, [params]);
+  useEffect(() => {
+    if (ensList.length <= 1) {
+      dispatch(getENSList());
+    }
+  }, []);
 
   useEffect(() => {
     if (isCreatePage) {
@@ -235,7 +245,7 @@ const CreateVendor = () => {
     }
   }, [contacts]);
 
-  const options = ["None", "CDR", "GDMPM-DAS", "IQB", "TDSE", "Wingspan"];
+  const vENSOptions = [...ensList];
 
   const handleSelection = (e) => {
     setVESN(e.target.value);
@@ -338,7 +348,7 @@ const CreateVendor = () => {
                 value={vESN}
                 onChange={(e) => handleSelection(e)}
               >
-                {options.map((option) => (
+                {vENSOptions.map((option) => (
                   <MenuItem key={option} value={option}>
                     {option}
                   </MenuItem>

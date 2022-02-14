@@ -19,7 +19,7 @@ import Progress from "../../../../components/Progress";
 
 // import { MessageContext } from "../../../components/MessageProvider";
 
-import { getPolicyList } from "../../../../store/actions/PolicyAdminActions";
+import { getPolicyList } from "../../../../store/actions/PolicyActions";
 
 import {
   TextFieldFilter,
