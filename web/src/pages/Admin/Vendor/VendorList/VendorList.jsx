@@ -138,6 +138,9 @@ const VendorList = () => {
 
   const DespCell = ({ row, column: { accessor } }) => {
     const data = row[accessor];
+    if (data === null || data === "") {
+      return <></>;
+    }
     if (data.length < 50) {
       return <>{data}</>;
     }
