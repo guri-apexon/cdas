@@ -35,6 +35,7 @@ const CreateRole = () => {
   const [active, setActive] = useState(true);
   const [confirmObj, setConfirmObj] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [pageloaded, setPageloaded] = useState(false);
   const [peekRow, setPeekRow] = useState(null);
   const [selectedPolicy, setSelectedPolicy] = useState(null);
   const messageContext = useContext(MessageContext);
@@ -197,6 +198,7 @@ const CreateRole = () => {
     if (policyStore.policyList?.length) {
       const data = JSON.parse(JSON.stringify(policyStore.policyList));
       setPolicies(data);
+      setPageloaded(true);
       setProducts(policyStore.uniqueProducts || []);
     }
   }, [policyStore]);
@@ -206,7 +208,7 @@ const CreateRole = () => {
   const getPolicyTable = React.useMemo(() => {
     return (
       <Table
-        isLoading={loading}
+        isLoading={!pageloaded}
         title="Policies"
         columns={tableColumns}
         rows={policies}
