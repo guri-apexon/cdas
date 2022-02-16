@@ -1,28 +1,30 @@
+@import "./styles/customscroll.scss";
+
 .App {
   text-align: center;
 }
-.flex{
+.flex {
   display: flex;
 }
-.flex-center{
+.flex-center {
   align-items: center;
 }
-.link{
+.link {
   cursor: pointer;
 }
 .b-font {
   font-weight: 600 !important;
 }
-.flexWrap{
+.flexWrap {
   flex-direction: column;
 }
-.left-align{
+.left-align {
   align-items: flex-start;
 }
-*{
+* {
   box-sizing: border-box;
 }
-body{
+body {
   // overflow-y: scroll !important;
   // padding: 0 !important;
 }
@@ -33,99 +35,95 @@ body{
   position: fixed;
   width: 100%;
   z-index: 998;
-  header div.MuiToolbar-regular{
+  header div.MuiToolbar-regular {
     width: 100%;
     padding-left: 10px;
     padding-right: 10px;
   }
 }
-.page-wrapper{
-  background:  #F6F7FB;
+.page-wrapper {
+  background: #f6f7fb;
   min-height: 100vh;
   position: relative;
   padding-top: 56px;
 }
-.custom-checkbox{
+.custom-checkbox {
   appearance: auto;
   background-color: initial;
   height: 16px;
   width: 16px;
   cursor: pointer;
 }
-.Message-Banner{
+.Message-Banner {
   z-index: 1100 !important;
-}
-.Message-Banner.top-56{
   top: 56px !important;
 }
-.Message-Banner.top-0{
-  top: 0 !important;
-}
-label.inline-checkbox{
+
+label.inline-checkbox {
   flex-direction: row-reverse;
   align-items: center;
-  .MuiSwitch-sizeSmall .MuiSwitch-switchBase{
+  .MuiSwitch-sizeSmall .MuiSwitch-switchBase {
     top: -8px;
     left: -8px;
   }
-  >span:last-child{
+  > span:last-child {
     margin: 0;
     padding: 0;
     margin-right: 10px;
   }
 }
-.navigation-panel{
-  .waves{
+.navigation-panel {
+  .waves {
     position: absolute;
     top: 0;
     width: 125px;
     right: 0;
     overflow: hidden;
-    img{
+    img {
       transform: scaleX(-1);
     }
   }
-  .MuiDrawer-paper{
-    &>button{
+  .MuiDrawer-paper {
+    & > button {
       display: none !important;
     }
     background: linear-gradient(to right, rgb(37, 0, 86), rgb(0, 118, 174));
     padding-top: 15px;
     border-right: 1px solid #fff;
-    div[class^='Blade-body-']{
+    div[class^="Blade-body-"] {
       padding: 0 19px !important;
     }
-    div[class^='Blade-expandPanel']{
+    div[class^="Blade-expandPanel"] {
       display: none;
     }
-    .Blade-body-8386{
+    .Blade-body-8386 {
       padding: 0 15px !important;
     }
   }
-  .link{
-    color: #FFFFFF;
+  .link {
+    color: #ffffff;
   }
-  .close-panel{
-    color: #FFFFFF;
+  .close-panel {
+    color: #ffffff;
     cursor: pointer;
     margin-left: 8px;
   }
-  button{
+  button {
     margin-right: 10px;
     margin-bottom: 10px;
     font-size: 14px;
     padding: 0 10px;
     font-weight: 400;
-    img{
+    img {
       width: 24px;
       opacity: 0.7;
       border-radius: 2px;
-      background: #FFFFFF;
+      background: #ffffff;
       margin-right: 8px;
     }
-    &:hover{
-      background-color: rgba(255,255,255,0.24);
-      img{
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.24);
+      img {
         opacity: 1;
       }
     }

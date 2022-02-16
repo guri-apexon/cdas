@@ -1,5 +1,13 @@
 import axios from "axios";
-import { baseURL, STUDYSEARCH } from "../constants";
+import {
+  baseURL,
+  POLICY_LIST_FETCH,
+  STUDYSEARCH,
+  VENDOR_BASE,
+} from "../constants";
+import { getCookie } from "../utils";
+
+const userId = getCookie("user.id");
 
 export const searchStudy = async (searchQuery = "") => {
   try {
@@ -15,6 +23,40 @@ export const addPolicyService = async (reqBody) => {
     return new Promise((resolve, reject) => {
       axios
         .post(`${baseURL}/v1/api/policy/create`, reqBody)
+        .then((res) => {
+          resolve(res.data);
+        })
+        .catch((err) => {
+          reject(err.response.data);
+        });
+    });
+  } catch (err) {
+    return console.log("Error", err);
+  }
+};
+
+export const addRoleService = async (reqBody) => {
+  try {
+    return new Promise((resolve, reject) => {
+      axios
+        .post(`${baseURL}/v1/api/role/create`, reqBody)
+        .then((res) => {
+          resolve(res.data);
+        })
+        .catch((err) => {
+          reject(err.response.data);
+        });
+    });
+  } catch (err) {
+    return console.log("Error", err);
+  }
+};
+
+export const updateRoleService = async (reqBody) => {
+  try {
+    return new Promise((resolve, reject) => {
+      axios
+        .post(`${baseURL}/v1/api/role/update`, reqBody)
         .then((res) => {
           resolve(res.data);
         })
@@ -44,6 +86,83 @@ export const updatePolicyService = async (reqBody) => {
   }
 };
 
+export const addVendorService = async (reqBody) => {
+  // console.log("add", reqBody);
+  try {
+    return new Promise((resolve, reject) => {
+      axios
+        .post(`${baseURL}/${VENDOR_BASE}/create`, reqBody)
+        .then((res) => {
+          resolve(res.data);
+        })
+        .catch((err) => {
+          reject(err.response.data);
+        });
+    });
+  } catch (err) {
+    return console.log("Error", err);
+  }
+};
+
+export const updateVendorService = async (reqBody) => {
+  // console.log("edit", reqBody);
+  try {
+    return new Promise((resolve, reject) => {
+      axios
+        .post(`${baseURL}/${VENDOR_BASE}/update`, reqBody)
+        .then((res) => {
+          resolve(res.data);
+        })
+        .catch((err) => {
+          reject(err.response.data);
+        });
+    });
+  } catch (err) {
+    return console.log("Error", err);
+  }
+};
+
+export const deleteVendorContact = async (reqBody) => {
+  try {
+    return new Promise((resolve, reject) => {
+      axios
+        .post(`${baseURL}/${VENDOR_BASE}/contact/delete`, reqBody)
+        .then((res) => {
+          resolve(res.data);
+        })
+        .catch((err) => {
+          reject(err.response.data);
+        });
+    });
+  } catch (err) {
+    return console.log("Error", err);
+  }
+};
+
+export const statusUpdate = async (vId, vStatus) => {
+  try {
+    return new Promise((resolve, reject) => {
+      axios
+        .post(`${baseURL}/${VENDOR_BASE}/statusUpdate`, {
+          vId,
+          vStatus,
+          userId,
+        })
+        .then((res) => {
+          resolve(res.data);
+        })
+        .catch((err) => {
+          console.log("Err", err);
+          if (err.response) {
+            resolve(err.response.data);
+          }
+        });
+    });
+  } catch (err) {
+    return console.log("Error", err);
+  }
+};
+
 export const getPolicyPermissions = async (policyId = "") => {
   try {
     return new Promise((resolve, reject) => {
@@ -60,6 +179,58 @@ export const getPolicyPermissions = async (policyId = "") => {
     return console.log("Error", err);
   }
 };
+
+export const getPolicySnapshot = async (policyId = "") => {
+  try {
+    return new Promise((resolve, reject) => {
+      axios
+        .get(`${baseURL}/v1/api/policy/snapshot/${policyId}`)
+        .then((res) => {
+          resolve(res.data.data);
+        })
+        .catch((err) => {
+          console.log("Err", err);
+        });
+    });
+  } catch (err) {
+    return console.log("Error", err);
+  }
+};
+
+export const getRolePolicies = async (roleId) => {
+  try {
+    return new Promise((resolve, reject) => {
+      axios
+        .get(`${baseURL}/${POLICY_LIST_FETCH}/${roleId}`)
+        .then((res) => {
+          resolve(res.data.data);
+        })
+        .catch((err) => {
+          console.log("Err", err);
+        });
+    });
+  } catch (err) {
+    return console.log("Error", err);
+  }
+};
+
+export const getRoleDetails = async (roleId) => {
+  try {
+    return new Promise((resolve, reject) => {
+      axios
+        .get(`${baseURL}/v1/api/role/${roleId}`)
+        .then((res) => {
+          resolve(res.data.data);
+        })
+        .catch((err) => {
+          resolve(null);
+        });
+    });
+  } catch (err) {
+    return console.log("Error", err);
+  }
+};
+
 export const fetchProducts = async () => {
   try {
     return new Promise((resolve, reject) => {
@@ -76,6 +247,7 @@ export const fetchProducts = async () => {
     return console.log("Error", err);
   }
 };
+
 export const onboardStudy = (reqBody) => {
   try {
     return new Promise((resolve, reject) => {

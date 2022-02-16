@@ -1,10 +1,20 @@
-@import '../../../styles/customscroll.scss';
-.create-policy-wrapper{
+@import '../../../../styles/customscroll.scss';
+.update-policy-wrapper{
     padding: 0 28px;
     .breadcrump{
         margin-left: -8px;
         margin-bottom: 0;
         padding-left: 0;
+    }
+    .back-btn{
+        background-color: #ECF3FF;
+        color: #0768FD;
+        height: 28px;
+        margin-bottom: 17px;
+        margin-top: -12px;
+        box-shadow: none;
+        font-size: 13px;
+        font-weight: 600;
     }
     .product-tabs{
         .MuiTab-root{
@@ -14,11 +24,11 @@
     }
     .top-actions{
         justify-content: end;
-        label{
-            margin-right: 40px;
+        .action-buttons{
+            margin-left: 20px;
         }
     }
-    .create-sidebar{
+    .update-sidebar{
         max-width: 75%;
         .title{
             font-size: 24px;
@@ -32,8 +42,9 @@
     }
     .permission-table-wrapper{
         position: relative;
-        height: 80vh;
-        @extend .customscroll;
+        div[class*=" Table-scrollRoot-"]{
+            @extend .customscroll;
+        }
         tfoot{
             display: none;
         }
@@ -44,4 +55,7 @@
             z-index: 2;
         }
     }
+}
+.save-confirm{
+    max-width: 320px;
 }

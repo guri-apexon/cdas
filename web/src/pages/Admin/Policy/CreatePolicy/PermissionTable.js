@@ -20,7 +20,7 @@ const CustomHeader = ({ setSearchText, searchTxt }) => {
         placeholder="Search"
         size="small"
         value={txt}
-        autoFocus
+        // autoFocus={txt.length}
         onKeyPress={onKeyPress}
         onChange={setTextHandler}
       />
@@ -28,13 +28,7 @@ const CustomHeader = ({ setSearchText, searchTxt }) => {
   );
 };
 
-const PermissionTable = ({
-  title,
-  data,
-  updateData,
-  messageContext,
-  disabled,
-}) => {
+const PermissionTable = ({ title, data, updateData, messageContext }) => {
   const [tableRows, settableRows] = useState(data);
   const [filteredData, setFilteredData] = useState(data);
   const [searchTxt, setSearchText] = useState("");
@@ -44,22 +38,22 @@ const PermissionTable = ({
   const handleChange = (e, row) => {
     const { checked, accessor } = e.target;
     const type = e.target.getAttribute("data-accessor");
-    const filtered = row.permsn_nm.find((x) => x.name === type);
-    filtered.value = checked;
-    filtered.updated = true;
-    const Read = row.permsn_nm.find((x) => x.name === "Read");
-    const Update = row.permsn_nm.find((x) => x.name === "Update");
-    const Delete = row.permsn_nm.find((x) => x.name === "Delete");
-    const Create = row.permsn_nm.find((x) => x.name === "Create");
-    const Download = row.permsn_nm.find((x) => x.name === "Download");
-    const updateValue = (obj, val) => {
-      obj.value = val;
-      obj.updated = true;
-    };
+    row.permsn_nm[type] = checked;
     switch (type) {
       case "Create":
         if (checked) {
-          if (Read) updateValue(Read, checked);
+          if (row.permsn_nm.hasOwnProperty("Read"))
+            row.permsn_nm.Read = checked;
+        }
+        break;
+      case "Update":
+        if (checked) {
+          if (row.permsn_nm.hasOwnProperty("Read"))
+            row.permsn_nm.Read = checked;
+        }
+        if (!checked) {
+          if (row.permsn_nm.hasOwnProperty("Delete"))
+            row.permsn_nm.Delete = checked;
         }
         break;
       case "Read":
@@ -69,29 +63,28 @@ const PermissionTable = ({
             null,
             "info"
           );
-          if (Create && Create.value) updateValue(Create, false);
-          if (Update && Update.value) updateValue(Update, false);
-          if (Delete && Delete.value) updateValue(Delete, false);
-          if (Download && Download.value) updateValue(Download, false);
+          if (row.permsn_nm.hasOwnProperty("Create"))
+            row.permsn_nm.Create = false;
+          if (row.permsn_nm.hasOwnProperty("Update"))
+            row.permsn_nm.Update = false;
+          if (row.permsn_nm.hasOwnProperty("Delete"))
+            row.permsn_nm.Delete = false;
+          if (row.permsn_nm.hasOwnProperty("Download"))
+            row.permsn_nm.Download = false;
         }
         break;
       case "Delete":
         if (checked) {
-          if (Read) updateValue(Read, checked);
-          if (Update) updateValue(Update, checked);
-        }
-        break;
-      case "Update":
-        if (checked) {
-          if (Read) updateValue(Read, checked);
-        }
-        if (!checked) {
-          if (Delete) updateValue(Delete, checked);
+          if (row.permsn_nm.hasOwnProperty("Read"))
+            row.permsn_nm.Read = checked;
+          if (row.permsn_nm.hasOwnProperty("Update"))
+            row.permsn_nm.Update = checked;
         }
         break;
       case "Download":
         if (checked) {
-          if (Read) updateValue(Read, checked);
+          if (row.permsn_nm.hasOwnProperty("Read"))
+            row.permsn_nm.Read = checked;
         }
         break;
       default:
@@ -104,17 +97,15 @@ const PermissionTable = ({
     updateData({ product: title, data: tableData });
   };
   const checkboxCell = ({ row, column: { accessor } }) => {
-    const filtered = row.permsn_nm.find((x) => x.name === accessor);
-    if (!filtered) {
+    if (!row.permsn_nm.hasOwnProperty(accessor)) {
       return false;
     }
     return (
       <input
         type="checkbox"
-        disabled={disabled}
         className="custom-checkbox"
         data-accessor={accessor}
-        checked={filtered.value}
+        checked={row.permsn_nm[accessor]}
         onChange={(e) => handleChange(e, row)}
       />
     );
@@ -182,7 +173,6 @@ const PermissionTable = ({
     setFilteredData(newRows);
   }, [searchTxt]);
   useEffect(() => {
-    console.log("table Updated");
     settableRows(data);
     if (filteredData.length === 0) setFilteredData(data);
   }, [data]);
@@ -199,6 +189,8 @@ const PermissionTable = ({
         rowsPerPage={tableRows.length}
         initialSortedColumn="feat_nm"
         initialSortOrder="asc"
+        hasScroll
+        maxHeight="calc(100vh - 300px)"
       />
     </div>
   );

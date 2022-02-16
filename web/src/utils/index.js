@@ -63,6 +63,8 @@ export function deleteAllCookies() {
 export function getUserInfo() {
   return {
     fullName: `${getCookie("user.first_name")} ${getCookie("user.last_name")}`,
+    firstName: getCookie("user.first_name"),
+    lastName: getCookie("user.last_name"),
     userEmail: decodeURIComponent(getCookie("user.email")),
     lastLogin: getLastLogin(),
     user_id: getCookie("user.id"),
@@ -170,6 +172,21 @@ export const compareDates = (accessor, sortOrder) => {
 export const inputAlphaNumeric = (e, callback) => {
   const value = e.target.value
     ? e.target.value.replace(/[^0-9a-zA-Z]+/gi, "")
+    : "";
+
+  if (e.target.value !== value) {
+    e.target.value = value;
+  }
+
+  if (typeof callback === "function") {
+    return callback(value);
+  }
+};
+
+// eslint-disable-next-line consistent-return
+export const inputAlphaNumericWithUnderScore = (e, callback) => {
+  const value = e.target.value
+    ? e.target.value.replace(/[^0-9a-zA-Z_]+/gi, "")
     : "";
 
   if (e.target.value !== value) {

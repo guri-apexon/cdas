@@ -1,41 +1,53 @@
+/* eslint-disable no-script-url */
 /* eslint-disable react/button-has-type */
 import React, { useContext, useEffect, useState } from "react";
 import Box from "apollo-react/components/Box";
-import { useHistory } from "react-router";
+import { useHistory, useParams } from "react-router";
 import BreadcrumbsUI from "apollo-react/components/Breadcrumbs";
 import Switch from "apollo-react/components/Switch";
 import ButtonGroup from "apollo-react/components/ButtonGroup";
 import TextField from "apollo-react/components/TextField";
-import "./CreatePolicy.scss";
+import "./UpdatePolicy.scss";
 import Typography from "apollo-react/components/Typography";
+import Button from "apollo-react/components/Button";
 import Grid from "apollo-react/components/Grid";
 import Tab from "apollo-react/components/Tab";
 import Tabs from "apollo-react/components/Tabs";
 import Badge from "apollo-react/components/Badge";
+import Modal from "apollo-react/components/Modal";
 import {
-  addPolicyService,
+  updatePolicyService,
   fetchProducts,
   getPolicyPermissions,
-} from "../../../services/ApiServices";
-import { MessageContext } from "../../../components/Providers/MessageProvider";
+} from "../../../../services/ApiServices";
+import { MessageContext } from "../../../../components/Providers/MessageProvider";
 import PermissionTable from "./PermissionTable";
-import { getUserInfo, inputAlphaNumeric } from "../../../utils";
+import { getUserInfo, inputAlphaNumeric } from "../../../../utils";
 
-const breadcrumpItems = [
-  { href: "/" },
-  {
-    title: "Policy Management",
-    href: "/policy-management",
-  },
-  {
-    title: "Create New Policy",
-  },
-];
+const ConfirmModal = React.memo(({ open, cancel, submitPolicy, loading }) => {
+  return (
+    <Modal
+      open={open}
+      className="save-confirm"
+      variant="warning"
+      title="Save before exiting?"
+      message="You have unsaved changes. Do you want to save before exiting?"
+      buttonProps={[
+        { label: "Don't save", onClick: cancel, disabled: loading },
+        { label: "Save", onClick: submitPolicy, disabled: loading },
+      ]}
+      id="neutral"
+    />
+  );
+});
 
-const CreatePolicy = () => {
-  const [active, setActive] = useState(true);
+const UpdatePolicy = () => {
+  const params = useParams();
   const [loading, setLoading] = useState(false);
+  const [confirm, setConfirm] = useState(false);
+  const [active, setActive] = useState(true);
   const [currentTab, setCurrentTab] = useState(0);
+  const [policyDetails, setPolicyDetails] = useState({});
   const [policyName, setPolicyName] = useState("");
   const [policyDesc, setPolicyDesc] = useState("");
   const [permissions, setPermissions] = useState({});
@@ -49,12 +61,26 @@ const CreatePolicy = () => {
   const handleChangeTab = (event, v) => {
     setCurrentTab(v);
   };
+
+  const breadcrumpItems = [
+    { href: "javascript:void(0)", onClick: () => history.push("/launchpad") },
+    {
+      href: "javascript:void(0)",
+      title: "Policy Management",
+      onClick: () => history.push("/policy-management"),
+    },
+    {
+      title: "View Policy",
+    },
+  ];
+
   // eslint-disable-next-line consistent-return
   const submitPolicy = async () => {
     const reqBody = {
       policyName,
       policyDesc,
       permissions,
+      policyId: policyDetails.plcy_id,
       userId: userInfo.user_id,
       status: active ? "Active" : "Inactive",
     };
@@ -67,8 +93,8 @@ const CreatePolicy = () => {
       Object.keys(permissions).forEach((product) => {
         permissions[product].every((category) => {
           if (!atleastOneSelected) {
-            atleastOneSelected = Object.keys(category.permsn_nm).find((x) => {
-              return category.permsn_nm[x] === true;
+            atleastOneSelected = category.permsn_nm.find((x) => {
+              return x.value === true;
             });
           }
           if (atleastOneSelected) return false;
@@ -83,9 +109,11 @@ const CreatePolicy = () => {
       }
     }
     setLoading(true);
-    addPolicyService(reqBody)
+    updatePolicyService(reqBody)
       .then((res) => {
-        messageContext.showSuccessMessage(res.message || "Successfully Done");
+        messageContext.showSuccessMessage(
+          res.message || "Successfully Updated"
+        );
         history.push("/policy-management");
         setLoading(false);
       })
@@ -108,21 +136,41 @@ const CreatePolicy = () => {
     const helper = {};
     return arr.reduce((r, o) => {
       const key = `${o.ctgy_nm}-${o.feat_nm}`;
+      const checked = o.select_check_box === "1" ? true : false;
       if (!helper[key]) {
-        helper[key] = { ...o, permsn_nm: { [o.permsn_nm]: false } };
+        helper[key] = {
+          ...o,
+          permsn_nm: [
+            {
+              name: o.permsn_nm,
+              value: checked,
+              id: o.plcy_prod_permsn_id,
+            },
+          ],
+        };
         r.push(helper[key]);
       } else {
-        helper[key].permsn_nm = {
+        helper[key].permsn_nm = [
           ...helper[key].permsn_nm,
-          [o.permsn_nm]: false,
-        };
+          {
+            name: o.permsn_nm,
+            value: checked,
+            id: o.plcy_prod_permsn_id,
+          },
+        ];
       }
       return r;
     }, []);
   };
   const fetchPermissions = async () => {
-    const permissionsData = await getPolicyPermissions();
-    const filteredData = filterPermission(permissionsData);
+    const permissionsData = await getPolicyPermissions(params.id);
+    const filteredData = filterPermission(permissionsData.data);
+    setPolicyDetails(permissionsData.policyDetails);
+    setPolicyName(permissionsData.policyDetails?.plcy_nm || "");
+    setPolicyDesc(permissionsData.policyDetails?.plcy_desc || "");
+    setActive(
+      permissionsData.policyDetails?.plcy_stat === "Active" ? true : false
+    );
     const permissionArr = {};
     products.forEach((product) => {
       const filtered = filteredData.filter(
@@ -138,20 +186,20 @@ const CreatePolicy = () => {
   };
   const updateData = (childData) => {
     const newArr = { ...permissions, [childData.product]: childData.data };
-    console.log("updateData", newArr);
     setPermissions(newArr);
   };
   const getBadgeCount = (product) => {
-    let count = 0;
     if (!permissions[product]) {
-      return count;
+      return 0;
     }
-    permissions[product].forEach((category) => {
-      count += Object.keys(category.permsn_nm).filter((x) => {
-        return category.permsn_nm[x] === true;
-      }).length;
-    });
-    return count;
+    return permissions[product].filter((category) => {
+      return category.permsn_nm.find((x) => {
+        return x.value === true;
+      });
+    }).length;
+  };
+  const cancelEdit = () => {
+    history.push("/policy-management");
   };
   useEffect(() => {
     fetchPermissions();
@@ -160,7 +208,13 @@ const CreatePolicy = () => {
     getProducts();
   }, []);
   return (
-    <div className="create-policy-wrapper">
+    <div className="update-policy-wrapper">
+      <ConfirmModal
+        open={confirm}
+        cancel={cancelEdit}
+        loading={loading}
+        submitPolicy={submitPolicy}
+      />
       <Box className="top-content">
         <BreadcrumbsUI className="breadcrump" items={breadcrumpItems} />
         <div className="flex top-actions">
@@ -171,50 +225,76 @@ const CreatePolicy = () => {
             onChange={handleActive}
             size="small"
           />
-          <ButtonGroup
-            alignItems="right"
-            buttonProps={[
-              {
-                label: "Cancel",
-                size: "small",
-                onClick: () => history.push("/policy-management"),
-              },
-              {
-                label: "Save",
-                size: "small",
-                disabled: loading,
-                onClick: submitPolicy,
-              },
-            ]}
-          />
+          {active && (
+            <ButtonGroup
+              className="action-buttons"
+              alignItems="right"
+              buttonProps={[
+                {
+                  label: "Cancel",
+                  size: "small",
+                  onClick: setConfirm,
+                },
+                {
+                  label: "Save",
+                  size: "small",
+                  disabled: loading,
+                  onClick: submitPolicy,
+                },
+              ]}
+            />
+          )}
         </div>
       </Box>
       <Grid container spacing={2}>
         <Grid item xs={3}>
           <Box>
-            <div className="flex create-sidebar flexWrap">
+            <div className="flex update-sidebar flexWrap">
+              {!active && (
+                <Button
+                  onClick={() => history.goBack()}
+                  className="back-btn"
+                  variant="primary"
+                  size="small"
+                  // icon={PlusIcon}
+                >
+                  &#x276E; Back to Policy Management List
+                </Button>
+              )}
               <Typography variant="title1" className="b-font title">
-                New Policy
+                {policyName}
               </Typography>
               <br />
-              <TextField
-                id="policyName"
-                size="small"
-                label="Policy Name"
-                placeholder="Name your policy"
-                onChange={handleChange}
-              />
-              <TextField
-                id="policyDesc"
-                size="small"
-                label="Policy Description"
-                placeholder="Describe your policy"
-                rows="18"
-                multiline={true}
-                minHeight={150}
-                sizeAdjustable
-                onChange={handleChange}
-              />
+              {active ? (
+                <>
+                  <TextField
+                    id="policyName"
+                    size="small"
+                    label="Policy Name"
+                    value={policyName}
+                    placeholder="Name your policy"
+                    onChange={handleChange}
+                  />
+                  <TextField
+                    id="policyDesc"
+                    size="small"
+                    label="Policy Description"
+                    placeholder="Describe your policy"
+                    rows="18"
+                    value={policyDesc}
+                    multiline={true}
+                    minHeight={150}
+                    sizeAdjustable
+                    onChange={handleChange}
+                  />
+                </>
+              ) : (
+                <>
+                  <br />
+                  <Typography variant="body2">Policy Description</Typography>
+                  <Typography className="b-font">{policyDesc}</Typography>
+                </>
+              )}
             </div>
           </Box>
         </Grid>
@@ -230,6 +310,8 @@ const CreatePolicy = () => {
               products.map((product, i) => {
                 return (
                   <Tab
+                    key={product.prod_id}
+                    disabled={product.active_product === 0}
                     label={
                       // eslint-disable-next-line react/jsx-wrap-multilines
                       <Badge
@@ -246,11 +328,12 @@ const CreatePolicy = () => {
           <div className="product-content">
             {products &&
               products.map((product, i) => {
-                if (currentTab !== i) {
+                if (currentTab !== i || product.active_product === 0) {
                   return false;
                 }
                 return (
                   <PermissionTable
+                    disabled={!active}
                     messageContext={messageContext}
                     title={product.prod_nm}
                     updateData={updateData}
@@ -265,4 +348,4 @@ const CreatePolicy = () => {
   );
 };
 
-export default CreatePolicy;
+export default UpdatePolicy;
