@@ -4,5 +4,5 @@ import UpdateRole from "./UpdateRole";
 
 test("Rendering UpdateRole component", () => {
   const wrapper = mount(<UpdateRole />);
-  expect(wrapper.exists(".create-role-wrapper")).toBe(true);
+  expect(wrapper.exists(".update-role-wrapper")).toBe(true);
 });
