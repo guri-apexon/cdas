@@ -229,9 +229,8 @@ exports.updateVendor = async (req, res) => {
       userName,
     } = req.body;
 
-    Logger.info({
-      message: "updateVendor",
-    });
+    Logger.info({ message: "updateVendor" });
+    // console.log(req.body);
 
     const curDate = new Date();
     const $q1 = `select distinct vend_id from ${schemaName}.dataflow d`;
@@ -262,6 +261,7 @@ exports.updateVendor = async (req, res) => {
 
       if (vContacts.length > 0) {
         await vContacts.map((e) => {
+          console.log(e);
           DB.executeQuery(contactQuery, [
             vId,
             e.name,
