@@ -7,7 +7,7 @@ const messages = require("../config/messages");
 const helpers = require("../helpers/customFunctions");
 const { _ } = require("lodash");
 const e = require("express");
-const {DB_SCHEMA_NAME: dbSchema} = constants;
+const { DB_SCHEMA_NAME: dbSchema } = constants;
 
 exports.createRole = function (req, res) {
   try {
@@ -73,14 +73,7 @@ exports.updateRole = function (req, res) {
       return false;
     }
     const currentTime = helpers.getCurrentTime();
-    const roleValues = [
-      name,
-      description,
-      status,
-      userId,
-      currentTime,
-      roleId
-    ];
+    const roleValues = [name, description, status, userId, currentTime, roleId];
     DB.executeQuery(
       `UPDATE ${dbSchema}.role set role_nm=$1, role_desc=$2, role_stat=$3, updated_by=$4, updated_on=$5 WHERE role_id=$6 RETURNING *`,
       roleValues
@@ -90,9 +83,9 @@ exports.updateRole = function (req, res) {
         let queryStr = "";
         policies.forEach((policy) => {
           const Active = policy.value ? "1" : "0";
-          if(policy.existed){
+          if (policy.existed) {
             queryStr += `UPDATE ${dbSchema}.role_policy set act_flg='${Active}' WHERE role_plcy_id=${policy.existed};`;
-          }else{
+          } else {
             queryStr += `INSERT into ${dbSchema}.role_policy(role_id, plcy_id, act_flg, created_by, created_on, updated_by, updated_on) VALUES('${role.role_id}', '${policy.id}', '${Active}', '${userId}', '${currentTime}', '${userId}', '${currentTime}');`;
           }
         });
@@ -180,25 +173,23 @@ exports.listRoles = async function (req, res) {
 };
 
 exports.getDetails = async (req, res) => {
-  try{
+  try {
     const { roleId } = req.params;
-    if(!roleId) {
-      return apiResponse.ErrorResponse(
-        res,
-        "This role doesn't exist"
-      );
+    if (!roleId) {
+      return apiResponse.ErrorResponse(res, "This role doesn't exist");
     }
     let query = `SELECT * from ${dbSchema}.role where role_id = ${roleId}`;
     const result = await DB.executeQuery(query);
-    if(result.rows[0]){
-      return apiResponse.successResponseWithData(res, "Role retrieved succesfully", result.rows[0]);
-    }else{
-      return apiResponse.ErrorResponse(
+    if (result.rows[0]) {
+      return apiResponse.successResponseWithData(
         res,
-        "This role doesn't exist"
+        "Role retrieved succesfully",
+        result.rows[0]
       );
+    } else {
+      return apiResponse.ErrorResponse(res, "This role doesn't exist");
     }
-  }catch(error){
+  } catch (error) {
     return apiResponse.ErrorResponse(res, error.message);
   }
 };
