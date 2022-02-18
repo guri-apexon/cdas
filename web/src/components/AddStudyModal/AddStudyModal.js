@@ -75,7 +75,6 @@ const AddStudyModal = ({ open, onClose }) => {
 
   const FormatCell = ({ row, column: { accessor } }) => {
     const greyedOut = ["In Progress", "Success"].includes(row.ob_stat);
-    console.log("row[accessor]", accessor);
     const innerEl = <Highlighted text={row[accessor]} highlight={searchTxt} />;
     return (
       // eslint-disable-next-line jsx-a11y/click-events-have-key-events

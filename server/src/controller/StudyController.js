@@ -6,27 +6,67 @@ const _ = require("lodash");
 const axios = require("axios");
 const request = require("request");
 const constants = require("../config/constants");
-const { DB_SCHEMA_NAME: schemaName } = constants;
+const CommonController = require("./CommonController");
+const { DB_SCHEMA_NAME: schemaName, FSR_HEADERS, FSR_API_URI } = constants;
+// {"status":1,"message":"Operation success","data":{"status":"OK","code":202,"message":"Study onboarding initiated successfully. Please wait for 3 hour(s) to check the status and get the required access reflected in the corresponding environment.","data":"Study onboarding initiated successfully. Please wait for 3 hour(s) to check the status and get the required access reflected in the corresponding environment."}}
+
+// {"status":1,"message":"Operation success","data":{"status":"OK","code":200,"message":"Study Onboarding request already created for the given StudyId","data":"Study Onboarding request already created for the given StudyId"}}
+const updateStatus = async (studyId, status="In Progress") => {
+  try {
+    if(!studyId) return false;
+    const query = `UPDATE ${dbSchema}.study set ob_stat='${status}' WHERE prot_id=${studyId};`;
+    const updated = await DB.executeQuery(query);
+    if (!updated) return false;
+    return true;
+  } catch (err) {
+    return false;
+  }
+};
+
+exports.cronUpdateStatus = async () => {
+  try{
+    const query = `SELECT prot_nbr from study WHERE ob_stat='In Progress'`;
+    const result = await DB.executeQuery(query);
+    if(!result) return false;
+    const studies = result.rows || [];
+    if(!studies.length) return false;
+    
+    await Promise.all(studies.map(async study=>{
+      const studyId = study.prot_nbr;
+      const status = await CommonController.fsrStudyStatus(studyId);
+      if(status=="Success"){
+        await updateStatus(studyId);
+      }
+    }));
+    Logger.info({
+      message: "cronFinished",
+    });
+    return true;
+  }catch{
+    return false;
+  }
+};
 
 exports.onboardStudy = async function (req, res) {
   const { sponsorName, studyId } = req.body;
   axios
     .post(
-      "https://rds-cdrfsr-dev.gdev-car3-k8s.work.iqvia.com/fsr/study/onboard",
+      `${FSR_API_URI}/study/onboard`,
       {
         sponsorName,
         studyId,
       },
       {
-        headers: {
-          ClientId: "CDI",
-          ClientSecret:
-            "h+p78ADQ8Zwo1EiJdLPU9brxYe9qo64YUYoZAVq/VSjY1IOHsE3yiQ==",
-          "Content-Type": "application/json",
-        },
+        headers: FSR_HEADERS,
       }
     )
-    .then((response) => {
+    .then(async (response) => {
+      const onboardStatus = response?.data?.code || null;
+      console.log("onboardStatus", onboardStatus);
+      if(onboardStatus===202){
+        const updated = await updateStatus(studyId);
+        if(!updated) return apiResponse.ErrorResponse(res, "Something went wrong");
+      }
       return apiResponse.successResponseWithData(
         res,
         "Operation success",
