@@ -13,7 +13,7 @@ import ApolloProgress from "apollo-react/components/ApolloProgress";
 import { MessageContext } from "../Providers/MessageProvider";
 import { searchStudy, onboardStudy } from "../../services/ApiServices";
 import Highlighted from "../Common/Highlighted";
-import { debounceFunction } from "../../utils";
+import { debounceFunction, getUserInfo } from "../../utils";
 
 const Label = ({ children }) => {
   return (
@@ -37,6 +37,7 @@ const AddStudyModal = ({ open, onClose }) => {
   const [loading, setLoading] = useState(false);
   const messageContext = useContext(MessageContext);
   const btnArr = [{ label: "Cancel", size: "small", className: "cancel-btn" }];
+  const userInfo = getUserInfo();
   const handleClose = () => {
     setOpenModal(false);
     onClose();
@@ -46,6 +47,7 @@ const AddStudyModal = ({ open, onClose }) => {
     const reqBody = {
       sponsorName,
       studyId,
+      userId: userInfo.user_id,
     };
     setLoading(true);
     const response = await onboardStudy(reqBody);
