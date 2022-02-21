@@ -95,7 +95,7 @@ const ListRoles = () => {
       return (
         <Tooltip title="Active" disableFocusListener>
           <Switch
-            className="inline-checkbox"
+            className="table-checkbox"
             checked={true}
             onChange={(e) => handleStatus(e, id, "Active")}
             size="small"
@@ -106,7 +106,7 @@ const ListRoles = () => {
     return (
       <Tooltip title="Inactive" disableFocusListener>
         <Switch
-          className="inline-checkbox"
+          className="table-checkbox"
           checked={false}
           onChange={(e) => handleStatus(e, id, "InActive")}
           size="small"

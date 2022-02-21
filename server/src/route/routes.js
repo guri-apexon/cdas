@@ -1,6 +1,8 @@
 const db = require("../config/db");
 const express = require("express");
 const authController = require("../controller/authController");
+const StudyController = require("../controller/StudyController");
+const cron = require("node-cron");
 
 const studyRoute = require("./study");
 const policyRoute = require("./policy");
@@ -23,5 +25,12 @@ router.use("/v1/api/study/", studyRoute);
 router.use("/v1/api/policy/", policyRoute);
 router.use("/v1/api/vendor/", verdorRoute);
 router.use("/v1/api/role/", roleRoute);
+
+
+
+cron.schedule("*/60 * * * *", () => {
+  StudyController.cronUpdateStatus();
+  console.log("running a task every 60 minute");
+});
 
 module.exports = router;

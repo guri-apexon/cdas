@@ -147,6 +147,7 @@ const PolicyList = () => {
         <Tooltip title="Active" disableFocusListener>
           <Switch
             checked={true}
+            className="table-checkbox"
             onChange={(e) => handleInActivate(e, id)}
             size="small"
           />
@@ -157,6 +158,7 @@ const PolicyList = () => {
       <Tooltip title="Inactive" disableFocusListener>
         <Switch
           checked={false}
+          className="table-checkbox"
           onChange={(e) => handleActivate(e, id)}
           size="small"
         />
