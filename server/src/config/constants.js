@@ -4,5 +4,12 @@ module.exports = Object.freeze({
   DB_USER: "ycdas1d",
   DB_PASS: "ycdas1d@cdas1d",
   DB_PORT: 5433,
-  DB_DATABASE: "cdas1d"
+  DB_DATABASE: "cdas1d",
+  FSR_HEADERS: {
+    ClientId: "CDI",
+    ClientSecret:
+      "h+p78ADQ8Zwo1EiJdLPU9brxYe9qo64YUYoZAVq/VSjY1IOHsE3yiQ==",
+    "Content-Type": "application/json",
+  },
+  FSR_API_URI: "https://rds-cdrfsr-dev.gdev-car3-k8s.work.iqvia.com/fsr",
 });
