@@ -9,7 +9,7 @@ const AppFooter = () => {
   return (
     <div
       className="app-footer"
-      styles={{ background: "#F6F7FB", width: "100%" }}
+      style={{ background: "#F6F7FB", width: "100%" }}
     >
       <Footer
         buttonProps={[

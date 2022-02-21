@@ -28,7 +28,6 @@ import {
 import {
   TextFieldFilter,
   createStringArraySearchFilter,
-  createStringArrayIncludedFilter,
 } from "../../../../utils/index";
 import "./VendorList.scss";
 
@@ -65,45 +64,36 @@ const VendorList = () => {
     history.push(`/vendor/edit/${id}`);
   };
 
-  const handleInActivate = async (e, id) => {
+  const handleChangeStatus = async (e, id, curStatus) => {
     e.preventDefault();
-    const update = await statusUpdate(id, 0);
-    if (update) {
-      console.log(update.data);
-      if (update.status === 0) {
-        messageContext.showErrorMessage(update.data, 56);
+    if (curStatus === "Active") {
+      const update = await statusUpdate(id, 0);
+      if (update) {
+        if (update.status === 0) {
+          messageContext.showErrorMessage(update.data, 56);
+        }
+        getData();
       }
-      getData();
-    }
-  };
-
-  const handleActivate = async (e, id) => {
-    e.preventDefault();
-    const update = await statusUpdate(id, 1);
-    if (update) {
-      getData();
+    } else {
+      const update = await statusUpdate(id, 1);
+      if (update) {
+        getData();
+      }
     }
   };
 
   const StatusCell = ({ row, column: { accessor } }) => {
     const data = row[accessor];
     const id = row.vId;
-    if (data === "Active") {
-      return (
-        <Tooltip title="Active" disableFocusListener>
-          <Switch
-            checked={true}
-            onChange={(e) => handleInActivate(e, id)}
-            size="small"
-          />
-        </Tooltip>
-      );
-    }
     return (
-      <Tooltip title="Inactive" disableFocusListener>
+      <Tooltip
+        title={data === "Active" ? "Active" : "Inactive"}
+        disableFocusListener
+      >
         <Switch
-          checked={false}
-          onChange={(e) => handleActivate(e, id)}
+          className="table-checkbox"
+          checked={data === "Active" ? true : false}
+          onChange={(e) => handleChangeStatus(e, id, data)}
           size="small"
         />
       </Tooltip>
@@ -122,17 +112,6 @@ const VendorList = () => {
   const LinkCell = ({ row, column: { accessor } }) => {
     const rowValue = row[accessor];
     const id = row.vId;
-    // if (rowValue.length > 30) {
-    //   return (
-    //     <Link
-    //       onMouseOver={() => handleMouseOver(row)}
-    //       onMouseOut={handleMouseOut}
-    //       onClick={(e) => goToVendor(e, id)}
-    //     >
-    //       {`${rowValue.slice(0, 30)}  [...]`}
-    //     </Link>
-    //   );
-    // }
     return <Link onClick={(e) => goToVendor(e, id)}>{rowValue}</Link>;
   };
 
@@ -220,7 +199,7 @@ const VendorList = () => {
       header: "External System",
       accessor: "vESN",
       sortFunction: compareStrings,
-      filterFunction: createStringArrayIncludedFilter("vESN"),
+      filterFunction: createStringArraySearchFilter("vESN"),
       filterComponent: createSelectFilterComponent(ensList, {
         size: "small",
         multiple: true,
@@ -288,36 +267,6 @@ const VendorList = () => {
       </div>
       <div className="vendor-table">
         <div className="table">{getTableData}</div>
-        {/* <div className="table">
-          {loading ? (
-            <Progress />
-          ) : (
-            <Table
-              isLoading={loading}
-              title="Vendors"
-              subtitle={`${tableRows.length} vendors`}
-              columns={columns}
-              rows={tableRows}
-              rowId="vId"
-              hasScroll={true}
-              maxHeight="calc(100vh - 162px)"
-              initialSortedColumn="vName"
-              initialSortOrder="asc"
-              rowsPerPageOptions={[10, 50, 100, "All"]}
-              tablePaginationProps={{
-                labelDisplayedRows: ({ from, to, count }) =>
-                  `${
-                    count === 1 ? "Item " : "Items"
-                  } ${from}-${to} of ${count}`,
-                truncate: true,
-              }}
-              showFilterIcon
-              CustomHeader={(props) => (
-                <CustomButtonHeader {...props} addVendor={handleAddVendor} />
-              )}
-            />
-          )}
-        </div> */}
         <Peek
           open={open}
           followCursor
