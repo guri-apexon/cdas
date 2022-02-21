@@ -1,6 +1,7 @@
 import { withRouter } from "react-router";
 import Modal from "apollo-react/components/Modal";
 import { useState, useEffect, useContext } from "react";
+import { useHistory } from "react-router-dom";
 import "./AddStudyModal.scss";
 import Typography from "apollo-react/components/Typography";
 import Tooltip from "apollo-react/components/Tooltip";
@@ -38,6 +39,7 @@ const AddStudyModal = ({ open, onClose }) => {
   const messageContext = useContext(MessageContext);
   const btnArr = [{ label: "Cancel", size: "small", className: "cancel-btn" }];
   const userInfo = getUserInfo();
+  const history = useHistory();
   const handleClose = () => {
     setOpenModal(false);
     onClose();
@@ -60,6 +62,10 @@ const AddStudyModal = ({ open, onClose }) => {
       handleClose();
     }
   };
+  const importWithUser = () => {
+    console.log("importWithUser");
+    history.push("/import-assign-users");
+  };
   const allBtnArr = [
     ...btnArr,
     {
@@ -68,7 +74,11 @@ const AddStudyModal = ({ open, onClose }) => {
       onClick: importStudy,
       disabled: loading,
     },
-    { label: "Import and Assign Users", size: "small", disabled: true },
+    {
+      label: "Import and Assign Users",
+      size: "small",
+      onClick: importWithUser,
+    },
   ];
 
   const setDetail = (study) => {
