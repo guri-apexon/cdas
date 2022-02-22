@@ -248,7 +248,6 @@ exports.updateVendor = async (req, res) => {
             ]);
           }
         });
-        console.log(vContacts);
       }
 
       return apiResponse.successResponse(
