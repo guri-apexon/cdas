@@ -20,6 +20,7 @@ const initialRows = [
     isEmailValid: false,
     isNameValid: false,
     isStarted: false,
+    isNew: true,
   },
 ];
 
@@ -145,6 +146,7 @@ const TableEditableAll = ({ updateData, deleteAContact }) => {
         isEmailValid: false,
         isNameValid: false,
         isStarted: false,
+        isNew: true,
       },
     ]);
   };
@@ -158,6 +160,7 @@ const TableEditableAll = ({ updateData, deleteAContact }) => {
         isEmailValid: true,
         isNameValid: true,
         isStarted: false,
+        isNew: false,
       }));
       setEditedRows([...updated]);
     }

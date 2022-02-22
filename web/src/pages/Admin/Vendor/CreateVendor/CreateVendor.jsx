@@ -149,18 +149,6 @@ const CreateVendor = () => {
       return false;
     }
 
-    // const startList = contacts.map((e) => e.isStarted);
-    // const nameValid = contacts.map((e) => e.isNameValid);
-    // const emailValid = contacts.map((e) => e.isEmailValid);
-
-    // if (startList.every((v) => v === true)) {
-    //   if (nameValid.every((v) => v === true)) {
-    //     if (emailValid.every((v) => v === true)) {
-    //       const test = "";
-    //     }
-    //   }
-    // }
-
     setLoading(true);
     if (isCreatePage) {
       addVendorService(reqBody)
