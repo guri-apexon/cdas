@@ -12,10 +12,10 @@ const { DB_SCHEMA_NAME: schemaName, FSR_HEADERS, FSR_API_URI } = constants;
 // {"status":1,"message":"Operation success","data":{"status":"OK","code":202,"message":"Study onboarding initiated successfully. Please wait for 3 hour(s) to check the status and get the required access reflected in the corresponding environment.","data":"Study onboarding initiated successfully. Please wait for 3 hour(s) to check the status and get the required access reflected in the corresponding environment."}}
 
 // {"status":1,"message":"Operation success","data":{"status":"OK","code":200,"message":"Study Onboarding request already created for the given StudyId","data":"Study Onboarding request already created for the given StudyId"}}
-const updateStatus = async (studyId, status="In Progress") => {
+const updateStatus = async (studyId, status="Success") => {
   try {
     if(!studyId) return false;
-    const query = `UPDATE ${schemaName}.study set ob_stat='${status}' WHERE prot_id=${studyId};`;
+    const query = `UPDATE ${schemaName}.study set ob_stat='${status}' WHERE prot_id='${studyId}';`;
     const updated = await DB.executeQuery(query);
     if (!updated) return false;
     return true;

@@ -2,6 +2,28 @@
     .action-btns{
         margin-bottom: 20px;
     }
+    .study-details{
+        h3{
+            font-size: 16px;
+            font-weight: 700;
+        }
+        .title{
+            padding: 20px 15px 10px;
+            border-bottom: 1px solid #E9E9E9;
+        }
+        .label{
+            font-weight: 600;
+            color: #444444;
+        }
+        .value{
+            font-weight: 700;
+        }
+    }
+    .user-table{
+        tr{
+            vertical-align: top;
+        }
+    }
 }
 .onboard-header{
     background-color: #fff;

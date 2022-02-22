@@ -28,7 +28,7 @@ router.use("/v1/api/role/", roleRoute);
 
 
 
-cron.schedule("*/60 * * * *", () => {
+cron.schedule("0 0 */1 * *", () => {
   StudyController.cronUpdateStatus();
   console.log("running a task every 60 minute");
 });
