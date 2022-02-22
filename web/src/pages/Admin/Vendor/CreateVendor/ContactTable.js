@@ -12,43 +12,6 @@ import Table, {
 } from "apollo-react/components/Table";
 import TextField from "apollo-react/components/TextField";
 
-// const initialRows = [
-//   {
-//     vCId: 8473,
-//     name: "Bob Henderson",
-//     email: "bhenderson@abc-corp.com",
-//   },
-//   {
-//     vCId: 4856,
-//     name: "Lakshmi Patel",
-//     email: "lpatel@abc-corp.com",
-//   },
-//   {
-//     vCId: 2562,
-//     name: "Cathy Simoyan",
-//     email: "csimoyan@abc-corp.com",
-//   },
-//   {
-//     vCId: 2563,
-//     name: "Mike Zhang",
-//     email: "mzhang@abc-corp.com",
-//   },
-//   {
-//     vCId: 1945,
-//     name: "Kai Vongvilay",
-//     email: "kvongvilay@abc-corp.com",
-//   },
-//   {
-//     vCId: 2518,
-//     name: "Dennis Smith",
-//     email: "dsmith@abc-corp.com",
-//   },
-//   {
-//     vCId: 7455,
-//     name: "Dennis Reynolds",
-//     email: "dreynolds@abc-corp.com",
-//   },
-// ];
 const initialRows = [
   {
     vCId: 1,
@@ -57,6 +20,7 @@ const initialRows = [
     isEmailValid: false,
     isNameValid: false,
     isStarted: false,
+    isNew: true,
   },
 ];
 
@@ -182,6 +146,7 @@ const TableEditableAll = ({ updateData, deleteAContact }) => {
         isEmailValid: false,
         isNameValid: false,
         isStarted: false,
+        isNew: true,
       },
     ]);
   };
@@ -195,6 +160,7 @@ const TableEditableAll = ({ updateData, deleteAContact }) => {
         isEmailValid: true,
         isNameValid: true,
         isStarted: false,
+        isNew: false,
       }));
       setEditedRows([...updated]);
     }
@@ -204,19 +170,6 @@ const TableEditableAll = ({ updateData, deleteAContact }) => {
   useEffect(() => {
     updateData(editedRows);
   }, [editedRows]);
-
-  //   const onEditAll = () => {
-  //     setEditedRows(rows);
-  //   };
-
-  //   const onSave = () => {
-  //     setRows(editedRows);
-  //     setEditedRows([]);
-  //   };
-
-  //   const onCancel = () => {
-  //     setEditedRows([]);
-  //   };
 
   const editEmail = (vCId, key, value) => {
     if (re.test(value)) {
