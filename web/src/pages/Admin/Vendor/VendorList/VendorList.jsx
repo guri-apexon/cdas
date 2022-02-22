@@ -148,7 +148,7 @@ const VendorList = () => {
         variant="secondary"
         icon={PlusIcon}
         onClick={addVendor}
-        style={{ marginRight: "8px", border: "none" }}
+        style={{ marginRight: "8px", border: "none", boxShadow: "none" }}
       >
         Add vendor
       </Button>
