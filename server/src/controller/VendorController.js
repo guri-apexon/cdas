@@ -3,6 +3,7 @@ const apiResponse = require("../helpers/apiResponse");
 const Logger = require("../config/logger");
 const _ = require("lodash");
 const constants = require("../config/constants");
+const helpers = require("../helpers/customFunctions");
 
 const { DB_SCHEMA_NAME: schemaName } = constants;
 
@@ -72,11 +73,8 @@ exports.getVendorById = async (req, res) => {
 exports.activeStatusUpdate = async (req, res) => {
   try {
     const { vId, vStatus, userId } = req.body;
-    const curDate = new Date();
-    Logger.info({
-      message: "activeStatusUpdate",
-    });
-
+    const curDate = helpers.getCurrentTime();
+    Logger.info({ message: "activeStatusUpdate" });
     const $q1 = `select distinct vend_id from ${schemaName}.dataflow d`;
     const $query = `UPDATE ${schemaName}.vendor SET active=$1, updt_tm=$2, updated_by=$3 WHERE vend_id=$4`;
 
@@ -112,35 +110,6 @@ exports.activeStatusUpdate = async (req, res) => {
   }
 };
 
-// exports.getESNList = async (req, res) => {
-//   // extrnl_sys_nm
-//   try {
-//     Logger.info({
-//       message: "getESNList",
-//     });
-
-//     let query = `SELECT DISTINCT v.extrnl_sys_nm as "vESN" FROM ${schemaName}.vendor v`;
-//     let dbQuery = DB.executeQuery(query);
-
-//     dbQuery.then((response) => {
-//       const vESN = response.rows.map((e) => {
-//         return { label: e.vESN, value: e.vESN };
-//       }) || [{ lable: "", value: "" }];
-//       return apiResponse.successResponseWithData(
-//         res,
-//         "Operation success",
-//         vESN
-//       );
-//     });
-//   } catch (err) {
-//     //throw error in json response with status 500.
-//     Logger.error("catch :getESNList");
-//     Logger.error(err);
-
-//     return apiResponse.ErrorResponse(res, err);
-//   }
-// };
-
 exports.createVendor = async (req, res) => {
   try {
     const {
@@ -154,11 +123,9 @@ exports.createVendor = async (req, res) => {
       userName,
     } = req.body;
 
-    Logger.info({
-      message: "createVendor",
-    });
+    Logger.info({ message: "createVendor" });
 
-    const curDate = new Date();
+    const curDate = helpers.getCurrentTime();
 
     const insertQuery = `INSERT INTO ${schemaName}.vendor
     (vend_nm, vend_nm_stnd, description, active, extrnl_sys_nm, insrt_tm, updt_tm, created_by, updated_by)
@@ -196,7 +163,7 @@ exports.createVendor = async (req, res) => {
       });
     }
 
-    return apiResponse.successResponse(res, "Operation success");
+    return apiResponse.successResponse(res, "Vendor created successfully");
   } catch (err) {
     //throw error in json response with status 500.
     Logger.error("catch :createVendor");
@@ -229,7 +196,7 @@ exports.updateVendor = async (req, res) => {
     Logger.info({ message: "updateVendor" });
     // console.log(req.body);
 
-    const curDate = new Date();
+    const curDate = helpers.getCurrentTime();
     const $q1 = `select distinct vend_id from ${schemaName}.dataflow d`;
     const updateQuery = `UPDATE ${schemaName}.vendor SET vend_nm=$1, vend_nm_stnd=$2, description=$3, active=$4, extrnl_sys_nm=$5, updt_tm=$6, updated_by=$7 WHERE vend_id=$8`;
     const contactQuery = `UPDATE ${schemaName}.vendor_contact SET contact_nm=$2, emailid=$3, updated_by=$4, updated_on=$5, act_flg=$6 WHERE vend_id=$1`;
@@ -244,7 +211,6 @@ exports.updateVendor = async (req, res) => {
         "Vendor cannot be inactivated until removed from all data flows using this Vendor."
       );
     } else {
-      // await DB.executeQuery(deleteQuery, [vId]);
       await DB.executeQuery(updateQuery, [
         vName,
         vNStd,
@@ -255,10 +221,15 @@ exports.updateVendor = async (req, res) => {
         userId,
         vId,
       ]);
+      await DB.executeQuery(deleteQuery, [vId]);
 
+      let queryStr = "";
       if (vContacts.length > 0) {
-        await vContacts.map((e) => {
-          console.log(e);
+        // vContacts.forEach((c) => {
+        //   queryStr += `UPDATE ${schemaName}.vendor_contact SET contact_nm='${c.name}', emailid='${c.email}', updated_by='${userName}', updated_on='${curDate}', act_flg=1 WHERE vend_id=${vId};`;
+        // });
+        // DB.executeQuery(queryStr);
+        vContacts.forEach((e) => {
           DB.executeQuery(contactQuery, [
             vId,
             e.name,
@@ -270,13 +241,22 @@ exports.updateVendor = async (req, res) => {
         });
       }
 
-      return apiResponse.successResponse(res, "Operation success");
+      return apiResponse.successResponse(
+        res,
+        "Vendor details updated successfully"
+      );
     }
   } catch (err) {
     //throw error in json response with status 500.
     Logger.error("catch :updateVendor");
     Logger.error(err);
-
+    if (err.code === "23505") {
+      return apiResponse.validationErrorWithData(
+        res,
+        "Operation failed",
+        "vendor name and external system name combination already exists."
+      );
+    }
     return apiResponse.ErrorResponse(res, err);
   }
 };
@@ -284,12 +264,11 @@ exports.updateVendor = async (req, res) => {
 exports.deleteContact = async (req, res) => {
   try {
     const { vId, vCId, userName } = req.body;
-    // console.log(req.body);
     Logger.info({ message: "deleteVendor" });
-    const curDate = new Date();
-    const deleteQuery = `UPDATE ${schemaName}.vendor_contact SET act_flg=$3, updated_by=$4, updated_on=$5 WHERE vend_id=$1 AND vend_contact_id=$2`;
+    const curDate = helpers.getCurrentTime();
+    const deleteQuery = `UPDATE ${schemaName}.vendor_contact SET act_flg=$3, updated_by=$4, updated_on=$5 WHERE vend_contact_id=$2`;
     await DB.executeQuery(deleteQuery, [vId, vCId, 0, userName, curDate]);
-    return apiResponse.successResponse(res, "Operation success");
+    return apiResponse.successResponse(res, "Contact Deleted success");
   } catch (err) {
     //throw error in json response with status 500.
     Logger.error("catch :deleteVendor");
