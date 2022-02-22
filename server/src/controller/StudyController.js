@@ -24,11 +24,11 @@ const updateStatus = async (studyId, status="In Progress") => {
   }
 };
 
-const addOnboardedStudy = async (studyId, userId) => {
+const addOnboardedStudy = async (protNbrStnd, userId) => {
   try {
-    if(!studyId || !userId) return false;
+    if(!protNbrStnd || !userId) return false;
     const result = await DB.executeQuery(
-      `SELECT * from ${schemaName}.mdm_study WHERE prot_nbr='${studyId}';`
+      `SELECT * from ${schemaName}.mdm_study WHERE prot_nbr_stnd='${protNbrStnd}';`
     );
     const study = result.rows[0] || null;
     if(!study) return false;
@@ -85,17 +85,17 @@ const addOnboardedStudy = async (studyId, userId) => {
 
 exports.cronUpdateStatus = async () => {
   try{
-    const query = `SELECT prot_nbr from study WHERE ob_stat='In Progress'`;
+    const query = `SELECT prot_nbr_stnd, prot_id from study WHERE ob_stat='In Progress'`;
     const result = await DB.executeQuery(query);
     if(!result) return false;
     const studies = result.rows || [];
     if(!studies.length) return false;
     
     await Promise.all(studies.map(async study=>{
-      const studyId = study.prot_nbr;
-      const status = await CommonController.fsrStudyStatus(studyId);
+      const {prot_id, prot_nbr_stnd} = study;
+      const status = await CommonController.fsrStudyStatus(prot_nbr_stnd);
       if(status=="Success"){
-        await updateStatus(studyId);
+        await updateStatus(prot_id);
       }
     }));
     Logger.info({
@@ -108,7 +108,7 @@ exports.cronUpdateStatus = async () => {
 };
 
 exports.onboardStudy = async function (req, res) {
-  const { sponsorName, studyId, userId } = req.body;
+  const { sponsorNameStnd: sponsorName, protNbrStnd: studyId, userId } = req.body;
   axios
     .post(
       `${FSR_API_URI}/study/onboard`,
@@ -122,7 +122,6 @@ exports.onboardStudy = async function (req, res) {
     )
     .then(async (response) => {
       const onboardStatus = response?.data?.code || null;
-      console.log("onboardStatus", onboardStatus);
       if (onboardStatus === 202) {
         const updated = await addOnboardedStudy(studyId, userId);
         if (!updated)
@@ -145,11 +144,12 @@ exports.onboardStudy = async function (req, res) {
 exports.studyList = function (req, res) {
   try {
     const searchParam = req.params.query.toLowerCase();
-    const searchQuery = `SELECT ms.prot_nbr, ms.spnsr_nm, ms.proj_cd, ms.phase, ms.prot_status, ms.thptc_area, s.ob_stat from ${constants.DB_SCHEMA_NAME}.mdm_study ms
+    const searchQuery = `SELECT ms.prot_nbr, ms.prot_nbr_stnd, ms.spnsr_nm, ms.spnsr_nm_stnd, ms.proj_cd, ms.phase, ms.prot_status, ms.thptc_area, s.ob_stat from ${constants.DB_SCHEMA_NAME}.mdm_study ms
     FULL OUTER JOIN ${constants.DB_SCHEMA_NAME}.study s ON ms.prot_nbr = s.prot_nbr
-    WHERE LOWER(ms.prot_nbr) LIKE '%${searchParam}%' OR 
+    WHERE (LOWER(ms.prot_nbr) LIKE '%${searchParam}%' OR 
     LOWER(ms.spnsr_nm) LIKE '%${searchParam}%' OR 
-    LOWER(ms.proj_cd) LIKE '%${searchParam}%'
+    LOWER(ms.proj_cd) LIKE '%${searchParam}%')
+    AND ms.spnsr_nm_stnd !='' AND ms.prot_nbr_stnd !=''
         LIMIT 60
         `;
     Logger.info({

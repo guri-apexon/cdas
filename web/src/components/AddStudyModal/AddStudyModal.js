@@ -45,10 +45,11 @@ const AddStudyModal = ({ open, onClose }) => {
     onClose();
   };
   const importStudy = async () => {
-    const { spnsr_nm: sponsorName, prot_nbr: studyId } = selectedStudy;
+    const { spnsr_nm_stnd: sponsorNameStnd, prot_nbr_stnd: protNbrStnd } =
+      selectedStudy;
     const reqBody = {
-      sponsorName,
-      studyId,
+      sponsorNameStnd,
+      protNbrStnd,
       userId: userInfo.user_id,
     };
     setLoading(true);
