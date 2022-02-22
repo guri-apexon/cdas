@@ -1,3 +1,4 @@
+@import "../../../../styles/customscroll.scss";
 .role-header {
   padding: 3%;
 }
@@ -5,6 +6,11 @@
   background-color: #f8f9fb;
   min-height: calc(100vh - 316px);
   margin: 1.5% 2%;
+
+  div[class*=" Table-scrollRoot-"] {
+    @extend .customscroll;
+  }
+
   .table {
     margin: 30px;
     background-color: #ffffff;

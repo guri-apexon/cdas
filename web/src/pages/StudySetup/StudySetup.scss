@@ -1,3 +1,4 @@
+@import "../../styles/customscroll.scss";
 .header-section {
   display: flex;
   align-items: center;
@@ -64,6 +65,10 @@
 
 .study-table {
   margin-top: 28px;
+
+  div[class*=" Table-scrollRoot-"] {
+    @extend .customscroll;
+  }
 
   .MuiToolbar-regular > div {
     display: flex;
