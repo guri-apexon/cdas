@@ -20,6 +20,13 @@
         }
     }
     .user-table{
+        background-color: #fff;
+        tbody:before {
+            content: "-";
+            display: block;
+            line-height: 1em;
+            color: transparent;
+        }
         tr{
             vertical-align: top;
         }

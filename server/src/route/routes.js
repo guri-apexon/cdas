@@ -3,6 +3,7 @@ const express = require("express");
 const authController = require("../controller/authController");
 const StudyController = require("../controller/StudyController");
 const cron = require("node-cron");
+const CommonController = require("../controller/CommonController");
 
 const studyRoute = require("./study");
 const policyRoute = require("./policy");
@@ -26,7 +27,8 @@ router.use("/v1/api/policy/", policyRoute);
 router.use("/v1/api/vendor/", verdorRoute);
 router.use("/v1/api/role/", roleRoute);
 
-
+//fsr-connect API
+router.post("/v1/api/fsr-connect", CommonController.fsrConnect);
 
 cron.schedule("0 0 */1 * *", () => {
   StudyController.cronUpdateStatus();

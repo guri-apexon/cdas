@@ -257,3 +257,27 @@ exports.getStudyList = async (req, res) => {
     return apiResponse.ErrorResponse(res, err);
   }
 };
+
+exports.getSDAUsers = () => {
+  try{
+    axios
+    .get(
+      `${SDA_BASE_URL}/sda-rest-api/api/external/entitlement/V1/ApplicationUsers/getUsersForApplication?appKey=${process.env.SDA_APP_KEY}`
+    )
+    .then((res) => {
+      console.log("res", res);
+      return apiResponse.successResponseWithData(
+        res,
+        "Users retrieved successfully",
+        studies[0]
+      );
+    })
+    .catch((err) => {
+      console.log("err", err);
+      return apiResponse.ErrorResponse(res, err);
+    });
+  }catch(err){
+    Logger.error(err);
+    return apiResponse.ErrorResponse(res, err);
+  }
+}

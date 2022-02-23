@@ -1,6 +1,9 @@
 const DB = require("../config/db");
 const moment = require("moment");
 const axios = require("axios");
+const btoa = require("btoa");
+const apiResponse = require("../helpers/apiResponse");
+const Logger = require("../config/logger");
 const constants = require("../config/constants");
 
 const { FSR_HEADERS, FSR_API_URI } = constants;
@@ -53,6 +56,7 @@ module.exports = {
           });
       } catch (err) {
         Logger.error(err);
+        console.log("err:", err);
         return apiResponse.ErrorResponse(res, err);
       }
   },
