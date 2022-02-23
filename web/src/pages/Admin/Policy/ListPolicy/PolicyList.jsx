@@ -192,7 +192,7 @@ const PolicyList = () => {
         variant="secondary"
         icon={PlusIcon}
         onClick={() => history.push("/create-policy")}
-        style={{ marginRight: "8px", border: "none" }}
+        style={{ marginRight: "8px", border: "none", boxShadow: "none" }}
       >
         Create new policy
       </Button>

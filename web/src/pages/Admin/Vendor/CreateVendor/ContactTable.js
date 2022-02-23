@@ -6,11 +6,13 @@ import { useSelector } from "react-redux";
 import Button from "apollo-react/components/Button";
 import Trash from "apollo-react-icons/Trash";
 import IconButton from "apollo-react/components/IconButton";
+import Tooltip from "apollo-react/components/Tooltip";
 import Table, {
   compareStrings,
   compareNumbers,
 } from "apollo-react/components/Table";
 import TextField from "apollo-react/components/TextField";
+import PlusIcon from "apollo-react-icons/Plus";
 
 const initialRows = [
   {
@@ -26,8 +28,13 @@ const initialRows = [
 
 const CustomButtonHeader = ({ addAContact }) => (
   <div>
-    <Button size="small" variant="secondary" onClick={addAContact}>
-      Add Contact
+    <Button
+      size="small"
+      variant="secondary"
+      icon={PlusIcon}
+      onClick={addAContact}
+    >
+      Add contact
     </Button>
   </div>
 );
@@ -88,13 +95,15 @@ const ActionCell = ({ row }) => {
   const { editMode } = row;
   const { vCId, onRowDelete } = row;
   return editMode ? (
-    <IconButton
-      size="small"
-      onClick={() => onRowDelete(vCId)}
-      style={{ marginTop: 5 }}
-    >
-      <Trash />
-    </IconButton>
+    <Tooltip title="Delete contact">
+      <IconButton
+        size="small"
+        onClick={() => onRowDelete(vCId)}
+        style={{ marginTop: 7 }}
+      >
+        <Trash />
+      </IconButton>
+    </Tooltip>
   ) : (
     <></>
   );
