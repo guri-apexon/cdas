@@ -64,11 +64,18 @@ const ImportWithUsers = () => {
     },
   ];
   const editRow = (e, value, reason, index, key) => {
-    console.log("editRow:", value, reason, index, key, tableUsers);
-    // const row = tableUsers.find((x) => x.index === index);
+    let alreadyExist;
+    if (key === "user") {
+      alreadyExist = tableUsers.find((x) => x.user?.email === value.email)
+        ? true
+        : false;
+    }
     setTableUsers((rows) =>
       rows.map((row) => {
         if (row.index === index) {
+          if (key === "user") {
+            return { ...row, [key]: value, alreadyExist };
+          }
           return { ...row, [key]: value };
         }
         return row;
@@ -76,10 +83,6 @@ const ImportWithUsers = () => {
     );
   };
   const EditableUser = ({ row, column: { accessor: key } }) => {
-    const alreadyAssigned =
-      tableUsers.filter((x) => x.user?.email === row.user?.email).length > 1
-        ? 1
-        : 0;
     return (
       <AutocompleteV2
         size="small"
@@ -87,9 +90,9 @@ const ImportWithUsers = () => {
         source={userList}
         value={row[key]}
         onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
-        error={alreadyAssigned || !row[key]}
+        error={row.alreadyExist || !row[key]}
         helperText={
-          alreadyAssigned
+          row.alreadyExist
             ? "This user is already assigned"
             : !row[key] && "Required"
         }
@@ -131,6 +134,10 @@ const ImportWithUsers = () => {
         toast.showErrorMessage("Please fill user or remove blank rows");
         return false;
       }
+      if (tableUsers.find((x) => x.alreadyExist)) {
+        toast.showErrorMessage("Please remove duplicate values");
+        return false;
+      }
       const emptyRoles = tableUsers.filter((x) => x.roles.length === 0);
       if (emptyRoles.length) {
         toast.showErrorMessage(
@@ -149,7 +156,6 @@ const ImportWithUsers = () => {
     if (assign) {
       reqBody.users = tableUsers;
     }
-    console.log("reqBody", reqBody);
     setLoading(true);
     const response = await onboardStudy(reqBody);
     setLoading(false);
@@ -168,6 +174,7 @@ const ImportWithUsers = () => {
     {
       variant: "text",
       size: "small",
+      disabled: loading,
       label: "Import without assigning",
       onClick: importStudy,
     },
@@ -175,11 +182,13 @@ const ImportWithUsers = () => {
       variant: "secondary",
       size: "small",
       label: "Cancel import",
+      disabled: loading,
       onClick: () => history.push("/study-setup"),
     },
     {
       variant: "primary",
       size: "small",
+      disabled: loading,
       label: "Import and assign",
       onClick: importWithAssign,
     },
@@ -244,20 +253,23 @@ const ImportWithUsers = () => {
     setroleLists(result || []);
   };
   useEffect(() => {
-    // const {
-    //   location: { study },
-    // } = history;
-    const study = {
-      prot_nbr: "CA212016",
-      prot_nbr_stnd: "CA212016",
-      spnsr_nm: "BRISTOL-MYERS SQUIBB  [JP]",
-      spnsr_nm_stnd: "BRISTOLMYERSSQUIBBJP",
-      proj_cd: "MYA12666",
-      phase: "Phase 1",
-      prot_status: "Enrolling",
-      thptc_area: "CVT",
-      ob_stat: null,
-    };
+    console.log("tableUsers", tableUsers);
+  }, [tableUsers]);
+  useEffect(() => {
+    const {
+      location: { study },
+    } = history;
+    // const study = {
+    //   prot_nbr: "CA212016",
+    //   prot_nbr_stnd: "CA212016",
+    //   spnsr_nm: "BRISTOL-MYERS SQUIBB  [JP]",
+    //   spnsr_nm_stnd: "BRISTOLMYERSSQUIBBJP",
+    //   proj_cd: "MYA12666",
+    //   phase: "Phase 1",
+    //   prot_status: "Enrolling",
+    //   thptc_area: "CVT",
+    //   ob_stat: null,
+    // };
     if (!study) {
       history.push("/study-setup");
     } else {
@@ -266,6 +278,25 @@ const ImportWithUsers = () => {
       getUserList();
     }
   }, []);
+  const getTable = React.useMemo(
+    () => (
+      <>
+        <Table
+          title="User Assignments"
+          columns={columns}
+          rows={tableUsers.map((row) => ({
+            ...row,
+            onDelete,
+          }))}
+          rowProps={{ hover: false }}
+          hidePagination={true}
+          CustomHeader={CustomHeader}
+          headerProps={{ addNewUser }}
+        />
+      </>
+    ),
+    [tableUsers]
+  );
   return (
     <div className="import-with-users-wrapper">
       <Box className="onboard-header">
@@ -313,20 +344,7 @@ const ImportWithUsers = () => {
             </Paper>
           </Grid>
           <Grid item xs={9}>
-            <div className="user-table">
-              <Table
-                title="User Assignments"
-                columns={columns}
-                rows={tableUsers.map((row) => ({
-                  ...row,
-                  onDelete,
-                }))}
-                rowProps={{ hover: false }}
-                hidePagination={true}
-                CustomHeader={CustomHeader}
-                headerProps={{ addNewUser }}
-              />
-            </div>
+            <div className="user-table">{getTable}</div>
           </Grid>
         </Grid>
       </Box>
