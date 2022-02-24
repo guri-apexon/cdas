@@ -1,6 +1,9 @@
 const DB = require("../config/db");
 const moment = require("moment");
 const axios = require("axios");
+const btoa = require("btoa");
+const apiResponse = require("../helpers/apiResponse");
+const Logger = require("../config/logger");
 const constants = require("../config/constants");
 
 const { FSR_HEADERS, FSR_API_URI } = constants;
@@ -21,15 +24,19 @@ module.exports = {
       });
   },
   fsrConnect: (req, res) => {
-    try {
+    try{
       const { params, endpoint } = req.body;
-      if (!endpoint || !params) {
+      if(!endpoint || !params) {
         return apiResponse.ErrorResponse(res, "Something went wrong");
       }
       axios
-        .post(`${FSR_API_URI}/${endpoint}`, params, {
-          headers: FSR_HEADERS,
-        })
+        .post(
+          `${FSR_API_URI}/${endpoint}`,
+          params,
+          {
+            headers: FSR_HEADERS,
+          }
+        )
         .then((response) => {
           return apiResponse.successResponseWithData(
             res,
@@ -46,6 +53,7 @@ module.exports = {
         });
     } catch (err) {
       Logger.error(err);
+      console.log("err:", err);
       return apiResponse.ErrorResponse(res, err);
     }
   },

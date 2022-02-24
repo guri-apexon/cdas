@@ -12,10 +12,10 @@ const { DB_SCHEMA_NAME: schemaName, FSR_HEADERS, FSR_API_URI } = constants;
 // {"status":1,"message":"Operation success","data":{"status":"OK","code":202,"message":"Study onboarding initiated successfully. Please wait for 3 hour(s) to check the status and get the required access reflected in the corresponding environment.","data":"Study onboarding initiated successfully. Please wait for 3 hour(s) to check the status and get the required access reflected in the corresponding environment."}}
 
 // {"status":1,"message":"Operation success","data":{"status":"OK","code":200,"message":"Study Onboarding request already created for the given StudyId","data":"Study Onboarding request already created for the given StudyId"}}
-const updateStatus = async (studyId, status="In Progress") => {
+const updateStatus = async (studyId, status="Success") => {
   try {
     if(!studyId) return false;
-    const query = `UPDATE ${schemaName}.study set ob_stat='${status}' WHERE prot_id=${studyId};`;
+    const query = `UPDATE ${schemaName}.study set ob_stat='${status}' WHERE prot_id='${studyId}';`;
     const updated = await DB.executeQuery(query);
     if (!updated) return false;
     return true;
@@ -51,8 +51,8 @@ const addOnboardedStudy = async (protNbrStnd, userId) => {
       currentTime,
     ];
     const insertQuery = `INSERT INTO ${schemaName}.study
-    (prot_id, prot_nbr, prot_nbr_stnd, proj_cd, phase, prot_stat, ob_stat, prot_fldr, prot_db, usr_id, usr_descr, active, thptc_area, insrt_tm, updt_tm, prot_mnemonic_nm)
-    VALUES($1, $2, $3, $4, $5, $6, $7, null, null, $8, $9, $10, $11, $12, $13, null) RETURNING *;`;
+    (prot_id, prot_nbr, prot_nbr_stnd, proj_cd, phase, prot_stat, ob_stat, usr_id, usr_descr, active, thptc_area, insrt_tm, updt_tm, prot_mnemonic_nm)
+    VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $3) RETURNING *;`;
     const result1 = await DB.executeQuery(insertQuery, valueArr);
     const insertedStudy = result1.rows[0] || null;
     if (!insertedStudy) return false;
@@ -67,7 +67,7 @@ const addOnboardedStudy = async (protNbrStnd, userId) => {
       currentTime,
       currentTime,
     ];
-    const insertSponQuery = `INSERT INTO ${schemaName}.sponsor (spnsr_id, spnsr_nm, spnsr_nm_stnd, tenant_id, spnsr_fldr, usr_id, usr_descr, active, insrt_tm, updt_tm) VALUES($1, $2, $3, $4, null, $5, $6, $7, $8, $9) ON CONFLICT (spnsr_nm) DO UPDATE SET spnsr_nm=EXCLUDED.spnsr_nm returning *;`;
+    const insertSponQuery = `INSERT INTO ${schemaName}.sponsor (spnsr_id, spnsr_nm, spnsr_nm_stnd, tenant_id, usr_id, usr_descr, active, insrt_tm, updt_tm, spnsr_mnemonic_nm) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $3) ON CONFLICT (spnsr_nm) DO UPDATE SET spnsr_nm=EXCLUDED.spnsr_nm returning *;`;
     const result2 = await DB.executeQuery(insertSponQuery, sponsorValueArr);
     const sponsor = result2.rows[0] || sponsor;
     if(!sponsor) return false;
@@ -77,7 +77,7 @@ const addOnboardedStudy = async (protNbrStnd, userId) => {
     `;
     const addedSponsor = await DB.executeQuery(studySposrQuery);
     if(!addedSponsor) return false;
-    return true;
+    return study;
   } catch (err) {
     return false;
   }
@@ -108,7 +108,8 @@ exports.cronUpdateStatus = async () => {
 };
 
 exports.onboardStudy = async function (req, res) {
-  const { sponsorNameStnd: sponsorName, protNbrStnd: studyId, userId } = req.body;
+  const { sponsorNameStnd: sponsorName, protNbrStnd: studyId, userId, users } = req.body;
+  
   axios
     .post(
       `${FSR_API_URI}/study/onboard`,
@@ -123,9 +124,27 @@ exports.onboardStudy = async function (req, res) {
     .then(async (response) => {
       const onboardStatus = response?.data?.code || null;
       if (onboardStatus === 202) {
-        const updated = await addOnboardedStudy(studyId, userId);
-        if (!updated)
+        const insertedStudy = await addOnboardedStudy(studyId, userId);
+        if (!insertedStudy)
           return apiResponse.ErrorResponse(res, "Something went wrong");
+          
+        if (users && users.length) {
+          let insertQuery = "";
+          const currentTime = helper.getCurrentTime();
+          users.forEach((user) => {
+            if (user.user?.userId && insertedStudy.prot_id) {
+              insertQuery += `INSERT into ${schemaName}.study_user (prot_id, usr_id, act_flg, insrt_tm, updt_tm) VALUES('${insertedStudy.prot_id}', '${user.user.userId}', 1, '${currentTime}', '${currentTime}');`;
+              if (user.roles && Array.isArray(user.roles)) {
+                user.roles.forEach((role) => {
+                  insertQuery += `INSERT into ${schemaName}.study_user_role (role_id, prot_id, usr_id, act_flg, created_by, created_on, updated_by, updated_on) VALUES('${role.value}', '${studyId}', '${user.user.userId}', 1, '${userId}', '${currentTime}', '${userId}', '${currentTime}');`;
+                });
+              }
+            }
+          });
+          const rolesAdded = await DB.executeQuery(insertQuery);
+          if (!rolesAdded)
+            return apiResponse.ErrorResponse(res, "Something went wrong");
+        }
       }
       return apiResponse.successResponseWithData(
         res,
@@ -257,3 +276,27 @@ exports.getStudyList = async (req, res) => {
     return apiResponse.ErrorResponse(res, err);
   }
 };
+
+exports.getSDAUsers = () => {
+  try{
+    axios
+    .get(
+      `${SDA_BASE_URL}/sda-rest-api/api/external/entitlement/V1/ApplicationUsers/getUsersForApplication?appKey=${process.env.SDA_APP_KEY}`
+    )
+    .then((res) => {
+      console.log("res", res);
+      return apiResponse.successResponseWithData(
+        res,
+        "Users retrieved successfully",
+        studies[0]
+      );
+    })
+    .catch((err) => {
+      console.log("err", err);
+      return apiResponse.ErrorResponse(res, err);
+    });
+  }catch(err){
+    Logger.error(err);
+    return apiResponse.ErrorResponse(res, err);
+  }
+}

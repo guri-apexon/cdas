@@ -113,6 +113,22 @@ exports.updateRole = function (req, res) {
   }
 };
 
+exports.getBasicList = async function (req, res) {
+  try {
+    let q = `SELECT R.role_id as value, R.role_nm as label FROM ${dbSchema}.role R 
+    WHERE R.role_stat='1'`;
+    let { rows } = await DB.executeQuery(q);
+    return apiResponse.successResponseWithData(
+      res,
+      "Operation success",
+      rows
+    );
+  } catch (error) {
+    Logger.error(error.message);
+    return apiResponse.ErrorResponse(res, error.message);
+  }
+};
+
 exports.listRoles = async function (req, res) {
   try {
     Logger.info({

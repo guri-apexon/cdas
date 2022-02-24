@@ -10,6 +10,9 @@ import Logout from "./pages/Logout/Logout";
 
 const LaunchPad = lazy(() => import("./pages/LaunchPad/LaunchPad"));
 const StudySetup = lazy(() => import("./pages/StudySetup/StudySetup"));
+const ImportWithUsers = lazy(() =>
+  import("./pages/OnboardStudy/AddUsers/ImportWithUsers")
+);
 const PolicyList = lazy(() =>
   import("./pages/Admin/Policy/ListPolicy/PolicyList")
 );
@@ -93,6 +96,11 @@ const RoutesWrapper = () => {
               path="/cdi"
               exact
               render={() => <Redirect to="/launchpad" />}
+            />
+            <Route
+              path="/import-assign-users"
+              exact
+              render={() => <ImportWithUsers />}
             />
             <Route
               path="/policy-management"

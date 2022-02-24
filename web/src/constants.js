@@ -49,6 +49,7 @@ export const STUDYBOARD_DATA_FETCH = "v1/api/study/list";
 export const STUDYSEARCH = "v1/api/study/search-study";
 export const NOT_ONBOARDED_FETCH = "v1/api/study/notonboarded-studies-stat";
 export const POLICY_LIST_FETCH = "v1/api/policy/list";
+export const ROLES_LIST = "study/select-roles";
 export const VENDOR_BASE = "v1/api/vendor";
 // export const VENDOR_LIST_FETCH = `${VENDOR_BASE}/list`;
 // export const ADD_VENDOR = `${VENDOR_BASE}/create`;
@@ -59,5 +60,7 @@ export const UPDATE_ROLE = "v1/api/role/update/status";
 export const baseURL =
   process.env.REACT_APP_API_URL ||
   `${window.location.protocol}//${window.location.hostname}:4000`;
+export const API_URL = `${baseURL}/v1/api`;
 export const remoteBaseUrl =
   "https://rds-cdrfsr-dev.gdev-car3-k8s.work.iqvia.com/fsr";
+export const SDA_BASE_URL = "https://dev2-sda.work.iqvia.com";

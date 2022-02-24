@@ -1,7 +1,10 @@
 import axios from "axios";
 import {
+  API_URL,
   baseURL,
   POLICY_LIST_FETCH,
+  ROLES_LIST,
+  SDA_BASE_URL,
   STUDYSEARCH,
   VENDOR_BASE,
 } from "../constants";
@@ -22,7 +25,7 @@ export const addPolicyService = async (reqBody) => {
   try {
     return new Promise((resolve, reject) => {
       axios
-        .post(`${baseURL}/v1/api/policy/create`, reqBody)
+        .post(`${API_URL}/policy/create`, reqBody)
         .then((res) => {
           resolve(res.data);
         })
@@ -39,7 +42,7 @@ export const addRoleService = async (reqBody) => {
   try {
     return new Promise((resolve, reject) => {
       axios
-        .post(`${baseURL}/v1/api/role/create`, reqBody)
+        .post(`${API_URL}/role/create`, reqBody)
         .then((res) => {
           resolve(res.data);
         })
@@ -56,7 +59,7 @@ export const updateRoleService = async (reqBody) => {
   try {
     return new Promise((resolve, reject) => {
       axios
-        .post(`${baseURL}/v1/api/role/update`, reqBody)
+        .post(`${API_URL}/role/update`, reqBody)
         .then((res) => {
           resolve(res.data);
         })
@@ -73,7 +76,7 @@ export const updatePolicyService = async (reqBody) => {
   try {
     return new Promise((resolve, reject) => {
       axios
-        .post(`${baseURL}/v1/api/policy/update`, reqBody)
+        .post(`${API_URL}/policy/update`, reqBody)
         .then((res) => {
           resolve(res.data);
         })
@@ -167,7 +170,7 @@ export const getPolicyPermissions = async (policyId = "") => {
   try {
     return new Promise((resolve, reject) => {
       axios
-        .get(`${baseURL}/v1/api/policy/permission-list/${policyId}`)
+        .get(`${API_URL}/policy/permission-list/${policyId}`)
         .then((res) => {
           resolve(res.data.data);
         })
@@ -184,7 +187,7 @@ export const getPolicySnapshot = async (policyId = "") => {
   try {
     return new Promise((resolve, reject) => {
       axios
-        .get(`${baseURL}/v1/api/policy/snapshot/${policyId}`)
+        .get(`${API_URL}/policy/snapshot/${policyId}`)
         .then((res) => {
           resolve(res.data.data);
         })
@@ -197,6 +200,22 @@ export const getPolicySnapshot = async (policyId = "") => {
   }
 };
 
+export const fetchRoles = async (roleId) => {
+  try {
+    return new Promise((resolve, reject) => {
+      axios
+        .get(`${API_URL}/${ROLES_LIST}`)
+        .then((res) => {
+          resolve(res.data.data);
+        })
+        .catch((err) => {
+          console.log("Err", err);
+        });
+    });
+  } catch (err) {
+    return console.log("Error", err);
+  }
+};
 export const getRolePolicies = async (roleId) => {
   try {
     return new Promise((resolve, reject) => {
@@ -214,11 +233,32 @@ export const getRolePolicies = async (roleId) => {
   }
 };
 
+export const getOnboardUsers = async (reqBody) => {
+  try {
+    return new Promise((resolve, reject) => {
+      const { REACT_APP_SDA_APP_KEY: sdaKey } = process.env;
+      if (!sdaKey) resolve(null);
+      axios
+        .get(
+          `${SDA_BASE_URL}/sda-rest-api/api/external/entitlement/V1/ApplicationUsers/getUsersForApplication?appKey=${sdaKey}`
+        )
+        .then((res) => {
+          resolve(res.data);
+        })
+        .catch((err) => {
+          resolve(null);
+        });
+    });
+  } catch (err) {
+    return console.log("Error", err);
+  }
+};
+
 export const getRoleDetails = async (roleId) => {
   try {
     return new Promise((resolve, reject) => {
       axios
-        .get(`${baseURL}/v1/api/role/${roleId}`)
+        .get(`${API_URL}/role/${roleId}`)
         .then((res) => {
           resolve(res.data.data);
         })
@@ -235,7 +275,7 @@ export const fetchProducts = async () => {
   try {
     return new Promise((resolve, reject) => {
       axios
-        .get(`${baseURL}/v1/api/policy/products`)
+        .get(`${API_URL}/policy/products`)
         .then((res) => {
           resolve(res.data.data);
         })
@@ -252,7 +292,7 @@ export const onboardStudy = (reqBody) => {
   try {
     return new Promise((resolve, reject) => {
       axios
-        .post(`${baseURL}/v1/api/study/onboard`, reqBody)
+        .post(`${API_URL}/study/onboard`, reqBody)
         .then((res) => {
           resolve(res.data?.data || res.data);
         })
