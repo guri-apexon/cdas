@@ -72,14 +72,15 @@ label.inline-checkbox {
     margin-right: 10px;
   }
 }
-label.table-checkbox{
+label.table-checkbox {
   flex-direction: row-reverse;
   align-items: center;
-  span[class*=MuiSwitch-switchBase-] {
+  margin-left: -11px;
+  span[class*="MuiSwitch-switchBase-"] {
     top: -8.5px;
     left: -8px;
   }
-  span[class^=MuiSwitch-thumb-]{
+  span[class^="MuiSwitch-thumb-"] {
     color: #fff !important;
   }
   > span:last-child {

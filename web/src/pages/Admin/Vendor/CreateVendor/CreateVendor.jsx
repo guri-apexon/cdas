@@ -33,17 +33,6 @@ import {
   inputAlphaNumericWithUnderScore,
 } from "../../../../utils";
 
-const breadcrumpItems = [
-  { href: "/" },
-  {
-    title: "Vendors",
-    href: "/vendor/list",
-  },
-  {
-    title: "Create New Vendor",
-  },
-];
-
 const ConfirmModal = React.memo(({ open, cancel, stayHere, loading }) => {
   return (
     <Modal
@@ -98,6 +87,17 @@ const CreateVendor = () => {
       dispatch(getENSList());
     }
   }, []);
+
+  const breadcrumpItems = [
+    { href: "/" },
+    {
+      title: "Vendors",
+      href: "/vendor/list",
+    },
+    {
+      title: isEditPage ? vName : "Create New Vendor",
+    },
+  ];
 
   useEffect(() => {
     if (isCreatePage) {
@@ -316,7 +316,7 @@ const CreateVendor = () => {
           <Box>
             <div className="flex create-sidebar flexWrap">
               <Typography variant="title1" className="b-font title">
-                New Vendor
+                {isEditPage ? vName : "New Vendor"}
               </Typography>
               {/* <br /> */}
               <TextField
