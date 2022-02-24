@@ -4,11 +4,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useHistory } from "react-router-dom";
 import Typography from "apollo-react/components/Typography";
-import Table, {
-  compareDates,
-  compareNumbers,
-  compareStrings,
-} from "apollo-react/components/Table";
+import Table from "apollo-react/components/Table";
 import Trash from "apollo-react-icons/Trash";
 import IconButton from "apollo-react/components/IconButton";
 import PlusIcon from "apollo-react-icons/Plus";
@@ -18,6 +14,7 @@ import ButtonGroup from "apollo-react/components/ButtonGroup";
 import Paper from "apollo-react/components/Paper";
 import Box from "apollo-react/components/Box";
 import Grid from "apollo-react/components/Grid";
+import Modal from "apollo-react/components/Modal";
 import "../OnboardStudy.scss";
 import AutocompleteV2 from "apollo-react/components/AutocompleteV2";
 import { MessageContext } from "../../../components/Providers/MessageProvider";
@@ -49,6 +46,7 @@ const ImportWithUsers = () => {
   const toast = useContext(MessageContext);
   const [tableUsers, setTableUsers] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [cancelConfirm, setCancelConfirm] = useState(false);
   const [userList, setUserList] = useState([]);
   const [roleLists, setroleLists] = useState([]);
   const [selectedStudy, setSelectedStudy] = useState({});
@@ -183,7 +181,7 @@ const ImportWithUsers = () => {
       size: "small",
       label: "Cancel import",
       disabled: loading,
-      onClick: () => history.push("/study-setup"),
+      onClick: () => setCancelConfirm(true),
     },
     {
       variant: "primary",
@@ -348,6 +346,27 @@ const ImportWithUsers = () => {
           </Grid>
         </Grid>
       </Box>
+      <Modal
+        open={cancelConfirm}
+        onClose={() => setCancelConfirm(false)}
+        className="save-confirm"
+        variant="warning"
+        title="Cancel Import?"
+        message="This study has not been onboarded."
+        buttonProps={[
+          {
+            label: "Cancel Import",
+            onClick: () => history.push("/study-setup"),
+            disabled: loading,
+          },
+          {
+            label: "Return to assignments",
+            onClick: () => setCancelConfirm(false),
+            disabled: loading,
+          },
+        ]}
+        id="neutral"
+      />
     </div>
   );
 };
