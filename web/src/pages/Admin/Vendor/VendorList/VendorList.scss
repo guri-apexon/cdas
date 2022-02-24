@@ -4,8 +4,10 @@
   height: 76px;
   text-align: left;
   background-color: #ffffff;
-  h2 {
+  .page-title {
     padding: 30px;
+    font-size: 24px;
+    font-weight: 600;
   }
 }
 .vendor-table {
