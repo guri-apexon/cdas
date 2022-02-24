@@ -294,9 +294,7 @@ const PolicyList = () => {
   return (
     <div className="policy-list-wrapper">
       <div className="page-header">
-        <Typography variant="h2" gutterBottom>
-          Policy Management
-        </Typography>
+        <div className="page-title">Policy Management</div>
       </div>
       <div className="policy-table">
         <div className="table">{getTableData}</div>

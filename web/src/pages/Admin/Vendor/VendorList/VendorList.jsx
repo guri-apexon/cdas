@@ -261,9 +261,7 @@ const VendorList = () => {
   return (
     <div className="vendor-list-wrapper">
       <div className="page-header">
-        <Typography variant="h2" gutterBottom>
-          Vendor Admin
-        </Typography>
+        <div className="page-title">Vendor Admin</div>
       </div>
       <div className="vendor-table">
         <div className="table">{getTableData}</div>
