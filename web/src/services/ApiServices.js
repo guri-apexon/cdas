@@ -3,6 +3,7 @@ import {
   API_URL,
   baseURL,
   POLICY_LIST_FETCH,
+  ROLES_LIST,
   SDA_BASE_URL,
   STUDYSEARCH,
   VENDOR_BASE,
@@ -199,6 +200,22 @@ export const getPolicySnapshot = async (policyId = "") => {
   }
 };
 
+export const fetchRoles = async (roleId) => {
+  try {
+    return new Promise((resolve, reject) => {
+      axios
+        .get(`${API_URL}/${ROLES_LIST}`)
+        .then((res) => {
+          resolve(res.data.data);
+        })
+        .catch((err) => {
+          console.log("Err", err);
+        });
+    });
+  } catch (err) {
+    return console.log("Error", err);
+  }
+};
 export const getRolePolicies = async (roleId) => {
   try {
     return new Promise((resolve, reject) => {

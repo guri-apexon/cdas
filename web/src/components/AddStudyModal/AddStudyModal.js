@@ -64,8 +64,10 @@ const AddStudyModal = ({ open, onClose }) => {
     }
   };
   const importWithUser = () => {
-    console.log("importWithUser");
-    history.push("/import-assign-users");
+    history.push({
+      pathname: "/import-assign-users",
+      study: selectedStudy,
+    });
   };
   const allBtnArr = [
     ...btnArr,

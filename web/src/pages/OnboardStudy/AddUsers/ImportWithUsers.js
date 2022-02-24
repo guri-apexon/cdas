@@ -1,7 +1,7 @@
 /* eslint-disable no-script-url */
 /* eslint-disable react/button-has-type */
 import React, { useContext, useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useHistory } from "react-router-dom";
 import Typography from "apollo-react/components/Typography";
 import Table, {
@@ -21,7 +21,11 @@ import Grid from "apollo-react/components/Grid";
 import "../OnboardStudy.scss";
 import AutocompleteV2 from "apollo-react/components/AutocompleteV2";
 import { MessageContext } from "../../../components/Providers/MessageProvider";
-import { getOnboardUsers, onboardStudy } from "../../../services/ApiServices";
+import {
+  fetchRoles,
+  getOnboardUsers,
+  onboardStudy,
+} from "../../../services/ApiServices";
 import { getUserInfo } from "../../../utils";
 
 const Label = ({ children }) => {
@@ -42,20 +46,12 @@ const Value = ({ children }) => {
 const ImportWithUsers = () => {
   const history = useHistory();
   const userInfo = getUserInfo();
-  const selectedStudy = {
-    prot_nbr: "DSJDK",
-    spnsr_nm: "Sposnsor",
-    proj_cd: "DSDSDSA",
-    thptc_area: "Hello Area",
-    prot_status: "Active",
-    phase: "Phase",
-  };
   const toast = useContext(MessageContext);
   const [tableUsers, setTableUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [userList, setUserList] = useState([]);
   const [roleLists, setroleLists] = useState([]);
-  const Roles = useSelector((state) => state.Roles);
+  const [selectedStudy, setSelectedStudy] = useState({});
   const breadcrumpItems = [
     { href: "javascript:void(0)", onClick: () => history.push("/launchpad") },
     {
@@ -67,17 +63,6 @@ const ImportWithUsers = () => {
       title: "Assign Users",
     },
   ];
-  // eslint-disable-next-line consistent-return
-  const importWithAssign = () => {
-    if (!tableUsers.length) {
-      toast.showErrorMessage("Add some users to proceed");
-      return false;
-    }
-    const reqBody = {
-      users: tableUsers,
-    };
-    console.log("importWithAssign:", reqBody);
-  };
   const editRow = (e, value, reason, index, key) => {
     console.log("editRow:", value, reason, index, key, tableUsers);
     // const row = tableUsers.find((x) => x.index === index);
@@ -91,6 +76,10 @@ const ImportWithUsers = () => {
     );
   };
   const EditableUser = ({ row, column: { accessor: key } }) => {
+    const alreadyAssigned =
+      tableUsers.filter((x) => x.user?.email === row.user?.email).length > 1
+        ? 1
+        : 0;
     return (
       <AutocompleteV2
         size="small"
@@ -98,8 +87,12 @@ const ImportWithUsers = () => {
         source={userList}
         value={row[key]}
         onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
-        error={!row[key]}
-        helperText={!row[key] && "Required"}
+        error={alreadyAssigned || !row[key]}
+        helperText={
+          alreadyAssigned
+            ? "This user is already assigned"
+            : !row[key] && "Required"
+        }
       />
     );
   };
@@ -110,7 +103,7 @@ const ImportWithUsers = () => {
         fullWidth
         multiple
         chipColor="white"
-        source={[{ label: "Gurpreet" }, { label: "Gurpreet2" }]}
+        source={roleLists}
         value={row[key]}
         onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
         error={!row[key]}
@@ -127,7 +120,25 @@ const ImportWithUsers = () => {
     );
   };
 
-  const importStudy = async () => {
+  // eslint-disable-next-line consistent-return
+  const importStudy = async (assign) => {
+    if (assign) {
+      if (!tableUsers.length) {
+        toast.showErrorMessage("Add some users to proceed");
+        return false;
+      }
+      if (tableUsers.find((x) => x.user == null)) {
+        toast.showErrorMessage("Please fill user or remove blank rows");
+        return false;
+      }
+      const emptyRoles = tableUsers.filter((x) => x.roles.length === 0);
+      if (emptyRoles.length) {
+        toast.showErrorMessage(
+          `Please fill roles for ${emptyRoles[0].user.email}`
+        );
+        return false;
+      }
+    }
     const { spnsr_nm_stnd: sponsorNameStnd, prot_nbr_stnd: protNbrStnd } =
       selectedStudy;
     const reqBody = {
@@ -135,6 +146,10 @@ const ImportWithUsers = () => {
       protNbrStnd,
       userId: userInfo.user_id,
     };
+    if (assign) {
+      reqBody.users = tableUsers;
+    }
+    console.log("reqBody", reqBody);
     setLoading(true);
     const response = await onboardStudy(reqBody);
     setLoading(false);
@@ -143,7 +158,11 @@ const ImportWithUsers = () => {
     }
     if (response.status === "OK") {
       toast.showSuccessMessage(response.message, 0);
+      history.push("/study-setup");
     }
+  };
+  const importWithAssign = () => {
+    importStudy(true);
   };
   const actionBtns = [
     {
@@ -211,17 +230,41 @@ const ImportWithUsers = () => {
   };
   const getUserList = async () => {
     const result = await getOnboardUsers();
-    console.log("result", result);
-    const filtered = result.map((user) => {
-      return {
-        ...user,
-        label: `${user.firstName} ${user.lastName} (${user.email})`,
-      };
-    });
+    const filtered =
+      result?.map((user) => {
+        return {
+          ...user,
+          label: `${user.firstName} ${user.lastName} (${user.email})`,
+        };
+      }) || [];
     setUserList(filtered);
   };
+  const getRoles = async () => {
+    const result = await fetchRoles();
+    setroleLists(result || []);
+  };
   useEffect(() => {
-    getUserList();
+    // const {
+    //   location: { study },
+    // } = history;
+    const study = {
+      prot_nbr: "CA212016",
+      prot_nbr_stnd: "CA212016",
+      spnsr_nm: "BRISTOL-MYERS SQUIBB  [JP]",
+      spnsr_nm_stnd: "BRISTOLMYERSSQUIBBJP",
+      proj_cd: "MYA12666",
+      phase: "Phase 1",
+      prot_status: "Enrolling",
+      thptc_area: "CVT",
+      ob_stat: null,
+    };
+    if (!study) {
+      history.push("/study-setup");
+    } else {
+      setSelectedStudy(study);
+      getRoles();
+      getUserList();
+    }
   }, []);
   return (
     <div className="import-with-users-wrapper">
@@ -269,19 +312,21 @@ const ImportWithUsers = () => {
               </div>
             </Paper>
           </Grid>
-          <Grid item xs={9} className="user-table">
-            <Table
-              title="User Assignments"
-              columns={columns}
-              rows={tableUsers.map((row) => ({
-                ...row,
-                onDelete,
-              }))}
-              rowProps={{ hover: false }}
-              hidePagination={true}
-              CustomHeader={CustomHeader}
-              headerProps={{ addNewUser }}
-            />
+          <Grid item xs={9}>
+            <div className="user-table">
+              <Table
+                title="User Assignments"
+                columns={columns}
+                rows={tableUsers.map((row) => ({
+                  ...row,
+                  onDelete,
+                }))}
+                rowProps={{ hover: false }}
+                hidePagination={true}
+                CustomHeader={CustomHeader}
+                headerProps={{ addNewUser }}
+              />
+            </div>
           </Grid>
         </Grid>
       </Box>

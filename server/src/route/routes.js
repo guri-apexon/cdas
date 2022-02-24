@@ -27,6 +27,9 @@ router.use("/v1/api/policy/", policyRoute);
 router.use("/v1/api/vendor/", verdorRoute);
 router.use("/v1/api/role/", roleRoute);
 
+const RoleController = require("../controller/RoleController");
+router.get("/v1/api/study/select-roles", RoleController.getBasicList);
+
 //fsr-connect API
 router.post("/v1/api/fsr-connect", CommonController.fsrConnect);
 

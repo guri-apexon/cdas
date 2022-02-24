@@ -108,7 +108,8 @@ exports.cronUpdateStatus = async () => {
 };
 
 exports.onboardStudy = async function (req, res) {
-  const { sponsorNameStnd: sponsorName, protNbrStnd: studyId, userId } = req.body;
+  const { sponsorNameStnd: sponsorName, protNbrStnd: studyId, userId, users } = req.body;
+  
   axios
     .post(
       `${FSR_API_URI}/study/onboard`,
@@ -126,6 +127,24 @@ exports.onboardStudy = async function (req, res) {
         const updated = await addOnboardedStudy(studyId, userId);
         if (!updated)
           return apiResponse.ErrorResponse(res, "Something went wrong");
+          
+        if (users && users.length) {
+          let insertQuery = "";
+          const currentTime = helper.getCurrentTime();
+          users.forEach((user) => {
+            if (user.user?.userId && studyId) {
+              insertQuery += `INSERT into ${schemaName}.study_user (prot_id, usr_id, act_flg, insrt_tm, updt_tm) VALUES('${studyId}', '${user.user.userId}', 1, '${currentTime}', '${currentTime}');`;
+              if (user.roles && Array.isArray(user.roles)) {
+                user.roles.forEach((role) => {
+                  insertQuery += `INSERT into ${schemaName}.study_user_role (role_id, prot_id, usr_id, act_flg, created_by, created_on, updated_by, updated_on) VALUES('${role.value}', '${studyId}', '${user.user.userId}', 1, '${userId}', '${currentTime}', '${userId}', '${currentTime}');`;
+                });
+              }
+            }
+          });
+          const rolesAdded = await DB.executeQuery(insertQuery);
+          if (!rolesAdded)
+            return apiResponse.ErrorResponse(res, "Something went wrong");
+        }
       }
       return apiResponse.successResponseWithData(
         res,
