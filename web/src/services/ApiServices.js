@@ -4,7 +4,6 @@ import {
   baseURL,
   POLICY_LIST_FETCH,
   ROLES_LIST,
-  SDA_BASE_URL,
   STUDYSEARCH,
   VENDOR_BASE,
 } from "../constants";
@@ -236,14 +235,10 @@ export const getRolePolicies = async (roleId) => {
 export const getOnboardUsers = async (reqBody) => {
   try {
     return new Promise((resolve, reject) => {
-      const { REACT_APP_SDA_APP_KEY: sdaKey } = process.env;
-      if (!sdaKey) resolve(null);
       axios
-        .get(
-          `${SDA_BASE_URL}/sda-rest-api/api/external/entitlement/V1/ApplicationUsers/getUsersForApplication?appKey=${sdaKey}`
-        )
+        .get(`${API_URL}/get-sdk-users`)
         .then((res) => {
-          resolve(res.data);
+          resolve(res.data?.data || []);
         })
         .catch((err) => {
           resolve(null);

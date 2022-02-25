@@ -6,9 +6,31 @@ const apiResponse = require("../helpers/apiResponse");
 const Logger = require("../config/logger");
 const constants = require("../config/constants");
 
-const { FSR_HEADERS, FSR_API_URI } = constants;
+const { FSR_HEADERS, FSR_API_URI, SDA_BASE_URL } = constants;
 
 module.exports = {
+  getSdkUsers: async (req, res) => {
+    try{
+    const { SDA_APP_KEY: sdaKey } = process.env;
+    if (!sdaKey) return apiResponse.ErrorResponse(res, "Something went wrong with App key");
+    return axios
+      .get(
+        `${SDA_BASE_URL}/sda-rest-api/api/external/entitlement/V1/ApplicationUsers/getUsersForApplication?appKey=${sdaKey}`
+      )
+      .then((response) => {
+        return apiResponse.successResponseWithData(
+          res,
+          "Users retrieved successfully",
+          response.data
+        );
+      })
+      .catch((err) => {
+        return apiResponse.ErrorResponse(res, err);
+      });
+    } catch(err) {
+      return apiResponse.ErrorResponse(res, err.message);
+    }
+  },
   fsrStudyStatus: async (studyId) => {
     if (!studyId) return false;
     return axios

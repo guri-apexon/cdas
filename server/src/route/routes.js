@@ -32,6 +32,7 @@ router.get("/v1/api/study/select-roles", RoleController.getBasicList);
 
 //fsr-connect API
 router.post("/v1/api/fsr-connect", CommonController.fsrConnect);
+router.get("/v1/api/get-sdk-users", CommonController.getSdkUsers);
 
 cron.schedule("0 0 */1 * *", () => {
   StudyController.cronUpdateStatus();

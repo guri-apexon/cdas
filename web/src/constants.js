@@ -63,4 +63,3 @@ export const baseURL =
 export const API_URL = `${baseURL}/v1/api`;
 export const remoteBaseUrl =
   "https://rds-cdrfsr-dev.gdev-car3-k8s.work.iqvia.com/fsr";
-export const SDA_BASE_URL = "https://dev2-sda.work.iqvia.com";

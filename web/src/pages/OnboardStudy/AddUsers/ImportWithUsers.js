@@ -1,3 +1,4 @@
+/* eslint-disable consistent-return */
 /* eslint-disable no-script-url */
 /* eslint-disable react/button-has-type */
 import React, { useContext, useEffect, useState } from "react";
@@ -6,6 +7,7 @@ import { useHistory } from "react-router-dom";
 import Typography from "apollo-react/components/Typography";
 import Table from "apollo-react/components/Table";
 import Trash from "apollo-react-icons/Trash";
+import SearchIcon from "apollo-react-icons/Search";
 import IconButton from "apollo-react/components/IconButton";
 import PlusIcon from "apollo-react-icons/Plus";
 import Button from "apollo-react/components/Button";
@@ -85,6 +87,8 @@ const ImportWithUsers = () => {
       <AutocompleteV2
         size="small"
         fullWidth
+        forcePopupIcon
+        popupIcon={<SearchIcon fontSize="extraSmall" />}
         source={userList}
         value={row[key]}
         onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
@@ -103,6 +107,7 @@ const ImportWithUsers = () => {
         size="small"
         fullWidth
         multiple
+        forcePopupIcon
         chipColor="white"
         source={roleLists}
         value={row[key]}
@@ -121,7 +126,6 @@ const ImportWithUsers = () => {
     );
   };
 
-  // eslint-disable-next-line consistent-return
   const importStudy = async (assign) => {
     if (assign) {
       if (!tableUsers.length) {
@@ -224,16 +228,26 @@ const ImportWithUsers = () => {
     );
   };
   const addNewUser = () => {
+    if (tableUsers.find((x) => x.user == null)) {
+      toast.showErrorMessage(
+        "Please fill user or remove blank rows to add new row"
+      );
+      return false;
+    }
     const userObj = {
       index: Math.max(...tableUsers.map((o) => o.index), 0) + 1,
       user: null,
       roles: [],
     };
     setTableUsers((u) => [...u, userObj]);
-    console.log("Add User", userObj);
   };
   const onDelete = (index) => {
     setTableUsers(tableUsers.filter((row) => row.index !== index));
+  };
+  const getRoles = async () => {
+    const result = await fetchRoles();
+    setroleLists(result || []);
+    addNewUser();
   };
   const getUserList = async () => {
     const result = await getOnboardUsers();
@@ -245,10 +259,7 @@ const ImportWithUsers = () => {
         };
       }) || [];
     setUserList(filtered);
-  };
-  const getRoles = async () => {
-    const result = await fetchRoles();
-    setroleLists(result || []);
+    getRoles();
   };
   useEffect(() => {
     console.log("tableUsers", tableUsers);
@@ -272,7 +283,6 @@ const ImportWithUsers = () => {
       history.push("/study-setup");
     } else {
       setSelectedStudy(study);
-      getRoles();
       getUserList();
     }
   }, []);
