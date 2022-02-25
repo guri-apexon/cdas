@@ -48,7 +48,7 @@ const ImportWithUsers = () => {
   const toast = useContext(MessageContext);
   const [tableUsers, setTableUsers] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [cancelConfirm, setCancelConfirm] = useState(false);
+  const [confirmObj, setConfirmObj] = useState(null);
   const [userList, setUserList] = useState([]);
   const [roleLists, setroleLists] = useState([]);
   const [selectedStudy, setSelectedStudy] = useState({});
@@ -172,20 +172,50 @@ const ImportWithUsers = () => {
   const importWithAssign = () => {
     importStudy(true);
   };
+  const setConfirmCancel = () => {
+    const confirm = {
+      title: "Cancel Import?",
+      subtitle: "This study has not been onboarded.",
+      cancelLabel: "Cancel Import",
+      cancelAction: () => {
+        history.push("/study-setup");
+      },
+      submitAction: () => {
+        setConfirmObj(null);
+      },
+      submitLabel: "Return to assignments",
+    };
+    setConfirmObj(confirm);
+  };
+  const setConfirmWithoutUser = () => {
+    const confirm = {
+      title: "Import without Assignments?",
+      subtitle: "This study has not been onboarded.",
+      cancelLabel: "Import study without assignment",
+      cancelAction: () => {
+        importStudy();
+      },
+      submitAction: () => {
+        setConfirmObj(null);
+      },
+      submitLabel: "Don't import - return to assignments",
+    };
+    setConfirmObj(confirm);
+  };
   const actionBtns = [
     {
       variant: "text",
       size: "small",
       disabled: loading,
       label: "Import without assigning",
-      onClick: importStudy,
+      onClick: setConfirmWithoutUser,
     },
     {
       variant: "secondary",
       size: "small",
       label: "Cancel import",
       disabled: loading,
-      onClick: () => setCancelConfirm(true),
+      onClick: setConfirmCancel,
     },
     {
       variant: "primary",
@@ -365,27 +395,29 @@ const ImportWithUsers = () => {
           </Grid>
         </Grid>
       </Box>
-      <Modal
-        open={cancelConfirm}
-        onClose={() => setCancelConfirm(false)}
-        className="save-confirm"
-        variant="warning"
-        title="Cancel Import?"
-        message="This study has not been onboarded."
-        buttonProps={[
-          {
-            label: "Cancel Import",
-            onClick: () => history.push("/study-setup"),
-            disabled: loading,
-          },
-          {
-            label: "Return to assignments",
-            onClick: () => setCancelConfirm(false),
-            disabled: loading,
-          },
-        ]}
-        id="neutral"
-      />
+      {confirmObj && (
+        <Modal
+          open={confirmObj ? true : false}
+          onClose={() => setConfirmObj(null)}
+          className="save-confirm"
+          variant="warning"
+          title={confirmObj.title}
+          message={confirmObj.subtitle}
+          buttonProps={[
+            {
+              label: confirmObj.cancelLabel,
+              onClick: confirmObj.cancelAction,
+              disabled: loading,
+            },
+            {
+              label: confirmObj.submitLabel,
+              onClick: confirmObj.submitAction,
+              disabled: loading,
+            },
+          ]}
+          id="neutral"
+        />
+      )}
     </div>
   );
 };
