@@ -63,7 +63,7 @@ const addOnboardedStudy = async (protNbrStnd, userId) => {
       "a020E000005SwQSQA0",
       userId,
       userDesc,
-      "1",
+      1,
       currentTime,
       currentTime,
     ];
