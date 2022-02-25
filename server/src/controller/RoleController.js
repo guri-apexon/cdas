@@ -116,7 +116,7 @@ exports.updateRole = function (req, res) {
 exports.getBasicList = async function (req, res) {
   try {
     let q = `SELECT R.role_id as value, R.role_nm as label FROM ${dbSchema}.role R 
-    WHERE R.role_stat='1'`;
+    WHERE R.role_stat='1' ORDER BY R.role_nm ASC`;
     let { rows } = await DB.executeQuery(q);
     return apiResponse.successResponseWithData(
       res,
