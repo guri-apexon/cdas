@@ -12,4 +12,6 @@ module.exports = Object.freeze({
     "Content-Type": "application/json",
   },
   FSR_API_URI: "https://rds-cdrfsr-dev.gdev-car3-k8s.work.iqvia.com/fsr",
+  SDA_BASE_URL: "https://dev2-sda.work.iqvia.com",
+  SDA_APP_KEY: "CDAS-CORE-APP-9f3798d2-16af-45b3-be21-0d43c1cfecec",
 });
