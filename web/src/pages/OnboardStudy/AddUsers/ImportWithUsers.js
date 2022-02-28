@@ -305,20 +305,20 @@ const ImportWithUsers = () => {
     console.log("tableUsers", tableUsers);
   }, [tableUsers]);
   useEffect(() => {
-    // const {
-    //   location: { study },
-    // } = history;
-    const study = {
-      prot_nbr: "CA212016",
-      prot_nbr_stnd: "CA212016",
-      spnsr_nm: "BRISTOL-MYERS SQUIBB  [JP]",
-      spnsr_nm_stnd: "BRISTOLMYERSSQUIBBJP",
-      proj_cd: "MYA12666",
-      phase: "Phase 1",
-      prot_status: "Enrolling",
-      thptc_area: "CVT",
-      ob_stat: null,
-    };
+    const {
+      location: { study },
+    } = history;
+    // const study = {
+    //   prot_nbr: "CA212016",
+    //   prot_nbr_stnd: "CA212016",
+    //   spnsr_nm: "BRISTOL-MYERS SQUIBB  [JP]",
+    //   spnsr_nm_stnd: "BRISTOLMYERSSQUIBBJP",
+    //   proj_cd: "MYA12666",
+    //   phase: "Phase 1",
+    //   prot_status: "Enrolling",
+    //   thptc_area: "CVT",
+    //   ob_stat: null,
+    // };
     if (!study) {
       history.push("/study-setup");
     } else {
