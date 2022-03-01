@@ -79,6 +79,7 @@
     }
     .MuiDialogContent-root{
         @extend .customscroll;
+        padding-bottom: 0;
     }
     .MuiDialogActions-root{
         margin-top: 20px;
