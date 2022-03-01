@@ -74,6 +74,7 @@ const AddStudyModal = ({ open, onClose }) => {
     {
       label: "Import and Assign later",
       size: "small",
+      variant: "secondary",
       onClick: importStudy,
       disabled: loading,
     },
@@ -99,7 +100,7 @@ const AddStudyModal = ({ open, onClose }) => {
         role="menu"
         tabIndex={0}
       >
-        {accessor === "prot_nbr" && greyedOut ? (
+        {greyedOut ? (
           <Tooltip
             variant="dark"
             title="This study has been imported into CDAS"
