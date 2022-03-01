@@ -65,8 +65,7 @@ const ImportWithUsers = () => {
   ];
   const editRow = (e, value, reason, index, key) => {
     let alreadyExist;
-    if (!value) return false;
-    if (key === "user") {
+    if (key === "user" && value) {
       alreadyExist = tableUsers.find((x) => x.user?.email === value.email)
         ? true
         : false;

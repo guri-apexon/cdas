@@ -38,12 +38,17 @@
                 color: #000;
                 font-weight: 500;
                 padding: 0;
+                &:first-child{
+                    .result-row{
+                        padding-left: 15px;
+                    }
+                }
             }
             .result-row{
                 display: flex;
                 height: 100%;
                 align-items: center;
-                padding: 0 16px;
+                padding: 0 5px;
                 &.greyedout{
                     color: #595959;
                     background-color: #fff;
