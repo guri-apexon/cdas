@@ -76,7 +76,7 @@ const addOnboardedStudy = async (protNbrStnd, userId) => {
     `;
     const addedSponsor = await DB.executeQuery(studySposrQuery);
     if(!addedSponsor) return false;
-    return study;
+    return insertedStudy;
   } catch (err) {
     return false;
   }
@@ -135,11 +135,12 @@ exports.onboardStudy = async function (req, res) {
               insertQuery += `INSERT into ${schemaName}.study_user (prot_id, usr_id, act_flg, insrt_tm, updt_tm) VALUES('${insertedStudy.prot_id}', '${user.user.userId}', 1, '${currentTime}', '${currentTime}');`;
               if (user.roles && Array.isArray(user.roles)) {
                 user.roles.forEach((role) => {
-                  insertQuery += `INSERT into ${schemaName}.study_user_role (role_id, prot_id, usr_id, act_flg, created_by, created_on, updated_by, updated_on) VALUES('${role.value}', '${studyId}', '${user.user.userId}', 1, '${userId}', '${currentTime}', '${userId}', '${currentTime}');`;
+                  insertQuery += `INSERT into ${schemaName}.study_user_role (role_id, prot_id, usr_id, act_flg, created_by, created_on, updated_by, updated_on) VALUES('${role.value}', '${insertedStudy.prot_id}', '${user.user.userId}', 1, '${userId}', '${currentTime}', '${userId}', '${currentTime}');`;
                 });
               }
             }
           });
+          console.log("insertQuery", insertQuery, insertedStudy);
           const rolesAdded = await DB.executeQuery(insertQuery);
           if (!rolesAdded)
             return apiResponse.ErrorResponse(res, "Something went wrong");
