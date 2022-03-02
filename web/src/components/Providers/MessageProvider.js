@@ -1,4 +1,4 @@
-import React, { createContext, useState } from "react";
+import React, { createContext, useCallback, useState } from "react";
 
 export const MessageContext = createContext();
 
@@ -14,30 +14,36 @@ const MessageProvider = ({ children }) => {
     setErrorMessage({ show: false });
   };
 
-  const showErrorMessage = (error, top = null, variant = "error") => {
-    if (top !== null) {
-      setErrorMessage({ top });
-    }
-    if (error && error.data) {
-      const { message } = error.data;
-      setErrorMessage({ variant, messages: message, show: true });
-    } else {
-      setErrorMessage({ variant, messages: error, show: true });
-    }
-    setTimeout(() => {
-      setErrorMessage({ show: false });
-    }, 7500);
-  };
+  const showErrorMessage = useCallback(
+    (error, top = null, variant = "error") => {
+      if (top !== null) {
+        setErrorMessage({ top });
+      }
+      if (error && error.data) {
+        const { message } = error.data;
+        setErrorMessage({ variant, messages: message, show: true });
+      } else {
+        setErrorMessage({ variant, messages: error, show: true });
+      }
+      setTimeout(() => {
+        setErrorMessage({ show: false });
+      }, 7500);
+    },
+    [setErrorMessage]
+  );
 
-  const showSuccessMessage = (message, top = null) => {
-    if (top !== null) {
-      setErrorMessage({ top });
-    }
-    setErrorMessage({ variant: "success", messages: message, show: true });
-    setTimeout(() => {
-      setErrorMessage({ show: false });
-    }, 5000);
-  };
+  const showSuccessMessage = useCallback(
+    (message, top = null) => {
+      if (top !== null) {
+        setErrorMessage({ top });
+      }
+      setErrorMessage({ variant: "success", messages: message, show: true });
+      setTimeout(() => {
+        setErrorMessage({ show: false });
+      }, 5000);
+    },
+    [setErrorMessage]
+  );
 
   return (
     <MessageContext.Provider

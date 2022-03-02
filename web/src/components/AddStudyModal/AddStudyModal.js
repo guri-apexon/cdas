@@ -1,6 +1,7 @@
 import { withRouter } from "react-router";
 import Modal from "apollo-react/components/Modal";
 import { useState, useEffect, useContext } from "react";
+import { useHistory } from "react-router-dom";
 import "./AddStudyModal.scss";
 import Typography from "apollo-react/components/Typography";
 import Tooltip from "apollo-react/components/Tooltip";
@@ -13,7 +14,7 @@ import ApolloProgress from "apollo-react/components/ApolloProgress";
 import { MessageContext } from "../Providers/MessageProvider";
 import { searchStudy, onboardStudy } from "../../services/ApiServices";
 import Highlighted from "../Common/Highlighted";
-import { debounceFunction } from "../../utils";
+import { debounceFunction, getUserInfo } from "../../utils";
 
 const Label = ({ children }) => {
   return (
@@ -37,15 +38,19 @@ const AddStudyModal = ({ open, onClose }) => {
   const [loading, setLoading] = useState(false);
   const messageContext = useContext(MessageContext);
   const btnArr = [{ label: "Cancel", size: "small", className: "cancel-btn" }];
+  const userInfo = getUserInfo();
+  const history = useHistory();
   const handleClose = () => {
     setOpenModal(false);
     onClose();
   };
   const importStudy = async () => {
-    const { spnsr_nm: sponsorName, prot_nbr: studyId } = selectedStudy;
+    const { spnsr_nm_stnd: sponsorNameStnd, prot_nbr_stnd: protNbrStnd } =
+      selectedStudy;
     const reqBody = {
-      sponsorName,
-      studyId,
+      sponsorNameStnd,
+      protNbrStnd,
+      userId: userInfo.user_id,
     };
     setLoading(true);
     const response = await onboardStudy(reqBody);
@@ -58,15 +63,26 @@ const AddStudyModal = ({ open, onClose }) => {
       handleClose();
     }
   };
+  const importWithUser = () => {
+    history.push({
+      pathname: "/import-assign-users",
+      study: selectedStudy,
+    });
+  };
   const allBtnArr = [
     ...btnArr,
     {
       label: "Import and Assign later",
       size: "small",
+      variant: "secondary",
       onClick: importStudy,
       disabled: loading,
     },
-    { label: "Import and Assign Users", size: "small", disabled: true },
+    {
+      label: "Import and Assign Users",
+      size: "small",
+      onClick: importWithUser,
+    },
   ];
 
   const setDetail = (study) => {
@@ -75,7 +91,6 @@ const AddStudyModal = ({ open, onClose }) => {
 
   const FormatCell = ({ row, column: { accessor } }) => {
     const greyedOut = ["In Progress", "Success"].includes(row.ob_stat);
-    console.log("row[accessor]", accessor);
     const innerEl = <Highlighted text={row[accessor]} highlight={searchTxt} />;
     return (
       // eslint-disable-next-line jsx-a11y/click-events-have-key-events
@@ -85,7 +100,7 @@ const AddStudyModal = ({ open, onClose }) => {
         role="menu"
         tabIndex={0}
       >
-        {accessor === "prot_nbr" && greyedOut ? (
+        {greyedOut ? (
           <Tooltip
             variant="dark"
             title="This study has been imported into CDAS"

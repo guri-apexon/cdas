@@ -33,17 +33,6 @@ import {
   inputAlphaNumericWithUnderScore,
 } from "../../../../utils";
 
-const breadcrumpItems = [
-  { href: "/" },
-  {
-    title: "Vendors",
-    href: "/vendor/list",
-  },
-  {
-    title: "Create New Vendor",
-  },
-];
-
 const ConfirmModal = React.memo(({ open, cancel, stayHere, loading }) => {
   return (
     <Modal
@@ -99,6 +88,17 @@ const CreateVendor = () => {
     }
   }, []);
 
+  const breadcrumpItems = [
+    { href: "/" },
+    {
+      title: "Vendors",
+      href: "/vendor/list",
+    },
+    {
+      title: isEditPage ? vName : "Create New Vendor",
+    },
+  ];
+
   useEffect(() => {
     if (isCreatePage) {
       setVId("");
@@ -148,18 +148,6 @@ const CreateVendor = () => {
       );
       return false;
     }
-
-    // const startList = contacts.map((e) => e.isStarted);
-    // const nameValid = contacts.map((e) => e.isNameValid);
-    // const emailValid = contacts.map((e) => e.isEmailValid);
-
-    // if (startList.every((v) => v === true)) {
-    //   if (nameValid.every((v) => v === true)) {
-    //     if (emailValid.every((v) => v === true)) {
-    //       const test = "";
-    //     }
-    //   }
-    // }
 
     setLoading(true);
     if (isCreatePage) {
@@ -323,12 +311,12 @@ const CreateVendor = () => {
         </div>
       </Box>
       <Grid container spacing={2}>
-        {console.log("save", disableSave)}
+        {/* {console.log("save", disableSave)} */}
         <Grid item xs={3}>
           <Box>
             <div className="flex create-sidebar flexWrap">
               <Typography variant="title1" className="b-font title">
-                New Vendor
+                {isEditPage ? vName : "New Vendor"}
               </Typography>
               {/* <br /> */}
               <TextField

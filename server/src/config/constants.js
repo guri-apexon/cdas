@@ -4,5 +4,14 @@ module.exports = Object.freeze({
   DB_USER: "ycdas1d",
   DB_PASS: "ycdas1d@cdas1d",
   DB_PORT: 5433,
-  DB_DATABASE: "cdas1d"
+  DB_DATABASE: "cdas1d",
+  FSR_HEADERS: {
+    ClientId: "CDI",
+    ClientSecret:
+      "h+p78ADQ8Zwo1EiJdLPU9brxYe9qo64YUYoZAVq/VSjY1IOHsE3yiQ==",
+    "Content-Type": "application/json",
+  },
+  FSR_API_URI: "https://rds-cdrfsr-dev.gdev-car3-k8s.work.iqvia.com/fsr",
+  SDA_BASE_URL: "https://dev2-sda.work.iqvia.com",
+  SDA_APP_KEY: "CDAS-CORE-APP-9f3798d2-16af-45b3-be21-0d43c1cfecec",
 });

@@ -95,7 +95,7 @@ const ListRoles = () => {
       return (
         <Tooltip title="Active" disableFocusListener>
           <Switch
-            className="inline-checkbox"
+            className="table-checkbox"
             checked={true}
             onChange={(e) => handleStatus(e, id, "Active")}
             size="small"
@@ -106,7 +106,7 @@ const ListRoles = () => {
     return (
       <Tooltip title="Inactive" disableFocusListener>
         <Switch
-          className="inline-checkbox"
+          className="table-checkbox"
           checked={false}
           onChange={(e) => handleStatus(e, id, "InActive")}
           size="small"
@@ -163,7 +163,7 @@ const ListRoles = () => {
         variant="secondary"
         icon={PlusIcon}
         onClick={() => history.push("/create-role")}
-        style={{ marginRight: "8px", border: "none" }}
+        style={{ marginRight: "8px", border: "none", boxShadow: "none" }}
       >
         Create new role
       </Button>
