@@ -223,7 +223,6 @@ exports.getRolesPermissions = async (req, res) => {
   try {
     Logger.info({ message: "getRolesPermissions" });
     const { userId, productName } = req.body;
-
     const query = `select sur.role_id, rp.plcy_id, p.plcy_nm, p3.prod_id, p3.prod_nm, c.ctgy_id, c.ctgy_nm, f.feat_id, f.feat_nm, p2.permsn_nm from ${dbSchema}.study_user_role sur
   inner join ${dbSchema}.role r on r.role_id = sur.role_id
   right join ${dbSchema}.role_policy rp on rp.role_id = r.role_id 
@@ -239,7 +238,6 @@ exports.getRolesPermissions = async (req, res) => {
     const $q1 = await DB.executeQuery(query, [userId, productName]);
 
     const uniquePermissions = await _.uniqWith($q1.rows, _.isEqual);
-    console.log("unique", uniquePermissions);
 
     return apiResponse.successResponseWithData(
       res,

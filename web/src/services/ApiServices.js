@@ -304,6 +304,30 @@ export const onboardStudy = (reqBody) => {
   }
 };
 
+export const getRolesPermissions = () => {
+  try {
+    return new Promise((resolve, reject) => {
+      axios
+        .post(`${API_URL}/role/getUserRolesPermissions`, {
+          userId,
+          productName: "Admin",
+        })
+        .then((res) => {
+          resolve(res.data?.data || res.data);
+        })
+        .catch((err) => {
+          if (err.response?.data) {
+            resolve(err.response?.data);
+          } else {
+            resolve({ message: "Something went wrong" });
+          }
+        });
+    });
+  } catch (err) {
+    return console.log("Error", err);
+  }
+};
+
 export const userLogOut = () => {
   return axios
     .get(`${baseURL}/logout`)
