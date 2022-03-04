@@ -276,3 +276,12 @@ content-type: application/json
 #     "IQB",
 #     "Veeva EDC"
 #   ]
+
+#### User 
+POST http://localhost:443/v1/api/role/getUserRolesPermissions HTTP/1.1
+content-type: application/json
+
+{
+  "userId": "u1105372",
+  "productName": "Admin"
+}
