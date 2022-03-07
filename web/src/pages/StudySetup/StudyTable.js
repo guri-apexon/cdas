@@ -77,8 +77,8 @@ const LinkCell = ({ row, column: { accessor } }) => {
 const DateCell = ({ row, column: { accessor } }) => {
   const rowValue = row[accessor];
   const date =
-    rowValue && moment(rowValue, "DD-MMM-YYYY").isValid()
-      ? moment(rowValue).format("DD-MMM-YYYY")
+    rowValue && moment(rowValue).isSame(moment(), "day")
+      ? moment(rowValue).format("DD-MMM-YYYY HH:mm")
       : moment(rowValue).format("DD-MMM-YYYY");
 
   return <span>{date}</span>;

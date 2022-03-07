@@ -1,6 +1,6 @@
 /* eslint-disable jsx-a11y/no-static-element-interactions */
 /* eslint-disable react/no-array-index-key */
-import React from "react";
+import React, { useEffect } from "react";
 import withStyles from "@material-ui/core/styles/withStyles";
 import ArrowRight from "apollo-react-icons/ArrowRight";
 import Button from "apollo-react/components/Button";
@@ -14,6 +14,7 @@ import CDMIcon from "../../components/Icons/CDM_ICON_96x96.svg";
 import CDRIcon from "../../components/Icons/CDR_ICON_96x96.svg";
 import DSWIcon from "../../components/Icons/DSW_ICON_96x96.svg";
 import "./LaunchPad.scss";
+import { getRolesPermissions } from "../../services/ApiServices";
 
 const CustomTooltip = withStyles(() => ({
   tooltip: {
@@ -70,6 +71,11 @@ const LaunchPad = () => {
   const userInfo = getUserInfo();
 
   const { fullName } = userInfo;
+
+  useEffect(() => {
+    const data = getRolesPermissions();
+    console.log(data);
+  }, []);
 
   return (
     <div className="lauchpad-wrapper">

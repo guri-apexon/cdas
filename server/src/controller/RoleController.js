@@ -118,11 +118,7 @@ exports.getBasicList = async function (req, res) {
     let q = `SELECT R.role_id as value, R.role_nm as label FROM ${dbSchema}.role R 
     WHERE R.role_stat='1' ORDER BY R.role_nm ASC`;
     let { rows } = await DB.executeQuery(q);
-    return apiResponse.successResponseWithData(
-      res,
-      "Operation success",
-      rows
-    );
+    return apiResponse.successResponseWithData(res, "Operation success", rows);
   } catch (error) {
     Logger.error(error.message);
     return apiResponse.ErrorResponse(res, error.message);
@@ -212,13 +208,46 @@ exports.getDetails = async (req, res) => {
 
 exports.updateStatus = async (req, res) => {
   try {
-    const { role_id, role_stat } = req.body;
-    let query = `update cdascfg.role set role_stat = '${role_stat}' where role_id = ${role_id}`;
+    const { role_id, role_stat, userId } = req.body;
+    const currentTime = helpers.getCurrentTime();
+    let query = `update ${dbSchema}.role set role_stat = '${role_stat}', updated_by = '${userId}', updated_on = '${currentTime}' where role_id = ${role_id}`;
     await DB.executeQuery(query);
     return apiResponse.successResponseWithData(res, "Update success");
   } catch (error) {
     Logger.error("catch :update status role");
     Logger.error(error.message);
     return apiResponse.ErrorResponse(res, error.message);
+  }
+};
+
+exports.getRolesPermissions = async (req, res) => {
+  try {
+    Logger.info({ message: "getRolesPermissions" });
+    const { userId, productName } = req.body;
+    const query = `select sur.role_id, rp.plcy_id, p.plcy_nm, p3.prod_id, p3.prod_nm, c.ctgy_id, c.ctgy_nm, f.feat_id, f.feat_nm, p2.permsn_nm from ${dbSchema}.study_user_role sur
+  inner join ${dbSchema}.role r on r.role_id = sur.role_id
+  right join ${dbSchema}.role_policy rp on rp.role_id = r.role_id 
+  right join ${dbSchema}."policy" p on p.plcy_id = rp.plcy_id 
+  right join ${dbSchema}.policy_product_permission ppp on p.plcy_id = ppp.plcy_id 
+  right join ${dbSchema}.product_permission pp on ppp.prod_permsn_id = pp.prod_permsn_id 
+  right join ${dbSchema}."permission" p2 on pp.permsn_id = p2.permsn_id 
+  inner join ${dbSchema}.product p3 on pp.prod_id = p3.prod_id 
+  inner join ${dbSchema}.category c on pp.ctgy_id = c.ctgy_id 
+  inner join ${dbSchema}.feature f on pp.feat_id = f.feat_id 
+  where sur.usr_id = $1 and p3.prod_nm = $2 and p.plcy_stat = 'Active' and r.role_stat = 1 and rp.act_flg = 1 and ppp.act_flg = 1 and pp.act_flg =1 and f.act_flg =1 and c.act_flg = 1`;
+
+    const $q1 = await DB.executeQuery(query, [userId, productName]);
+
+    const uniquePermissions = await _.uniqWith($q1.rows, _.isEqual);
+
+    return apiResponse.successResponseWithData(
+      res,
+      "Operation success",
+      uniquePermissions
+    );
+  } catch (err) {
+    Logger.error("catch :getRolesPermissions");
+    Logger.error(err);
+    return apiResponse.ErrorResponse(res, err);
   }
 };
