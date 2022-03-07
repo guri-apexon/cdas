@@ -1,0 +1,10 @@
+
+
+.nav{
+ overflow: hidden;
+  &.haveAccess {
+    cursor: pointer;
+    background: linear-gradient(to left, #0768fd, #0f2252);
+  }
+}
+

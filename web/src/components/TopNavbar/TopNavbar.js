@@ -1,8 +1,8 @@
 /* eslint-disable react/jsx-one-expression-per-line */
 /* eslint-disable prettier/prettier */
 /* eslint-disable no-shadow */
+import React, { useEffect, useContext , useState } from "react";
 import { withRouter } from "react-router";
-import { useState, useContext } from "react";
 import NavigationBar from "apollo-react/components/NavigationBar";
 import makeStyles from "@material-ui/core/styles/makeStyles";
 import { neutral7 } from "apollo-react/colors";
@@ -15,13 +15,14 @@ import DashboardIcon from "apollo-react-icons/Dashboard";
 import Question from "apollo-react-icons/Question";
 import moment from "moment";
 import Button from "apollo-react/components/Button";
-
+import "./TopNavbar.scss";
 import NavigationPanel from "../NavigationPanel/NavigationPanel";
 // eslint-disable-next-line import/named
 import { deleteAllCookies, getUserInfo } from "../../utils/index";
 // eslint-disable-next-line import/named
-import { userLogOut } from "../../services/ApiServices";
+import { userLogOut,getRolesPermissions } from "../../services/ApiServices";
 import { MessageContext } from "../Providers/MessageProvider";
+import { AppContext } from "../Providers/AppProvider";
 
 const styles = {
   root: {
@@ -80,22 +81,41 @@ const styles = {
   },
 };
 
+const useStyles = makeStyles(styles);
+
+const TopNavbar = ({ history, location: { pathname }, setLoggedIn }) => {
+  const classes = useStyles();
+  const userInfo = getUserInfo();
+const appContext = useContext(AppContext);
+const checkAccess = (name) => {
+  const { permissions } = appContext.user;
+  // console.log("per", permissions)
+  if (permissions.length > 0) {
+    const hasAccess = permissions.some((per) => per.featureName === name);
+    return hasAccess;
+  }
+  return false;
+};
 const menuItems = [
   {
     text: "Launchpad",
     pathname: "/launchpad",
+    haveAccess: checkAccess("Launchpad"),
   },
   {
     text: "Analytics",
     pathname: "/analytics",
+    haveAccess: checkAccess("Analytics"),
   },
   {
     text: "Study Setup",
     pathname: "/study-setup",
+    haveAccess: checkAccess("Study Setup"),
   },
   {
     text: "User Management",
     pathname: "/user-management",
+    haveAccess: checkAccess("User Management"),
   },
   {
     text: "Admin",
@@ -103,32 +123,32 @@ const menuItems = [
       {
         text: "Policy Management",
         pathname: "/policy-management",
+        haveAccess: checkAccess("Policy management"),
       },
       {
         text: "Role Management",
         pathname: "/role-management",
+        haveAccess: checkAccess("Role management"),
       },
       {
         text: "Group Management",
         pathname: "/group-management",
+        haveAccess: checkAccess("Group management"),
       },
       {
         text: "System Admin",
         pathname: "/vendor/list",
+        haveAccess: checkAccess("System management"),
       },
     ],
   },
 ];
 
-const useStyles = makeStyles(styles);
-
-const TopNavbar = ({ history, location: { pathname }, setLoggedIn }) => {
-  const classes = useStyles();
   const messageContext = useContext(MessageContext);
   const [panelOpen, setpanelOpen] = useState(true);
   const [notLoggedOutErr, setNotLoggedOutErr] = useState(false);
   const [open, setOpen] = useState(false);
-  const userInfo = getUserInfo();
+ 
   const profileMenuProps = {
     name: userInfo.fullName,
     title: userInfo.userEmail,
@@ -155,7 +175,34 @@ const TopNavbar = ({ history, location: { pathname }, setLoggedIn }) => {
       setOpen(false);
     }
   };
+  const getPermisions = async () => {
+    const data = await getRolesPermissions();
+     console.log("data", data);
+    const uniqueCatogories = Array.from(
+      data
+        .reduce((acc, { categoryName, featureName, allowedPermission }) => {
+          const current = acc.get(featureName) || {
+            allowedPermission: [],
+          };
+          return acc.set(featureName, {
+            ...current,
+            categoryName,
+            featureName,
+            allowedPermission: [
+              ...current.allowedPermission,
+              allowedPermission,
+            ],
+          });
+        }, new Map())
+        .values()
+    );
+    // console.log(uniqueCatogories);
+    appContext.updateUser({ permissions: uniqueCatogories });
+  };
 
+  useEffect(() => {
+    getPermisions();
+  }, []);
   const notificationsMenuProps = {
     newNotifications: true,
     notifications: [
@@ -208,6 +255,7 @@ const TopNavbar = ({ history, location: { pathname }, setLoggedIn }) => {
           profileMenuProps={profileMenuProps}
           // eslint-disable-next-line no-shadow
           onClick={({ pathname }) => history.push(pathname)}
+          // className={item.haveAccess ? "haveAccess" : ""}
           checkIsActive={(item) =>
             item.pathname
               ? item.pathname === pathname
@@ -226,7 +274,7 @@ const TopNavbar = ({ history, location: { pathname }, setLoggedIn }) => {
               </Button>
             </div>
           }
-          className={classes.nav}
+          
         />
         <NavigationPanel open={panelOpen} onClose={onPanelClose} />
       </div>
