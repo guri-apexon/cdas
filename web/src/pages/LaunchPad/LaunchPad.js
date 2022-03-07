@@ -1,24 +1,34 @@
 /* eslint-disable jsx-a11y/no-static-element-interactions */
 /* eslint-disable react/no-array-index-key */
-import React, { useState } from "react";
+import React, { useEffect } from "react";
+import withStyles from "@material-ui/core/styles/withStyles";
 import ArrowRight from "apollo-react-icons/ArrowRight";
 import Button from "apollo-react/components/Button";
 import Typography from "apollo-react/components/Typography";
 import Tooltip from "apollo-react/components/Tooltip";
 import { useHistory } from "react-router-dom";
-import CDIIcon from "./CDI_ICON_96x96.svg";
-import CAIcon from "./CA_ICON_96x96.svg";
-import CDMIcon from "./CDM_ICON_96x96.svg";
-import CDRIcon from "./CDR_ICON_96x96.svg";
-import DSWIcon from "./DSW_ICON_96x96.svg";
+import { titleCase, getUserInfo, getAppUrl, goToApp } from "../../utils/index";
+import CDIIcon from "../../components/Icons/CDI_ICON_96x96.svg";
+import CAIcon from "../../components/Icons/CA_ICON_96x96.svg";
+import CDMIcon from "../../components/Icons/CDM_ICON_96x96.svg";
+import CDRIcon from "../../components/Icons/CDR_ICON_96x96.svg";
+import DSWIcon from "../../components/Icons/DSW_ICON_96x96.svg";
 import "./LaunchPad.scss";
+import { getRolesPermissions } from "../../services/ApiServices";
+
+const CustomTooltip = withStyles(() => ({
+  tooltip: {
+    maxWidth: 400,
+    padding: "10px 16px",
+  },
+}))(Tooltip);
 
 const productArr = [
   {
     title: "Clinical Data Ingestion",
     haveAccess: true,
     imgUrl: CDIIcon,
-    url: "cdi",
+    url: getAppUrl("CDI"),
     tooltipText:
       "Business friendly technology to accelerate the setup and management of clinical study data ingestion acquisition from any source, for any data type, for any data type.",
   },
@@ -58,19 +68,28 @@ const productArr = [
 
 const LaunchPad = () => {
   const history = useHistory();
+  const userInfo = getUserInfo();
+
+  const { fullName } = userInfo;
+
+  useEffect(() => {
+    const data = getRolesPermissions();
+    console.log(data);
+  }, []);
 
   return (
     <div className="lauchpad-wrapper">
       <div className="header">
         <div>
           <Typography gutterBottom darkMode>
-            Welcome, Gurpreet Singh
+            {`Welcome, ${titleCase(fullName)}`}
           </Typography>
           <h2>Harness the power of your clinical data</h2>
           <Button
             variant="secondary"
+            className="linktoStudy"
             icon={ArrowRight}
-            style={{ marginRight: 10 }}
+            style={{ marginRight: 10, padding: "0 14px" }}
             onClick={() => history.push("study-setup")}
           >
             Quick Link to Study Setup
@@ -92,30 +111,43 @@ const LaunchPad = () => {
               // eslint-disable-next-line jsx-a11y/click-events-have-key-events
               <div
                 key={i}
-                onClick={() => product.haveAccess && history.push(product.url)}
+                onClick={() => product.haveAccess && goToApp(product.url)}
                 className={
                   // eslint-disable-next-line prefer-template
                   "productBox " + (product.haveAccess ? "haveAccess" : "")
                 }
               >
-                <Tooltip
+                <CustomTooltip
                   variant="light"
-                  title={product.title}
-                  subtitle={product.tooltipText}
+                  title={
+                    // eslint-disable-next-line react/jsx-wrap-multilines
+                    <span style={{ fontSize: 16, fontWeight: 600 }}>
+                      {product.title}
+                    </span>
+                  }
+                  subtitle={
+                    // eslint-disable-next-line react/jsx-wrap-multilines
+                    <span style={{ fontSize: 14, color: "#444444" }}>
+                      {product.tooltipText}
+                    </span>
+                  }
                   extraLabels={
                     product.haveAccess
                       ? null
                       : [
                           {
-                            title:
-                              "Contact your System Administrator for access",
+                            title: (
+                              <span style={{ fontSize: 14, fontWeight: 600 }}>
+                                Contact your System Administrator for access
+                              </span>
+                            ),
                           },
                         ]
                   }
                   placement="bottom"
                 >
                   {productBox}
-                </Tooltip>
+                </CustomTooltip>
               </div>
             );
           })}

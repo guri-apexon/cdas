@@ -1,18 +1,20 @@
 import { withRouter } from "react-router";
 import Modal from "apollo-react/components/Modal";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
+import { useHistory } from "react-router-dom";
 import "./AddStudyModal.scss";
 import Typography from "apollo-react/components/Typography";
+import Tooltip from "apollo-react/components/Tooltip";
 import Search from "apollo-react/components/Search";
 import Table from "apollo-react/components/Table";
 import Box from "apollo-react/components/Box";
 import Button from "apollo-react/components/Button";
 import ChevronLeft from "apollo-react-icons/ChevronLeft";
 import ApolloProgress from "apollo-react/components/ApolloProgress";
-
-import searchStudy from "../../services/ApiServices";
+import { MessageContext } from "../Providers/MessageProvider";
+import { searchStudy, onboardStudy } from "../../services/ApiServices";
 import Highlighted from "../Common/Highlighted";
-import { debounceFunction } from "../../utils";
+import { debounceFunction, getUserInfo } from "../../utils";
 
 const Label = ({ children }) => {
   return (
@@ -34,11 +36,53 @@ const AddStudyModal = ({ open, onClose }) => {
   const [studies, setStudies] = useState([]);
   const [selectedStudy, setSelectedStudy] = useState(null);
   const [loading, setLoading] = useState(false);
+  const messageContext = useContext(MessageContext);
   const btnArr = [{ label: "Cancel", size: "small", className: "cancel-btn" }];
+  const userInfo = getUserInfo();
+  const history = useHistory();
+  const handleClose = () => {
+    setOpenModal(false);
+    onClose();
+  };
+  const importStudy = async () => {
+    const { spnsr_nm_stnd: sponsorNameStnd, prot_nbr_stnd: protNbrStnd } =
+      selectedStudy;
+    const reqBody = {
+      sponsorNameStnd,
+      protNbrStnd,
+      userId: userInfo.user_id,
+    };
+    setLoading(true);
+    const response = await onboardStudy(reqBody);
+    setLoading(false);
+    if (response.status === "BAD_REQUEST") {
+      messageContext.showErrorMessage(response.message, 0);
+    }
+    if (response.status === "OK") {
+      messageContext.showSuccessMessage(response.message, 0);
+      handleClose();
+    }
+  };
+  const importWithUser = () => {
+    history.push({
+      pathname: "/import-assign-users",
+      study: selectedStudy,
+    });
+  };
   const allBtnArr = [
     ...btnArr,
-    { label: "Import and Assign later", size: "small", disabled: true },
-    { label: "Import and Assign Users", size: "small", disabled: true },
+    {
+      label: "Import and Assign later",
+      size: "small",
+      variant: "secondary",
+      onClick: importStudy,
+      disabled: loading,
+    },
+    {
+      label: "Import and Assign Users",
+      size: "small",
+      onClick: importWithUser,
+    },
   ];
 
   const setDetail = (study) => {
@@ -46,10 +90,27 @@ const AddStudyModal = ({ open, onClose }) => {
   };
 
   const FormatCell = ({ row, column: { accessor } }) => {
+    const greyedOut = ["In Progress", "Success"].includes(row.ob_stat);
+    const innerEl = <Highlighted text={row[accessor]} highlight={searchTxt} />;
     return (
       // eslint-disable-next-line jsx-a11y/click-events-have-key-events
-      <div onClick={() => setDetail(row)} role="menu" tabIndex={0}>
-        <Highlighted text={row[accessor]} highlight={searchTxt} />
+      <div
+        className={`result-row ${greyedOut ? "greyedout" : ""}`}
+        onClick={() => !greyedOut && setDetail(row)}
+        role="menu"
+        tabIndex={0}
+      >
+        {greyedOut ? (
+          <Tooltip
+            variant="dark"
+            title="This study has been imported into CDAS"
+            placement="top"
+          >
+            <span>{innerEl}</span>
+          </Tooltip>
+        ) : (
+          innerEl
+        )}
       </div>
     );
   };
@@ -69,15 +130,11 @@ const AddStudyModal = ({ open, onClose }) => {
     },
     {
       header: "Project Code",
-      accessor: "project_code",
+      accessor: "proj_cd",
       customCell: FormatCell,
       width: "25%",
     },
   ];
-  const handleClose = () => {
-    setOpenModal(false);
-    onClose();
-  };
   const backToSearch = () => {
     setSelectedStudy(null);
   };
@@ -134,14 +191,14 @@ const AddStudyModal = ({ open, onClose }) => {
                 </Box>
                 <Box m={2}>
                   <Label>Project code</Label>
-                  <Value>{selectedStudy.project_code}</Value>
+                  <Value>{selectedStudy.proj_cd}</Value>
                 </Box>
                 <Box m={2}>
                   <Label>Protocol phase</Label>
                   <Value>{selectedStudy.phase}</Value>
                 </Box>
                 <Box m={2}>
-                  <Label>Theraputic area</Label>
+                  <Label>Therapeutic area</Label>
                   <Value>{selectedStudy.thptc_area}</Value>
                 </Box>
                 <Box m={2}>
