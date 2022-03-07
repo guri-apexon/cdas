@@ -208,8 +208,10 @@ exports.getDetails = async (req, res) => {
 
 exports.updateStatus = async (req, res) => {
   try {
-    const { role_id, role_stat } = req.body;
-    let query = `update ${dbSchema}.role set role_stat = '${role_stat}' where role_id = ${role_id}`;
+    const { role_id, role_stat, userId } = req.body;
+    const rStatus = role_stat === true ? 1 : 0;
+    const currentTime = helpers.getCurrentTime();
+    let query = `update ${dbSchema}.role set role_stat = '${rStatus}', updated_by = '${userId}', updated_on = '${currentTime}' where role_id = ${role_id}`;
     await DB.executeQuery(query);
     return apiResponse.successResponseWithData(res, "Update success");
   } catch (error) {
