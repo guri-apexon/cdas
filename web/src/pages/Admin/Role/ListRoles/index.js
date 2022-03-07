@@ -21,6 +21,7 @@ import {
   TextFieldFilter,
   createStringArraySearchFilter,
   createStringArrayIncludedFilter,
+  getUserInfo,
 } from "../../../../utils/index";
 import "./index.scss";
 import {
@@ -45,6 +46,7 @@ const ListRoles = () => {
   const [open, setOpen] = useState(false);
   const [curRow, setCurRow] = useState({});
   const dispatch = useDispatch();
+  const userInfo = getUserInfo();
 
   const fetchData = () => {
     dispatch(fetchRoles());
@@ -80,7 +82,11 @@ const ListRoles = () => {
     try {
       // eslint-disable-next-line no-underscore-dangle
       const _status = status === "Active" ? 0 : 1;
-      const payload = { role_id: id, role_stat: _status };
+      const payload = {
+        role_id: id,
+        role_stat: _status,
+        userId: userInfo.user_id,
+      };
       await dispatch(updateStatus(payload));
       await dispatch(fetchRoles());
     } catch (error) {

@@ -10,10 +10,9 @@ const helper = require("../helpers/customFunctions");
 const CommonController = require("./CommonController");
 const { DB_SCHEMA_NAME: schemaName, FSR_HEADERS, FSR_API_URI } = constants;
 
-
-const updateStatus = async (studyId, status="Success") => {
+const updateStatus = async (studyId, status = "Success") => {
   try {
-    if(!studyId) return false;
+    if (!studyId) return false;
     const query = `UPDATE ${schemaName}.study set ob_stat='${status}' WHERE prot_id='${studyId}';`;
     const updated = await DB.executeQuery(query);
     if (!updated) return false;
@@ -25,15 +24,15 @@ const updateStatus = async (studyId, status="Success") => {
 
 const addOnboardedStudy = async (protNbrStnd, userId) => {
   try {
-    if(!protNbrStnd || !userId) return false;
+    if (!protNbrStnd || !userId) return false;
     const result = await DB.executeQuery(
       `SELECT * from ${schemaName}.mdm_study WHERE prot_nbr_stnd='${protNbrStnd}';`
     );
     const study = result.rows[0] || null;
-    if(!study) return false;
+    if (!study) return false;
     const uniqueId = helper.createUniqueID();
     const currentTime = helper.getCurrentTime();
-    const userDesc = 'mdm study import';
+    const userDesc = "mdm study import";
     const valueArr = [
       uniqueId,
       study.prot_nbr,
@@ -69,13 +68,13 @@ const addOnboardedStudy = async (protNbrStnd, userId) => {
     const insertSponQuery = `INSERT INTO ${schemaName}.sponsor (spnsr_id, spnsr_nm, spnsr_nm_stnd, tenant_id, usr_id, usr_descr, active, insrt_tm, updt_tm, spnsr_mnemonic_nm) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $3) ON CONFLICT (spnsr_nm) DO UPDATE SET spnsr_nm=EXCLUDED.spnsr_nm returning *;`;
     const result2 = await DB.executeQuery(insertSponQuery, sponsorValueArr);
     const sponsor = result2.rows[0] || sponsor;
-    if(!sponsor) return false;
+    if (!sponsor) return false;
     const studySposrQuery = `INSERT INTO ${schemaName}.study_sponsor
     (prot_id, spnsr_id)
     VALUES('${insertedStudy.prot_id}', '${sponsor.spnsr_id}');
     `;
     const addedSponsor = await DB.executeQuery(studySposrQuery);
-    if(!addedSponsor) return false;
+    if (!addedSponsor) return false;
     return insertedStudy;
   } catch (err) {
     return false;
@@ -83,32 +82,39 @@ const addOnboardedStudy = async (protNbrStnd, userId) => {
 };
 
 exports.cronUpdateStatus = async () => {
-  try{
+  try {
     const query = `SELECT prot_nbr_stnd, prot_id from study WHERE ob_stat='In Progress'`;
     const result = await DB.executeQuery(query);
-    if(!result) return false;
+    if (!result) return false;
     const studies = result.rows || [];
-    if(!studies.length) return false;
-    
-    await Promise.all(studies.map(async study=>{
-      const {prot_id, prot_nbr_stnd} = study;
-      const status = await CommonController.fsrStudyStatus(prot_nbr_stnd);
-      if(status=="Success"){
-        await updateStatus(prot_id);
-      }
-    }));
+    if (!studies.length) return false;
+
+    await Promise.all(
+      studies.map(async (study) => {
+        const { prot_id, prot_nbr_stnd } = study;
+        const status = await CommonController.fsrStudyStatus(prot_nbr_stnd);
+        if (status == "Success") {
+          await updateStatus(prot_id);
+        }
+      })
+    );
     Logger.info({
       message: "cronFinished",
     });
     return true;
-  }catch{
+  } catch {
     return false;
   }
 };
 
 exports.onboardStudy = async function (req, res) {
-  const { sponsorNameStnd: sponsorName, protNbrStnd: studyId, userId, users } = req.body;
-  
+  const {
+    sponsorNameStnd: sponsorName,
+    protNbrStnd: studyId,
+    userId,
+    users,
+  } = req.body;
+  Logger.info({ message: "onboardStudy" });
   axios
     .post(
       `${FSR_API_URI}/study/onboard`,
@@ -126,7 +132,7 @@ exports.onboardStudy = async function (req, res) {
         const insertedStudy = await addOnboardedStudy(studyId, userId);
         if (!insertedStudy)
           return apiResponse.ErrorResponse(res, "Something went wrong");
-          
+
         if (users && users.length) {
           let insertQuery = "";
           const currentTime = helper.getCurrentTime();
@@ -140,7 +146,7 @@ exports.onboardStudy = async function (req, res) {
               }
             }
           });
-          console.log("insertQuery", insertQuery, insertedStudy);
+          // console.log("insertQuery", insertQuery, insertedStudy);
           const rolesAdded = await DB.executeQuery(insertQuery);
           if (!rolesAdded)
             return apiResponse.ErrorResponse(res, "Something went wrong");
@@ -250,13 +256,13 @@ exports.getStudyList = async (req, res) => {
       let acc = $q2.rows.filter((d) => d.prot_id === e.prot_id);
       let newObj = acc[0] ? acc[0] : { count: 0 };
       let { count } = newObj;
-      let editT = moment(e.dateedited).format("MM/DD/YYYY");
-      let addT = moment(e.dateadded).format("MM/DD/YYYY");
+      // let editT = moment(e.dateedited).format("MM/DD/YYYY");
+      // let addT = moment(e.dateadded).format("MM/DD/YYYY");
       let newData = _.omit(e, ["prot_id"]);
       return {
         ...newData,
-        dateadded: addT,
-        dateedited: editT,
+        // dateadded: addT,
+        // dateedited: editT,
         assignmentcount: count,
       };
     });
@@ -278,25 +284,25 @@ exports.getStudyList = async (req, res) => {
 };
 
 exports.getSDAUsers = () => {
-  try{
+  try {
     axios
-    .get(
-      `${SDA_BASE_URL}/sda-rest-api/api/external/entitlement/V1/ApplicationUsers/getUsersForApplication?appKey=${process.env.SDA_APP_KEY}`
-    )
-    .then((res) => {
-      console.log("res", res);
-      return apiResponse.successResponseWithData(
-        res,
-        "Users retrieved successfully",
-        studies[0]
-      );
-    })
-    .catch((err) => {
-      console.log("err", err);
-      return apiResponse.ErrorResponse(res, err);
-    });
-  }catch(err){
+      .get(
+        `${SDA_BASE_URL}/sda-rest-api/api/external/entitlement/V1/ApplicationUsers/getUsersForApplication?appKey=${process.env.SDA_APP_KEY}`
+      )
+      .then((res) => {
+        console.log("res", res);
+        return apiResponse.successResponseWithData(
+          res,
+          "Users retrieved successfully",
+          studies[0]
+        );
+      })
+      .catch((err) => {
+        console.log("err", err);
+        return apiResponse.ErrorResponse(res, err);
+      });
+  } catch (err) {
     Logger.error(err);
     return apiResponse.ErrorResponse(res, err);
   }
-}
+};
