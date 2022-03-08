@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-one-expression-per-line */
 /* eslint-disable prettier/prettier */
 /* eslint-disable no-shadow */
-import React, { useEffect, useContext , useState } from "react";
+import React, { useEffect, useContext, useState } from "react";
 import { withRouter } from "react-router";
 import NavigationBar from "apollo-react/components/NavigationBar";
 import makeStyles from "@material-ui/core/styles/makeStyles";
@@ -15,16 +15,22 @@ import DashboardIcon from "apollo-react-icons/Dashboard";
 import Question from "apollo-react-icons/Question";
 import moment from "moment";
 import Button from "apollo-react/components/Button";
-import "./TopNavbar.scss";
 import NavigationPanel from "../NavigationPanel/NavigationPanel";
 // eslint-disable-next-line import/named
 import { deleteAllCookies, getUserInfo } from "../../utils/index";
 // eslint-disable-next-line import/named
-import { userLogOut,getRolesPermissions } from "../../services/ApiServices";
+import { userLogOut, getRolesPermissions } from "../../services/ApiServices";
 import { MessageContext } from "../Providers/MessageProvider";
 import { AppContext } from "../Providers/AppProvider";
 
 const styles = {
+  haveAccess: {
+    color: "#e41e1e",
+  },
+  notapplied: {
+    color: "yellow",
+
+  },
   root: {
     display: "flex",
     height: 400,
@@ -73,9 +79,6 @@ const styles = {
     zIndex: 2,
     whiteSpace: "nowrap",
   },
-  nav: {
-    overflow: "hidden",
-  },
   fullNavHeight: {
     height: "100%",
   },
@@ -86,69 +89,81 @@ const useStyles = makeStyles(styles);
 const TopNavbar = ({ history, location: { pathname }, setLoggedIn }) => {
   const classes = useStyles();
   const userInfo = getUserInfo();
-const appContext = useContext(AppContext);
-const checkAccess = (name) => {
-  const { permissions } = appContext.user;
-  // console.log("per", permissions)
-  if (permissions.length > 0) {
-    const hasAccess = permissions.some((per) => per.featureName === name);
-    return hasAccess;
-  }
-  return false;
-};
-const menuItems = [
-  {
-    text: "Launchpad",
-    pathname: "/launchpad",
-    haveAccess: checkAccess("Launchpad"),
-  },
-  {
-    text: "Analytics",
-    pathname: "/analytics",
-    haveAccess: checkAccess("Analytics"),
-  },
-  {
-    text: "Study Setup",
-    pathname: "/study-setup",
-    haveAccess: checkAccess("Study Setup"),
-  },
-  {
-    text: "User Management",
-    pathname: "/user-management",
-    haveAccess: checkAccess("User Management"),
-  },
-  {
-    text: "Admin",
-    menuItems: [
-      {
-        text: "Policy Management",
-        pathname: "/policy-management",
-        haveAccess: checkAccess("Policy management"),
-      },
-      {
-        text: "Role Management",
-        pathname: "/role-management",
-        haveAccess: checkAccess("Role management"),
-      },
-      {
-        text: "Group Management",
-        pathname: "/group-management",
-        haveAccess: checkAccess("Group management"),
-      },
-      {
-        text: "System Admin",
-        pathname: "/vendor/list",
-        haveAccess: checkAccess("System management"),
-      },
-    ],
-  },
-];
+  const appContext = useContext(AppContext);
+  const checkAccess = (name) => {
+    const { permissions } = appContext.user;
+    if (permissions.length > 0) {
+      const hasAccess = permissions.some((per) => per.featureName === name);
+      return hasAccess;
+
+    }
+    return false;
+  };
+  const menuItems = [
+    {
+      featureName: "Launchpad",
+      text: "Launchpad",
+      pathname: "/launchpad",
+      haveAccess: checkAccess("Launchpad-Core"),
+    },
+    {
+      featureName: "Analytics",
+      text: "Analytics",
+      pathname: "/analytics",
+      haveAccess: checkAccess("Analytics"),
+    },
+    {
+      featureName: "Study Setup",
+      text: "Study Setup",
+      pathname: "/study-setup",
+      haveAccess: checkAccess("Study Setup "),
+    },
+    {
+      featureName: "User Management",
+      text: "User Management",
+      pathname: "/user-management",
+      haveAccess: checkAccess("User Management"),
+    },
+    {
+      text: "Admin",
+      menuItems: [
+        {
+          featureName: "Policy Management",
+          text: "Policy Management",
+          pathname: "/policy-management",
+          haveAccess: checkAccess("Policy management "),
+        },
+        {
+          featureName: "Role Management",
+          text: "Role Management",
+          pathname: "/role-management",
+          haveAccess: checkAccess("Role management"),
+        },
+        {
+          featureName: "Group Management",
+          text: "Group Management",
+          pathname: "/group-management",
+          haveAccess: checkAccess("Group management"),
+        },
+        {
+          featureName: "System Admin",
+          text: "System Admin",
+          pathname: "/vendor/list",
+          haveAccess: checkAccess("System management"),
+        },
+      ],
+    },
+  ];
+  const filteredArr = menuItems.filter(Items => Items.haveAccess === true)
+  const subfilterArray = menuItems[4].menuItems.filter(item => item.haveAccess === true);
+
+  const filteredArray = [...filteredArr, { text: "Admin", menuItems: subfilterArray }]
 
   const messageContext = useContext(MessageContext);
   const [panelOpen, setpanelOpen] = useState(true);
   const [notLoggedOutErr, setNotLoggedOutErr] = useState(false);
   const [open, setOpen] = useState(false);
- 
+
   const profileMenuProps = {
     name: userInfo.fullName,
     title: userInfo.userEmail,
@@ -157,7 +172,7 @@ const menuItems = [
     ),
     // eslint-disable-next-line no-use-before-define
     logoutButtonProps: { onClick: () => LogOut() },
-    menuItems: [],
+    // menuItems: [],
   };
 
   const LogOut = async () => {
@@ -175,34 +190,32 @@ const menuItems = [
       setOpen(false);
     }
   };
-  const getPermisions = async () => {
-    const data = await getRolesPermissions();
-     console.log("data", data);
-    const uniqueCatogories = Array.from(
-      data
-        .reduce((acc, { categoryName, featureName, allowedPermission }) => {
-          const current = acc.get(featureName) || {
-            allowedPermission: [],
-          };
-          return acc.set(featureName, {
-            ...current,
-            categoryName,
-            featureName,
-            allowedPermission: [
-              ...current.allowedPermission,
-              allowedPermission,
-            ],
-          });
-        }, new Map())
-        .values()
-    );
-    // console.log(uniqueCatogories);
-    appContext.updateUser({ permissions: uniqueCatogories });
-  };
+  // const getPermisions = async () => {
+  //   const data = await getRolesPermissions();
+  //   const uniqueCatogories = Array.from(
+  //     data
+  //       .reduce((acc, { categoryName, featureName, allowedPermission }) => {
+  //         const current = acc.get(featureName) || {
+  //           allowedPermission: [],
+  //         };
+  //         return acc.set(featureName, {
+  //           ...current,
+  //           categoryName,
+  //           featureName,
+  //           allowedPermission: [
+  //             ...current.allowedPermission,
+  //             allowedPermission,
+  //           ],
+  //         });
+  //       }, new Map())
+  //       .values()
+  //   );
+  //   appContext.updateUser({ permissions: uniqueCatogories });
+  // };
 
-  useEffect(() => {
-    getPermisions();
-  }, []);
+  // useEffect(() => {
+  //   getPermisions();
+  // }, []);
   const notificationsMenuProps = {
     newNotifications: true,
     notifications: [
@@ -251,16 +264,19 @@ const menuItems = [
             </div>
           )}
           position="static"
-          menuItems={menuItems}
+          menuItems={filteredArray}
           profileMenuProps={profileMenuProps}
           // eslint-disable-next-line no-shadow
           onClick={({ pathname }) => history.push(pathname)}
-          // className={item.haveAccess ? "haveAccess" : ""}
-          checkIsActive={(item) =>
-            item.pathname
-              ? item.pathname === pathname
-              : item.menuItems.some((item) => item.pathname === pathname)
+          className={
+            // eslint-disable-next-line prefer-template
+            "nav"
           }
+          // checkIsActive={(item) =>
+          //   item.pathname
+          //     ? item.pathname === pathname
+          //     : item.menuItems.some((item) => item.pathname === pathname)
+          // }
           waves
           notificationsMenuProps={notificationsMenuProps}
           otherButtons={
@@ -274,7 +290,7 @@ const menuItems = [
               </Button>
             </div>
           }
-          
+
         />
         <NavigationPanel open={panelOpen} onClose={onPanelClose} />
       </div>
