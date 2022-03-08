@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-syntax */
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import React, { useContext, useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -33,11 +34,23 @@ const PolicyList = () => {
   const history = useHistory();
   const appContext = useContext(AppContext);
   const { permissions } = appContext.user;
-  const filterpolicyPermissions = permissions.filter(
-    (item) => item.featureName === "Policy management "
-  );
-  console.log(filterpolicyPermissions);
-
+  const [createPermission, setCreatePermission] = useState(false);
+  const [readPermission, setReadPermission] = useState(false);
+  const [updatePermission, setUpdatePermission] = useState(false);
+  const filterMethod = (pPermissions) => {
+    const filterpolicyPermissions = pPermissions.filter(
+      (item) => item.featureName === "Policy management "
+    )[0];
+    if (filterpolicyPermissions.allowedPermission.includes("Read")) {
+      setReadPermission(true);
+    }
+    if (filterpolicyPermissions.allowedPermission.includes("Update")) {
+      setUpdatePermission(true);
+    }
+    if (filterpolicyPermissions.allowedPermission.includes("Create")) {
+      setCreatePermission(true);
+    }
+  };
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState([]);
   const [tableRows, setTableRows] = useState([]);
@@ -80,6 +93,7 @@ const PolicyList = () => {
 
   useEffect(() => {
     getData();
+    filterMethod(permissions);
   }, []);
 
   useEffect(() => {
@@ -97,8 +111,10 @@ const PolicyList = () => {
   // const messageContext = useContext(MessageContext);
 
   const goToPolicy = (e, id) => {
-    e.preventDefault();
-    history.push(`/policy-management/${id}`);
+    if (readPermission) {
+      e.preventDefault();
+      history.push(`/policy-management/${id}`);
+    }
   };
 
   const handleInActivate = (e, id) => {
@@ -130,6 +146,7 @@ const PolicyList = () => {
             className="table-checkbox"
             onChange={(e) => handleInActivate(e, id)}
             size="small"
+            disabled={!updatePermission}
           />
         </Tooltip>
       );
@@ -141,6 +158,7 @@ const PolicyList = () => {
           className="table-checkbox"
           onChange={(e) => handleActivate(e, id)}
           size="small"
+          disabled={!updatePermission}
         />
       </Tooltip>
     );
@@ -163,13 +181,18 @@ const PolicyList = () => {
         <Link
           onMouseOver={() => handleMouseOver(row)}
           onMouseOut={handleMouseOut}
+          disabled={!readPermission}
           onClick={(e) => goToPolicy(e, id)}
         >
           {`${rowValue.slice(0, 30)}  [...]`}
         </Link>
       );
     }
-    return <Link onClick={(e) => goToPolicy(e, id)}>{rowValue}</Link>;
+    return (
+      <Link onClick={(e) => goToPolicy(e, id)} disabled={!readPermission}>
+        {rowValue}
+      </Link>
+    );
   };
 
   const DespCell = ({ row, column: { accessor } }) => {
@@ -192,15 +215,17 @@ const PolicyList = () => {
 
   const CustomButtonHeader = ({ toggleFilters }) => (
     <div>
-      <Button
-        size="small"
-        variant="secondary"
-        icon={PlusIcon}
-        onClick={() => history.push("/create-policy")}
-        style={{ marginRight: "8px", border: "none", boxShadow: "none" }}
-      >
-        Create new policy
-      </Button>
+      {createPermission && (
+        <Button
+          size="small"
+          variant="secondary"
+          icon={PlusIcon}
+          onClick={() => history.push("/create-policy")}
+          style={{ marginRight: "8px", border: "none", boxShadow: "none" }}
+        >
+          Create new policy
+        </Button>
+      )}
       <Button
         size="small"
         variant="secondary"
