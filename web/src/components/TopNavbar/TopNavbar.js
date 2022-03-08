@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-one-expression-per-line */
 /* eslint-disable prettier/prettier */
 /* eslint-disable no-shadow */
-import React, { useEffect, useContext, useState } from "react";
+import React, { useContext, useState } from "react";
 import { withRouter } from "react-router";
 import NavigationBar from "apollo-react/components/NavigationBar";
 import makeStyles from "@material-ui/core/styles/makeStyles";

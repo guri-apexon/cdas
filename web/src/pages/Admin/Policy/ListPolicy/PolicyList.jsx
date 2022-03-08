@@ -1,5 +1,5 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
-import React, { useState, useEffect } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Table, {
   createSelectFilterComponent,
@@ -16,9 +16,7 @@ import { useHistory } from "react-router-dom";
 import Switch from "apollo-react/components/Switch";
 import Typography from "apollo-react/components/Typography";
 import Progress from "../../../../components/Progress";
-
-// import { MessageContext } from "../../../components/MessageProvider";
-
+import { AppContext } from "../../../../components/Providers/AppProvider";
 import { getPolicyList } from "../../../../store/actions/PolicyActions";
 
 import {
@@ -33,6 +31,13 @@ const statusList = ["Active", "Inactive"];
 
 const PolicyList = () => {
   const history = useHistory();
+  const appContext = useContext(AppContext);
+  const { permissions } = appContext.user;
+  const filterpolicyPermissions = permissions.filter(
+    (item) => item.featureName === "Policy management "
+  );
+  console.log(filterpolicyPermissions);
+
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState([]);
   const [tableRows, setTableRows] = useState([]);
