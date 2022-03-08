@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-one-expression-per-line */
 /* eslint-disable prettier/prettier */
 /* eslint-disable no-shadow */
-import React, { useEffect, useContext, useState } from "react";
+import React, { useContext, useState } from "react";
 import { withRouter } from "react-router";
 import NavigationBar from "apollo-react/components/NavigationBar";
 import makeStyles from "@material-ui/core/styles/makeStyles";
@@ -154,11 +154,9 @@ const TopNavbar = ({ history, location: { pathname }, setLoggedIn }) => {
       ],
     },
   ];
-  const filteredArr = menuItems.filter(Items => Items.haveAccess === true)
-  const subfilterArray = menuItems[4].menuItems.filter(item => item.haveAccess === true);
-
-  const filteredArray = [...filteredArr, { text: "Admin", menuItems: subfilterArray }]
-
+  const filterMenuItem = menuItems.filter(Items => Items.haveAccess === true)
+  const subfilterMenuItem = menuItems[4].menuItems.filter(item => item.haveAccess === true);
+  const filteredMenuItems = [...filterMenuItem, { text: "Admin", menuItems: subfilterMenuItem }]
   const messageContext = useContext(MessageContext);
   const [panelOpen, setpanelOpen] = useState(true);
   const [notLoggedOutErr, setNotLoggedOutErr] = useState(false);
@@ -190,32 +188,6 @@ const TopNavbar = ({ history, location: { pathname }, setLoggedIn }) => {
       setOpen(false);
     }
   };
-  // const getPermisions = async () => {
-  //   const data = await getRolesPermissions();
-  //   const uniqueCatogories = Array.from(
-  //     data
-  //       .reduce((acc, { categoryName, featureName, allowedPermission }) => {
-  //         const current = acc.get(featureName) || {
-  //           allowedPermission: [],
-  //         };
-  //         return acc.set(featureName, {
-  //           ...current,
-  //           categoryName,
-  //           featureName,
-  //           allowedPermission: [
-  //             ...current.allowedPermission,
-  //             allowedPermission,
-  //           ],
-  //         });
-  //       }, new Map())
-  //       .values()
-  //   );
-  //   appContext.updateUser({ permissions: uniqueCatogories });
-  // };
-
-  // useEffect(() => {
-  //   getPermisions();
-  // }, []);
   const notificationsMenuProps = {
     newNotifications: true,
     notifications: [
@@ -264,7 +236,7 @@ const TopNavbar = ({ history, location: { pathname }, setLoggedIn }) => {
             </div>
           )}
           position="static"
-          menuItems={filteredArray}
+          menuItems={filteredMenuItems}
           profileMenuProps={profileMenuProps}
           // eslint-disable-next-line no-shadow
           onClick={({ pathname }) => history.push(pathname)}
