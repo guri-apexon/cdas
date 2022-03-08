@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-one-expression-per-line */
 /* eslint-disable prettier/prettier */
 /* eslint-disable no-shadow */
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { withRouter } from "react-router";
 import NavigationBar from "apollo-react/components/NavigationBar";
 import makeStyles from "@material-ui/core/styles/makeStyles";
@@ -29,7 +29,6 @@ const styles = {
   },
   notapplied: {
     color: "yellow",
-
   },
   root: {
     display: "flex",
@@ -86,16 +85,46 @@ const styles = {
 
 const useStyles = makeStyles(styles);
 
-const TopNavbar = ({ history, location: { pathname }, setLoggedIn }) => {
+const TopNavbar = ({ history, setLoggedIn }) => {
   const classes = useStyles();
   const userInfo = getUserInfo();
   const appContext = useContext(AppContext);
+  const { permissions } = appContext.user;
+  const getPermisions = async () => {
+    if (permissions.length === 0) {
+      const data = await getRolesPermissions();
+      // console.log(data);
+      const uniquePermissions = Array.from(
+        data
+          .reduce((acc, { categoryName, featureName, allowedPermission }) => {
+            const current = acc.get(featureName) || {
+              allowedPermission: [],
+            };
+            return acc.set(featureName, {
+              ...current,
+              categoryName,
+              featureName,
+              allowedPermission: [
+                ...current.allowedPermission,
+                allowedPermission,
+              ],
+            });
+          }, new Map())
+          .values()
+      );
+      appContext.updateUser({ permissions: uniquePermissions });
+      // console.log(uniquePermissions);
+    }
+  };
+
+  useEffect(() => {
+    getPermisions();
+  }, []);
+
   const checkAccess = (name) => {
-    const { permissions } = appContext.user;
     if (permissions.length > 0) {
       const hasAccess = permissions.some((per) => per.featureName === name);
       return hasAccess;
-
     }
     return false;
   };
@@ -154,9 +183,14 @@ const TopNavbar = ({ history, location: { pathname }, setLoggedIn }) => {
       ],
     },
   ];
-  const filterMenuItem = menuItems.filter(Items => Items.haveAccess === true)
-  const subfilterMenuItem = menuItems[4].menuItems.filter(item => item.haveAccess === true);
-  const filteredMenuItems = [...filterMenuItem, { text: "Admin", menuItems: subfilterMenuItem }]
+  const filterMenuItem = menuItems.filter((Items) => Items.haveAccess === true);
+  const subfilterMenuItem = menuItems[4].menuItems.filter(
+    (item) => item.haveAccess === true
+  );
+  const filteredMenuItems = [
+    ...filterMenuItem,
+    { text: "Admin", menuItems: subfilterMenuItem },
+  ];
   const messageContext = useContext(MessageContext);
   const [panelOpen, setpanelOpen] = useState(true);
   const [notLoggedOutErr, setNotLoggedOutErr] = useState(false);
@@ -262,7 +296,6 @@ const TopNavbar = ({ history, location: { pathname }, setLoggedIn }) => {
               </Button>
             </div>
           }
-
         />
         <NavigationPanel open={panelOpen} onClose={onPanelClose} />
       </div>

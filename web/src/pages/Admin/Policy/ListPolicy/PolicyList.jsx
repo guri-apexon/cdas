@@ -93,7 +93,9 @@ const PolicyList = () => {
 
   useEffect(() => {
     getData();
-    filterMethod(permissions);
+    if (permissions.length > 0) {
+      filterMethod(permissions);
+    }
   }, []);
 
   useEffect(() => {
@@ -117,20 +119,16 @@ const PolicyList = () => {
     }
   };
 
-  const handleInActivate = (e, id) => {
+  const handleStatusUpdate = (e, id) => {
     e.preventDefault();
     const selectedData = tableRows.filter((d) => d.policyId === id);
     const unSelectedData = tableRows.filter((d) => d.policyId !== id);
-    selectedData[0].policyStatus = "Inactive";
-    setTableRows([...unSelectedData, ...selectedData]);
-    // console.log("tableRows", tableRows, products, id);
-  };
+    if (selectedData[0].policyStatus === "Active") {
+      selectedData[0].policyStatus = "Inactive";
+    } else {
+      selectedData[0].policyStatus = "Active";
+    }
 
-  const handleActivate = (e, id) => {
-    e.preventDefault();
-    const selectedData = tableRows.filter((d) => d.policyId === id);
-    const unSelectedData = tableRows.filter((d) => d.policyId !== id);
-    selectedData[0].policyStatus = "Active";
     setTableRows([...unSelectedData, ...selectedData]);
     // console.log("tableRows", tableRows, products, id);
   };
@@ -138,25 +136,15 @@ const PolicyList = () => {
   const StatusCell = ({ row, column: { accessor } }) => {
     const data = row[accessor];
     const id = row.policyId;
-    if (data === "Active") {
-      return (
-        <Tooltip title="Active" disableFocusListener>
-          <Switch
-            checked={true}
-            className="table-checkbox"
-            onChange={(e) => handleInActivate(e, id)}
-            size="small"
-            disabled={!updatePermission}
-          />
-        </Tooltip>
-      );
-    }
     return (
-      <Tooltip title="Inactive" disableFocusListener>
+      <Tooltip
+        title={data === "Active" ? "Active" : "Inactive"}
+        disableFocusListener
+      >
         <Switch
-          checked={false}
+          checked={data === "Active" ? true : false}
           className="table-checkbox"
-          onChange={(e) => handleActivate(e, id)}
+          onChange={(e) => handleStatusUpdate(e, id)}
           size="small"
           disabled={!updatePermission}
         />

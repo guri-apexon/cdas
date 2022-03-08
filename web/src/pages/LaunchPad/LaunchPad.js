@@ -88,35 +88,6 @@ const LaunchPad = () => {
 
   const { fullName } = userInfo;
 
-  const getPermisions = async () => {
-    const data = await getRolesPermissions();
-    // console.log(data);
-    const uniqueCatogories = Array.from(
-      data
-        .reduce((acc, { categoryName, featureName, allowedPermission }) => {
-          const current = acc.get(featureName) || {
-            allowedPermission: [],
-          };
-          return acc.set(featureName, {
-            ...current,
-            categoryName,
-            featureName,
-            allowedPermission: [
-              ...current.allowedPermission,
-              allowedPermission,
-            ],
-          });
-        }, new Map())
-        .values()
-    );
-    // console.log(uniqueCatogories);
-    appContext.updateUser({ permissions: uniqueCatogories });
-  };
-
-  useEffect(() => {
-    getPermisions();
-  }, []);
-
   return (
     <div className="lauchpad-wrapper">
       <div className="header">
