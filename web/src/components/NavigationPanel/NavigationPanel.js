@@ -11,6 +11,7 @@ import Box from "apollo-react/components/Box";
 import Arrow2Down from "apollo-react-icons/Arrow2Down";
 import App from "apollo-react-icons/App";
 import Tooltip from "apollo-react/components/Tooltip/Tooltip";
+import { getAppUrl, goToApp } from "../../utils";
 
 const styles = {
   content: {
@@ -34,12 +35,20 @@ const styles = {
   },
 };
 
+const CustomTooltip = withStyles(() => ({
+  tooltip: {
+    fontSize: 13,
+    width: 220,
+    padding: "1px 10px",
+  },
+}))(Tooltip);
+
 const linksArr = [
   {
     title: "Clinical Data Ingestion",
     imgUrl: "assets/svg/CDI_ICON_96x96.svg",
     haveAccess: true,
-    url: "cdi",
+    url: getAppUrl("CDI"),
   },
   {
     title: "Clinical Data Mapper",
@@ -139,7 +148,7 @@ const NavigationPanel = ({
               <Button
                 darkMode
                 variant="text"
-                onClick={() => link.haveAccess && history.push(link.url)}
+                onClick={() => link.haveAccess && goToApp(link.url)}
               >
                 <img src={link.imgUrl} alt={link.title} />
                 {link.title}
@@ -149,13 +158,13 @@ const NavigationPanel = ({
               // eslint-disable-next-line react/no-array-index-key
               <div key={i}>
                 {!link.haveAccess ? (
-                  <Tooltip
+                  <CustomTooltip
                     variant="dark"
                     title="Contact your System Administrator for access"
                     placement="right"
                   >
                     {buttonLInk}
-                  </Tooltip>
+                  </CustomTooltip>
                 ) : (
                   buttonLInk
                 )}

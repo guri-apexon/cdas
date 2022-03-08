@@ -1,10 +1,9 @@
 import React from "react";
 import { BrowserRouter, useHistory } from "react-router-dom";
-
 import "./App.scss";
-import CDASWrapper from "./components/CDASWrapper/CDASWrapper";
-import AppProvider from "./components/AppProvider";
-import MessageProvider from "./components/MessageProvider";
+import RoutesWrapper from "./RoutesWrapper";
+import AppProvider from "./components/Providers/AppProvider";
+import MessageProvider from "./components/Providers/MessageProvider";
 
 const App = () => {
   const history = useHistory();
@@ -13,7 +12,7 @@ const App = () => {
       <AppProvider>
         <MessageProvider>
           <BrowserRouter basename="/" history={history}>
-            <CDASWrapper />
+            <RoutesWrapper />
           </BrowserRouter>
         </MessageProvider>
       </AppProvider>

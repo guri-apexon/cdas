@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="80px" height="80px" viewBox="0 0 80 80" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>Icon_StudyData_72x72</title>
+    <g id="Icon_StudyData_72x72" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="icon/dataflow-copy" transform="translate(10.000000, 4.000000)" fill="#000000" fill-rule="nonzero">
+            <g id="data-file-bars-alternate">
+                <path d="M42.879,0.879 C42.3165218,0.316351876 41.5535844,0 40.758,0 L6,0 C2.6862915,0 0,2.6862915 0,6 L0,66 C0,69.3137085 2.6862915,72 6,72 L54,72 C57.3137085,72 60,69.3137085 60,66 L60,19.242 C60,18.4464156 59.6836481,17.6834782 59.121,17.121 L42.879,0.879 Z M54,64.5 C54,65.3284271 53.3284271,66 52.5,66 L7.5,66 C6.67157288,66 6,65.3284271 6,64.5 L6,7.5 C6,6.67157288 6.67157288,6 7.5,6 L38.895,6 C39.2920574,6 39.6728834,6.15759314 39.954,6.438 L53.562,20.046 C53.8424069,20.3271166 54,20.7079426 54,21.105 L54,64.5 Z" id="Shape"></path>
+                <rect id="Rectangle" x="15" y="40.5" width="6" height="10.5" rx="0.5"></rect>
+                <rect id="Rectangle" x="25.5" y="27" width="6" height="24" rx="0.5"></rect>
+                <rect id="Rectangle" x="36" y="33" width="6" height="18" rx="0.5"></rect>
+            </g>
+        </g>
+    </g>
+</svg>

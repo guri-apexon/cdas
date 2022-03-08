@@ -4,7 +4,7 @@ const axios = require("axios");
 const btoa = require("btoa");
 const apiResponse = require("../helpers/apiResponse");
 const Logger = require("../config/logger");
-const userController = require("../controller/UserController")
+const userController = require("../controller/UserController");
 
 const getToken = (code, clientId, clientSecret, callbackUrl, ssoUrl) => {
   return new Promise((resolve, reject) => {
@@ -38,6 +38,7 @@ const getToken = (code, clientId, clientSecret, callbackUrl, ssoUrl) => {
 // Handler for the /sda path
 exports.authHandler = async (req, res) => {
   // Get the token
+  const REACT_APP_URL = process.env.REACT_APP_URL;
   try {
     // read the code from the request
     const { code } = req.query;
@@ -62,29 +63,32 @@ exports.authHandler = async (req, res) => {
       headers: { Authorization: authStr },
     });
     const get_usr = await userController.getUser(resp.data.userid);
-    if(!get_usr || get_usr <= 0) {
+    if (!get_usr || get_usr <= 0) {
       const user_detail = {
-        usr_id : resp.data.userid,
-        usr_fst_nm : resp.data.given_name, 
-        usr_lst_nm : resp.data.family_name, 
-        usr_mail_id : resp.data.email,
-        insrt_tm : moment().format("YYYY-MM-DD HH:mm:ss"), 
-        updt_tm : moment().format("YYYY-MM-DD HH:mm:ss")
-      }
-      await userController.addUser(user_detail);  
+        usr_id: resp.data.userid,
+        usr_fst_nm: resp.data.given_name,
+        usr_lst_nm: resp.data.family_name,
+        usr_mail_id: resp.data.email,
+        insrt_tm: moment().format("YYYY-MM-DD HH:mm:ss"),
+        updt_tm: moment().format("YYYY-MM-DD HH:mm:ss"),
+      };
+      await userController.addUser(user_detail);
     }
     const last_login = await userController.getLastLoginTime(resp.data.userid);
     // Set the cookies
     const loginDetails = {
       usrId: resp.data.userid,
       login_tm: moment().format("YYYY-MM-DD HH:mm:ss"),
-      logout_tm: moment().add(response.expires_in, 'seconds').utc().format("YYYY-MM-DD HH:mm:ss")
-    }
-    if(!last_login || last_login <= 0) { 
+      logout_tm: moment()
+        .add(response.expires_in, "seconds")
+        .utc()
+        .format("YYYY-MM-DD HH:mm:ss"),
+    };
+    if (!last_login || last_login <= 0) {
       res.cookie("user.last_login_ts", moment().unix());
     } else {
       const stillUtc = moment.utc(last_login[0].login_tm).format();
-      res.cookie("user.last_login_ts", moment(stillUtc).local().unix())
+      res.cookie("user.last_login_ts", moment(stillUtc).local().unix());
     }
     await userController.addLoginActivity(loginDetails);
     //console.log(loginAct, "loginAt")
@@ -108,16 +112,15 @@ exports.authHandler = async (req, res) => {
 
     // res.cookie("userDetails", userDetails);
 
-    console.debug(userDetails);
     Logger.info({
       message: "authHandler",
     });
 
-    res.redirect("http://localhost:3000/launchpad");
+    res.redirect(`${REACT_APP_URL}/launchpad`);
   } catch (e) {
     // console.error(e);
     Logger.error(e);
-    res.redirect("http://localhost:3000/not-authenticated");
+    res.redirect(`${REACT_APP_URL}/not-authenticated`);
   }
 };
 

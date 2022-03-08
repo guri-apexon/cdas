@@ -1,8 +1,8 @@
 /* eslint-disable react/jsx-one-expression-per-line */
 /* eslint-disable prettier/prettier */
 /* eslint-disable no-shadow */
+import React, { useContext, useState } from "react";
 import { withRouter } from "react-router";
-import { useState } from "react";
 import NavigationBar from "apollo-react/components/NavigationBar";
 import makeStyles from "@material-ui/core/styles/makeStyles";
 import { neutral7 } from "apollo-react/colors";
@@ -15,14 +15,22 @@ import DashboardIcon from "apollo-react-icons/Dashboard";
 import Question from "apollo-react-icons/Question";
 import moment from "moment";
 import Button from "apollo-react/components/Button";
-
 import NavigationPanel from "../NavigationPanel/NavigationPanel";
 // eslint-disable-next-line import/named
-import { getCookie, deleteAllCookies } from "../../utils/index";
+import { deleteAllCookies, getUserInfo } from "../../utils/index";
 // eslint-disable-next-line import/named
-import { userLogOut } from "../../services/ApiServices";
+import { userLogOut, getRolesPermissions } from "../../services/ApiServices";
+import { MessageContext } from "../Providers/MessageProvider";
+import { AppContext } from "../Providers/AppProvider";
 
 const styles = {
+  haveAccess: {
+    color: "#e41e1e",
+  },
+  notapplied: {
+    color: "yellow",
+
+  },
   root: {
     display: "flex",
     height: 400,
@@ -71,74 +79,98 @@ const styles = {
     zIndex: 2,
     whiteSpace: "nowrap",
   },
-  nav: {
-    overflow: "hidden",
-  },
   fullNavHeight: {
     height: "100%",
   },
 };
 
-const menuItems = [
-  {
-    text: "Launchpad",
-    pathname: "/launchpad",
-  },
-  {
-    text: "Analytics",
-    pathname: "/analytics",
-  },
-  {
-    text: "Study Setup",
-    pathname: "/study-setup",
-  },
-  {
-    text: "User Management",
-    pathname: "/user-management",
-  },
-  {
-    text: "Admin",
-    menuItems: [
-      {
-        text: "Policy Management",
-        pathname: "/policy-management",
-      },
-      {
-        text: "Role Management",
-        pathname: "/role-management",
-      },
-      {
-        text: "Group Management",
-        pathname: "/group-management",
-      },
-      {
-        text: "System Admin",
-        pathname: "/system-admin",
-      },
-    ],
-  },
-];
-
 const useStyles = makeStyles(styles);
 
 const TopNavbar = ({ history, location: { pathname }, setLoggedIn }) => {
   const classes = useStyles();
+  const userInfo = getUserInfo();
+  const appContext = useContext(AppContext);
+  const checkAccess = (name) => {
+    const { permissions } = appContext.user;
+    if (permissions.length > 0) {
+      const hasAccess = permissions.some((per) => per.featureName === name);
+      return hasAccess;
+
+    }
+    return false;
+  };
+  const menuItems = [
+    {
+      featureName: "Launchpad",
+      text: "Launchpad",
+      pathname: "/launchpad",
+      haveAccess: checkAccess("Launchpad-Core"),
+    },
+    {
+      featureName: "Analytics",
+      text: "Analytics",
+      pathname: "/analytics",
+      haveAccess: checkAccess("Analytics"),
+    },
+    {
+      featureName: "Study Setup",
+      text: "Study Setup",
+      pathname: "/study-setup",
+      haveAccess: checkAccess("Study Setup "),
+    },
+    {
+      featureName: "User Management",
+      text: "User Management",
+      pathname: "/user-management",
+      haveAccess: checkAccess("User Management"),
+    },
+    {
+      text: "Admin",
+      menuItems: [
+        {
+          featureName: "Policy Management",
+          text: "Policy Management",
+          pathname: "/policy-management",
+          haveAccess: checkAccess("Policy management "),
+        },
+        {
+          featureName: "Role Management",
+          text: "Role Management",
+          pathname: "/role-management",
+          haveAccess: checkAccess("Role management"),
+        },
+        {
+          featureName: "Group Management",
+          text: "Group Management",
+          pathname: "/group-management",
+          haveAccess: checkAccess("Group management"),
+        },
+        {
+          featureName: "System Admin",
+          text: "System Admin",
+          pathname: "/vendor/list",
+          haveAccess: checkAccess("System management"),
+        },
+      ],
+    },
+  ];
+  const filterMenuItem = menuItems.filter(Items => Items.haveAccess === true)
+  const subfilterMenuItem = menuItems[4].menuItems.filter(item => item.haveAccess === true);
+  const filteredMenuItems = [...filterMenuItem, { text: "Admin", menuItems: subfilterMenuItem }]
+  const messageContext = useContext(MessageContext);
   const [panelOpen, setpanelOpen] = useState(true);
   const [notLoggedOutErr, setNotLoggedOutErr] = useState(false);
   const [open, setOpen] = useState(false);
+
   const profileMenuProps = {
-    name: decodeURIComponent(
-      `${getCookie("user.first_name")} ${getCookie("user.last_name")}`
-    ),
-    title: decodeURIComponent(getCookie("user.email")),
+    name: userInfo.fullName,
+    title: userInfo.userEmail,
     email: (
-      <span style={{ fontSize: "13px" }}>
-        Last Login: {getCookie("user.current_login_ts")}
-      </span>
+      <span style={{ fontSize: "13px" }}>Last Login: {userInfo.lastLogin}</span>
     ),
     // eslint-disable-next-line no-use-before-define
     logoutButtonProps: { onClick: () => LogOut() },
-    menuItems: [],
+    // menuItems: [],
   };
 
   const LogOut = async () => {
@@ -156,7 +188,6 @@ const TopNavbar = ({ history, location: { pathname }, setLoggedIn }) => {
       setOpen(false);
     }
   };
-
   const notificationsMenuProps = {
     newNotifications: true,
     notifications: [
@@ -176,60 +207,74 @@ const TopNavbar = ({ history, location: { pathname }, setLoggedIn }) => {
     setpanelOpen(false);
   };
   return (
-    <div id="topNavbar">
-      <Backdrop style={{ zIndex: 1 }} open={open}>
-        <CircularProgress variant="indeterminate" size="small" />
-      </Backdrop>
+    <>
+      <div id="topNavbar">
+        <Backdrop style={{ zIndex: 1 }} open={open}>
+          <CircularProgress variant="indeterminate" size="small" />
+        </Backdrop>
+        <Banner
+          variant="error"
+          open={notLoggedOutErr}
+          onClose={() => setNotLoggedOutErr(false)}
+          message="Error: There is some error in logging out!"
+        />
+        <NavigationBar
+          LogoComponent={() => (
+            <div className={classes.centerAligned}>
+              <Button onClick={toggleMenu} className={classes.fullNavHeight}>
+                <App className={classes.appIcon} />
+              </Button>
+              <Typography
+                className={classes.navLogo}
+                onClick={() => history.push("launchpad")}
+              >
+                IQVIA™
+                <span style={{ paddingLeft: 3 }} className={classes.bold}>
+                  Clinical Data Analytics Suite
+                </span>
+              </Typography>
+            </div>
+          )}
+          position="static"
+          menuItems={filteredMenuItems}
+          profileMenuProps={profileMenuProps}
+          // eslint-disable-next-line no-shadow
+          onClick={({ pathname }) => history.push(pathname)}
+          className={
+            // eslint-disable-next-line prefer-template
+            "nav"
+          }
+          // checkIsActive={(item) =>
+          //   item.pathname
+          //     ? item.pathname === pathname
+          //     : item.menuItems.some((item) => item.pathname === pathname)
+          // }
+          waves
+          notificationsMenuProps={notificationsMenuProps}
+          otherButtons={
+            // eslint-disable-next-line react/jsx-wrap-multilines
+            <div className={classes.centerAligned}>
+              <Button
+                onClick={() => history.push("help")}
+                className={classes.fullNavHeight}
+              >
+                <Question className={classes.appIcon} />
+              </Button>
+            </div>
+          }
+
+        />
+        <NavigationPanel open={panelOpen} onClose={onPanelClose} />
+      </div>
       <Banner
-        variant="error"
-        open={notLoggedOutErr}
-        onClose={() => setNotLoggedOutErr(false)}
-        message="Error: There is some error in logging out!"
+        variant={messageContext.errorMessage.variant}
+        open={messageContext.errorMessage.show}
+        onClose={messageContext.bannerCloseHandle}
+        message={messageContext.errorMessage.messages}
+        id={`Message-Banner--${messageContext.errorMessage.variant}`}
+        className={`Message-Banner top-${messageContext.errorMessage.top}`}
       />
-      <NavigationBar
-        LogoComponent={() => (
-          <div className={classes.centerAligned}>
-            <Button onClick={toggleMenu} className={classes.fullNavHeight}>
-              <App className={classes.appIcon} />
-            </Button>
-            <Typography
-              className={classes.navLogo}
-              onClick={() => history.push("launchpad")}
-            >
-              IQVIA™
-              <span className={classes.bold}>
-                Clinical Data Analytics Suite
-              </span>
-            </Typography>
-          </div>
-        )}
-        position="static"
-        menuItems={menuItems}
-        profileMenuProps={profileMenuProps}
-        // eslint-disable-next-line no-shadow
-        onClick={({ pathname }) => history.push(pathname)}
-        checkIsActive={(item) =>
-          item.pathname
-            ? item.pathname === pathname
-            : item.menuItems.some((item) => item.pathname === pathname)
-        }
-        waves
-        notificationsMenuProps={notificationsMenuProps}
-        otherButtons={
-          // eslint-disable-next-line react/jsx-wrap-multilines
-          <div className={classes.centerAligned}>
-            <Button
-              onClick={() => history.push("help")}
-              className={classes.fullNavHeight}
-            >
-              <Question className={classes.appIcon} />
-            </Button>
-          </div>
-        }
-        className={classes.nav}
-      />
-      <NavigationPanel open={panelOpen} onClose={onPanelClose} />
-    </div>
+    </>
   );
 };
 
