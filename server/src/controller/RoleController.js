@@ -166,7 +166,7 @@ exports.listRoles = async function (req, res) {
           }
         }
         delete each.prod_nm;
-        each.role_stat = each.role_stat === "1" ? "active" : "Inactive";
+        each.role_stat = each.role_stat === 1 ? "Active" : "Inactive";
         each.products = products;
       }
     }

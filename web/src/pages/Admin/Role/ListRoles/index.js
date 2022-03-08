@@ -97,24 +97,28 @@ const ListRoles = () => {
   const StatusCell = ({ row, column: { accessor } }) => {
     const data = row[accessor];
     const id = row.role_id;
-    if (data === "active") {
-      return (
-        <Tooltip title="Active" disableFocusListener>
-          <Switch
-            className="table-checkbox"
-            checked={true}
-            onChange={(e) => handleStatus(e, id, "Active")}
-            size="small"
-          />
-        </Tooltip>
-      );
-    }
+    const stat = data === "Active" ? true : false;
+    // if (data === "Active") {
+    //   return (
+    //     <Tooltip
+    //       title={data === "Active" ? "Active" : "Inactive"}
+    //       disableFocusListener
+    //     >
+    //       <Switch
+    //         className="table-checkbox"
+    //         checked={true}
+    //         onChange={(e) => handleStatus(e, id, "Active")}
+    //         size="small"
+    //       />
+    //     </Tooltip>
+    //   );
+    // }
     return (
-      <Tooltip title="Inactive" disableFocusListener>
+      <Tooltip title={stat ? "Active" : "Inactive"} disableFocusListener>
         <Switch
           className="table-checkbox"
-          checked={false}
-          onChange={(e) => handleStatus(e, id, "InActive")}
+          checked={stat}
+          onChange={(e) => handleStatus(e, id, data)}
           size="small"
         />
       </Tooltip>
