@@ -8,6 +8,9 @@ import TopNavbar from "./components/TopNavbar/TopNavbar";
 import AppFooter from "./components/AppFooter/AppFooter";
 import Logout from "./pages/Logout/Logout";
 
+const DynamicProducts = lazy(() =>
+  import("./pages/DynamicProducts/DynamicProducts")
+);
 const LaunchPad = lazy(() => import("./pages/LaunchPad/LaunchPad"));
 const StudySetup = lazy(() => import("./pages/StudySetup/StudySetup"));
 const ImportWithUsers = lazy(() =>
@@ -88,12 +91,18 @@ const RoutesWrapper = () => {
           <Switch>
             <Route path="/launchpad" exact render={() => <LaunchPad />} />
             <Route
-              path="/analytics"
+              path="/cdi"
               exact
               render={() => <Redirect to="/launchpad" />}
             />
+            <Route path="/study-setup" exact render={() => <StudySetup />} />
+            <Route path="/cdm" exact render={() => <DynamicProducts />} />
+            <Route path="/cdr" exact render={() => <DynamicProducts />} />
+            <Route path="/ca" exact render={() => <DynamicProducts />} />
+            <Route path="/dsw" exact render={() => <DynamicProducts />} />
+            <Route path="/vendor/list" exact render={() => <VendorList />} />
             <Route
-              path="/cdi"
+              path="/analytics"
               exact
               render={() => <Redirect to="/launchpad" />}
             />
@@ -129,28 +138,6 @@ const RoutesWrapper = () => {
               exact
               render={() => <Redirect to="/launchpad" />}
             />
-            <Route path="/study-setup" exact render={() => <StudySetup />} />
-            <Route
-              path="/cdm"
-              exact
-              render={() => <Redirect to="/launchpad" />}
-            />
-            <Route
-              path="/cdr"
-              exact
-              render={() => <Redirect to="/launchpad" />}
-            />
-            <Route
-              path="/ca"
-              exact
-              render={() => <Redirect to="/launchpad" />}
-            />
-            <Route
-              path="/dsw"
-              exact
-              render={() => <Redirect to="/launchpad" />}
-            />
-            <Route path="/vendor/list" exact render={() => <VendorList />} />
             <Route
               path="/vendor/edit/:id"
               exact
