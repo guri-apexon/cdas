@@ -87,7 +87,6 @@ const PolicyList = () => {
       }
       return e;
     });
-    // console.log("unique", Sorted, uniquePolicies);
     return Sorted;
   };
 
@@ -130,7 +129,6 @@ const PolicyList = () => {
     }
 
     setTableRows([...unSelectedData, ...selectedData]);
-    // console.log("tableRows", tableRows, products, id);
   };
 
   const StatusCell = ({ row, column: { accessor } }) => {
