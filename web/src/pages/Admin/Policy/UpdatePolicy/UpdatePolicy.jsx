@@ -15,6 +15,7 @@ import Tab from "apollo-react/components/Tab";
 import Tabs from "apollo-react/components/Tabs";
 import Badge from "apollo-react/components/Badge";
 import Modal from "apollo-react/components/Modal";
+import { AppContext } from "../../../../components/Providers/AppProvider";
 import {
   updatePolicyService,
   fetchProducts,
@@ -52,9 +53,21 @@ const UpdatePolicy = () => {
   const [policyDesc, setPolicyDesc] = useState("");
   const [permissions, setPermissions] = useState({});
   const [products, setProducts] = useState([]);
+  const [updatePolicyPermission, setPolicyUpdatePermission] = useState(false);
   const messageContext = useContext(MessageContext);
+  const appContext = useContext(AppContext);
+  const permissionsPolicy = appContext.user;
   const userInfo = getUserInfo();
   const history = useHistory();
+  const filterMethod = (updatepolicyPermissions) => {
+    const filterpolicyPermissions = updatepolicyPermissions.filter(
+      (item) => item.featureName === "Policy management "
+    )[0];
+    if (filterpolicyPermissions.allowedPermission.includes("Update")) {
+      setPolicyUpdatePermission(true);
+    }
+  };
+
   const handleActive = (e, checked) => {
     setActive(checked);
   };
@@ -203,6 +216,9 @@ const UpdatePolicy = () => {
   };
   useEffect(() => {
     fetchPermissions();
+    if (permissionsPolicy.permissions.length > 0) {
+      filterMethod(permissionsPolicy.permissions);
+    }
   }, [products]);
   useEffect(() => {
     getProducts();
@@ -224,8 +240,9 @@ const UpdatePolicy = () => {
             checked={active}
             onChange={handleActive}
             size="small"
+            disabled={!updatePolicyPermission}
           />
-          {active && (
+          {updatePolicyPermission && active && (
             <ButtonGroup
               className="action-buttons"
               alignItems="right"
@@ -265,7 +282,7 @@ const UpdatePolicy = () => {
                 {policyName}
               </Typography>
               <br />
-              {active ? (
+              {updatePolicyPermission && active ? (
                 <>
                   <TextField
                     id="policyName"
@@ -333,7 +350,7 @@ const UpdatePolicy = () => {
                 }
                 return (
                   <PermissionTable
-                    disabled={!active}
+                    disabled={!active || !updatePolicyPermission}
                     messageContext={messageContext}
                     title={product.prod_nm}
                     updateData={updateData}

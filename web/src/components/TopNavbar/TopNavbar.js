@@ -204,7 +204,7 @@ const TopNavbar = ({ history, setLoggedIn }) => {
     ),
     // eslint-disable-next-line no-use-before-define
     logoutButtonProps: { onClick: () => LogOut() },
-    // menuItems: [],
+    menuItems: [],
   };
 
   const LogOut = async () => {

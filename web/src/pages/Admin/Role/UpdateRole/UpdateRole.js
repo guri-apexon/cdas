@@ -33,6 +33,7 @@ import {
   updateRoleService,
 } from "../../../../services/ApiServices";
 import PolicySnapshot from "./PolicySnapshot";
+import { AppContext } from "../../../../components/Providers/AppProvider";
 
 const UpdateRole = () => {
   const dispatch = useDispatch();
@@ -49,7 +50,18 @@ const UpdateRole = () => {
   const [roleDesc, setRoleDesc] = useState("");
   const [policies, setPolicies] = useState([]);
   const [products, setProducts] = useState([]);
+  const appContext = useContext(AppContext);
+  const { permissions } = appContext.user;
+  const [RoleUpdatePermission, setUpdateRoleUpdatePermission] = useState(false);
   const userInfo = getUserInfo();
+  const filterMethod = (rolePermissions) => {
+    const filterrolePermissions = rolePermissions.filter(
+      (item) => item.featureName === "Role management"
+    )[0];
+    if (filterrolePermissions.allowedPermission.includes("Update")) {
+      setUpdateRoleUpdatePermission(true);
+    }
+  };
   const getPolicies = async () => {
     const roleDetails = await getRoleDetails(params.id);
     if (!roleDetails) {
@@ -70,9 +82,11 @@ const UpdateRole = () => {
   const SelectionCell = ({ row }) => {
     const [checked, setChecked] = useState(row.selected);
     const setSelected = (e) => {
-      row.selected = e.target.checked;
-      row.updated = true;
-      setChecked(e.target.checked);
+      if (!RoleUpdatePermission) {
+        row.selected = e.target.checked;
+        row.updated = true;
+        setChecked(e.target.checked);
+      }
     };
     return (
       <>
@@ -80,6 +94,7 @@ const UpdateRole = () => {
           checked={checked}
           type="checkbox"
           className="custom-checkbox"
+          disabled={!RoleUpdatePermission}
           onChange={setSelected}
         />
       </>
@@ -120,14 +135,21 @@ const UpdateRole = () => {
       customCell: ({ row, column: { accessor } }) => {
         const data = row[accessor];
         if (data.length < 40) {
-          return <Link onClick={() => setSelectedPolicy(row)}>{data}</Link>;
+          if (RoleUpdatePermission) {
+            return <Link onClick={() => setSelectedPolicy(row)}>{data}</Link>;
+          }
+          return <span>{data}</span>;
         }
         return (
           <>
-            <Link onClick={() => setSelectedPolicy(row)}>
+            <Link
+              onClick={() => setSelectedPolicy(row)}
+              disabled={!RoleUpdatePermission}
+            >
               {data.slice(0, 20)}
             </Link>
             <Link
+              disabled={!RoleUpdatePermission}
               onMouseOver={() => setPeekRow(row)}
               onMouseOut={() => setPeekRow(null)}
             >
@@ -223,6 +245,9 @@ const UpdateRole = () => {
       });
   };
   useEffect(() => {
+    if (permissions.length > 0) {
+      filterMethod(permissions);
+    }
     getPolicies();
   }, []);
   const getPolicyTable = React.useMemo(() => {
@@ -308,24 +333,27 @@ const UpdateRole = () => {
             className="inline-checkbox"
             checked={active}
             onChange={handleActive}
+            disabled={!RoleUpdatePermission}
             size="small"
           />
-          <ButtonGroup
-            alignItems="right"
-            buttonProps={[
-              {
-                label: "Cancel",
-                size: "small",
-                onClick: () => setConfirmCancel(),
-              },
-              {
-                label: "Save",
-                size: "small",
-                disabled: loading,
-                onClick: submitRole,
-              },
-            ]}
-          />
+          {RoleUpdatePermission && (
+            <ButtonGroup
+              alignItems="right"
+              buttonProps={[
+                {
+                  label: "Cancel",
+                  size: "small",
+                  onClick: () => setConfirmCancel(),
+                },
+                {
+                  label: "Save",
+                  size: "small",
+                  disabled: loading,
+                  onClick: submitRole,
+                },
+              ]}
+            />
+          )}
         </div>
       </Box>
       <Grid container spacing={2}>
@@ -336,26 +364,36 @@ const UpdateRole = () => {
                 {roleName}
               </Typography>
               <br />
-              <TextField
-                id="roleName"
-                size="small"
-                value={roleName}
-                label="Role Name"
-                placeholder="Name your role"
-                onChange={handleChange}
-              />
-              <TextField
-                id="roleDesc"
-                size="small"
-                value={roleDesc}
-                label="Role Description"
-                placeholder="Describe your role"
-                rows="18"
-                multiline={true}
-                minHeight={150}
-                sizeAdjustable
-                onChange={handleChange}
-              />
+              {RoleUpdatePermission ? (
+                <>
+                  <TextField
+                    id="roleName"
+                    size="small"
+                    value={roleName}
+                    label="Role Name"
+                    placeholder="Name your role"
+                    onChange={handleChange}
+                  />
+                  <TextField
+                    id="roleDesc"
+                    size="small"
+                    value={roleDesc}
+                    label="Role Description"
+                    placeholder="Describe your role"
+                    rows="18"
+                    multiline={true}
+                    minHeight={150}
+                    sizeAdjustable
+                    onChange={handleChange}
+                  />
+                </>
+              ) : (
+                <>
+                  <br />
+                  <Typography variant="body2">Role Description</Typography>
+                  <Typography className="b-font">{roleDesc}</Typography>
+                </>
+              )}
             </div>
           </Box>
         </Grid>
