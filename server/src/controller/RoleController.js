@@ -228,11 +228,11 @@ exports.getRolesPermissions = async (req, res) => {
     const query = `select 
      c.ctgy_nm as "categoryName", f.feat_nm as "featureName", p2.permsn_nm as "allowedPermission" from ${dbSchema}.study_user_role sur
   inner join ${dbSchema}.role r on r.role_id = sur.role_id
-  right join ${dbSchema}.role_policy rp on rp.role_id = r.role_id 
-  right join ${dbSchema}."policy" p on p.plcy_id = rp.plcy_id 
-  right join ${dbSchema}.policy_product_permission ppp on p.plcy_id = ppp.plcy_id 
-  right join ${dbSchema}.product_permission pp on ppp.prod_permsn_id = pp.prod_permsn_id 
-  right join ${dbSchema}."permission" p2 on pp.permsn_id = p2.permsn_id 
+  inner join ${dbSchema}.role_policy rp on rp.role_id = r.role_id 
+  inner join ${dbSchema}."policy" p on p.plcy_id = rp.plcy_id 
+  inner join ${dbSchema}.policy_product_permission ppp on p.plcy_id = ppp.plcy_id 
+  inner join ${dbSchema}.product_permission pp on ppp.prod_permsn_id = pp.prod_permsn_id 
+  inner join ${dbSchema}."permission" p2 on pp.permsn_id = p2.permsn_id 
   inner join ${dbSchema}.product p3 on pp.prod_id = p3.prod_id 
   inner join ${dbSchema}.category c on pp.ctgy_id = c.ctgy_id 
   inner join ${dbSchema}.feature f on pp.feat_id = f.feat_id 
