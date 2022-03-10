@@ -15,7 +15,7 @@ import DashboardIcon from "apollo-react-icons/Dashboard";
 import Question from "apollo-react-icons/Question";
 import moment from "moment";
 import Button from "apollo-react/components/Button";
-import NavigationPanel from "../NavigationPanel/NavigationPanel";
+import NavigationPanel from "./NavigationPanel/NavigationPanel";
 // eslint-disable-next-line import/named
 import { deleteAllCookies, getUserInfo } from "../../utils/index";
 // eslint-disable-next-line import/named
@@ -85,7 +85,7 @@ const styles = {
 
 const useStyles = makeStyles(styles);
 
-const TopNavbar = ({ history, setLoggedIn }) => {
+const AppHeader = ({ history, setLoggedIn }) => {
   const classes = useStyles();
   const userInfo = getUserInfo();
   const appContext = useContext(AppContext);
@@ -93,28 +93,31 @@ const TopNavbar = ({ history, setLoggedIn }) => {
   const getPermisions = async () => {
     if (permissions.length === 0) {
       const data = await getRolesPermissions();
-      // console.log(data);
-      const uniquePermissions = Array.from(
-        data
-          .reduce((acc, { categoryName, featureName, allowedPermission }) => {
-            const current = acc.get(featureName) || {
-              allowedPermission: [],
-            };
-            return acc.set(featureName, {
-              ...current,
-              categoryName,
-              featureName,
-              allowedPermission: [
-                ...current.allowedPermission,
-                allowedPermission,
-              ],
-            });
-          }, new Map())
-          .values()
-      );
-      appContext.updateUser({ permissions: uniquePermissions });
+      if (data.message !== "Something went wrong") {
+        const uniquePermissions = Array.from(
+          data
+            .reduce((acc, { categoryName, featureName, allowedPermission }) => {
+              const current = acc.get(featureName) || {
+                allowedPermission: [],
+              };
+              return acc.set(featureName, {
+                ...current,
+                categoryName,
+                featureName,
+                allowedPermission: [
+                  ...current.allowedPermission,
+                  allowedPermission,
+                ],
+              });
+            }, new Map())
+            .values()
+        );
+        appContext.updateUser({ permissions: uniquePermissions });
+      }
+
       // console.log(uniquePermissions);
     }
+    appContext.updateUser({ permissions: [] });
   };
 
   useEffect(() => {
@@ -133,7 +136,7 @@ const TopNavbar = ({ history, setLoggedIn }) => {
       featureName: "Launchpad",
       text: "Launchpad",
       pathname: "/launchpad",
-      haveAccess: checkAccess("Launchpad-Core"),
+      haveAccess: true,
     },
     {
       featureName: "Analytics",
@@ -154,7 +157,6 @@ const TopNavbar = ({ history, setLoggedIn }) => {
       haveAccess: checkAccess("User Management"),
     },
     {
-      text: "Admin",
       menuItems: [
         {
           featureName: "Policy Management",
@@ -187,10 +189,15 @@ const TopNavbar = ({ history, setLoggedIn }) => {
   const subfilterMenuItem = menuItems[4].menuItems.filter(
     (item) => item.haveAccess === true
   );
-  const filteredMenuItems = [
-    ...filterMenuItem,
-    { text: "Admin", menuItems: subfilterMenuItem },
-  ];
+  let filteredMenuItems = [];
+  if (subfilterMenuItem.length > 0) {
+    filteredMenuItems = [
+      ...filterMenuItem,
+      { text: "Admin", menuItems: subfilterMenuItem },
+    ];
+  } else {
+    filteredMenuItems = [...filterMenuItem];
+  }
   const messageContext = useContext(MessageContext);
   const [panelOpen, setpanelOpen] = useState(true);
   const [notLoggedOutErr, setNotLoggedOutErr] = useState(false);
@@ -311,4 +318,4 @@ const TopNavbar = ({ history, setLoggedIn }) => {
   );
 };
 
-export default withRouter(TopNavbar);
+export default withRouter(AppHeader);
