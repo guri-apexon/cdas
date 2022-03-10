@@ -89,12 +89,18 @@ const AppHeader = ({ history, setLoggedIn }) => {
   const classes = useStyles();
   const userInfo = getUserInfo();
   const appContext = useContext(AppContext);
+  const messageContext = useContext(MessageContext);
+  const [panelOpen, setpanelOpen] = useState(true);
+  const [notLoggedOutErr, setNotLoggedOutErr] = useState(false);
+  const [open, setOpen] = useState(false);
   const { permissions } = appContext.user;
+
   const getPermisions = async () => {
     if (permissions.length === 0) {
+      let uniquePermissions = [];
       const data = await getRolesPermissions();
       if (data.message !== "Something went wrong") {
-        const uniquePermissions = Array.from(
+        uniquePermissions = Array.from(
           data
             .reduce((acc, { categoryName, featureName, allowedPermission }) => {
               const current = acc.get(featureName) || {
@@ -113,11 +119,14 @@ const AppHeader = ({ history, setLoggedIn }) => {
             .values()
         );
         appContext.updateUser({ permissions: uniquePermissions });
+      } else {
+        messageContext.showErrorMessage(
+          `There was an issue authorizing your login information. Please contact your Administrator.`
+        );
       }
 
       // console.log(uniquePermissions);
     }
-    appContext.updateUser({ permissions: [] });
   };
 
   useEffect(() => {
@@ -198,10 +207,6 @@ const AppHeader = ({ history, setLoggedIn }) => {
   } else {
     filteredMenuItems = [...filterMenuItem];
   }
-  const messageContext = useContext(MessageContext);
-  const [panelOpen, setpanelOpen] = useState(true);
-  const [notLoggedOutErr, setNotLoggedOutErr] = useState(false);
-  const [open, setOpen] = useState(false);
 
   const profileMenuProps = {
     name: userInfo.fullName,

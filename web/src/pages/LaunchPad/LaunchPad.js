@@ -97,7 +97,7 @@ const LaunchPad = () => {
     if (permissions.length > 0) {
       if (!data) {
         msgContext.showErrorMessage(
-          `There was an issue authorizing your login information. Please contact your Administrator. `
+          `There was an issue authorizing your login information. Please contact your Administrator.`
         );
       }
     }
