@@ -4,7 +4,7 @@ import { lazy, Suspense, useState, useEffect } from "react";
 import Loader from "apollo-react/components/Loader";
 
 import { getCookie } from "./utils";
-import TopNavbar from "./components/TopNavbar/TopNavbar";
+import AppHeader from "./components/AppHeader/AppHeader";
 import AppFooter from "./components/AppFooter/AppFooter";
 import Logout from "./pages/Logout/Logout";
 
@@ -87,7 +87,7 @@ const RoutesWrapper = () => {
     <Suspense fallback={<Loader isInner />}>
       {loggedIn ? (
         <div className="page-wrapper">
-          <TopNavbar setLoggedIn={setLoggedIn} />
+          <AppHeader setLoggedIn={setLoggedIn} />
           <Switch>
             <Route path="/launchpad" exact render={() => <LaunchPad />} />
             <Route

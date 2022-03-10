@@ -1,12 +1,12 @@
 import React from "react";
 import { BrowserRouter } from "react-router-dom";
 import { mount } from "enzyme";
-import TopNavbar from "./TopNavbar";
+import AppHeader from "./AppHeader";
 
 test("Rendering TopNavbar", () => {
   const wrapper = mount(
     <BrowserRouter basename="/">
-      <TopNavbar />
+      <AppHeader />
     </BrowserRouter>
   );
   expect(wrapper.exists("#topNavbar")).toBe(true);
