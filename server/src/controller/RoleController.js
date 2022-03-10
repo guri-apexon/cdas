@@ -17,7 +17,6 @@ exports.createRole = function (req, res) {
         res,
         "Please complete all mandatory information and then click Save"
       );
-      return false;
     }
     const currentTime = helpers.getCurrentTime();
     const roleValues = [
@@ -70,7 +69,6 @@ exports.updateRole = function (req, res) {
         res,
         "Please complete all mandatory information and then click Save"
       );
-      return false;
     }
     const currentTime = helpers.getCurrentTime();
     const roleValues = [name, description, status, userId, currentTime, roleId];
