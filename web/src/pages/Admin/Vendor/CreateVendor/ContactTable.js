@@ -239,7 +239,7 @@ const TableEditableAll = ({ updateData, deleteAContact }) => {
       height="480px"
       tablePaginationProps={{
         labelDisplayedRows: ({ from, to, count }) =>
-          `${count === 1 ? "Items" : "Items"} ${from}-${to} of ${count}`,
+          `${count === 1 ? "Item" : "Items"} ${from}-${to} of ${count}`,
         truncate: true,
       }}
       CustomHeader={(props) => (

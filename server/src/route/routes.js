@@ -10,7 +10,6 @@ const policyRoute = require("./policy");
 const verdorRoute = require("./vendor");
 const roleRoute = require("./role");
 const auditRoute = require("./audit");
-auditRoute;
 const router = express.Router();
 
 router.use(
