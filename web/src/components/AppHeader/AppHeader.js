@@ -99,7 +99,11 @@ const AppHeader = ({ history, setLoggedIn }) => {
     if (permissions.length === 0) {
       let uniquePermissions = [];
       const data = await getRolesPermissions();
-      if (data.message !== "Something went wrong") {
+      if (data.message === "Something went wrong") {
+        messageContext.showErrorMessage(
+          `There was an issue authorizing your login information. Please contact your Administrator.`
+        );
+      } else {
         uniquePermissions = Array.from(
           data
             .reduce((acc, { categoryName, featureName, allowedPermission }) => {
@@ -119,10 +123,6 @@ const AppHeader = ({ history, setLoggedIn }) => {
             .values()
         );
         appContext.updateUser({ permissions: uniquePermissions });
-      } else {
-        messageContext.showErrorMessage(
-          `There was an issue authorizing your login information. Please contact your Administrator.`
-        );
       }
 
       // console.log(uniquePermissions);
