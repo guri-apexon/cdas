@@ -11,7 +11,7 @@ const logQuery = `INSERT INTO ${dbSchema}.audit_log (tbl_nm,id,attribute,old_val
 
 async function getCurrentRole(id) {
   const { rows } = await DB.executeQuery(
-    `SELECT * ${dbSchema}.role where role_id = $1`,
+    `SELECT * FROM ${dbSchema}.role where role_id = $1`,
     [id]
   );
   return rows[0];
@@ -225,14 +225,12 @@ exports.updateStatus = async (req, res) => {
 exports.updateRole = async function (req, res) {
   try {
     const { name, description, policies, userId, status, roleId } = req.body;
-
     if (!name || !description || !userId || !roleId) {
       return apiResponse.ErrorResponse(
         res,
         "Please complete all mandatory information and then click Save"
       );
     }
-
     const currentTime = helpers.getCurrentTime();
     const roleValues = [name, description, status, userId, currentTime, roleId];
     const curRole = await getCurrentRole(roleId);
@@ -307,7 +305,7 @@ exports.updateRole = async function (req, res) {
       })
       .catch((err) => {
         const errMessage =
-          err.code == 23505 ? messages.CREATE_ROLE_UNIQUE : err.detail;
+          err.code == 23505 ? messages.CREATE_ROLE_UNIQUE : err?.detail;
         return apiResponse.ErrorResponse(res, errMessage);
       });
   } catch (err) {
