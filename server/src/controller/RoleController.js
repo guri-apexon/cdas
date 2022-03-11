@@ -199,7 +199,7 @@ exports.getRolesPermissions = async (req, res) => {
 exports.updateStatus = async (req, res) => {
   try {
     const { role_id, role_stat, userId } = req.body;
-    const oldValue = role_stat === 1 ? 1 : 0;
+    const oldValue = role_stat === 1 ? 0 : 1;
     const currentTime = helpers.getCurrentTime();
     let query = `update ${dbSchema}.role set role_stat = '${role_stat}', updated_by = '${userId}', updated_on = '${currentTime}' where role_id = ${role_id}`;
     await DB.executeQuery(query);
