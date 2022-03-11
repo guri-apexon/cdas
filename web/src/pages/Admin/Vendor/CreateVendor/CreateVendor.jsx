@@ -259,7 +259,12 @@ const CreateVendor = () => {
 
   const deleteAContact = (vCId) => {
     if (isEditPage) {
-      deleteVendorContact({ vId, vCId, userName: userInfo.firstName });
+      deleteVendorContact({
+        vId,
+        vCId,
+        userName: userInfo.firstName,
+        userId: userInfo.user_id,
+      });
     }
   };
 

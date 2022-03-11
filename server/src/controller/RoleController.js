@@ -1,13 +1,21 @@
 const DB = require("../config/db");
 const apiResponse = require("../helpers/apiResponse");
 const Logger = require("../config/logger");
-const moment = require("moment");
 const constants = require("../config/constants");
 const messages = require("../config/messages");
 const helpers = require("../helpers/customFunctions");
 const { _ } = require("lodash");
-const e = require("express");
 const { DB_SCHEMA_NAME: dbSchema } = constants;
+
+const logQuery = `INSERT INTO ${dbSchema}.audit_log (tbl_nm,id,attribute,old_val,new_val,rsn_for_chg,updated_by,updated_on) values ($1, $2, $3, $4, $5, $6, $7, $8)`;
+
+async function getCurrentRole(roleId) {
+  const { rows } = await DB.executeQuery(
+    `SELECT * ${dbSchema}.datakind where role_id = $1`,
+    [roleId]
+  );
+  return rows[0];
+}
 
 exports.createRole = function (req, res) {
   try {
@@ -47,56 +55,6 @@ exports.createRole = function (req, res) {
             );
           })
           .catch((err) => {
-            return apiResponse.ErrorResponse(res, err?.detail);
-          });
-      })
-      .catch((err) => {
-        const errMessage =
-          err.code == 23505 ? messages.CREATE_ROLE_UNIQUE : err.detail;
-        return apiResponse.ErrorResponse(res, errMessage);
-      });
-  } catch (err) {
-    console.log("Err", err);
-    return apiResponse.ErrorResponse(res, err);
-  }
-};
-
-exports.updateRole = function (req, res) {
-  try {
-    const { name, description, policies, userId, status, roleId } = req.body;
-    if (!name || !description || !userId || !roleId) {
-      return apiResponse.ErrorResponse(
-        res,
-        "Please complete all mandatory information and then click Save"
-      );
-    }
-    const currentTime = helpers.getCurrentTime();
-    const roleValues = [name, description, status, userId, currentTime, roleId];
-    DB.executeQuery(
-      `UPDATE ${dbSchema}.role set role_nm=$1, role_desc=$2, role_stat=$3, updated_by=$4, updated_on=$5 WHERE role_id=$6 RETURNING *`,
-      roleValues
-    )
-      .then((response) => {
-        const role = response.rows[0];
-        let queryStr = "";
-        policies.forEach((policy) => {
-          const Active = policy.value ? "1" : "0";
-          if (policy.existed) {
-            queryStr += `UPDATE ${dbSchema}.role_policy set act_flg='${Active}' WHERE role_plcy_id=${policy.existed};`;
-          } else {
-            queryStr += `INSERT into ${dbSchema}.role_policy(role_id, plcy_id, act_flg, created_by, created_on, updated_by, updated_on) VALUES('${role.role_id}', '${policy.id}', '${Active}', '${userId}', '${currentTime}', '${userId}', '${currentTime}');`;
-          }
-        });
-        DB.executeQuery(queryStr)
-          .then((response) => {
-            return apiResponse.successResponseWithData(
-              res,
-              messages.UPDATE_ROLE_SUCCESS,
-              {}
-            );
-          })
-          .catch((err) => {
-            console.log("Err", err);
             return apiResponse.ErrorResponse(res, err?.detail);
           });
       })
@@ -204,20 +162,6 @@ exports.getDetails = async (req, res) => {
   }
 };
 
-exports.updateStatus = async (req, res) => {
-  try {
-    const { role_id, role_stat, userId } = req.body;
-    const currentTime = helpers.getCurrentTime();
-    let query = `update ${dbSchema}.role set role_stat = '${role_stat}', updated_by = '${userId}', updated_on = '${currentTime}' where role_id = ${role_id}`;
-    await DB.executeQuery(query);
-    return apiResponse.successResponseWithData(res, "Update success");
-  } catch (error) {
-    Logger.error("catch :update status role");
-    Logger.error(error.message);
-    return apiResponse.ErrorResponse(res, error.message);
-  }
-};
-
 exports.getRolesPermissions = async (req, res) => {
   try {
     Logger.info({ message: "getRolesPermissions" });
@@ -247,6 +191,122 @@ exports.getRolesPermissions = async (req, res) => {
     );
   } catch (err) {
     Logger.error("catch :getRolesPermissions");
+    Logger.error(err);
+    return apiResponse.ErrorResponse(res, err);
+  }
+};
+
+exports.updateStatus = async (req, res) => {
+  try {
+    const { role_id, role_stat, userId } = req.body;
+    const oldValue = role_stat === 1 ? 1 : 0;
+    const currentTime = helpers.getCurrentTime();
+    let query = `update ${dbSchema}.role set role_stat = '${role_stat}', updated_by = '${userId}', updated_on = '${currentTime}' where role_id = ${role_id}`;
+    await DB.executeQuery(query);
+    await DB.executeQuery(logQuery, [
+      "role",
+      role_id,
+      "role_stat",
+      oldValue,
+      role_stat,
+      userId,
+      currentTime,
+    ]);
+
+    return apiResponse.successResponseWithData(res, "Update success");
+  } catch (error) {
+    Logger.error("catch :update status role");
+    Logger.error(error.message);
+    return apiResponse.ErrorResponse(res, error.message);
+  }
+};
+
+exports.updateRole = async function (req, res) {
+  try {
+    const { name, description, policies, userId, status, roleId } = req.body;
+    if (!name || !description || !userId || !roleId) {
+      return apiResponse.ErrorResponse(
+        res,
+        "Please complete all mandatory information and then click Save"
+      );
+    }
+
+    const currentTime = helpers.getCurrentTime();
+    const roleValues = [name, description, status, userId, currentTime, roleId];
+    const curRole = await getCurrentRole(roleId);
+    const { role_stat, role_nm, role_desc } = curRole;
+
+    if (role_nm != name) {
+      await DB.executeQuery(logQuery, [
+        "role",
+        roleId,
+        "role_nm",
+        role_nm,
+        name,
+        userId,
+        currentTime,
+      ]);
+    }
+
+    if (role_desc != description) {
+      await DB.executeQuery(logQuery, [
+        "role",
+        roleId,
+        "role_desc",
+        role_desc,
+        description,
+        userId,
+        currentTime,
+      ]);
+    }
+
+    if (role_stat != status) {
+      await DB.executeQuery(logQuery, [
+        "role",
+        roleId,
+        "role_stat",
+        role_stat,
+        status,
+        userId,
+        currentTime,
+      ]);
+    }
+
+    DB.executeQuery(
+      `UPDATE ${dbSchema}.role set role_nm=$1, role_desc=$2, role_stat=$3, updated_by=$4, updated_on=$5 WHERE role_id=$6 RETURNING *`,
+      roleValues
+    )
+      .then((response) => {
+        const role = response.rows[0];
+        let queryStr = "";
+        policies.forEach((policy) => {
+          const Active = policy.value ? "1" : "0";
+          if (policy.existed) {
+            queryStr += `UPDATE ${dbSchema}.role_policy set act_flg='${Active}' WHERE role_plcy_id=${policy.existed};`;
+          } else {
+            queryStr += `INSERT into ${dbSchema}.role_policy(role_id, plcy_id, act_flg, created_by, created_on, updated_by, updated_on) VALUES('${role.role_id}', '${policy.id}', '${Active}', '${userId}', '${currentTime}', '${userId}', '${currentTime}');`;
+          }
+        });
+        DB.executeQuery(queryStr)
+          .then((response) => {
+            return apiResponse.successResponseWithData(
+              res,
+              messages.UPDATE_ROLE_SUCCESS,
+              {}
+            );
+          })
+          .catch((err) => {
+            console.log("Err", err);
+            return apiResponse.ErrorResponse(res, err?.detail);
+          });
+      })
+      .catch((err) => {
+        const errMessage =
+          err.code == 23505 ? messages.CREATE_ROLE_UNIQUE : err.detail;
+        return apiResponse.ErrorResponse(res, errMessage);
+      });
+  } catch (err) {
+    Logger.error("catch :updateRole");
     Logger.error(err);
     return apiResponse.ErrorResponse(res, err);
   }

@@ -84,9 +84,6 @@ const NavigationPanel = ({
   const [openPanel, setOpenPanel] = useState(open);
   const useStyles = makeStyles(styles);
   const classes = useStyles();
-  // const onOpen = () => {
-  //   setOpenPanel(true);
-  // };
   const closePanel = () => {
     setOpenPanel(false);
     onClose();
