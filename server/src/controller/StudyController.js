@@ -243,9 +243,7 @@ exports.getStudyList = async (req, res) => {
     const query3 = `SELECT DISTINCT phase FROM ${schemaName}.study`;
     const query4 = `SELECT DISTINCT prot_stat as protocolstatus FROM ${schemaName}.study`;
 
-    Logger.info({
-      message: "getStudyList",
-    });
+    Logger.info({ message: "getStudyList" });
 
     const $q1 = await DB.executeQuery(query);
     const $q2 = await DB.executeQuery(query2);
