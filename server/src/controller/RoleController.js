@@ -1,13 +1,13 @@
 const DB = require("../config/db");
 const apiResponse = require("../helpers/apiResponse");
 const Logger = require("../config/logger");
-const moment = require("moment");
 const constants = require("../config/constants");
 const messages = require("../config/messages");
 const helpers = require("../helpers/customFunctions");
 const { _ } = require("lodash");
-const e = require("express");
 const { DB_SCHEMA_NAME: dbSchema } = constants;
+
+const logQuery = `INSERT INTO ${dbSchema}.audit_log (tbl_nm,id,attribute,old_val,new_val,rsn_for_chg,updated_by,updated_on) values ($1, $2, $3, $4, $5, $6, $7, $8)`;
 
 exports.createRole = function (req, res) {
   try {
@@ -207,9 +207,20 @@ exports.getDetails = async (req, res) => {
 exports.updateStatus = async (req, res) => {
   try {
     const { role_id, role_stat, userId } = req.body;
+    const oldValue = role_stat === 1 ? 1 : 0;
     const currentTime = helpers.getCurrentTime();
     let query = `update ${dbSchema}.role set role_stat = '${role_stat}', updated_by = '${userId}', updated_on = '${currentTime}' where role_id = ${role_id}`;
     await DB.executeQuery(query);
+    await DB.executeQuery(logQuery, [
+      "role",
+      role_id,
+      "role_stat",
+      oldValue,
+      role_stat,
+      userId,
+      currentTime,
+    ]);
+
     return apiResponse.successResponseWithData(res, "Update success");
   } catch (error) {
     Logger.error("catch :update status role");
