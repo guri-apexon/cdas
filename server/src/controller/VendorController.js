@@ -8,12 +8,19 @@ const helpers = require("../helpers/customFunctions");
 const { DB_SCHEMA_NAME: schemaName } = constants;
 
 const contactInsert = `INSERT INTO ${schemaName}.vendor_contact (vend_id, contact_nm, emailid, created_by, created_on, updated_by, updated_on, act_flg) VALUES($1, $2, $3, $4, $5, $4, $5, 1)`;
+const logQuery = `INSERT INTO ${schemaName}.audit_log (tbl_nm,id,attribute,old_val,new_val,rsn_for_chg,updated_by,updated_on) values ($1, $2, $3, $4, $5, $6, $7, $8)`;
+
+async function getCurrentVendor(vId) {
+  const { rows } = await DB.executeQuery(
+    `SELECT * FROM ${schemaName}.vendor where vend_id = $1`,
+    [vId]
+  );
+  return rows[0];
+}
 
 exports.getVendorsList = async (req, res) => {
   try {
-    Logger.info({
-      message: "vendorList",
-    });
+    Logger.info({ message: "vendorList" });
 
     let query = `select v.vend_id as "vId", vend_nm as "vName", vend_nm_stnd as "vNStd", description as "vDescription", active as "status", extrnl_sys_nm as "vESN", vc.Ven_Contact_nm as "vContactName" from ${schemaName}.vendor v 
     left join (select vc.vend_id , string_agg(vc.contact_nm,', ') as Ven_Contact_nm from ${schemaName}.vendor_contact vc where act_flg =1 group by vc.vend_id) vc on v.vend_id =vc.vend_id`;
@@ -46,7 +53,6 @@ exports.getVendorById = async (req, res) => {
     Logger.info({
       message: "getVendorById",
     });
-    // console.log(id);
 
     const query = `SELECT v.vend_id as "vId", vend_nm as "vName", description as "vDescription", active as "vStatus", extrnl_sys_nm as "vESN" FROM ${schemaName}.vendor v WHERE v.vend_id = $1`;
     const query2 = `SELECT vc.contact_nm as "name", vc.emailid as "email", vc.vend_contact_id as "vCId" FROM ${schemaName}.vendor_contact vc where vc.vend_id = $1 AND vc.act_flg=1`;
@@ -72,42 +78,21 @@ exports.getVendorById = async (req, res) => {
   }
 };
 
-exports.activeStatusUpdate = async (req, res) => {
+exports.getENSList = async (req, res) => {
   try {
-    const { vId, vStatus, userId } = req.body;
-    const curDate = helpers.getCurrentTime();
-    Logger.info({ message: "activeStatusUpdate" });
-    const $q1 = `select distinct vend_id from ${schemaName}.dataflow d`;
-    const $query = `UPDATE ${schemaName}.vendor SET active=$1, updt_tm=$2, updated_by=$3 WHERE vend_id=$4`;
-
-    const q1 = await DB.executeQuery($q1);
-    const existingInDF = q1.rows.map((e) => parseInt(e.vend_id));
-    // console.log(existingInDF.includes(vId), existingInDF, vId);
-    if (existingInDF.includes(parseInt(vId))) {
-      return apiResponse.validationErrorWithData(
-        res,
-        "Operation failed",
-        "Vendor cannot be inactivated until removed from all data flows using this Vendor."
-      );
-    } else {
-      const details = await DB.executeQuery($query, [
-        vStatus,
-        curDate,
-        userId,
-        vId,
-      ]);
-      return apiResponse.successResponseWithData(
-        res,
-        "Operation success",
-        details.row || null
-      );
-    }
+    Logger.info({ message: "getENSList" });
+    const selectQuery = `select lov_nm from ${schemaName}.cdas_core_lov ccl where act_flg = 1`;
+    const list = await DB.executeQuery(selectQuery);
+    const formatted = list.rows.map((e) => e.lov_nm);
+    return apiResponse.successResponseWithData(
+      res,
+      "Operation success",
+      formatted || []
+    );
   } catch (err) {
     //throw error in json response with status 500.
-    console.log(err);
-    Logger.error("catch :activeStatusUpdate");
+    Logger.error("catch :getENSList");
     Logger.error(err);
-
     return apiResponse.ErrorResponse(res, err);
   }
 };
@@ -134,10 +119,6 @@ exports.createVendor = async (req, res) => {
     VALUES($1, $2, $3, $4, $5, $7, $7, $6, $6)`;
 
     const idQuery = `SELECT vend_id FROM cdascfg.vendor v ORDER BY insrt_tm DESC LIMIT 1`;
-
-    // const contactQuery = `INSERT INTO ${schemaName}.vendor_contact
-    // (vend_id, contact_nm, emailid, created_by, created_on, updated_by, updated_on, act_flg)
-    // VALUES($1, $2, $3, $4, $5, $4, $5, 1)`;
 
     const inset = await DB.executeQuery(insertQuery, [
       vName,
@@ -181,6 +162,83 @@ exports.createVendor = async (req, res) => {
   }
 };
 
+exports.activeStatusUpdate = async (req, res) => {
+  try {
+    const { vId, vStatus, userId } = req.body;
+    const curDate = helpers.getCurrentTime();
+    const oldValue = vStatus === 1 ? 1 : 0;
+    Logger.info({ message: "activeStatusUpdate" });
+    const $q1 = `select distinct vend_id from ${schemaName}.dataflow d`;
+    const $query = `UPDATE ${schemaName}.vendor SET active=$1, updt_tm=$2, updated_by=$3 WHERE vend_id=$4`;
+
+    const q1 = await DB.executeQuery($q1);
+    const existingInDF = q1.rows.map((e) => parseInt(e.vend_id));
+    if (existingInDF.includes(parseInt(vId))) {
+      return apiResponse.validationErrorWithData(
+        res,
+        "Operation failed",
+        "Vendor cannot be inactivated until removed from all data flows using this Vendor."
+      );
+    } else {
+      const details = await DB.executeQuery($query, [
+        vStatus,
+        curDate,
+        userId,
+        vId,
+      ]);
+
+      await DB.executeQuery(logQuery, [
+        "vendor",
+        vId,
+        "active",
+        oldValue,
+        vStatus,
+        "User Requested",
+        userId,
+        curDate,
+      ]);
+
+      return apiResponse.successResponseWithData(
+        res,
+        "Operation success",
+        details.row || null
+      );
+    }
+  } catch (err) {
+    //throw error in json response with status 500.
+    console.log(err);
+    Logger.error("catch :activeStatusUpdate");
+    Logger.error(err);
+
+    return apiResponse.ErrorResponse(res, err);
+  }
+};
+
+exports.deleteContact = async (req, res) => {
+  try {
+    const { vId, vCId, userName, userId } = req.body;
+    Logger.info({ message: "deleteVendor" });
+    const curDate = helpers.getCurrentTime();
+    const deleteQuery = `UPDATE ${schemaName}.vendor_contact SET act_flg=$2, updated_by=$3, updated_on=$4 WHERE vend_contact_id=$1`;
+    await DB.executeQuery(deleteQuery, [vCId, 0, userName, curDate]);
+    // await DB.executeQuery(logQuery, [
+    //   "vendor_contact",
+    //   vCId,
+    //   "act_flg",
+    //   1,
+    //   0,
+    //   userId,
+    //   curDate,
+    // ]);
+    return apiResponse.successResponse(res, "Contact Deleted success");
+  } catch (err) {
+    //throw error in json response with status 500.
+    Logger.error("catch :deleteVendor");
+    Logger.error(err);
+    return apiResponse.ErrorResponse(res, err);
+  }
+};
+
 exports.updateVendor = async (req, res) => {
   try {
     const {
@@ -196,7 +254,6 @@ exports.updateVendor = async (req, res) => {
     } = req.body;
 
     Logger.info({ message: "updateVendor" });
-    // console.log(req.body);
 
     const curDate = helpers.getCurrentTime();
     const $q1 = `select distinct vend_id from ${schemaName}.dataflow d`;
@@ -204,9 +261,10 @@ exports.updateVendor = async (req, res) => {
     const contactUpdate = `UPDATE ${schemaName}.vendor_contact SET contact_nm=$2, emailid=$3, updated_by=$4, updated_on=$5, act_flg=$6 WHERE vend_contact_id=$1`;
 
     // const deleteQuery = `delete from ${schemaName}.vendor_contact vc where vend_id=$1 and act_flg <> 0`;
+    const curVendor = await getCurrentVendor(vId);
+
     const q1 = await DB.executeQuery($q1);
     const existingInDF = q1.rows.map((e) => parseInt(e.vend_id));
-    // console.log(existingInDF.includes(vId), existingInDF, vId);
     if (existingInDF.includes(parseInt(vId))) {
       return apiResponse.validationErrorWithData(
         res,
@@ -214,6 +272,9 @@ exports.updateVendor = async (req, res) => {
         "Vendor cannot be inactivated until removed from all data flows using this Vendor."
       );
     } else {
+      const { vend_nm, vend_nm_stnd, active, extrnl_sys_nm, description } =
+        curVendor;
+
       await DB.executeQuery(updateQuery, [
         vName,
         vNStd,
@@ -250,6 +311,67 @@ exports.updateVendor = async (req, res) => {
         });
       }
 
+      if (vend_nm != vName) {
+        await DB.executeQuery(logQuery, [
+          "vendor",
+          vId,
+          "vend_nm",
+          vend_nm,
+          vName,
+          "User Requested",
+          userId,
+          curDate,
+        ]);
+      }
+      if (vend_nm_stnd != vNStd) {
+        await DB.executeQuery(logQuery, [
+          "vendor",
+          vId,
+          "vend_nm_stnd",
+          vend_nm_stnd,
+          vNStd,
+          "User Requested",
+          userId,
+          curDate,
+        ]);
+      }
+      if (extrnl_sys_nm != vESN) {
+        await DB.executeQuery(logQuery, [
+          "vendor",
+          vId,
+          "extrnl_sys_nm",
+          extrnl_sys_nm,
+          vESN,
+          "User Requested",
+          userId,
+          curDate,
+        ]);
+      }
+      if (description != vDescription) {
+        await DB.executeQuery(logQuery, [
+          "vendor",
+          vId,
+          "description",
+          description,
+          vDescription,
+          "User Requested",
+          userId,
+          curDate,
+        ]);
+      }
+      if (active != vStatus) {
+        await DB.executeQuery(logQuery, [
+          "vendor",
+          vId,
+          "active",
+          active,
+          vStatus,
+          "User Requested",
+          userId,
+          curDate,
+        ]);
+      }
+
       return apiResponse.successResponse(
         res,
         "Vendor details updated successfully"
@@ -266,41 +388,6 @@ exports.updateVendor = async (req, res) => {
         "vendor name and external system name combination already exists."
       );
     }
-    return apiResponse.ErrorResponse(res, err);
-  }
-};
-
-exports.deleteContact = async (req, res) => {
-  try {
-    const { vId, vCId, userName } = req.body;
-    Logger.info({ message: "deleteVendor" });
-    const curDate = helpers.getCurrentTime();
-    const deleteQuery = `UPDATE ${schemaName}.vendor_contact SET act_flg=$2, updated_by=$3, updated_on=$4 WHERE vend_contact_id=$1`;
-    await DB.executeQuery(deleteQuery, [vCId, 0, userName, curDate]);
-    return apiResponse.successResponse(res, "Contact Deleted success");
-  } catch (err) {
-    //throw error in json response with status 500.
-    Logger.error("catch :deleteVendor");
-    Logger.error(err);
-    return apiResponse.ErrorResponse(res, err);
-  }
-};
-
-exports.getENSList = async (req, res) => {
-  try {
-    Logger.info({ message: "getENSList" });
-    const selectQuery = `select lov_nm from ${schemaName}.cdas_core_lov ccl where act_flg = 1`;
-    const list = await DB.executeQuery(selectQuery);
-    const formatted = list.rows.map((e) => e.lov_nm);
-    return apiResponse.successResponseWithData(
-      res,
-      "Operation success",
-      formatted || []
-    );
-  } catch (err) {
-    //throw error in json response with status 500.
-    Logger.error("catch :getENSList");
-    Logger.error(err);
     return apiResponse.ErrorResponse(res, err);
   }
 };

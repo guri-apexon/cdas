@@ -1,6 +1,6 @@
 /* eslint-disable jsx-a11y/no-static-element-interactions */
 /* eslint-disable react/no-array-index-key */
-import React, { useEffect, useContext } from "react";
+import React, { useEffect, useContext, useState } from "react";
 import withStyles from "@material-ui/core/styles/withStyles";
 import ArrowRight from "apollo-react-icons/ArrowRight";
 import Button from "apollo-react/components/Button";
@@ -16,6 +16,7 @@ import DSWIcon from "../../components/Icons/DSW_ICON_96x96.svg";
 import "./LaunchPad.scss";
 import { getRolesPermissions } from "../../services/ApiServices";
 import { AppContext } from "../../components/Providers/AppProvider";
+import { MessageContext } from "../../components/Providers/MessageProvider";
 
 const CustomTooltip = withStyles(() => ({
   tooltip: {
@@ -28,9 +29,11 @@ const LaunchPad = () => {
   const history = useHistory();
   const userInfo = getUserInfo();
   const appContext = useContext(AppContext);
+  const msgContext = useContext(MessageContext);
+  const [havingCoreAccess, setHavingCoreAccess] = useState(true);
+  const { permissions } = appContext.user;
 
   const checkAccess = (name) => {
-    const { permissions } = appContext.user;
     if (permissions.length > 0) {
       const hasAccess = permissions.some((per) => per.featureName === name);
       return hasAccess;
@@ -88,52 +91,39 @@ const LaunchPad = () => {
 
   const { fullName } = userInfo;
 
-  const getPermisions = async () => {
-    const data = await getRolesPermissions();
-    // console.log(data);
-    const uniqueCatogories = Array.from(
-      data
-        .reduce((acc, { categoryName, featureName, allowedPermission }) => {
-          const current = acc.get(featureName) || {
-            allowedPermission: [],
-          };
-          return acc.set(featureName, {
-            ...current,
-            categoryName,
-            featureName,
-            allowedPermission: [
-              ...current.allowedPermission,
-              allowedPermission,
-            ],
-          });
-        }, new Map())
-        .values()
-    );
-    // console.log(uniqueCatogories);
-    appContext.updateUser({ permissions: uniqueCatogories });
-  };
-
   useEffect(() => {
-    getPermisions();
-  }, []);
+    const data = checkAccess("Launchpad-Core");
+    setHavingCoreAccess(data);
+    if (permissions.length > 0) {
+      if (!data) {
+        msgContext.showErrorMessage(
+          `There was an issue authorizing your login information. Please contact your Administrator.`
+        );
+      }
+    }
+  }, [permissions]);
 
   return (
     <div className="lauchpad-wrapper">
       <div className="header">
         <div>
-          <Typography gutterBottom darkMode>
-            {`Welcome, ${titleCase(fullName)}`}
-          </Typography>
+          {havingCoreAccess && (
+            <Typography gutterBottom darkMode>
+              {`Welcome, ${titleCase(fullName)}`}
+            </Typography>
+          )}
           <h2>Harness the power of your clinical data</h2>
-          <Button
-            variant="secondary"
-            className="linktoStudy"
-            icon={ArrowRight}
-            style={{ marginRight: 10, padding: "0 14px" }}
-            onClick={() => history.push("study-setup")}
-          >
-            Quick Link to Study Setup
-          </Button>
+          {havingCoreAccess && (
+            <Button
+              variant="secondary"
+              className="linktoStudy"
+              icon={ArrowRight}
+              style={{ marginRight: 10, padding: "0 14px" }}
+              onClick={() => history.push("study-setup")}
+            >
+              Quick Link to Study Setup
+            </Button>
+          )}
         </div>
       </div>
       <div className="products">

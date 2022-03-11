@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-one-expression-per-line */
 /* eslint-disable prettier/prettier */
 /* eslint-disable no-shadow */
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { withRouter } from "react-router";
 import NavigationBar from "apollo-react/components/NavigationBar";
 import makeStyles from "@material-ui/core/styles/makeStyles";
@@ -15,7 +15,7 @@ import DashboardIcon from "apollo-react-icons/Dashboard";
 import Question from "apollo-react-icons/Question";
 import moment from "moment";
 import Button from "apollo-react/components/Button";
-import NavigationPanel from "../NavigationPanel/NavigationPanel";
+import NavigationPanel from "./NavigationPanel/NavigationPanel";
 // eslint-disable-next-line import/named
 import { deleteAllCookies, getUserInfo } from "../../utils/index";
 // eslint-disable-next-line import/named
@@ -29,7 +29,6 @@ const styles = {
   },
   notapplied: {
     color: "yellow",
-
   },
   root: {
     display: "flex",
@@ -86,16 +85,58 @@ const styles = {
 
 const useStyles = makeStyles(styles);
 
-const TopNavbar = ({ history, location: { pathname }, setLoggedIn }) => {
+const AppHeader = ({ history, setLoggedIn }) => {
   const classes = useStyles();
   const userInfo = getUserInfo();
   const appContext = useContext(AppContext);
+  const messageContext = useContext(MessageContext);
+  const [panelOpen, setpanelOpen] = useState(true);
+  const [notLoggedOutErr, setNotLoggedOutErr] = useState(false);
+  const [open, setOpen] = useState(false);
+  const { permissions } = appContext.user;
+
+  const getPermisions = async () => {
+    if (permissions.length === 0) {
+      let uniquePermissions = [];
+      const data = await getRolesPermissions();
+      if (data.message === "Something went wrong") {
+        messageContext.showErrorMessage(
+          `There was an issue authorizing your login information. Please contact your Administrator.`
+        );
+      } else {
+        uniquePermissions = Array.from(
+          data
+            .reduce((acc, { categoryName, featureName, allowedPermission }) => {
+              const current = acc.get(featureName) || {
+                allowedPermission: [],
+              };
+              return acc.set(featureName, {
+                ...current,
+                categoryName,
+                featureName,
+                allowedPermission: [
+                  ...current.allowedPermission,
+                  allowedPermission,
+                ],
+              });
+            }, new Map())
+            .values()
+        );
+        appContext.updateUser({ permissions: uniquePermissions });
+      }
+
+      // console.log(uniquePermissions);
+    }
+  };
+
+  useEffect(() => {
+    getPermisions();
+  }, []);
+
   const checkAccess = (name) => {
-    const { permissions } = appContext.user;
     if (permissions.length > 0) {
       const hasAccess = permissions.some((per) => per.featureName === name);
       return hasAccess;
-
     }
     return false;
   };
@@ -104,7 +145,7 @@ const TopNavbar = ({ history, location: { pathname }, setLoggedIn }) => {
       featureName: "Launchpad",
       text: "Launchpad",
       pathname: "/launchpad",
-      haveAccess: checkAccess("Launchpad-Core"),
+      haveAccess: true,
     },
     {
       featureName: "Analytics",
@@ -125,7 +166,6 @@ const TopNavbar = ({ history, location: { pathname }, setLoggedIn }) => {
       haveAccess: checkAccess("User Management"),
     },
     {
-      text: "Admin",
       menuItems: [
         {
           featureName: "Policy Management",
@@ -154,13 +194,19 @@ const TopNavbar = ({ history, location: { pathname }, setLoggedIn }) => {
       ],
     },
   ];
-  const filterMenuItem = menuItems.filter(Items => Items.haveAccess === true)
-  const subfilterMenuItem = menuItems[4].menuItems.filter(item => item.haveAccess === true);
-  const filteredMenuItems = [...filterMenuItem, { text: "Admin", menuItems: subfilterMenuItem }]
-  const messageContext = useContext(MessageContext);
-  const [panelOpen, setpanelOpen] = useState(true);
-  const [notLoggedOutErr, setNotLoggedOutErr] = useState(false);
-  const [open, setOpen] = useState(false);
+  const filterMenuItem = menuItems.filter((Items) => Items.haveAccess === true);
+  const subfilterMenuItem = menuItems[4].menuItems.filter(
+    (item) => item.haveAccess === true
+  );
+  let filteredMenuItems = [];
+  if (subfilterMenuItem.length > 0) {
+    filteredMenuItems = [
+      ...filterMenuItem,
+      { text: "Admin", menuItems: subfilterMenuItem },
+    ];
+  } else {
+    filteredMenuItems = [...filterMenuItem];
+  }
 
   const profileMenuProps = {
     name: userInfo.fullName,
@@ -170,7 +216,7 @@ const TopNavbar = ({ history, location: { pathname }, setLoggedIn }) => {
     ),
     // eslint-disable-next-line no-use-before-define
     logoutButtonProps: { onClick: () => LogOut() },
-    // menuItems: [],
+    menuItems: [],
   };
 
   const LogOut = async () => {
@@ -262,7 +308,6 @@ const TopNavbar = ({ history, location: { pathname }, setLoggedIn }) => {
               </Button>
             </div>
           }
-
         />
         <NavigationPanel open={panelOpen} onClose={onPanelClose} />
       </div>
@@ -278,4 +323,4 @@ const TopNavbar = ({ history, location: { pathname }, setLoggedIn }) => {
   );
 };
 
-export default withRouter(TopNavbar);
+export default withRouter(AppHeader);
