@@ -167,6 +167,7 @@ exports.activeStatusUpdate = async (req, res) => {
   try {
     const { vId, vStatus, userId } = req.body;
     const curDate = helpers.getCurrentTime();
+    const oldValue = vStatus === 1 ? 1 : 0;
     Logger.info({ message: "activeStatusUpdate" });
     const $q1 = `select distinct vend_id from ${schemaName}.dataflow d`;
     const $query = `UPDATE ${schemaName}.vendor SET active=$1, updt_tm=$2, updated_by=$3 WHERE vend_id=$4`;
@@ -186,6 +187,17 @@ exports.activeStatusUpdate = async (req, res) => {
         userId,
         vId,
       ]);
+
+      await DB.executeQuery(logQuery, [
+        "vendor",
+        vId,
+        "active",
+        oldValue,
+        vStatus,
+        userId,
+        curDate,
+      ]);
+
       return apiResponse.successResponseWithData(
         res,
         "Operation success",
@@ -297,6 +309,15 @@ exports.deleteContact = async (req, res) => {
     const curDate = helpers.getCurrentTime();
     const deleteQuery = `UPDATE ${schemaName}.vendor_contact SET act_flg=$2, updated_by=$3, updated_on=$4 WHERE vend_contact_id=$1`;
     await DB.executeQuery(deleteQuery, [vCId, 0, userName, curDate]);
+    await DB.executeQuery(logQuery, [
+      "vendor_contact",
+      vCId,
+      "act_flg",
+      1,
+      0,
+      userId,
+      curDate,
+    ]);
     return apiResponse.successResponse(res, "Contact Deleted success");
   } catch (err) {
     //throw error in json response with status 500.
