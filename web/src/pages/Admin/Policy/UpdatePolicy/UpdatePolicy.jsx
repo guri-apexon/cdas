@@ -267,7 +267,7 @@ const UpdatePolicy = () => {
         <Grid item xs={3}>
           <Box>
             <div className="flex update-sidebar flexWrap">
-              {!active && (
+              {!updatePolicyPermission && (
                 <Button
                   onClick={() => history.goBack()}
                   className="back-btn"

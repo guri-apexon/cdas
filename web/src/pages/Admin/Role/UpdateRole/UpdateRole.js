@@ -11,6 +11,7 @@ import Typography from "apollo-react/components/Typography";
 import Grid from "apollo-react/components/Grid";
 import Modal from "apollo-react/components/Modal";
 import Link from "apollo-react/components/Link";
+import Button from "apollo-react/components/Button";
 import Table, {
   createSelectFilterComponent,
   createStringSearchFilter,
@@ -360,6 +361,17 @@ const UpdateRole = () => {
         <Grid item xs={3}>
           <Box>
             <div className="flex create-sidebar flexWrap">
+              {!RoleUpdatePermission && (
+                <Button
+                  onClick={() => history.goBack()}
+                  className="back-btn"
+                  variant="primary"
+                  size="small"
+                  // icon={PlusIcon}
+                >
+                  &#x276E; Back to Role Management List
+                </Button>
+              )}
               <Typography variant="title1" className="b-font title">
                 {roleName}
               </Typography>
