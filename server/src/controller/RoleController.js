@@ -9,6 +9,14 @@ const { DB_SCHEMA_NAME: dbSchema } = constants;
 
 const logQuery = `INSERT INTO ${dbSchema}.audit_log (tbl_nm,id,attribute,old_val,new_val,rsn_for_chg,updated_by,updated_on) values ($1, $2, $3, $4, $5, $6, $7, $8)`;
 
+async function getCurrentRole(roleId) {
+  const { rows } = await DB.executeQuery(
+    `SELECT * ${dbSchema}.datakind where role_id = $1`,
+    [roleId]
+  );
+  return rows[0];
+}
+
 exports.createRole = function (req, res) {
   try {
     const { name, description, policies, userId, status } = req.body;
@@ -213,7 +221,7 @@ exports.updateStatus = async (req, res) => {
   }
 };
 
-exports.updateRole = function (req, res) {
+exports.updateRole = async function (req, res) {
   try {
     const { name, description, policies, userId, status, roleId } = req.body;
     if (!name || !description || !userId || !roleId) {
@@ -222,8 +230,10 @@ exports.updateRole = function (req, res) {
         "Please complete all mandatory information and then click Save"
       );
     }
+
     const currentTime = helpers.getCurrentTime();
     const roleValues = [name, description, status, userId, currentTime, roleId];
+    const curRole = await getCurrentRole(roleId);
     DB.executeQuery(
       `UPDATE ${dbSchema}.role set role_nm=$1, role_desc=$2, role_stat=$3, updated_by=$4, updated_on=$5 WHERE role_id=$6 RETURNING *`,
       roleValues
