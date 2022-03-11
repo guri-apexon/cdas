@@ -193,6 +193,7 @@ exports.activeStatusUpdate = async (req, res) => {
         "active",
         oldValue,
         vStatus,
+        "User Requested",
         userId,
         curDate,
       ]);
@@ -317,6 +318,7 @@ exports.updateVendor = async (req, res) => {
           "vend_nm",
           vend_nm,
           vName,
+          "User Requested",
           userId,
           curDate,
         ]);
@@ -328,6 +330,7 @@ exports.updateVendor = async (req, res) => {
           "vend_nm_stnd",
           vend_nm_stnd,
           vNStd,
+          "User Requested",
           userId,
           curDate,
         ]);
@@ -339,6 +342,7 @@ exports.updateVendor = async (req, res) => {
           "extrnl_sys_nm",
           extrnl_sys_nm,
           vESN,
+          "User Requested",
           userId,
           curDate,
         ]);
@@ -350,6 +354,7 @@ exports.updateVendor = async (req, res) => {
           "description",
           description,
           vDescription,
+          "User Requested",
           userId,
           curDate,
         ]);
@@ -361,6 +366,7 @@ exports.updateVendor = async (req, res) => {
           "active",
           active,
           vStatus,
+          "User Requested",
           userId,
           curDate,
         ]);

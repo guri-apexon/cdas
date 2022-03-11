@@ -209,6 +209,7 @@ exports.updateStatus = async (req, res) => {
       "role_stat",
       oldValue,
       role_stat,
+      "User Requested",
       userId,
       currentTime,
     ]);
@@ -243,6 +244,7 @@ exports.updateRole = async function (req, res) {
         "role_nm",
         role_nm,
         name,
+        "User Requested",
         userId,
         currentTime,
       ]);
@@ -255,6 +257,7 @@ exports.updateRole = async function (req, res) {
         "role_desc",
         role_desc,
         description,
+        "User Requested",
         userId,
         currentTime,
       ]);
@@ -267,6 +270,7 @@ exports.updateRole = async function (req, res) {
         "role_stat",
         role_stat,
         status,
+        "User Requested",
         userId,
         currentTime,
       ]);
