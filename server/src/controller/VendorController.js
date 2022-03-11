@@ -220,15 +220,15 @@ exports.deleteContact = async (req, res) => {
     const curDate = helpers.getCurrentTime();
     const deleteQuery = `UPDATE ${schemaName}.vendor_contact SET act_flg=$2, updated_by=$3, updated_on=$4 WHERE vend_contact_id=$1`;
     await DB.executeQuery(deleteQuery, [vCId, 0, userName, curDate]);
-    await DB.executeQuery(logQuery, [
-      "vendor_contact",
-      vCId,
-      "act_flg",
-      1,
-      0,
-      userId,
-      curDate,
-    ]);
+    // await DB.executeQuery(logQuery, [
+    //   "vendor_contact",
+    //   vCId,
+    //   "act_flg",
+    //   1,
+    //   0,
+    //   userId,
+    //   curDate,
+    // ]);
     return apiResponse.successResponse(res, "Contact Deleted success");
   } catch (err) {
     //throw error in json response with status 500.
@@ -271,6 +271,9 @@ exports.updateVendor = async (req, res) => {
         "Vendor cannot be inactivated until removed from all data flows using this Vendor."
       );
     } else {
+      const { vend_nm, vend_nm_stnd, active, extrnl_sys_nm, description } =
+        curVendor;
+
       await DB.executeQuery(updateQuery, [
         vName,
         vNStd,
@@ -305,6 +308,62 @@ exports.updateVendor = async (req, res) => {
             ]);
           }
         });
+      }
+
+      if (vend_nm != vName) {
+        await DB.executeQuery(logQuery, [
+          "vendor",
+          vId,
+          "vend_nm",
+          vend_nm,
+          vName,
+          userId,
+          curDate,
+        ]);
+      }
+      if (vend_nm_stnd != vNStd) {
+        await DB.executeQuery(logQuery, [
+          "vendor",
+          vId,
+          "vend_nm_stnd",
+          vend_nm_stnd,
+          vNStd,
+          userId,
+          curDate,
+        ]);
+      }
+      if (extrnl_sys_nm != vESN) {
+        await DB.executeQuery(logQuery, [
+          "vendor",
+          vId,
+          "extrnl_sys_nm",
+          extrnl_sys_nm,
+          vESN,
+          userId,
+          curDate,
+        ]);
+      }
+      if (description != vDescription) {
+        await DB.executeQuery(logQuery, [
+          "vendor",
+          vId,
+          "description",
+          description,
+          vDescription,
+          userId,
+          curDate,
+        ]);
+      }
+      if (active != vStatus) {
+        await DB.executeQuery(logQuery, [
+          "vendor",
+          vId,
+          "active",
+          active,
+          vStatus,
+          userId,
+          curDate,
+        ]);
       }
 
       return apiResponse.successResponse(

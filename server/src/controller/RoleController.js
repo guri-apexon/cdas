@@ -234,6 +234,44 @@ exports.updateRole = async function (req, res) {
     const currentTime = helpers.getCurrentTime();
     const roleValues = [name, description, status, userId, currentTime, roleId];
     const curRole = await getCurrentRole(roleId);
+    const { role_stat, role_nm, role_desc } = curRole;
+
+    if (role_nm != name) {
+      await DB.executeQuery(logQuery, [
+        "role",
+        roleId,
+        "role_nm",
+        role_nm,
+        name,
+        userId,
+        currentTime,
+      ]);
+    }
+
+    if (role_desc != description) {
+      await DB.executeQuery(logQuery, [
+        "role",
+        roleId,
+        "role_desc",
+        role_desc,
+        description,
+        userId,
+        currentTime,
+      ]);
+    }
+
+    if (role_stat != status) {
+      await DB.executeQuery(logQuery, [
+        "role",
+        roleId,
+        "role_stat",
+        role_stat,
+        status,
+        userId,
+        currentTime,
+      ]);
+    }
+
     DB.executeQuery(
       `UPDATE ${dbSchema}.role set role_nm=$1, role_desc=$2, role_stat=$3, updated_by=$4, updated_on=$5 WHERE role_id=$6 RETURNING *`,
       roleValues
