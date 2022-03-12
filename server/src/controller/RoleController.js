@@ -9,10 +9,10 @@ const { DB_SCHEMA_NAME: dbSchema } = constants;
 
 const logQuery = `INSERT INTO ${dbSchema}.audit_log (tbl_nm,id,attribute,old_val,new_val,rsn_for_chg,updated_by,updated_on) values ($1, $2, $3, $4, $5, $6, $7, $8)`;
 
-async function getCurrentRole(roleId) {
+async function getCurrentRole(id) {
   const { rows } = await DB.executeQuery(
-    `SELECT * ${dbSchema}.datakind where role_id = $1`,
-    [roleId]
+    `SELECT * FROM ${dbSchema}.role where role_id = $1`,
+    [id]
   );
   return rows[0];
 }
@@ -199,7 +199,7 @@ exports.getRolesPermissions = async (req, res) => {
 exports.updateStatus = async (req, res) => {
   try {
     const { role_id, role_stat, userId } = req.body;
-    const oldValue = role_stat === 1 ? 1 : 0;
+    const oldValue = role_stat === 1 ? 0 : 1;
     const currentTime = helpers.getCurrentTime();
     let query = `update ${dbSchema}.role set role_stat = '${role_stat}', updated_by = '${userId}', updated_on = '${currentTime}' where role_id = ${role_id}`;
     await DB.executeQuery(query);
@@ -231,7 +231,6 @@ exports.updateRole = async function (req, res) {
         "Please complete all mandatory information and then click Save"
       );
     }
-
     const currentTime = helpers.getCurrentTime();
     const roleValues = [name, description, status, userId, currentTime, roleId];
     const curRole = await getCurrentRole(roleId);
@@ -276,7 +275,7 @@ exports.updateRole = async function (req, res) {
       ]);
     }
 
-    DB.executeQuery(
+    await DB.executeQuery(
       `UPDATE ${dbSchema}.role set role_nm=$1, role_desc=$2, role_stat=$3, updated_by=$4, updated_on=$5 WHERE role_id=$6 RETURNING *`,
       roleValues
     )
@@ -306,7 +305,7 @@ exports.updateRole = async function (req, res) {
       })
       .catch((err) => {
         const errMessage =
-          err.code == 23505 ? messages.CREATE_ROLE_UNIQUE : err.detail;
+          err.code == 23505 ? messages.CREATE_ROLE_UNIQUE : err?.detail;
         return apiResponse.ErrorResponse(res, errMessage);
       });
   } catch (err) {
