@@ -92,11 +92,11 @@ const ImportWithUsers = () => {
         source={userList}
         value={row[key]}
         onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
-        error={row.alreadyExist || !row[key]}
+        error={row?.alreadyExist || (row[key] !== null && !row[key])}
         helperText={
-          row.alreadyExist
+          row?.alreadyExist
             ? "This user is already assigned"
-            : !row[key] && "Required"
+            : row[key] !== null && !row[key] && "Required"
         }
       />
     );
