@@ -63,6 +63,22 @@ const ImportWithUsers = () => {
       title: "Assign Users",
     },
   ];
+
+  const checkValidation = () => {
+    if (tableUsers?.length > 0) {
+      const checkData = tableUsers.map((data) => {
+        if (data.user === null) {
+          data.validateUser = true;
+        } else data.validateUser = false;
+        if (data?.roles?.length === 0) {
+          data.validateRole = true;
+        } else data.validateRole = false;
+        return data;
+      });
+      setTableUsers([...checkData]);
+    }
+  };
+
   const editRow = (e, value, reason, index, key) => {
     let alreadyExist;
     if (key === "user" && value) {
@@ -74,9 +90,18 @@ const ImportWithUsers = () => {
       rows.map((row) => {
         if (row.index === index) {
           if (key === "user") {
-            return { ...row, [key]: value, alreadyExist };
+            return {
+              ...row,
+              [key]: value,
+              validateUser: value ? false : true,
+              alreadyExist,
+            };
           }
-          return { ...row, [key]: value };
+          return {
+            ...row,
+            [key]: value,
+            validateRole: value?.length > 0 ? false : true,
+          };
         }
         return row;
       })
@@ -92,11 +117,11 @@ const ImportWithUsers = () => {
         source={userList}
         value={row[key]}
         onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
-        error={row.alreadyExist || !row[key]}
+        error={row?.alreadyExist || row.validateUser}
         helperText={
-          row.alreadyExist
+          row?.alreadyExist
             ? "This user is already assigned"
-            : !row[key] && "Required"
+            : row.validateUser && "Required"
         }
       />
     );
@@ -112,8 +137,8 @@ const ImportWithUsers = () => {
         source={roleLists}
         value={row[key]}
         onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
-        error={!row[key]}
-        helperText={!row[key] && "Required"}
+        error={row.validateRole}
+        helperText={row.validateRole && "Required"}
       />
     );
   };
@@ -128,6 +153,7 @@ const ImportWithUsers = () => {
 
   const importStudy = async (assign) => {
     if (assign) {
+      checkValidation();
       if (!tableUsers.length) {
         toast.showErrorMessage("Add some users to proceed");
         return false;
@@ -148,6 +174,12 @@ const ImportWithUsers = () => {
         return false;
       }
     }
+    const tableData = tableUsers?.map((data) => {
+      delete data?.validateRole;
+      delete data?.validateUser;
+      return data;
+    });
+    setLoading(true);
     const { spnsr_nm_stnd: sponsorNameStnd, prot_nbr_stnd: protNbrStnd } =
       selectedStudy;
     const reqBody = {
@@ -156,12 +188,11 @@ const ImportWithUsers = () => {
       userId: userInfo.user_id,
     };
     if (assign) {
-      reqBody.users = tableUsers;
+      reqBody.users = tableData;
     }
-    setLoading(true);
     const response = await onboardStudy(reqBody);
     setLoading(false);
-    if (response.status === "BAD_REQUEST") {
+    if (response.status === "BAD_REQUEST" || response.status === 0) {
       toast.showErrorMessage(response.message, 0);
     }
     if (response.status === "OK") {
@@ -259,6 +290,7 @@ const ImportWithUsers = () => {
   };
   const addNewUser = () => {
     if (tableUsers.find((x) => x.user == null)) {
+      checkValidation();
       toast.showErrorMessage(
         "Please fill user or remove blank rows to add new row"
       );
@@ -267,6 +299,8 @@ const ImportWithUsers = () => {
     const userObj = {
       index: Math.max(...tableUsers.map((o) => o.index), 0) + 1,
       user: null,
+      validateUser: false,
+      validateRole: false,
       roles: [],
     };
     setTableUsers((u) => [...u, userObj]);
