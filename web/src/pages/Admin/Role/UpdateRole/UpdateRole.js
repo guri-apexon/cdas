@@ -83,11 +83,9 @@ const UpdateRole = () => {
   const SelectionCell = ({ row }) => {
     const [checked, setChecked] = useState(row.selected);
     const setSelected = (e) => {
-      if (!RoleUpdatePermission) {
-        row.selected = e.target.checked;
-        row.updated = true;
-        setChecked(e.target.checked);
-      }
+      row.selected = e.target.checked;
+      row.updated = true;
+      setChecked(e.target.checked);
     };
     return (
       <>
