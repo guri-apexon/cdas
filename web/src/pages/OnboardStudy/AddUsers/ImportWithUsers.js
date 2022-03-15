@@ -52,6 +52,7 @@ const ImportWithUsers = () => {
   const [userList, setUserList] = useState([]);
   const [roleLists, setroleLists] = useState([]);
   const [selectedStudy, setSelectedStudy] = useState({});
+  const [initialRender, setInitialRender] = useState(true);
   const breadcrumpItems = [
     { href: "javascript:void(0)", onClick: () => history.push("/launchpad") },
     {
@@ -65,6 +66,11 @@ const ImportWithUsers = () => {
   ];
   const editRow = (e, value, reason, index, key) => {
     let alreadyExist;
+    if (value) {
+      setInitialRender(true);
+    } else {
+      setInitialRender(false);
+    }
     if (key === "user" && value) {
       alreadyExist = tableUsers.find((x) => x.user?.email === value.email)
         ? true
@@ -92,11 +98,11 @@ const ImportWithUsers = () => {
         source={userList}
         value={row[key]}
         onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
-        error={row.alreadyExist || !row[key]}
+        error={row.alreadyExist || (!initialRender && !row[key])}
         helperText={
           row.alreadyExist
             ? "This user is already assigned"
-            : !row[key] && "Required"
+            : !initialRender && !row[key] && "Required"
         }
       />
     );
@@ -259,6 +265,8 @@ const ImportWithUsers = () => {
   };
   const addNewUser = () => {
     if (tableUsers.find((x) => x.user == null)) {
+      setInitialRender(!initialRender);
+      setTableUsers([...tableUsers]);
       toast.showErrorMessage(
         "Please fill user or remove blank rows to add new row"
       );
