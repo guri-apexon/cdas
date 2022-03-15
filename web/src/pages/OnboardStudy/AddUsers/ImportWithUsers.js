@@ -139,6 +139,8 @@ const ImportWithUsers = () => {
         return false;
       }
       if (tableUsers.find((x) => x.user == null)) {
+        setInitialRender(!initialRender);
+        setTableUsers([...tableUsers]);
         toast.showErrorMessage("Please fill user or remove blank rows");
         return false;
       }
