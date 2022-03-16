@@ -4,7 +4,7 @@ const axios = require("axios");
 const btoa = require("btoa");
 const apiResponse = require("../helpers/apiResponse");
 const Logger = require("../config/logger");
-const userController = require("../controller/UserController");
+const userController = require("./UserController");
 
 const getToken = (code, clientId, clientSecret, callbackUrl, ssoUrl) => {
   return new Promise((resolve, reject) => {
@@ -46,6 +46,7 @@ exports.authHandler = async (req, res) => {
     const CLIENT_SECRET = process.env.SDA_CLIENT_SECRET;
     const CALLBACK_URL = process.env.SDA_CALLBACK_URL;
     const SSO_URL = process.env.SDA_SSO_URL;
+    const DOMAIN_NAME = process.env.DOMAIN_NAME;
 
     const body = await getToken(
       code,
@@ -92,12 +93,14 @@ exports.authHandler = async (req, res) => {
     }
     await userController.addLoginActivity(loginDetails);
     //console.log(loginAct, "loginAt")
-    res.cookie("user.token", response.id_token);
-    res.cookie("user.id", resp.data.userid);
-    res.cookie("user.first_name", resp.data.given_name);
-    res.cookie("user.last_name", resp.data.family_name);
-    res.cookie("user.email", resp.data.email);
-    res.cookie("user.current_login_ts", moment().unix());
+    const cookieDomainObj = {domain: "ca2ucdasweb01d", maxAge: 900000, secure: false};
+
+    res.cookie("user.token", response.id_token, cookieDomainObj);
+    res.cookie("user.id", resp.data.userid, cookieDomainObj);
+    res.cookie("user.first_name", resp.data.given_name, cookieDomainObj);
+    res.cookie("user.last_name", resp.data.family_name, cookieDomainObj);
+    res.cookie("user.email", resp.data.email, cookieDomainObj);
+    res.cookie("user.current_login_ts", moment().unix(), cookieDomainObj);
 
     // Prepare for an Upsert
     const userDetails = {
