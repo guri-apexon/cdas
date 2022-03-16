@@ -177,7 +177,9 @@ exports.studyList = function (req, res) {
     AND ms.spnsr_nm_stnd !='' AND ms.prot_nbr_stnd !=''
         LIMIT 60
         `;
-    Logger.info({ message: "studyList" });
+    Logger.info({
+      message: "studyList",
+    });
 
     DB.executeQuery(searchQuery).then((response) => {
       const studies = response.rows || [];

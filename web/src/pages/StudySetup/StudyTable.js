@@ -392,7 +392,7 @@ export default function StudyTable({
               hasScroll={true}
               maxHeight="600px"
               initialSortedColumn="dateadded"
-              initialSortOrder="desc"
+              initialSortOrder="asc"
               sortedColumn={sortedColumnValue}
               sortOrder={sortOrderValue}
               rowsPerPageOptions={[10, 50, 100, "All"]}
