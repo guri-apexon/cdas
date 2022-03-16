@@ -5,6 +5,7 @@ const btoa = require("btoa");
 const apiResponse = require("../helpers/apiResponse");
 const Logger = require("../config/logger");
 const userController = require("./UserController");
+const helpers = require("../helpers/customFunctions");
 
 const getToken = (code, clientId, clientSecret, callbackUrl, ssoUrl) => {
   return new Promise((resolve, reject) => {
@@ -46,7 +47,6 @@ exports.authHandler = async (req, res) => {
     const CLIENT_SECRET = process.env.SDA_CLIENT_SECRET;
     const CALLBACK_URL = process.env.SDA_CALLBACK_URL;
     const SSO_URL = process.env.SDA_SSO_URL;
-    const domainUrlObj = new URL(REACT_APP_URL);
 
     const body = await getToken(
       code,
@@ -93,7 +93,9 @@ exports.authHandler = async (req, res) => {
     }
     await userController.addLoginActivity(loginDetails);
     //console.log(loginAct, "loginAt")
-    const cookieDomainObj = {domain: domainUrlObj?.hostname, maxAge: 900000, secure: domainUrlObj?.protocol==="https:" };
+    const domainUrlObj = new URL(REACT_APP_URL);
+    const domainName = helpers.getDomainWithoutSubdomain(REACT_APP_URL);
+    const cookieDomainObj = {domain: domainName, maxAge: 900000, secure: domainUrlObj?.protocol==="https:" };
 
     res.cookie("user.token", response.id_token, cookieDomainObj);
     res.cookie("user.id", resp.data.userid, cookieDomainObj);
