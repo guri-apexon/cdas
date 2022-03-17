@@ -95,7 +95,7 @@ exports.authHandler = async (req, res) => {
     //console.log(loginAct, "loginAt")
     const domainUrlObj = new URL(REACT_APP_URL);
     const domainName = helpers.getDomainWithoutSubdomain(REACT_APP_URL);
-    const cookieDomainObj = {domain: domainName, maxAge: 900000, secure: domainUrlObj?.protocol==="https:" };
+    const cookieDomainObj = {domain: domainName, maxAge: 24 * 60 * 60 * 1000, secure: domainUrlObj?.protocol==="https:" };
 
     res.cookie("user.token", response.id_token, cookieDomainObj);
     res.cookie("user.id", resp.data.userid, cookieDomainObj);
