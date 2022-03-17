@@ -4,7 +4,8 @@ const axios = require("axios");
 const btoa = require("btoa");
 const apiResponse = require("../helpers/apiResponse");
 const Logger = require("../config/logger");
-const userController = require("../controller/UserController");
+const userController = require("./UserController");
+const helpers = require("../helpers/customFunctions");
 
 const getToken = (code, clientId, clientSecret, callbackUrl, ssoUrl) => {
   return new Promise((resolve, reject) => {
@@ -92,12 +93,16 @@ exports.authHandler = async (req, res) => {
     }
     await userController.addLoginActivity(loginDetails);
     //console.log(loginAct, "loginAt")
-    res.cookie("user.token", response.id_token);
-    res.cookie("user.id", resp.data.userid);
-    res.cookie("user.first_name", resp.data.given_name);
-    res.cookie("user.last_name", resp.data.family_name);
-    res.cookie("user.email", resp.data.email);
-    res.cookie("user.current_login_ts", moment().unix());
+    const domainUrlObj = new URL(REACT_APP_URL);
+    const domainName = helpers.getDomainWithoutSubdomain(REACT_APP_URL);
+    const cookieDomainObj = {domain: domainName, maxAge: 24 * 60 * 60 * 1000, secure: domainUrlObj?.protocol==="https:" };
+
+    res.cookie("user.token", response.id_token, cookieDomainObj);
+    res.cookie("user.id", resp.data.userid, cookieDomainObj);
+    res.cookie("user.first_name", resp.data.given_name, cookieDomainObj);
+    res.cookie("user.last_name", resp.data.family_name, cookieDomainObj);
+    res.cookie("user.email", resp.data.email, cookieDomainObj);
+    res.cookie("user.current_login_ts", moment().unix(), cookieDomainObj);
 
     // Prepare for an Upsert
     const userDetails = {

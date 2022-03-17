@@ -52,6 +52,7 @@ const ImportWithUsers = () => {
   const [userList, setUserList] = useState([]);
   const [roleLists, setroleLists] = useState([]);
   const [selectedStudy, setSelectedStudy] = useState({});
+  const [initialRender, setInitialRender] = useState(true);
   const breadcrumpItems = [
     { href: "javascript:void(0)", onClick: () => history.push("/launchpad") },
     {
@@ -63,24 +64,13 @@ const ImportWithUsers = () => {
       title: "Assign Users",
     },
   ];
-
-  const checkValidation = () => {
-    if (tableUsers?.length > 0) {
-      const checkData = tableUsers.map((data) => {
-        if (data.user === null) {
-          data.validateUser = true;
-        } else data.validateUser = false;
-        if (data?.roles?.length === 0) {
-          data.validateRole = true;
-        } else data.validateRole = false;
-        return data;
-      });
-      setTableUsers([...checkData]);
-    }
-  };
-
   const editRow = (e, value, reason, index, key) => {
     let alreadyExist;
+    if (value) {
+      setInitialRender(true);
+    } else {
+      setInitialRender(false);
+    }
     if (key === "user" && value) {
       alreadyExist = tableUsers.find((x) => x.user?.email === value.email)
         ? true
@@ -90,18 +80,9 @@ const ImportWithUsers = () => {
       rows.map((row) => {
         if (row.index === index) {
           if (key === "user") {
-            return {
-              ...row,
-              [key]: value,
-              validateUser: value ? false : true,
-              alreadyExist,
-            };
+            return { ...row, [key]: value, alreadyExist };
           }
-          return {
-            ...row,
-            [key]: value,
-            validateRole: value?.length > 0 ? false : true,
-          };
+          return { ...row, [key]: value };
         }
         return row;
       })
@@ -117,11 +98,11 @@ const ImportWithUsers = () => {
         source={userList}
         value={row[key]}
         onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
-        error={row?.alreadyExist || row.validateUser}
+        error={row.alreadyExist || (!initialRender && !row[key])}
         helperText={
-          row?.alreadyExist
+          row.alreadyExist
             ? "This user is already assigned"
-            : row.validateUser && "Required"
+            : !initialRender && !row[key] && "Required"
         }
       />
     );
@@ -137,8 +118,8 @@ const ImportWithUsers = () => {
         source={roleLists}
         value={row[key]}
         onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
-        error={row.validateRole}
-        helperText={row.validateRole && "Required"}
+        error={!row[key]}
+        helperText={!row[key] && "Required"}
       />
     );
   };
@@ -153,12 +134,13 @@ const ImportWithUsers = () => {
 
   const importStudy = async (assign) => {
     if (assign) {
-      checkValidation();
       if (!tableUsers.length) {
         toast.showErrorMessage("Add some users to proceed");
         return false;
       }
       if (tableUsers.find((x) => x.user == null)) {
+        setInitialRender(!initialRender);
+        setTableUsers([...tableUsers]);
         toast.showErrorMessage("Please fill user or remove blank rows");
         return false;
       }
@@ -174,12 +156,6 @@ const ImportWithUsers = () => {
         return false;
       }
     }
-    const tableData = tableUsers?.map((data) => {
-      delete data?.validateRole;
-      delete data?.validateUser;
-      return data;
-    });
-    setLoading(true);
     const { spnsr_nm_stnd: sponsorNameStnd, prot_nbr_stnd: protNbrStnd } =
       selectedStudy;
     const reqBody = {
@@ -188,11 +164,12 @@ const ImportWithUsers = () => {
       userId: userInfo.user_id,
     };
     if (assign) {
-      reqBody.users = tableData;
+      reqBody.users = tableUsers;
     }
+    setLoading(true);
     const response = await onboardStudy(reqBody);
     setLoading(false);
-    if (response.status === "BAD_REQUEST" || response.status === 0) {
+    if (response.status === "BAD_REQUEST") {
       toast.showErrorMessage(response.message, 0);
     }
     if (response.status === "OK") {
@@ -290,7 +267,8 @@ const ImportWithUsers = () => {
   };
   const addNewUser = () => {
     if (tableUsers.find((x) => x.user == null)) {
-      checkValidation();
+      setInitialRender(!initialRender);
+      setTableUsers([...tableUsers]);
       toast.showErrorMessage(
         "Please fill user or remove blank rows to add new row"
       );
@@ -299,8 +277,6 @@ const ImportWithUsers = () => {
     const userObj = {
       index: Math.max(...tableUsers.map((o) => o.index), 0) + 1,
       user: null,
-      validateUser: false,
-      validateRole: false,
       roles: [],
     };
     setTableUsers((u) => [...u, userObj]);

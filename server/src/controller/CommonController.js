@@ -1,5 +1,6 @@
 const DB = require("../config/db");
 const moment = require("moment");
+const request = require('request');
 const axios = require("axios");
 const btoa = require("btoa");
 const apiResponse = require("../helpers/apiResponse");
@@ -13,20 +14,24 @@ module.exports = {
     try{
     const { SDA_APP_KEY: sdaKey } = process.env;
     if (!sdaKey) return apiResponse.ErrorResponse(res, "Something went wrong with App key");
-    return axios
-      .get(
-        `${SDA_BASE_URL}/sda-rest-api/api/external/entitlement/V1/ApplicationUsers/getUsersForApplication?appKey=${sdaKey}`
-      )
-      .then((response) => {
-        return apiResponse.successResponseWithData(
-          res,
-          "Users retrieved successfully",
-          response.data
-        );
-      })
-      .catch((err) => {
-        return apiResponse.ErrorResponse(res, err);
-      });
+    request(
+      {
+        rejectUnauthorized: false,
+        url: `${SDA_BASE_URL}/sda-rest-api/api/external/entitlement/V1/ApplicationUsers/getUsersForApplication?appKey=${sdaKey}`,
+        method: "GET",
+      },
+      function (err, response, body) {
+        if (response?.body) {
+          return apiResponse.successResponseWithData(
+            res,
+            "Users retrieved successfully",
+            JSON.parse(response.body)
+          );
+        } else {
+          return apiResponse.ErrorResponse(res, "Something wrong");
+        }
+      }
+    );
     } catch(err) {
       return apiResponse.ErrorResponse(res, err.message);
     }
