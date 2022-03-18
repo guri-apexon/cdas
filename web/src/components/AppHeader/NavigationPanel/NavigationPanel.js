@@ -11,7 +11,7 @@ import Box from "apollo-react/components/Box";
 import Arrow2Down from "apollo-react-icons/Arrow2Down";
 import App from "apollo-react-icons/App";
 import Tooltip from "apollo-react/components/Tooltip/Tooltip";
-import { getAppUrl, goToApp } from "../../utils";
+import { getAppUrl, goToApp } from "../../../utils";
 
 const styles = {
   content: {
@@ -84,9 +84,6 @@ const NavigationPanel = ({
   const [openPanel, setOpenPanel] = useState(open);
   const useStyles = makeStyles(styles);
   const classes = useStyles();
-  // const onOpen = () => {
-  //   setOpenPanel(true);
-  // };
   const closePanel = () => {
     setOpenPanel(false);
     onClose();

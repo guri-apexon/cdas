@@ -7,6 +7,7 @@ import {
   STUDY_NOTONBOARDED_STATUS,
   STUDY_NOTONBOARDED_SUCCESS,
   STUDY_NOTONBOARDED_FAILURE,
+  SELECTED_STUDY_DATA,
 } from "../../constants";
 
 export const initialState = {
@@ -14,6 +15,7 @@ export const initialState = {
   notOnBoardedStudyStatus: {},
   loading: false,
   exportStudy: null,
+  selectedStudy: {},
 };
 
 const StudyBoardReducer = (state = initialState, action) =>
@@ -39,6 +41,10 @@ const StudyBoardReducer = (state = initialState, action) =>
       case STUDY_NOTONBOARDED_SUCCESS:
         newState.loading = false;
         newState.notOnBoardedStudyStatus = action.notOnBoardedStudyStatus;
+        break;
+
+      case SELECTED_STUDY_DATA:
+        newState.selectedStudy = action.study;
         break;
 
       case STUDY_NOTONBOARDED_FAILURE:
