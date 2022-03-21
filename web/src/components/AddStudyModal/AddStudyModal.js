@@ -72,14 +72,14 @@ const AddStudyModal = ({ open, onClose }) => {
   const allBtnArr = [
     ...btnArr,
     {
-      label: "Import and Assign later",
+      label: "Import and assign later",
       size: "small",
       variant: "secondary",
       onClick: importStudy,
       disabled: loading,
     },
     {
-      label: "Import and Assign Users",
+      label: "Import and assign users",
       size: "small",
       onClick: importWithUser,
     },
@@ -208,7 +208,7 @@ const AddStudyModal = ({ open, onClose }) => {
               </div>
             </>
           ) : (
-            <>
+            <div style={{ minHeight: "378px" }}>
               <Typography variant="caption">Search for a study</Typography>
               <Search
                 // onKeyDown={searchTrigger}
@@ -234,7 +234,7 @@ const AddStudyModal = ({ open, onClose }) => {
                   }}
                 />
               )}
-            </>
+            </div>
           )}
         </div>
       </Modal>
