@@ -68,7 +68,7 @@ const StudySetup = () => {
           style={{ float: "right" }}
           onClick={() => setAddStudyOpen(!addStudyOpen)}
         >
-          Add New Study
+          Add new study
         </Button>
       </div>
       <StudyNotOnboarded
