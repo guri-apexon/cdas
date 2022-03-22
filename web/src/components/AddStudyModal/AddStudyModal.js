@@ -81,6 +81,7 @@ const AddStudyModal = ({ open, onClose }) => {
     {
       label: "Import and assign users",
       size: "small",
+      className: "asign-user-btn",
       onClick: importWithUser,
     },
   ];
