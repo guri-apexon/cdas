@@ -101,7 +101,7 @@ const ImportWithUsers = () => {
         error={row.alreadyExist || (!initialRender && !row[key])}
         helperText={
           row.alreadyExist
-            ? "This user is already assigned"
+            ? "This user already has assignments. Please select a different user to continue."
             : !initialRender && !row[key] && "Required"
         }
       />

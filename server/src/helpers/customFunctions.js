@@ -6,6 +6,7 @@ exports.createUniqueID = () => {
   return crypto.randomBytes(3 * 4).toString("base64");
 };
 exports.getCurrentTime = () => {
+  return new Date().toISOString();
   return moment().utc().format("YYYY-MM-DD HH:mm:ss");
 };
 exports.getDomainWithoutSubdomain = url => {
