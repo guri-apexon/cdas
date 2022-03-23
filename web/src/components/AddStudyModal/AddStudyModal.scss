@@ -80,6 +80,7 @@
   .MuiDialogContent-root {
     @extend .customscroll;
     padding-bottom: 0;
+    overflow-x: hidden;
   };
 
   .MuiDialogActions-root {
