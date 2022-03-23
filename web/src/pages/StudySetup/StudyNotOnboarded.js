@@ -77,7 +77,11 @@ export default function StudyNotOnboarded({
                 className={`in-progress-box ${
                   status === "In Progress" ? "selected" : null
                 }`}
-                onClick={() => selectedStatus("In Progress")}
+                onClick={() =>
+                  selectedFilter === "In Progress"
+                    ? selectedStatus("")
+                    : selectedStatus("In Progress")
+                }
               >
                 <div className="full-width">
                   <InProgressIcon />
@@ -106,7 +110,7 @@ export default function StudyNotOnboarded({
                     gutterBottom
                     style={{ color: "#E20000" }}
                   >
-                    {`${totalFailures} Failures`}
+                    {`${totalFailures} Failed`}
                   </Typography>
                 </div>
               </Paper>

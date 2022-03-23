@@ -54,12 +54,14 @@ const StudySetup = () => {
       />
       <div className="header-section">
         <div className="header-title">
-          <StudyDataIcon
+          {/* <StudyDataIcon
             height="24"
             width="24"
             style={{ marginRight: "18px" }}
-          />
-          <Typography variant="title1">Study Setup</Typography>
+          /> */}
+          <Typography className="study-setup-wrapper-title" variant="title1">
+            Study Setup
+          </Typography>
         </div>
         <Button
           variant="primary"

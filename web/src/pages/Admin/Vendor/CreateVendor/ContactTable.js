@@ -70,7 +70,7 @@ const EditableCell = ({ row, column: { accessor: key, header } }) => {
 };
 
 const EmailEditableCell = ({ row, column: { accessor: key, header } }) => {
-  const { isStarted } = row;
+  const { isStarted, email } = row;
   return row.editMode ? (
     <TextField
       size="small"
@@ -79,10 +79,11 @@ const EmailEditableCell = ({ row, column: { accessor: key, header } }) => {
       type="email"
       placeholder={header}
       onChange={(e) => row.editEmail(row.vCId, key, e.target.value)}
-      error={isStarted && !re.test(row[key])}
+      error={isStarted && !re.test(row[key]) && email.length > 0}
       helperText={
-        (isStarted && !row[key] && "Required") ||
-        (isStarted && !re.test(row[key]) && "Invalid Email Format")
+        email.length > 0 &&
+        ((isStarted && !row[key] && "Required") ||
+          (isStarted && !re.test(row[key]) && "Invalid Email Format"))
       }
       {...fieldStyles}
     />
