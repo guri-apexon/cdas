@@ -75,8 +75,6 @@ const ExistingUsers = () => {
     setStateMenuItems([...updateData]);
   }, [selectedStudy]);
 
-  console.log("row check-->", location.state);
-
   const breadcrumpItems = [
     { href: "javascript:void(0)", onClick: () => history.push("/launchpad") },
     {

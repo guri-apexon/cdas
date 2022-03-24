@@ -265,11 +265,13 @@ exports.getStudyList = async (req, res) => {
       };
     });
 
-    let uniquePhase = $q3.rows.map((e) => Object.values(e)).flat();
+    let uniquePhase = $q3.rows
+      .map((e) => Object.values(e))
+      .flat()
+      .map((e) => (e === "" ? null : e));
     let uniqueProtocolStatus = $q4.rows.map((e) => Object.values(e)).flat();
     let uniqueObs = $q5.rows.map((e) => Object.values(e)).flat();
 
-    // console.log('rows', $data.rows, formatDateValues);
     return apiResponse.successResponseWithData(res, "Operation success", {
       studyData: formatDateValues,
       uniquePhase: uniquePhase,
@@ -303,6 +305,182 @@ exports.getSDAUsers = () => {
         return apiResponse.ErrorResponse(res, err);
       });
   } catch (err) {
+    Logger.error(err);
+    return apiResponse.ErrorResponse(res, err);
+  }
+};
+
+exports.listStudyAssign = async (req, res) => {
+  try {
+    const protocol = req.body.protocol;
+    const getQuery = `SELECT t1.prot_id,t1.usr_id,t2.usr_fst_nm,t2.usr_lst_nm,t2.usr_mail_id 
+                        FROM ${schemaName}.study_user as t1 
+                        LEFT JOIN ${schemaName}.user as t2 ON t1.usr_id = t2.usr_id 
+                        where t1.prot_id =$1 and t1.act_flg =1`;
+    const getRole = `SELECT t1.role_id,t1.prot_id,t1.usr_id,t2.role_nm ,t2.role_desc 
+                      FROM ${schemaName}.study_user_role as t1
+                      LEFT JOIN ${schemaName}.role as t2 ON t1.role_id = t2.role_id
+                      where t1.prot_id =$1 and t1.usr_id=$2 and t1.act_flg =1`;
+
+    Logger.info({ message: "listStudyAssign" });
+
+    const list = await DB.executeQuery(getQuery, [protocol]);
+    for (const item of list.rows) {
+      let roles = await DB.executeQuery(getRole, [protocol, item.usr_id]);
+      item.roles = roles.rows;
+    }
+
+    return apiResponse.successResponseWithData(
+      res,
+      "Operation success",
+      list.rows
+    );
+  } catch (err) {
+    Logger.error("catch :listStudyAssign");
+    Logger.error(err);
+    return apiResponse.ErrorResponse(res, err);
+  }
+};
+
+exports.AddStudyAssign = async (req, res) => {
+  try {
+    const { protocol, loginId, data } = req.body;
+    const curDate = helper.getCurrentTime();
+
+    const insertUserQuery = `INSERT INTO ${schemaName}.study_user (prot_id,usr_id,act_flg,insrt_tm)
+                              VALUES($1,$2,$3,$4)`;
+    const insertRoleQuery = `INSERT INTO ${schemaName}.study_user_role 
+                              (role_id,prot_id,usr_id,act_flg,created_by,created_on)
+                              VALUES($1,$2,$3,$4,$5,$6)`;
+
+    Logger.info({ message: "AddStudyAssign" });
+
+    data.forEach(async (element) => {
+      try {
+        await DB.executeQuery(insertUserQuery, [
+          protocol,
+          element.user_id,
+          1,
+          curDate,
+        ]);
+
+        element.role_id.forEach(async (roleId) => {
+          try {
+            await DB.executeQuery(insertRoleQuery, [
+              roleId,
+              protocol,
+              element.user_id,
+              1,
+              loginId,
+              curDate,
+            ]);
+          } catch (e) {
+            console.log(e);
+          }
+        });
+      } catch (err) {
+        console.log(err);
+      }
+    });
+
+    return apiResponse.successResponseWithData(
+      res,
+      "New user Added successfully"
+    );
+  } catch (err) {
+    //throw error in json response with status 500.
+    Logger.error("catch :AddStudyAssign");
+    Logger.error(err);
+    return apiResponse.ErrorResponse(res, err);
+  }
+};
+
+exports.updateStudyAssign = async (req, res) => {
+  try {
+    const { protocol, loginId, data } = req.body;
+    const curDate = helper.getCurrentTime();
+
+    const roleUpdateQuery = `UPDATE ${schemaName}.study_user_role SET act_flg =0,updated_by=$4,
+                        updated_on=$5 WHERE prot_id =$1 and usr_id = $2 and role_id <> ALL ($3);`;
+
+    const roleGetQuery = `SELECT * FROM ${schemaName}.study_user_role  WHERE prot_id =$1 and usr_id = $2 and role_id = $3`;
+
+    const insertRoleQuery = `INSERT INTO ${schemaName}.study_user_role (role_id,prot_id,usr_id,act_flg,created_by,created_on)
+                            VALUES($1,$2,$3,$4,$5,$6)`;
+
+    Logger.info({ message: "updateStudyAssign" });
+
+    data.forEach(async (element) => {
+      try {
+        await DB.executeQuery(roleUpdateQuery, [
+          protocol,
+          element.user_id,
+          element.role_id,
+          loginId,
+          curDate,
+        ]);
+
+        element.role_id.forEach(async (rollID) => {
+          try {
+            const roleGet = await DB.executeQuery(roleGetQuery, [
+              protocol,
+              element.user_id,
+              rollID,
+            ]);
+
+            if (roleGet.rows.length == 0) {
+              await DB.executeQuery(insertRoleQuery, [
+                rollID,
+                protocol,
+                element.user_id,
+                1,
+                loginId,
+                curDate,
+              ]);
+            }
+          } catch (e) {
+            console.log(e);
+          }
+        });
+      } catch (err) {
+        console.log(err);
+      }
+    });
+
+    return apiResponse.successResponse(res, "update successfully");
+  } catch (err) {
+    Logger.error("catch :updateStudyAssign");
+    Logger.error(err);
+    return apiResponse.ErrorResponse(res, err);
+  }
+};
+
+exports.deleteStudyAssign = async (req, res) => {
+  try {
+    const { protocol, loginId, user_id } = req.body;
+    const curDate = helper.getCurrentTime();
+    const userDeleteQuery = `UPDATE ${schemaName}.study_user SET act_flg =0,updt_tm=$3 WHERE prot_id =$1 and usr_id = $2`;
+    const roleDeleteQuery = `UPDATE ${schemaName}.study_user_role SET act_flg =0,updated_by=$3,updated_on=$4 WHERE prot_id =$1 and usr_id =$2`;
+    Logger.info({ message: "deleteStudyAssign" });
+
+    user_id.forEach(async (id) => {
+      try {
+        await DB.executeQuery(userDeleteQuery, [protocol, id, curDate]);
+
+        await DB.executeQuery(roleDeleteQuery, [
+          protocol,
+          id,
+          loginId,
+          curDate,
+        ]);
+
+        return apiResponse.successResponse(res, "User Deleted successfully");
+      } catch (err) {
+        console.log(err);
+      }
+    });
+  } catch (err) {
+    Logger.error("catch :deleteStudyAssign");
     Logger.error(err);
     return apiResponse.ErrorResponse(res, err);
   }
