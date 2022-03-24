@@ -178,8 +178,8 @@ export default function StudyTable({
         Array.from(
           new Set(
             studyboardData
-              .map((r) => ({ label: r.phase }))
-              .map((item) => item.label)
+              .map((r) => ({ label: r.phase && r.phase }))
+              .map((item) => (item.label ? item.label : " "))
           )
         )
           .map((label) => {
