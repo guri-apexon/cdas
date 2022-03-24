@@ -84,8 +84,6 @@ const DateCell = ({ row, column: { accessor } }) => {
   return <span>{date}</span>;
 };
 
-const obs = ["Failed", "Success", "In Progress"];
-
 const obIcons = {
   Failed: InFailureIcon,
   "In Progress": InProgressIcon,
@@ -132,6 +130,8 @@ export default function StudyTable({
   const history = useHistory();
 
   const status = studyData.uniqueProtocolStatus;
+  const obs = studyData.uniqueObs;
+  const phases = studyData.uniquePhase;
 
   const handleExisting = (row) => {
     history.push("/ExistingStudyAssignment");
@@ -189,28 +189,11 @@ export default function StudyTable({
       header: "Phase",
       accessor: "phase",
       sortFunction: compareStrings,
-      filterFunction: createStringArraySearchFilter("phase"),
-      filterComponent: createAutocompleteFilter(
-        Array.from(
-          new Set(
-            studyboardData
-              .map((r) => ({ label: r.phase }))
-              .map((item) => item.label)
-          )
-        )
-          .map((label) => {
-            return { label };
-          })
-          .sort((a, b) => {
-            if (a.label < b.label) {
-              return -1;
-            }
-            if (a.label > b.label) {
-              return 1;
-            }
-            return 0;
-          })
-      ),
+      // filterFunction: createStringArraySearchFilter("phase"),
+      // filterComponent: createSelectFilterComponent(phases, {
+      //   size: "small",
+      //   multiple: true,
+      // }),
     },
     {
       header: "Protocol Status",
@@ -244,27 +227,10 @@ export default function StudyTable({
       customCell: SelectiveCell,
       sortFunction: compareStrings,
       filterFunction: createStringArraySearchFilter("onboardingprogress"),
-      filterComponent: createAutocompleteFilter(
-        Array.from(
-          new Set(
-            studyboardData
-              .map((r) => ({ label: r.onboardingprogress }))
-              .map((item) => item.label)
-          )
-        )
-          .map((label) => {
-            return { label };
-          })
-          .sort((a, b) => {
-            if (a.label < b.label) {
-              return -1;
-            }
-            if (a.label > b.label) {
-              return 1;
-            }
-            return 0;
-          })
-      ),
+      filterComponent: createSelectFilterComponent(obs, {
+        size: "small",
+        multiple: true,
+      }),
     },
     {
       header: "Assignment Count",

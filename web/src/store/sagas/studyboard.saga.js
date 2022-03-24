@@ -25,6 +25,7 @@ export function* fetchStudyboardData() {
       studyboardData: fetchSBData.data.data.studyData,
       uniqurePhase: fetchSBData.data.data.uniquePhase,
       uniqueProtocolStatus: fetchSBData.data.data.uniqueProtocolStatus,
+      uniqueObs: fetchSBData.data.data.uniqueObs,
     });
   } catch (e) {
     yield put({ type: STUDYBOARD_FETCH_FAILURE, message: e.message });

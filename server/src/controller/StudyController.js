@@ -177,9 +177,7 @@ exports.studyList = function (req, res) {
     AND ms.spnsr_nm_stnd !='' AND ms.prot_nbr_stnd !=''
         LIMIT 60
         `;
-    Logger.info({
-      message: "studyList",
-    });
+    Logger.info({ message: "studyList" });
 
     DB.executeQuery(searchQuery).then((response) => {
       const studies = response.rows || [];
@@ -242,6 +240,7 @@ exports.getStudyList = async (req, res) => {
     const query2 = `SELECT prot_id, COUNT(DISTINCT usr_id) FROM ${schemaName}.study_user GROUP BY prot_id`;
     const query3 = `SELECT DISTINCT phase FROM ${schemaName}.study`;
     const query4 = `SELECT DISTINCT prot_stat as protocolstatus FROM ${schemaName}.study`;
+    const query5 = `SELECT DISTINCT ob_stat as onboardingprogress FROM ${schemaName}.study`;
 
     Logger.info({ message: "getStudyList" });
 
@@ -249,6 +248,7 @@ exports.getStudyList = async (req, res) => {
     const $q2 = await DB.executeQuery(query2);
     const $q3 = await DB.executeQuery(query3);
     const $q4 = await DB.executeQuery(query4);
+    const $q5 = await DB.executeQuery(query5);
 
     const formatDateValues = await $q1.rows.map((e) => {
       let acc = $q2.rows.filter((d) => d.prot_id === e.prot_id);
@@ -267,11 +267,14 @@ exports.getStudyList = async (req, res) => {
 
     let uniquePhase = $q3.rows.map((e) => Object.values(e)).flat();
     let uniqueProtocolStatus = $q4.rows.map((e) => Object.values(e)).flat();
+    let uniqueObs = $q5.rows.map((e) => Object.values(e)).flat();
+
     // console.log('rows', $data.rows, formatDateValues);
     return apiResponse.successResponseWithData(res, "Operation success", {
       studyData: formatDateValues,
       uniquePhase: uniquePhase,
       uniqueProtocolStatus: uniqueProtocolStatus,
+      uniqueObs: uniqueObs,
     });
   } catch (err) {
     //throw error in json response with status 500.
