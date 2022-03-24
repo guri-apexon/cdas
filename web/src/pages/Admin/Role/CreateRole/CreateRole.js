@@ -230,11 +230,11 @@ const CreateRole = () => {
   const setConfirmCancel = () => {
     const confirm = {
       subtitle: "You has started the new role. Do you still want to cancel?",
-      cancelLabel: "Yes, Cancel it",
+      cancelLabel: "Yes, cancel it",
       cancelAction: () => {
         history.push("/role-management");
       },
-      submitLabel: "No, Let's Finish",
+      submitLabel: "No, let's finish",
     };
     setConfirmObj(confirm);
   };

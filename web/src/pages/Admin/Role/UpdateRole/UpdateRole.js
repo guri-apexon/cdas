@@ -83,11 +83,9 @@ const UpdateRole = () => {
   const SelectionCell = ({ row }) => {
     const [checked, setChecked] = useState(row.selected);
     const setSelected = (e) => {
-      if (!RoleUpdatePermission) {
-        row.selected = e.target.checked;
-        row.updated = true;
-        setChecked(e.target.checked);
-      }
+      row.selected = e.target.checked;
+      row.updated = true;
+      setChecked(e.target.checked);
     };
     return (
       <>
@@ -276,11 +274,11 @@ const UpdateRole = () => {
   const setConfirmCancel = () => {
     const confirm = {
       subtitle: "You has started the new role. Do you still want to cancel?",
-      cancelLabel: "Yes, Cancel it",
+      cancelLabel: "Yes, cancel it",
       cancelAction: () => {
         history.push("/role-management");
       },
-      submitLabel: "No, Let's Finish",
+      submitLabel: "No, let's finish",
     };
     setConfirmObj(confirm);
   };
@@ -297,7 +295,7 @@ const UpdateRole = () => {
         setSelectedPolicy(null);
         history.push(`policy-management/${selectedPolicy.policyId}`);
       },
-      submitLabel: "Ok, Leave it",
+      submitLabel: "Ok, leave it",
     };
     setConfirmObj(confirm);
   };
