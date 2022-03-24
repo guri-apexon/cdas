@@ -78,7 +78,7 @@ const DateCell = ({ row, column: { accessor } }) => {
   const rowValue = row[accessor];
   const date =
     rowValue && moment(rowValue).isSame(moment(), "day")
-      ? moment(rowValue).format("DD-MMM-YYYY HH:mm")
+      ? moment(rowValue).format("DD-MMM-YYYY hh:mm A")
       : moment(rowValue).format("DD-MMM-YYYY");
 
   return <span>{date}</span>;
