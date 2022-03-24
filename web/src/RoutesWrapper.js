@@ -16,6 +16,9 @@ const StudySetup = lazy(() => import("./pages/StudySetup/StudySetup"));
 const ImportWithUsers = lazy(() =>
   import("./pages/OnboardStudy/AddUsers/ImportWithUsers")
 );
+const ExistingUsers = lazy(() =>
+  import("./pages/OnboardStudy/AddUsers/ExistingUsers")
+);
 const PolicyList = lazy(() =>
   import("./pages/Admin/Policy/ListPolicy/PolicyList")
 );
@@ -38,7 +41,9 @@ const VendorList = lazy(() =>
 const CreateVendor = lazy(() =>
   import("./pages/Admin/Vendor/CreateVendor/CreateVendor")
 );
-
+const ExistingStudyAssignment = lazy(() =>
+  import("./pages/ExistingStudyAssignment/ExistingStudyAssignment")
+);
 const Empty = () => <></>;
 
 const RoutesWrapper = () => {
@@ -96,11 +101,23 @@ const RoutesWrapper = () => {
               render={() => <Redirect to="/launchpad" />}
             />
             <Route path="/study-setup" exact render={() => <StudySetup />} />
+            <Route
+              path="/ExistingStudyAssignment/:rowValue"
+              exact
+              render={() => <ExistingUsers />}
+            />
+            <Route
+              path="/ExistingStudyAssignment"
+              exact
+              render={() => <ExistingUsers />}
+            />
+
             <Route path="/cdm" exact render={() => <DynamicProducts />} />
             <Route path="/cdr" exact render={() => <DynamicProducts />} />
             <Route path="/ca" exact render={() => <DynamicProducts />} />
             <Route path="/dsw" exact render={() => <DynamicProducts />} />
             <Route path="/vendor/list" exact render={() => <VendorList />} />
+
             <Route
               path="/analytics"
               exact

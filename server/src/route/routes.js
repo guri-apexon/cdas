@@ -9,6 +9,8 @@ const studyRoute = require("./study");
 const policyRoute = require("./policy");
 const verdorRoute = require("./vendor");
 const roleRoute = require("./role");
+const studyAssignRoute = require("./studyAssign");
+
 const router = express.Router();
 
 router.use(
@@ -25,6 +27,7 @@ router.use("/v1/api/study/", studyRoute);
 router.use("/v1/api/policy/", policyRoute);
 router.use("/v1/api/vendor/", verdorRoute);
 router.use("/v1/api/role/", roleRoute);
+router.use("/v1/api/study-assign/", studyAssignRoute);
 
 const RoleController = require("../controller/RoleController");
 router.get("/v1/api/study/select-roles", RoleController.getBasicList);

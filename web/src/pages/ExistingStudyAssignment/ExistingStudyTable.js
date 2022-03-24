@@ -1,14 +1,5 @@
-/* eslint-disable no-restricted-globals */
-/* eslint-disable jsx-a11y/anchor-is-valid */
 import React, { useState, useContext, useEffect } from "react";
-import {
-  Link,
-  Route,
-  Switch,
-  BrowserRouter as Router,
-  useHistory,
-} from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import moment from "moment";
 import * as XLSX from "xlsx";
 import { pick } from "lodash";
@@ -23,10 +14,11 @@ import Table, {
   compareStrings,
 } from "apollo-react/components/Table";
 import Button from "apollo-react/components/Button";
-import DownloadIcon from "apollo-react-icons/Download";
+import PlusIcon from "apollo-react-icons/Plus";
 import FilterIcon from "apollo-react-icons/Filter";
 import RefreshIcon from "apollo-react-icons/Refresh";
 import EllipsisVertical from "apollo-react-icons/EllipsisVertical";
+import Link from "apollo-react/components/Link";
 import IconButton from "apollo-react/components/IconButton";
 import IconMenuButton from "apollo-react/components/IconMenuButton";
 import { ReactComponent as InProgressIcon } from "../../components/Icons/Icon_In-progress_72x72.svg";
@@ -40,7 +32,8 @@ import {
   DateFilter,
   createStringArraySearchFilter,
 } from "../../utils/index";
-import { updateSelectedStudy } from "../../store/actions/StudyBoardAction";
+
+import AddNewUserModal from "../../components/AddNewUserModal/AddNewUserModal";
 
 const columnsToAdd = [
   {
@@ -59,10 +52,7 @@ const columnsToAdd = [
   },
 ];
 
-const menuItems = [
-  { text: "Study assignments" },
-  { text: "Download study assignments" },
-];
+const menuItems = [{ text: "Edit" }, { text: "Delete" }];
 
 const ActionCell = ({ row }) => {
   return (
@@ -74,11 +64,21 @@ const ActionCell = ({ row }) => {
   );
 };
 
+const LinkCell = ({ row, column: { accessor } }) => {
+  const rowValue = row[accessor];
+  return (
+    // eslint-disable-next-line jsx-a11y/anchor-is-valid
+    <Link onClick={() => console.log(`link clicked ${rowValue}`)}>
+      {rowValue}
+    </Link>
+  );
+};
+
 const DateCell = ({ row, column: { accessor } }) => {
   const rowValue = row[accessor];
   const date =
     rowValue && moment(rowValue).isSame(moment(), "day")
-      ? moment(rowValue).format("DD-MMM-YYYY hh:mm A")
+      ? moment(rowValue).format("DD-MMM-YYYY HH:mm")
       : moment(rowValue).format("DD-MMM-YYYY");
 
   return <span>{date}</span>;
@@ -115,12 +115,13 @@ const SelectiveCell = ({ row, column: { accessor } }) => {
   );
 };
 
-export default function StudyTable({
+export default function ExistingStudyTable({
   studyData,
   studyboardData,
   refreshData,
   selectedFilter,
 }) {
+  const dispatch = useDispatch();
   const [loading, setLoading] = useState(true);
   const [rowsPerPageRecord, setRowPerPageRecord] = useState(10);
   const [pageNo, setPageNo] = useState(0);
@@ -128,47 +129,39 @@ export default function StudyTable({
   const [sortOrderValue, setSortOrderValue] = useState("asc");
   const [inlineFilters, setInlineFilters] = useState([]);
   const messageContext = useContext(MessageContext);
-  const dispatch = useDispatch();
-  const history = useHistory();
 
   const status = studyData.uniqueProtocolStatus;
 
-  const handleExisting = (row) => {
-    history.push("/ExistingStudyAssignment");
-    dispatch(updateSelectedStudy(row));
-  };
+  const CustomButtonHeader = ({ toggleFilters, rows, downloadFile }) => {
+    const [addStudyOpen, setAddStudyOpen] = useState(false);
 
-  const LinkCell = ({ row, column: { accessor } }) => {
-    const rowValue = row[accessor];
     return (
-      <>
-        <Link onClick={() => handleExisting(row)}>{rowValue}</Link>
-      </>
+      <div>
+        <AddNewUserModal
+          open={addStudyOpen}
+          onClose={() => setAddStudyOpen(false)}
+        />
+        <Button
+          variant="secondary"
+          icon={<PlusIcon />}
+          size="small"
+          style={{ marginRight: "8px", float: "right" }}
+          onClick={() => setAddStudyOpen(!addStudyOpen)}
+        >
+          Add new users
+        </Button>
+        <Button
+          size="small"
+          variant="secondary"
+          icon={FilterIcon}
+          onClick={toggleFilters}
+          disabled={rows.length <= 0}
+        >
+          Filter
+        </Button>
+      </div>
     );
   };
-
-  const CustomButtonHeader = ({ toggleFilters, rows, downloadFile }) => (
-    <div>
-      <Button
-        size="small"
-        variant="secondary"
-        icon={DownloadIcon}
-        onClick={downloadFile}
-        style={{ marginRight: "8px", border: "none", boxShadow: "none" }}
-      >
-        Download
-      </Button>
-      <Button
-        size="small"
-        variant="secondary"
-        icon={FilterIcon}
-        onClick={toggleFilters}
-        disabled={rows.length <= 0}
-      >
-        Filter
-      </Button>
-    </div>
-  );
 
   const columns = [
     {
@@ -194,8 +187,8 @@ export default function StudyTable({
         Array.from(
           new Set(
             studyboardData
-              .map((r) => ({ label: r.phase && r.phase }))
-              .map((item) => (item.label ? item.label : " "))
+              .map((r) => ({ label: r.phase }))
+              .map((item) => item.label)
           )
         )
           .map((label) => {
@@ -302,21 +295,6 @@ export default function StudyTable({
     }
   }, [studyData.loading, studyboardData, studyData.studyboardFetchSuccess]);
 
-  const exportToCSV = (exportData, headers, fileName) => {
-    // console.log("data for export", exportData, headers, fileName);
-    const wb = XLSX.utils.book_new();
-    let ws = XLSX.worksheet;
-    const from = pageNo * rowsPerPageRecord;
-    const to = from + rowsPerPageRecord;
-    const newData = exportData.slice(from, to);
-    newData.unshift(headers);
-    console.log("data", from, rowsPerPageRecord, newData);
-    ws = XLSX.utils.json_to_sheet(newData, { skipHeader: true });
-    XLSX.utils.book_append_sheet(wb, ws, "studylist");
-    XLSX.writeFile(wb, fileName);
-    exportData.shift();
-  };
-
   const applyFilter = (cols, rows, filts) => {
     let filteredRows = rows;
     Object.values(cols).forEach((column) => {
@@ -333,18 +311,6 @@ export default function StudyTable({
     });
     return filteredRows;
   };
-
-  const exportDataRows = () => {
-    const toBeExportRows = [...studyboardData];
-    const sortedFilteredData = applyFilter(
-      tableColumns,
-      toBeExportRows,
-      inlineFilters
-    );
-    setExportTableRows(sortedFilteredData);
-    return sortedFilteredData;
-  };
-
   const downloadFile = async (e) => {
     const fileExtension = ".xlsx";
     const fileName = `StudyList_${moment(new Date()).format("DDMMYYYY")}`;
@@ -361,24 +327,7 @@ export default function StudyTable({
       const newObj = pick(obj, Object.keys(tempObj));
       return newObj;
     });
-    exportToCSV(newData, tempObj, fileName + fileExtension);
-    const exportRows = exportDataRows();
-    if (exportRows.length <= 0) {
-      e.preventDefault();
-      messageContext.showErrorMessage(
-        `There is no data on the screen to download because of which an empty file has been downloaded.`,
-        56
-      );
-    } else {
-      messageContext.showSuccessMessage(`File downloaded successfully.`);
-    }
   };
-
-  useEffect(() => {
-    const rows = exportDataRows();
-    setTableRows([...rows]);
-    setExportTableRows(rows);
-  }, [inlineFilters, sortedColumnValue, sortOrderValue]);
 
   useEffect(() => {
     setTableColumns([...moreColumns]);
@@ -395,13 +344,7 @@ export default function StudyTable({
           <>
             <Table
               isLoading={loading}
-              title="Studies"
-              subtitle={
-                // eslint-disable-next-line react/jsx-wrap-multilines
-                <IconButton color="primary" onClick={refreshData}>
-                  <RefreshIcon />
-                </IconButton>
-              }
+              title="User Assignments"
               columns={tableColumns}
               rows={tableRows}
               rowId="protocolnumber"

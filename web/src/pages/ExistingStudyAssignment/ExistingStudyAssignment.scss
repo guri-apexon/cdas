@@ -1,0 +1,30 @@
+@import "../../styles/customscroll.scss";
+.header-section {
+  display: flex;
+  align-items: center;
+  margin-top: 55px;
+  margin-bottom: 55px;
+  justify-content: space-between;
+  padding-left: 23px;
+  padding-right: 23px;
+  .header-title {
+    display: flex;
+    align-items: center;
+  }
+}
+
+.existing-study-assignment {
+  margin: 28px;
+}
+
+.study-table {
+  margin-top: 28px;
+
+  div[class*=" Table-scrollRoot-"] {
+    @extend .customscroll;
+  }
+
+  .MuiToolbar-regular > div {
+    display: flex;
+  }
+}
