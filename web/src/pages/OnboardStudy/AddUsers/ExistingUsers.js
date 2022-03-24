@@ -277,32 +277,25 @@ const ExistingUsers = () => {
           open={addStudyOpen}
           onClose={() => setAddStudyOpen(false)}
         />
-        <Button
-          variant="secondary"
-          icon={<PlusIcon />}
-          size="small"
-          style={{ marginRight: "8px", float: "right" }}
-          onClick={() => setAddStudyOpen(!addStudyOpen)}
-        >
-          Add new users
-        </Button>
-        <Button
-          size="small"
-          variant="secondary"
-          icon={PlusIcon}
-          onClick={addNewUser}
-        >
-          Add new users
-        </Button>
-        <Button
-          size="small"
-          variant="secondary"
-          icon={FilterIcon}
-          onClick={toggleFilters}
-          // disabled={rows.length <= 0}
-        >
-          Filter
-        </Button>
+        <div>
+          <Button
+            size="small"
+            variant="secondary"
+            icon={PlusIcon}
+            onClick={addNewUser}
+          >
+            Add new users
+          </Button>
+          <Button
+            size="small"
+            variant="secondary"
+            icon={FilterIcon}
+            onClick={toggleFilters}
+            // disabled={rows.length <= 0}
+          >
+            Filter
+          </Button>
+        </div>
       </>
     );
   };
@@ -328,6 +321,7 @@ const ExistingUsers = () => {
     setroleLists(result || []);
     addNewUser();
   };
+
   const getUserList = async () => {
     const result = await getOnboardUsers();
     const filtered =
@@ -349,9 +343,6 @@ const ExistingUsers = () => {
     setUserList(filtered);
     getRoles();
   };
-  useEffect(() => {
-    console.log("tableUsers", tableUsers);
-  }, [tableUsers]);
 
   const getTable = React.useMemo(
     () => (
