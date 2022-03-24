@@ -2,7 +2,7 @@
 /* eslint-disable no-script-url */
 /* eslint-disable react/button-has-type */
 import React, { useContext, useEffect, useState } from "react";
-import { useParams } from "react-router";
+// import { useParams } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import { useHistory, Link, useLocation } from "react-router-dom";
 import Typography from "apollo-react/components/Typography";
@@ -55,7 +55,6 @@ const ExistingUsers = () => {
   const [confirmObj, setConfirmObj] = useState(null);
   const [userList, setUserList] = useState([]);
   const [roleLists, setroleLists] = useState([]);
-  // const [selectedStudy, setSelectedStudy] = useState({});
   const [stateMenuItems, setStateMenuItems] = useState([]);
 
   const studyData = useSelector((state) => state.studyBoard);
@@ -86,7 +85,7 @@ const ExistingUsers = () => {
       onClick: () => history.push("/study-setup"),
     },
     {
-      title: "Assign Users",
+      title: "Manage Users",
     },
   ];
   const editRow = (e, value, reason, index, key) => {
@@ -386,24 +385,29 @@ const ExistingUsers = () => {
           style={{ height: 64, zIndex: 998 }}
         />
       </div>
-      <div className="import-with-users-wrapper">
-        <Box className="onboard-header">
-          <BreadcrumbsUI className="breadcrump" items={breadcrumpItems} />
-        </Box>
-        <Link to="/study-setup" onClick={() => console.log(`link clicked`)}>
-          <Button
-            className="back-btn"
-            variant="text"
-            size="small"
-            onClick={backToSearch}
-          >
-            <ChevronLeft style={{ width: 12, marginRight: 5 }} width={10} />
-            Back to search
-          </Button>
-        </Link>
-        <Grid item xs={9}>
-          <div className="user-table">{getTable}</div>
-        </Grid>
+      <div className="existing-study-wrapper">
+        <div className="top-content">
+          <Box className="onboard-header">
+            <BreadcrumbsUI className="breadcrump" items={breadcrumpItems} />
+          </Box>
+          <div className="header-title">Manage Users</div>
+        </div>
+        <div className="bottom-content">
+          <Link to="/study-setup" className="removeUnderLine">
+            <Button
+              className="back-btn"
+              variant="text"
+              size="small"
+              onClick={backToSearch}
+            >
+              <ChevronLeft style={{ width: 12, marginRight: 5 }} width={10} />
+              Back to Study Setup
+            </Button>
+          </Link>
+          <Grid item xs={12}>
+            <div className="user-table">{getTable}</div>
+          </Grid>
+        </div>
         {confirmObj && (
           <Modal
             open={confirmObj ? true : false}
