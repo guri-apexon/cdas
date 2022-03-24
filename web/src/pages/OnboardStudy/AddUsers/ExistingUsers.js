@@ -14,11 +14,10 @@ import IconButton from "apollo-react/components/IconButton";
 import PlusIcon from "apollo-react-icons/Plus";
 import Button from "apollo-react/components/Button";
 import BreadcrumbsUI from "apollo-react/components/Breadcrumbs";
-import ButtonGroup from "apollo-react/components/ButtonGroup";
-import Paper from "apollo-react/components/Paper";
 import Box from "apollo-react/components/Box";
 import Grid from "apollo-react/components/Grid";
 import Modal from "apollo-react/components/Modal";
+import ProjectHeader from "apollo-react/components/ProjectHeader";
 import "../OnboardStudy.scss";
 import AutocompleteV2 from "apollo-react/components/AutocompleteV2";
 import ChevronLeft from "apollo-react-icons/ChevronLeft";
@@ -56,14 +55,27 @@ const ExistingUsers = () => {
   const [confirmObj, setConfirmObj] = useState(null);
   const [userList, setUserList] = useState([]);
   const [roleLists, setroleLists] = useState([]);
-  const [selectedStudy, setSelectedStudy] = useState({});
+  // const [selectedStudy, setSelectedStudy] = useState({});
+  const [stateMenuItems, setStateMenuItems] = useState([]);
 
   const studyData = useSelector((state) => state.studyBoard);
   const [addStudyOpen, setAddStudyOpen] = useState(false);
+  const { selectedStudy } = studyData;
 
   console.log(studyData.selectedStudy);
 
-  const params = useParams();
+  useEffect(() => {
+    const updateData = [
+      { label: "Protocol Number", value: selectedStudy?.protocolnumber },
+      { label: "Sponsor", value: selectedStudy?.sponsorname },
+      { label: "Phase", value: selectedStudy?.phase },
+      { label: "Project Code", value: selectedStudy?.projectcode },
+      { label: "Protocol Status", value: selectedStudy?.protocolstatus },
+      { label: "Therapeutic Area", value: selectedStudy?.therapeuticarea },
+    ];
+    setStateMenuItems([...updateData]);
+  }, [selectedStudy]);
+
   console.log("row check-->", location.state);
 
   const breadcrumpItems = [
@@ -341,28 +353,7 @@ const ExistingUsers = () => {
   useEffect(() => {
     console.log("tableUsers", tableUsers);
   }, [tableUsers]);
-  useEffect(() => {
-    const {
-      location: { study },
-    } = history;
-    // const study = {
-    //   prot_nbr: "CA212016",
-    //   prot_nbr_stnd: "CA212016",
-    //   spnsr_nm: "BRISTOL-MYERS SQUIBB  [JP]",
-    //   spnsr_nm_stnd: "BRISTOLMYERSSQUIBBJP",
-    //   proj_cd: "MYA12666",
-    //   phase: "Phase 1",
-    //   prot_status: "Enrolling",
-    //   thptc_area: "CVT",
-    //   ob_stat: null,
-    // };
-    if (!study) {
-      // history.push("/study-setup");
-    } else {
-      setSelectedStudy(study);
-      getUserList();
-    }
-  }, []);
+
   const getTable = React.useMemo(
     () => (
       <>
@@ -383,56 +374,17 @@ const ExistingUsers = () => {
     [tableUsers]
   );
   const backToSearch = () => {
-    setSelectedStudy(null);
+    // setSelectedStudy(null);
   };
 
   return (
     <>
       <div className="container">
-        <div className="onboard-header">
-          <table>
-            <tr>
-              <th>
-                <Box m={2}>
-                  <Label>Protocol number</Label>
-                  <Value>{studyData.selectedStudy.protocolnumber}</Value>
-                </Box>
-              </th>
-              <th>
-                <td>
-                  <Box m={2}>
-                    <Label>Sponsor name</Label>
-                    <Value>{studyData.selectedStudy.sponsorname}</Value>
-                  </Box>
-                </td>
-              </th>
-              <th>
-                <Box m={2}>
-                  <Label>Project code</Label>
-                  <Value>{studyData.selectedStudy.projectcode}</Value>
-                </Box>
-              </th>
-              <th>
-                <Box m={2}>
-                  <Label>Protocol phase</Label>
-                  <Value>{studyData.selectedStudy.phase}</Value>
-                </Box>
-              </th>
-              <th>
-                <Box m={2}>
-                  <Label>Therapeutic area</Label>
-                  <Value>{studyData.selectedStudy.therapeuticarea}</Value>
-                </Box>
-              </th>
-              <th>
-                <Box m={2}>
-                  <Label>Protocol status</Label>
-                  <Value>{studyData.selectedStudy.protocolstatus}</Value>
-                </Box>
-              </th>
-            </tr>
-          </table>
-        </div>
+        <ProjectHeader
+          menuItems={stateMenuItems}
+          maxCellWidth={280}
+          style={{ height: 64, zIndex: 998 }}
+        />
       </div>
       <div className="import-with-users-wrapper">
         <Box className="onboard-header">
