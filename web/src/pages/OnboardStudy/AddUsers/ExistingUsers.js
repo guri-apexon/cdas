@@ -7,59 +7,50 @@ import React, { useContext, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useHistory, Link, useLocation } from "react-router-dom";
 import FilterIcon from "apollo-react-icons/Filter";
-import Table from "apollo-react/components/Table";
+import Table, {
+  createStringSearchFilter,
+  compareStrings,
+} from "apollo-react/components/Table";
 import PlusIcon from "apollo-react-icons/Plus";
 import Button from "apollo-react/components/Button";
 import BreadcrumbsUI from "apollo-react/components/Breadcrumbs";
 import Box from "apollo-react/components/Box";
 import Grid from "apollo-react/components/Grid";
-import Modal from "apollo-react/components/Modal";
 import ProjectHeader from "apollo-react/components/ProjectHeader";
 import EllipsisVerticalIcon from "apollo-react-icons/EllipsisVertical";
 import Tooltip from "apollo-react/components/Tooltip";
 import IconMenuButton from "apollo-react/components/IconMenuButton";
-import "../OnboardStudy.scss";
 import AutocompleteV2 from "apollo-react/components/AutocompleteV2";
 import ChevronLeft from "apollo-react-icons/ChevronLeft";
 import { MessageContext } from "../../../components/Providers/MessageProvider";
 import {
   fetchRoles,
   getAssignedUsers,
+  getOnboardUsers,
   updateAssignUser,
   deleteAssignUser,
 } from "../../../services/ApiServices";
-import { getUserInfo } from "../../../utils";
+import {
+  getUserInfo,
+  TextFieldFilter,
+  createStringArrayIncludedFilter,
+} from "../../../utils";
 import AddNewUserModal from "../../../components/AddNewUserModal/AddNewUserModal";
+import "../OnboardStudy.scss";
 
 const ActionCell = ({ row }) => {
-  const {
-    indexId,
-    onRowEdit,
-    onRowSave,
-    editMode,
-    onCancel,
-    editedRow,
-    onRowDelete,
-  } = row;
+  const { uniqueId, onRowEdit, onRowSave, editMode, onCancel, onRowDelete } =
+    row;
   const menuItems = [
-    { text: "Edit", id: 1, onClick: () => onRowEdit(row.indexId) },
-    { text: "Delete", id: 2, onClick: () => onRowDelete(row.indexId) },
+    { text: "Edit", onClick: () => onRowEdit(uniqueId) },
+    { text: "Delete", onClick: () => onRowDelete(uniqueId) },
   ];
   return editMode ? (
     <div style={{ marginTop: 8, whiteSpace: "nowrap" }}>
       <Button size="small" style={{ marginRight: 8 }} onClick={onCancel}>
         Cancel
       </Button>
-      <Button
-        size="small"
-        variant="primary"
-        onClick={onRowSave}
-        disabled={
-          Object.values(editedRow).some((item) => !item) ||
-          (editMode &&
-            !Object.keys(editedRow).some((key) => editedRow[key] !== row[key]))
-        }
-      >
+      <Button size="small" variant="primary" onClick={onRowSave}>
         Save
       </Button>
     </div>
@@ -76,10 +67,12 @@ const ExistingUsers = () => {
   const history = useHistory();
   const userInfo = getUserInfo();
   const toast = useContext(MessageContext);
-
   const [tableUsers, setTableUsers] = useState([]);
+  const [editedRow, setEditedRow] = useState({});
+  const [tableData, setTableData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [roleLists, setroleLists] = useState([]);
+  const [userList, setUserList] = useState([]);
   const [stateMenuItems, setStateMenuItems] = useState([]);
   const studyData = useSelector((state) => state.studyBoard);
   const [addStudyOpen, setAddStudyOpen] = useState(false);
@@ -88,22 +81,17 @@ const ExistingUsers = () => {
 
   const getData = async (id) => {
     const data = await getAssignedUsers(id);
-    const formattedData = await data.data.map((e, i) => {
-      const userObj = {
-        alreadyExist: false,
-        editMode: false,
-        indexId: i + 1,
-        user: {
-          userId: e.usr_id,
-          email: e.usr_mail_id,
-          label: `${e.usr_fst_nm} ${e.usr_lst_nm} (${e.usr_mail_id})`,
-        },
-        roles: e.roles.map((d) => ({ value: d.role_id, label: d.role_nm })),
-      };
-      return userObj;
-    });
-    console.log("formatted", formattedData);
-    setTableUsers([...formattedData]);
+    const forTable = data.data.map((e, i) => ({
+      alreadyExist: false,
+      editMode: false,
+      uniqueId: i + 1,
+      user: `${e.usr_fst_nm} ${e.usr_lst_nm} (${e.usr_mail_id})`,
+      user_id: e.usr_id,
+      email: e.usr_mail_id,
+      roles: e.roles.map((d) => ({ value: d.role_id, label: d.role_nm })),
+    }));
+    // console.log("formatted", forTable);
+    setTableUsers(forTable);
     setLoading(false);
   };
 
@@ -137,14 +125,36 @@ const ExistingUsers = () => {
     setroleLists(result || []);
   };
 
+  const getUserList = async () => {
+    const result = await getOnboardUsers();
+    const filtered =
+      result?.map((user) => {
+        return {
+          ...user,
+          label: `${user.firstName} ${user.lastName} (${user.email})`,
+        };
+      }) || [];
+    filtered.sort(function (a, b) {
+      if (a.firstName < b.firstName) {
+        return -1;
+      }
+      if (a.firstName > b.firstName) {
+        return 1;
+      }
+      return 0;
+    });
+    setUserList(filtered);
+  };
+
   useEffect(() => {
     getRoles();
+    getUserList();
   }, []);
 
-  const editRow = (e, value, reason, index, key) => {
+  const editRowData = (e, value, reason, uniqueId, key) => {
     setTableUsers((rows) =>
       rows.map((row) => {
-        if (row.index === index) {
+        if (row.uniqueId === uniqueId) {
           return { ...row, [key]: value };
         }
         return row;
@@ -153,7 +163,11 @@ const ExistingUsers = () => {
   };
 
   const EditableRoles = ({ row, column: { accessor: key } }) => {
-    return (
+    const rowValue = row[key]
+      .map((e) => e.label)
+      .sort()
+      .join(", ");
+    return row.editMode ? (
       <AutocompleteV2
         size="small"
         fullWidth
@@ -162,40 +176,64 @@ const ExistingUsers = () => {
         chipColor="white"
         source={roleLists}
         value={row[key]}
-        onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
+        onChange={(e, v, r) => editRowData(e, v, r, row.uniqueId, key)}
         error={!row[key]}
         helperText={!row[key] && "Required"}
       />
+    ) : (
+      <>{rowValue}</>
     );
   };
 
-  const onRowDelete = async (index) => {
-    const selected = await tableUsers.find((row) => row.index === index);
+  const onRowDelete = async (uniqueId) => {
+    const selected = await tableUsers.find((row) => row.uniqueId === uniqueId);
     deleteAssignUser({
       protocol,
       loginId: userInfo.user_id,
       users: [selected.userId],
     });
-    setTableUsers(tableUsers.filter((row) => row.index !== index));
+    setTableUsers(tableUsers.filter((row) => row.uniqueId !== uniqueId));
   };
 
-  const onRowEdit = async (index) => {
-    const selected = await tableUsers.find((row) => row.index === index);
-    const tempTable = tableUsers.filter((row) => row.index !== index);
-    selected.editMode = true;
-    setTableUsers([...tempTable, selected]);
+  const onRowEdit = async (uniqueId) => {
+    setEditedRow(tableUsers[uniqueId - 1]);
+    // const tempTable = tableUsers.filter((row) => row.uniqueId !== uniqueId);
+    // console.log("selected Row", selected, uniqueId);
+    // selected.editMode = true;
+    // setTableUsers([...tempTable]);
+  };
+
+  const onRowSave = async () => {
+    setTableUsers(
+      tableUsers.map((row) =>
+        row.uniqueId === editedRow.uniqueId ? editedRow : row
+      )
+    );
+    setEditedRow({});
+  };
+
+  const onCancel = () => {
+    setEditedRow({});
+  };
+
+  const editRow = (key, value) => {
+    setEditedRow({ ...editedRow, [key]: value });
   };
 
   const columns = [
     {
       header: "User",
       accessor: "user",
+      filterFunction: createStringSearchFilter("user"),
+      filterComponent: TextFieldFilter,
       width: "50%",
     },
     {
       header: "Role",
       accessor: "roles",
       customCell: EditableRoles,
+      filterFunction: createStringArrayIncludedFilter("roles"),
+      filterComponent: TextFieldFilter,
       width: "50%",
     },
     {
@@ -211,8 +249,10 @@ const ExistingUsers = () => {
         <AddNewUserModal
           open={addStudyOpen}
           onClose={() => setAddStudyOpen(false)}
-          users={tableUsers.map((e) => e.user)}
+          usersEmail={tableUsers.map((e) => e.email)}
           protocol={protocol}
+          userList={userList}
+          roleLists={roleLists}
         />
         <div>
           <Button
@@ -276,11 +316,16 @@ const ExistingUsers = () => {
                 isLoading={loading}
                 title="User Assignments"
                 columns={columns}
-                rowId="indexId"
+                rowId="uniqueId"
                 rows={tableUsers.map((row) => ({
                   ...row,
                   onRowEdit,
                   onRowDelete,
+                  onRowSave,
+                  onCancel,
+                  editRow,
+                  editMode: editedRow.uniqueId === row.uniqueId,
+                  editedRow,
                 }))}
                 rowProps={{ hover: false }}
                 hidePagination={true}

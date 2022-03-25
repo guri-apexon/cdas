@@ -1,13 +1,7 @@
 /* eslint-disable no-restricted-globals */
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import React, { useState, useContext, useEffect } from "react";
-import {
-  Link,
-  Route,
-  Switch,
-  BrowserRouter as Router,
-  useHistory,
-} from "react-router-dom";
+import { Link, useHistory } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import moment from "moment";
 import * as XLSX from "xlsx";
@@ -39,6 +33,9 @@ import {
   IntegerFilter,
   DateFilter,
   createStringArraySearchFilter,
+  createStringArrayIncludedFilter,
+  createSourceFromKey,
+  createFilterList,
 } from "../../utils/index";
 import { updateSelectedStudy } from "../../store/actions/StudyBoardAction";
 
@@ -67,7 +64,7 @@ const menuItems = [
 const ActionCell = ({ row }) => {
   return (
     <div style={{ display: "flex", justifyContent: "end" }}>
-      <IconMenuButton size="small" menuItems={menuItems}>
+      <IconMenuButton size="small" id="action" menuItems={menuItems}>
         <EllipsisVertical />
       </IconMenuButton>
     </div>
@@ -141,7 +138,9 @@ export default function StudyTable({
     const rowValue = row[accessor];
     return (
       <>
-        <Link onClick={() => handleExisting(row)}>{rowValue}</Link>
+        <Link to="#" onClick={() => handleExisting(row)}>
+          {rowValue}
+        </Link>
       </>
     );
   };
@@ -188,21 +187,15 @@ export default function StudyTable({
       header: "Phase",
       accessor: "phase",
       sortFunction: compareStrings,
-      filterFunction: createStringArraySearchFilter("phase"),
-      filterComponent: createSelectFilterComponent(phases, {
-        size: "small",
-        multiple: true,
-      }),
+      filterFunction: createStringArrayIncludedFilter("phase"),
+      filterComponent: createFilterList(phases),
     },
     {
       header: "Protocol Status",
       accessor: "protocolstatus",
       sortFunction: compareStrings,
-      filterFunction: createStringArraySearchFilter("protocolstatus"),
-      filterComponent: createSelectFilterComponent(status, {
-        size: "small",
-        multiple: true,
-      }),
+      filterFunction: createStringArrayIncludedFilter("protocolstatus"),
+      filterComponent: createFilterList(status),
     },
     {
       header: "Date Added",
@@ -225,11 +218,8 @@ export default function StudyTable({
       accessor: "onboardingprogress",
       customCell: SelectiveCell,
       sortFunction: compareStrings,
-      filterFunction: createStringArraySearchFilter("onboardingprogress"),
-      filterComponent: createSelectFilterComponent(obs, {
-        size: "small",
-        multiple: true,
-      }),
+      filterFunction: createStringArrayIncludedFilter("onboardingprogress"),
+      filterComponent: createFilterList(obs),
     },
     {
       header: "Assignment Count",
