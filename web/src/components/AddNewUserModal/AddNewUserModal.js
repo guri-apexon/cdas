@@ -239,4 +239,4 @@ const AddNewUserModal = ({ open, onClose }) => {
   );
 };
 
-export default withRouter(AddNewUserModal);
+export default AddNewUserModal;

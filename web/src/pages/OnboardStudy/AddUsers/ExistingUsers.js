@@ -1,3 +1,4 @@
+/* eslint-disable no-use-before-define */
 /* eslint-disable consistent-return */
 /* eslint-disable no-script-url */
 /* eslint-disable react/button-has-type */
@@ -5,10 +6,8 @@ import React, { useContext, useEffect, useState } from "react";
 // import { useParams } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import { useHistory, Link, useLocation } from "react-router-dom";
-import Typography from "apollo-react/components/Typography";
 import FilterIcon from "apollo-react-icons/Filter";
 import Table from "apollo-react/components/Table";
-import Trash from "apollo-react-icons/Trash";
 import SearchIcon from "apollo-react-icons/Search";
 import IconButton from "apollo-react/components/IconButton";
 import PlusIcon from "apollo-react-icons/Plus";
@@ -33,23 +32,7 @@ import {
 import { getUserInfo } from "../../../utils";
 import AddNewUserModal from "../../../components/AddNewUserModal/AddNewUserModal";
 
-const Label = ({ children }) => {
-  return (
-    <Typography className="label" variant="body2">
-      {children}
-    </Typography>
-  );
-};
-const Value = ({ children }) => {
-  return (
-    <Typography className="value b-font" variant="body2">
-      {children}
-    </Typography>
-  );
-};
-
 const ExistingUsers = () => {
-  const location = useLocation();
   const history = useHistory();
   const userInfo = getUserInfo();
   const toast = useContext(MessageContext);
@@ -66,8 +49,24 @@ const ExistingUsers = () => {
 
   const getData = async (id) => {
     const data = await getAssignedUsers(id);
-    console.log("dat", data.data);
-    const formattedData = data.data.map((e) => e);
+    const formattedData = await data.data.map((e, i) => {
+      const userObj = {
+        alreadyExist: false,
+        editMode: false,
+        index: i + 1,
+        user: {
+          userId: e.usr_id,
+          firstName: e.usr_fst_nm,
+          lastName: e.usr_lst_nm,
+          email: e.usr_mail_id,
+          label: `${e.usr_fst_nm} ${e.usr_lst_nm} (${e.usr_mail_id})`,
+        },
+        roles: e.roles.map((d) => ({ value: d.role_id, label: d.role_nm })),
+      };
+      return userObj;
+    });
+    console.log("dat", formattedData);
+    setTableUsers([...formattedData]);
   };
 
   useEffect(() => {
@@ -116,7 +115,7 @@ const ExistingUsers = () => {
   };
 
   const EditableUser = ({ row, column: { accessor: key } }) => {
-    return (
+    return row.editMode ? (
       <AutocompleteV2
         size="small"
         fullWidth
@@ -132,11 +131,13 @@ const ExistingUsers = () => {
             : !row[key] && "Required"
         }
       />
+    ) : (
+      row[key]
     );
   };
 
   const EditableRoles = ({ row, column: { accessor: key } }) => {
-    return (
+    return row.editMode ? (
       <AutocompleteV2
         size="small"
         fullWidth
@@ -149,15 +150,129 @@ const ExistingUsers = () => {
         error={!row[key]}
         helperText={!row[key] && "Required"}
       />
+    ) : (
+      row[key]
     );
   };
-  const DeleteUserCell = ({ row }) => {
-    const { index, onDelete } = row;
+
+  const ActionCell = ({ row }) => {
+    const menuItems = [
+      { text: "Edit", id: 1, onClick: () => onRowEdit(row.index) },
+      { text: "Delete", id: 2, onClick: () => onRowDelete(row.index) },
+    ];
     return (
-      <IconButton size="small" onClick={() => onDelete(index)}>
-        <Trash />
-      </IconButton>
+      <div style={{ display: "flex", justifyContent: "end" }}>
+        <IconMenuButton size="small" menuItems={menuItems}>
+          <EllipsisVertical />
+        </IconMenuButton>
+      </div>
     );
+  };
+
+  const columns = [
+    {
+      header: "User",
+      accessor: "user",
+      customCell: EditableUser,
+      width: "50%",
+    },
+    {
+      header: "Role",
+      accessor: "roles",
+      customCell: EditableRoles,
+      width: "50%",
+    },
+    {
+      accessor: "action",
+      customCell: ActionCell,
+      align: "right",
+    },
+  ];
+
+  const CustomHeader = ({ toggleFilters }) => {
+    return (
+      <>
+        <AddNewUserModal
+          open={addStudyOpen}
+          onClose={() => setAddStudyOpen(false)}
+        />
+        <div>
+          <Button
+            size="small"
+            variant="secondary"
+            icon={PlusIcon}
+            onClick={() => setAddStudyOpen(!addStudyOpen)}
+            style={{ marginRight: 16 }}
+          >
+            Add new users
+          </Button>
+          <Button
+            size="small"
+            variant="secondary"
+            icon={FilterIcon}
+            onClick={toggleFilters}
+            // disabled={rows.length <= 0}
+          >
+            Filter
+          </Button>
+        </div>
+      </>
+    );
+  };
+
+  const addNewUser = () => {
+    if (tableUsers.find((x) => x.user == null)) {
+      toast.showErrorMessage(
+        "Please fill user or remove blank rows to add new row"
+      );
+      return false;
+    }
+    const userObj = {
+      index: Math.max(...tableUsers.map((o) => o.index), 0) + 1,
+      user: null,
+      roles: [],
+    };
+    setTableUsers((u) => [...u, userObj]);
+  };
+
+  const getRoles = async () => {
+    const result = await fetchRoles();
+    setroleLists(result || []);
+    addNewUser();
+  };
+
+  const getUserList = async () => {
+    const result = await getOnboardUsers();
+    const filtered =
+      result?.map((user) => {
+        return {
+          ...user,
+          label: `${user.firstName} ${user.lastName} (${user.email})`,
+        };
+      }) || [];
+    filtered.sort(function (a, b) {
+      if (a.firstName < b.firstName) {
+        return -1;
+      }
+      if (a.firstName > b.firstName) {
+        return 1;
+      }
+      return 0;
+    });
+    setUserList(filtered);
+    getRoles();
+  };
+
+  const onRowDelete = (index) => {
+    setTableUsers(tableUsers.filter((row) => row.index !== index));
+  };
+
+  const onRowEdit = (index) => {
+    setTableUsers(tableUsers.filter((row) => row.index !== index));
+  };
+
+  const backToSearch = () => {
+    // setSelectedStudy(null);
   };
 
   const importStudy = async (assign) => {
@@ -261,133 +376,6 @@ const ExistingUsers = () => {
     },
   ];
 
-  const menuItems = [{ text: "Edit" }, { text: "Delete" }];
-
-  const ActionCell = ({ row }) => {
-    return (
-      <div style={{ display: "flex", justifyContent: "end" }}>
-        <IconMenuButton size="small" menuItems={menuItems}>
-          <EllipsisVertical />
-        </IconMenuButton>
-      </div>
-    );
-  };
-
-  const columns = [
-    {
-      header: "User",
-      accessor: "user",
-      customCell: EditableUser,
-    },
-    {
-      header: "Role",
-      accessor: "roles",
-      customCell: EditableRoles,
-    },
-    {
-      accessor: "action",
-      customCell: ActionCell,
-      align: "right",
-    },
-  ];
-  const CustomHeader = ({ addNewUser, toggleFilters }) => {
-    return (
-      <>
-        <AddNewUserModal
-          open={addStudyOpen}
-          onClose={() => setAddStudyOpen(false)}
-        />
-        <div>
-          <Button
-            size="small"
-            variant="secondary"
-            icon={PlusIcon}
-            onClick={addNewUser}
-            style={{ marginRight: 16 }}
-          >
-            Add new users
-          </Button>
-          <Button
-            size="small"
-            variant="secondary"
-            icon={FilterIcon}
-            onClick={toggleFilters}
-            // disabled={rows.length <= 0}
-          >
-            Filter
-          </Button>
-        </div>
-      </>
-    );
-  };
-  const addNewUser = () => {
-    if (tableUsers.find((x) => x.user == null)) {
-      toast.showErrorMessage(
-        "Please fill user or remove blank rows to add new row"
-      );
-      return false;
-    }
-    const userObj = {
-      index: Math.max(...tableUsers.map((o) => o.index), 0) + 1,
-      user: null,
-      roles: [],
-    };
-    setTableUsers((u) => [...u, userObj]);
-  };
-  const onDelete = (index) => {
-    setTableUsers(tableUsers.filter((row) => row.index !== index));
-  };
-  const getRoles = async () => {
-    const result = await fetchRoles();
-    setroleLists(result || []);
-    addNewUser();
-  };
-
-  const getUserList = async () => {
-    const result = await getOnboardUsers();
-    const filtered =
-      result?.map((user) => {
-        return {
-          ...user,
-          label: `${user.firstName} ${user.lastName} (${user.email})`,
-        };
-      }) || [];
-    filtered.sort(function (a, b) {
-      if (a.firstName < b.firstName) {
-        return -1;
-      }
-      if (a.firstName > b.firstName) {
-        return 1;
-      }
-      return 0;
-    });
-    setUserList(filtered);
-    getRoles();
-  };
-
-  const getTable = React.useMemo(
-    () => (
-      <>
-        <Table
-          title="User Assignments"
-          columns={columns}
-          rows={tableUsers.map((row) => ({
-            ...row,
-            onDelete,
-          }))}
-          rowProps={{ hover: false }}
-          hidePagination={true}
-          CustomHeader={CustomHeader}
-          headerProps={{ addNewUser }}
-        />
-      </>
-    ),
-    [tableUsers]
-  );
-  const backToSearch = () => {
-    // setSelectedStudy(null);
-  };
-
   return (
     <>
       <div className="container">
@@ -417,7 +405,19 @@ const ExistingUsers = () => {
             </Button>
           </Link>
           <Grid item xs={12}>
-            <div className="user-table">{getTable}</div>
+            <div className="user-table">
+              <Table
+                title="User Assignments"
+                columns={columns}
+                rows={tableUsers.map((row) => ({
+                  ...row,
+                }))}
+                rowProps={{ hover: false }}
+                hidePagination={true}
+                CustomHeader={CustomHeader}
+                headerProps={{ addNewUser }}
+              />
+            </div>
           </Grid>
         </div>
         {confirmObj && (
