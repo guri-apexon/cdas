@@ -8,7 +8,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { useHistory, Link, useLocation } from "react-router-dom";
 import FilterIcon from "apollo-react-icons/Filter";
 import Table from "apollo-react/components/Table";
-import SearchIcon from "apollo-react-icons/Search";
 import PlusIcon from "apollo-react-icons/Plus";
 import Button from "apollo-react/components/Button";
 import BreadcrumbsUI from "apollo-react/components/Breadcrumbs";
@@ -79,17 +78,13 @@ const ExistingUsers = () => {
   const toast = useContext(MessageContext);
 
   const [tableUsers, setTableUsers] = useState([]);
-
   const [loading, setLoading] = useState(true);
-  const [confirmObj, setConfirmObj] = useState(null);
-
   const [roleLists, setroleLists] = useState([]);
-
   const [stateMenuItems, setStateMenuItems] = useState([]);
   const studyData = useSelector((state) => state.studyBoard);
   const [addStudyOpen, setAddStudyOpen] = useState(false);
   const { selectedStudy } = studyData;
-  const { prot_id: studyId } = selectedStudy;
+  const { prot_id: protocol } = selectedStudy;
 
   const getData = async (id) => {
     const data = await getAssignedUsers(id);
@@ -122,7 +117,7 @@ const ExistingUsers = () => {
       { label: "Therapeutic Area", value: selectedStudy?.therapeuticarea },
     ];
     setStateMenuItems([...updateData]);
-    getData(studyId);
+    getData(protocol);
   }, [selectedStudy]);
 
   const breadcrumpItems = [
@@ -177,8 +172,8 @@ const ExistingUsers = () => {
   const onRowDelete = async (index) => {
     const selected = await tableUsers.find((row) => row.index === index);
     deleteAssignUser({
-      protocol: studyId,
-      loginId: getUserInfo.user_id,
+      protocol,
+      loginId: userInfo.user_id,
       users: [selected.userId],
     });
     setTableUsers(tableUsers.filter((row) => row.index !== index));
@@ -217,6 +212,7 @@ const ExistingUsers = () => {
           open={addStudyOpen}
           onClose={() => setAddStudyOpen(false)}
           users={tableUsers.map((e) => e.user)}
+          protocol={protocol}
         />
         <div>
           <Button
@@ -293,29 +289,6 @@ const ExistingUsers = () => {
             </div>
           </Grid>
         </div>
-        {confirmObj && (
-          <Modal
-            open={confirmObj ? true : false}
-            onClose={() => setConfirmObj(null)}
-            className="save-confirm"
-            variant="warning"
-            title={confirmObj.title}
-            message={confirmObj.subtitle}
-            buttonProps={[
-              {
-                label: confirmObj.cancelLabel,
-                onClick: confirmObj.cancelAction,
-                disabled: loading,
-              },
-              {
-                label: confirmObj.submitLabel,
-                onClick: confirmObj.submitAction,
-                disabled: loading,
-              },
-            ]}
-            id="neutral"
-          />
-        )}
       </div>
     </>
   );

@@ -11,10 +11,14 @@ import Trash from "apollo-react-icons/Trash";
 import AutocompleteV2 from "apollo-react/components/AutocompleteV2";
 import ApolloProgress from "apollo-react/components/ApolloProgress";
 import { MessageContext } from "../Providers/MessageProvider";
-import { fetchRoles, getOnboardUsers } from "../../services/ApiServices";
+import {
+  fetchRoles,
+  getOnboardUsers,
+  addAssignUser,
+} from "../../services/ApiServices";
 import { debounceFunction, getUserInfo } from "../../utils";
 
-const AddNewUserModal = ({ open, onClose, users }) => {
+const AddNewUserModal = ({ open, onClose, users, protocol }) => {
   const [openModal, setOpenModal] = useState(open);
   const [tableUsers, setTableUsers] = useState([]);
   const [userList, setUserList] = useState([]);
@@ -201,7 +205,12 @@ const AddNewUserModal = ({ open, onClose, users }) => {
     [tableUsers, userList]
   );
 
-  const addUsers = () => {
+  const addUsers = async () => {
+    await addAssignUser({
+      protocol,
+      loginId: userInfo.user_id,
+      data: tableUsers,
+    });
     setOpenModal(!openModal);
   };
 
