@@ -39,15 +39,8 @@ import AddNewUserModal from "../../../components/AddNewUserModal/AddNewUserModal
 import "../OnboardStudy.scss";
 
 const ActionCell = ({ row }) => {
-  const {
-    uniqueId,
-    onRowEdit,
-    onRowSave,
-    editMode,
-    onCancel,
-    editedRow,
-    onRowDelete,
-  } = row;
+  const { uniqueId, onRowEdit, onRowSave, editMode, onCancel, onRowDelete } =
+    row;
   const menuItems = [
     { text: "Edit", onClick: () => onRowEdit(uniqueId) },
     { text: "Delete", onClick: () => onRowDelete(uniqueId) },
@@ -88,25 +81,16 @@ const ExistingUsers = () => {
 
   const getData = async (id) => {
     const data = await getAssignedUsers(id);
-    const formattedData = data.data.map((e, i) => {
-      const userObj = {
-        alreadyExist: false,
-        editMode: false,
-        uniqueId: i + 1,
-        user: `${e.usr_fst_nm} ${e.usr_lst_nm} (${e.usr_mail_id})`,
-        roles: e.roles.map((d) => ({ value: d.role_id, label: d.role_nm })),
-      };
-      return userObj;
-    });
     const forTable = data.data.map((e, i) => ({
       alreadyExist: false,
       editMode: false,
       uniqueId: i + 1,
       user: `${e.usr_fst_nm} ${e.usr_lst_nm} (${e.usr_mail_id})`,
-      roles: e.roles.map((d) => d.role_nm),
+      user_id: e.usr_id,
+      email: e.usr_mail_id,
+      roles: e.roles.map((d) => ({ value: d.role_id, label: d.role_nm })),
     }));
-    console.log("formatted", formattedData, forTable);
-    // setTableUsers([...formattedData]);
+    // console.log("formatted", forTable);
     setTableUsers(forTable);
     setLoading(false);
   };
@@ -179,7 +163,10 @@ const ExistingUsers = () => {
   };
 
   const EditableRoles = ({ row, column: { accessor: key } }) => {
-    const rowValue = row[key].sort().join(", ");
+    const rowValue = row[key]
+      .map((e) => e.label)
+      .sort()
+      .join(", ");
     return row.editMode ? (
       <AutocompleteV2
         size="small"
@@ -262,7 +249,7 @@ const ExistingUsers = () => {
         <AddNewUserModal
           open={addStudyOpen}
           onClose={() => setAddStudyOpen(false)}
-          // users={tableUsers.map((e) => e.user)}
+          usersEmail={tableUsers.map((e) => e.email)}
           protocol={protocol}
           userList={userList}
           roleLists={roleLists}

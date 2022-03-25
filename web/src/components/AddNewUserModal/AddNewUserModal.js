@@ -19,7 +19,7 @@ import { debounceFunction, getUserInfo } from "../../utils";
 const AddNewUserModal = ({
   open,
   onClose,
-  users,
+  usersEmail,
   protocol,
   userList,
   roleLists,
@@ -74,7 +74,9 @@ const AddNewUserModal = ({
         ? true
         : false;
       if (!alreadyExist) {
-        alreadyExist = users.find((x) => x.user?.email === value.email)
+        alreadyExist = usersEmail.find(
+          (x) => x.usersEmail?.email === value.email
+        )
           ? true
           : false;
       }
