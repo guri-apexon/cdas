@@ -1,15 +1,14 @@
+/* eslint-disable no-return-assign */
 /* eslint-disable no-use-before-define */
 /* eslint-disable consistent-return */
 /* eslint-disable no-script-url */
 /* eslint-disable react/button-has-type */
 import React, { useContext, useEffect, useState } from "react";
-// import { useParams } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import { useHistory, Link, useLocation } from "react-router-dom";
 import FilterIcon from "apollo-react-icons/Filter";
 import Table from "apollo-react/components/Table";
 import SearchIcon from "apollo-react-icons/Search";
-import IconButton from "apollo-react/components/IconButton";
 import PlusIcon from "apollo-react-icons/Plus";
 import Button from "apollo-react/components/Button";
 import BreadcrumbsUI from "apollo-react/components/Breadcrumbs";
@@ -17,7 +16,8 @@ import Box from "apollo-react/components/Box";
 import Grid from "apollo-react/components/Grid";
 import Modal from "apollo-react/components/Modal";
 import ProjectHeader from "apollo-react/components/ProjectHeader";
-import EllipsisVertical from "apollo-react-icons/EllipsisVertical";
+import EllipsisVerticalIcon from "apollo-react-icons/EllipsisVertical";
+import Tooltip from "apollo-react/components/Tooltip";
 import IconMenuButton from "apollo-react/components/IconMenuButton";
 import "../OnboardStudy.scss";
 import AutocompleteV2 from "apollo-react/components/AutocompleteV2";
@@ -36,13 +36,16 @@ const ExistingUsers = () => {
   const history = useHistory();
   const userInfo = getUserInfo();
   const toast = useContext(MessageContext);
+
   const [tableUsers, setTableUsers] = useState([]);
+
   const [loading, setLoading] = useState(false);
   const [confirmObj, setConfirmObj] = useState(null);
+
   const [userList, setUserList] = useState([]);
   const [roleLists, setroleLists] = useState([]);
-  const [stateMenuItems, setStateMenuItems] = useState([]);
 
+  const [stateMenuItems, setStateMenuItems] = useState([]);
   const studyData = useSelector((state) => state.studyBoard);
   const [addStudyOpen, setAddStudyOpen] = useState(false);
   const { selectedStudy } = studyData;
@@ -53,7 +56,7 @@ const ExistingUsers = () => {
       const userObj = {
         alreadyExist: false,
         editMode: false,
-        index: i + 1,
+        indexId: i + 1,
         user: {
           userId: e.usr_id,
           firstName: e.usr_fst_nm,
@@ -65,7 +68,6 @@ const ExistingUsers = () => {
       };
       return userObj;
     });
-    console.log("dat", formattedData);
     setTableUsers([...formattedData]);
   };
 
@@ -138,6 +140,7 @@ const ExistingUsers = () => {
 
   const EditableRoles = ({ row, column: { accessor: key } }) => {
     return row.editMode ? (
+      // return (
       <AutocompleteV2
         size="small"
         fullWidth
@@ -151,21 +154,51 @@ const ExistingUsers = () => {
         helperText={!row[key] && "Required"}
       />
     ) : (
+      // );
       row[key]
     );
   };
 
   const ActionCell = ({ row }) => {
+    const {
+      indexId,
+      onRowEdit,
+      onRowSave,
+      editMode,
+      onCancel,
+      editedRow,
+      onRowDelete,
+    } = row;
     const menuItems = [
-      { text: "Edit", id: 1, onClick: () => onRowEdit(row.index) },
-      { text: "Delete", id: 2, onClick: () => onRowDelete(row.index) },
+      { text: "Edit", id: 1, onClick: () => onRowEdit(row.indexId) },
+      { text: "Delete", id: 2, onClick: () => onRowDelete(row.indexId) },
     ];
-    return (
-      <div style={{ display: "flex", justifyContent: "end" }}>
-        <IconMenuButton size="small" menuItems={menuItems}>
-          <EllipsisVertical />
-        </IconMenuButton>
+    return editMode ? (
+      <div style={{ marginTop: 8, whiteSpace: "nowrap" }}>
+        <Button size="small" style={{ marginRight: 8 }} onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button
+          size="small"
+          variant="primary"
+          onClick={onRowSave}
+          disabled={
+            Object.values(editedRow).some((item) => !item) ||
+            (editMode &&
+              !Object.keys(editedRow).some(
+                (key) => editedRow[key] !== row[key]
+              ))
+          }
+        >
+          Save
+        </Button>
       </div>
+    ) : (
+      <Tooltip title="Actions" disableFocusListener>
+        <IconMenuButton id="actions" menuItems={menuItems} size="small">
+          <EllipsisVerticalIcon />
+        </IconMenuButton>
+      </Tooltip>
     );
   };
 
@@ -268,7 +301,10 @@ const ExistingUsers = () => {
   };
 
   const onRowEdit = (index) => {
-    setTableUsers(tableUsers.filter((row) => row.index !== index));
+    const tempTable = tableUsers.filter((row) => row.index !== index);
+    const selected = tableUsers.find((row) => row.index === index);
+    selected.editMode = true;
+    setTableUsers([...tempTable, selected]);
   };
 
   const backToSearch = () => {
@@ -409,6 +445,7 @@ const ExistingUsers = () => {
               <Table
                 title="User Assignments"
                 columns={columns}
+                rowId="indexId"
                 rows={tableUsers.map((row) => ({
                   ...row,
                 }))}
