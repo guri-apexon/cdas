@@ -255,13 +255,13 @@ exports.getStudyList = async (req, res) => {
       let acc = $q2.rows.filter((d) => d.prot_id === e.prot_id);
       let newObj = acc[0] ? acc[0] : { count: 0 };
       let { count } = newObj;
-      // let editT = moment(e.dateedited).format("MM/DD/YYYY");
-      // let addT = moment(e.dateadded).format("MM/DD/YYYY");
+      let editT = moment(e.dateedited).format("MM/DD/YYYY");
+      let addT = moment(e.dateadded).format("MM/DD/YYYY");
       // let newData = _.omit(e, ["prot_id"]);
       return {
         ...e,
-        // dateadded: addT,
-        // dateedited: editT,
+        dateadded: addT,
+        dateedited: editT,
         assignmentcount: count,
       };
     });

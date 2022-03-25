@@ -76,10 +76,10 @@ const ActionCell = ({ row }) => {
 
 const DateCell = ({ row, column: { accessor } }) => {
   const rowValue = row[accessor];
-  const date =
-    rowValue && moment(rowValue).isSame(moment(), "day")
-      ? moment(rowValue).format("DD-MMM-YYYY hh:mm A")
-      : moment(rowValue).format("DD-MMM-YYYY");
+  const date = rowValue ? moment(rowValue).format("DD-MMM-YYYY") : "";
+  // rowValue && moment(rowValue).isSame(moment(), "day")
+  //   ? moment(rowValue).format("DD-MMM-YYYY hh:mm A")
+  //   : moment(rowValue).format("DD-MMM-YYYY");
 
   return <span>{date}</span>;
 };
@@ -123,7 +123,7 @@ export default function StudyTable({
   const [rowsPerPageRecord, setRowPerPageRecord] = useState(10);
   const [pageNo, setPageNo] = useState(0);
   const [sortedColumnValue, setSortedColumnValue] = useState("dateadded");
-  const [sortOrderValue, setSortOrderValue] = useState("asc");
+  const [sortOrderValue, setSortOrderValue] = useState("desc");
   const [inlineFilters, setInlineFilters] = useState([]);
   const messageContext = useContext(MessageContext);
   const dispatch = useDispatch();
@@ -374,7 +374,7 @@ export default function StudyTable({
               hasScroll={true}
               maxHeight="600px"
               initialSortedColumn="dateadded"
-              initialSortOrder="asc"
+              initialSortOrder="desc"
               sortedColumn={sortedColumnValue}
               sortOrder={sortOrderValue}
               rowsPerPageOptions={[10, 50, 100, "All"]}
