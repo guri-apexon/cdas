@@ -18,6 +18,8 @@ import Box from "apollo-react/components/Box";
 import Grid from "apollo-react/components/Grid";
 import Modal from "apollo-react/components/Modal";
 import ProjectHeader from "apollo-react/components/ProjectHeader";
+import EllipsisVertical from "apollo-react-icons/EllipsisVertical";
+import IconMenuButton from "apollo-react/components/IconMenuButton";
 import "../OnboardStudy.scss";
 import AutocompleteV2 from "apollo-react/components/AutocompleteV2";
 import ChevronLeft from "apollo-react-icons/ChevronLeft";
@@ -259,6 +261,18 @@ const ExistingUsers = () => {
     },
   ];
 
+  const menuItems = [{ text: "Edit" }, { text: "Delete" }];
+
+  const ActionCell = ({ row }) => {
+    return (
+      <div style={{ display: "flex", justifyContent: "end" }}>
+        <IconMenuButton size="small" menuItems={menuItems}>
+          <EllipsisVertical />
+        </IconMenuButton>
+      </div>
+    );
+  };
+
   const columns = [
     {
       header: "User",
@@ -271,10 +285,9 @@ const ExistingUsers = () => {
       customCell: EditableRoles,
     },
     {
-      header: "",
-      accessor: "delete",
-      width: 40,
-      customCell: DeleteUserCell,
+      accessor: "action",
+      customCell: ActionCell,
+      align: "right",
     },
   ];
   const CustomHeader = ({ addNewUser, toggleFilters }) => {
