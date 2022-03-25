@@ -7,6 +7,22 @@
       font-size: 16px;
       font-weight: 700;
     }
+    .user-table{
+        background-color: #fff;
+        .role,.user{
+            input{
+                cursor: pointer;
+            }
+        }
+        tbody:before {
+            content: "-";
+            display: block;
+            line-height: 1em;
+            color: transparent;
+        }
+        tr{
+            vertical-align: top;
+        }
     .title {
       padding: 20px 15px 10px;
       border-bottom: 1px solid #e9e9e9;
@@ -66,4 +82,5 @@
 }
 .removeUnderLine {
   text-decoration: none;
+}
 }

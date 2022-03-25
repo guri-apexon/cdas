@@ -93,9 +93,7 @@ exports.cronUpdateStatus = async () => {
       studies.map(async (study) => {
         const { prot_id, prot_nbr_stnd } = study;
         const status = await CommonController.fsrStudyStatus(prot_nbr_stnd);
-        if (status == "Success") {
-          await updateStatus(prot_id);
-        }
+        await updateStatus(prot_id);
       })
     );
     Logger.info({
