@@ -90,37 +90,41 @@ const ImportWithUsers = () => {
   };
   const EditableUser = ({ row, column: { accessor: key } }) => {
     return (
-      <AutocompleteV2
-        size="small"
-        fullWidth
-        forcePopupIcon
-        popupIcon={<SearchIcon fontSize="extraSmall" />}
-        source={userList}
-        value={row[key]}
-        onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
-        error={row.alreadyExist || (!initialRender && !row[key])}
-        helperText={
-          row.alreadyExist
-            ? "This user is already assigned"
-            : !initialRender && !row[key] && "Required"
-        }
-      />
+      <div className="user">
+        <AutocompleteV2
+          size="small"
+          fullWidth
+          forcePopupIcon
+          popupIcon={<SearchIcon fontSize="extraSmall" />}
+          source={userList}
+          value={row[key]}
+          onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
+          error={row.alreadyExist || (!initialRender && !row[key])}
+          helperText={
+            row.alreadyExist
+              ? "This user is already assigned"
+              : !initialRender && !row[key] && "Required"
+          }
+        />
+      </div>
     );
   };
   const EditableRoles = ({ row, column: { accessor: key } }) => {
     return (
-      <AutocompleteV2
-        size="small"
-        fullWidth
-        multiple
-        forcePopupIcon
-        chipColor="white"
-        source={roleLists}
-        value={row[key]}
-        onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
-        error={!row[key]}
-        helperText={!row[key] && "Required"}
-      />
+      <div className="role">
+        <AutocompleteV2
+          size="small"
+          fullWidth
+          multiple
+          forcePopupIcon
+          chipColor="white"
+          source={roleLists}
+          value={row[key]}
+          onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
+          error={!row[key]}
+          helperText={!row[key] && "Required"}
+        />
+      </div>
     );
   };
   const DeleteUserCell = ({ row }) => {
@@ -184,7 +188,7 @@ const ImportWithUsers = () => {
     const confirm = {
       title: "Cancel Import?",
       subtitle: "This study has not been onboarded.",
-      cancelLabel: "Cancel Import",
+      cancelLabel: "Cancel import",
       cancelAction: () => {
         history.push("/study-setup");
       },

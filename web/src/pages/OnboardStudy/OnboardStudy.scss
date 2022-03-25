@@ -21,6 +21,11 @@
     }
     .user-table{
         background-color: #fff;
+        .role,.user{
+            input{
+                cursor: pointer;
+            }
+        }
         tbody:before {
             content: "-";
             display: block;
