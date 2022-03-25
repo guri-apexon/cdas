@@ -7,7 +7,10 @@ import React, { useContext, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useHistory, Link, useLocation } from "react-router-dom";
 import FilterIcon from "apollo-react-icons/Filter";
-import Table from "apollo-react/components/Table";
+import Table, {
+  createStringSearchFilter,
+  compareStrings,
+} from "apollo-react/components/Table";
 import PlusIcon from "apollo-react-icons/Plus";
 import Button from "apollo-react/components/Button";
 import BreadcrumbsUI from "apollo-react/components/Breadcrumbs";
@@ -27,7 +30,11 @@ import {
   updateAssignUser,
   deleteAssignUser,
 } from "../../../services/ApiServices";
-import { getUserInfo } from "../../../utils";
+import {
+  getUserInfo,
+  TextFieldFilter,
+  createStringArrayIncludedFilter,
+} from "../../../utils";
 import AddNewUserModal from "../../../components/AddNewUserModal/AddNewUserModal";
 import "../OnboardStudy.scss";
 
@@ -76,8 +83,8 @@ const ExistingUsers = () => {
   const history = useHistory();
   const userInfo = getUserInfo();
   const toast = useContext(MessageContext);
-
   const [tableUsers, setTableUsers] = useState([]);
+  const [tableData, setTableData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [roleLists, setroleLists] = useState([]);
   const [userList, setUserList] = useState([]);
@@ -89,22 +96,26 @@ const ExistingUsers = () => {
 
   const getData = async (id) => {
     const data = await getAssignedUsers(id);
-    const formattedData = await data.data.map((e, i) => {
+    const formattedData = data.data.map((e, i) => {
       const userObj = {
         alreadyExist: false,
         editMode: false,
         indexId: i + 1,
-        user: {
-          userId: e.usr_id,
-          email: e.usr_mail_id,
-          label: `${e.usr_fst_nm} ${e.usr_lst_nm} (${e.usr_mail_id})`,
-        },
+        user: `${e.usr_fst_nm} ${e.usr_lst_nm} (${e.usr_mail_id})`,
         roles: e.roles.map((d) => ({ value: d.role_id, label: d.role_nm })),
       };
       return userObj;
     });
-    console.log("formatted", formattedData);
+    const forTable = data.data.map((e, i) => ({
+      alreadyExist: false,
+      editMode: false,
+      indexId: i + 1,
+      user: `${e.usr_fst_nm} ${e.usr_lst_nm} (${e.usr_mail_id})`,
+      roles: e.roles.map((d) => d.role_nm),
+    }));
+    console.log("formatted", formattedData, forTable);
     // setTableUsers([...formattedData]);
+    setTableUsers(forTable);
     setLoading(false);
   };
 
@@ -176,7 +187,8 @@ const ExistingUsers = () => {
   };
 
   const EditableRoles = ({ row, column: { accessor: key } }) => {
-    return (
+    const rowValue = row[key].sort().join(", ");
+    return row.editMode ? (
       <AutocompleteV2
         size="small"
         fullWidth
@@ -189,6 +201,8 @@ const ExistingUsers = () => {
         error={!row[key]}
         helperText={!row[key] && "Required"}
       />
+    ) : (
+      <>{rowValue}</>
     );
   };
 
@@ -213,12 +227,16 @@ const ExistingUsers = () => {
     {
       header: "User",
       accessor: "user",
+      filterFunction: createStringSearchFilter("user"),
+      filterComponent: TextFieldFilter,
       width: "50%",
     },
     {
       header: "Role",
       accessor: "roles",
       customCell: EditableRoles,
+      filterFunction: createStringArrayIncludedFilter("roles"),
+      filterComponent: TextFieldFilter,
       width: "50%",
     },
     {
