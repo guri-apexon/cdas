@@ -71,8 +71,6 @@ const AddNewUserModal = ({ open, onClose }) => {
         source={roleLists}
         value={row[key]}
         onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
-        error={!row[key]}
-        helperText={!row[key] && "Required"}
       />
     );
   };
@@ -87,12 +85,8 @@ const AddNewUserModal = ({ open, onClose }) => {
         source={userList}
         value={row[key]}
         onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
-        error={row.alreadyExist || !row[key]}
-        helperText={
-          row.alreadyExist
-            ? "This user is already assigned"
-            : !row[key] && "Required"
-        }
+        error={row.alreadyExist}
+        helperText={row.alreadyExist && "This user is already assigned"}
       />
     );
   };
@@ -102,13 +96,13 @@ const AddNewUserModal = ({ open, onClose }) => {
       header: "User",
       accessor: "user",
       customCell: EditableUser,
-      width: "50%",
+      width: 380,
     },
     {
       header: "Role",
       accessor: "roles",
       customCell: EditableRoles,
-      width: "50%",
+      width: 380,
     },
   ];
 
@@ -157,10 +151,6 @@ const AddNewUserModal = ({ open, onClose }) => {
     setTableUsers((u) => [...u, userObj]);
   }, []);
 
-  const onDelete = (index) => {
-    setTableUsers(tableUsers.filter((row) => row.index !== index));
-  };
-
   const getTable = useMemo(
     () => (
       <>
@@ -168,7 +158,6 @@ const AddNewUserModal = ({ open, onClose }) => {
           columns={columns}
           rows={tableUsers.map((row) => ({
             ...row,
-            onDelete,
           }))}
           rowProps={{ hover: false }}
           hidePagination={true}
@@ -177,6 +166,12 @@ const AddNewUserModal = ({ open, onClose }) => {
     ),
     [tableUsers]
   );
+
+  // const customTable = () => {
+  //   return(<>
+
+  //   </>)
+  // }
 
   return (
     <>
