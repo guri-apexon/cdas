@@ -2,7 +2,7 @@ import { withRouter } from "react-router";
 import Modal from "apollo-react/components/Modal";
 import { useState, useEffect, useContext } from "react";
 import { useHistory } from "react-router-dom";
-import "./AddStudyModal.scss";
+import "./AddNewUserModal.scss";
 import Typography from "apollo-react/components/Typography";
 import Tooltip from "apollo-react/components/Tooltip";
 import Search from "apollo-react/components/Search";
@@ -30,14 +30,17 @@ const Value = ({ children }) => {
     </Typography>
   );
 };
-const AddStudyModal = ({ open, onClose }) => {
+const AddNewUserModal = ({ open, onClose }) => {
   const [openModal, setOpenModal] = useState(open);
   const [searchTxt, setSearchTxt] = useState("");
   const [studies, setStudies] = useState([]);
   const [selectedStudy, setSelectedStudy] = useState(null);
   const [loading, setLoading] = useState(false);
   const messageContext = useContext(MessageContext);
-  const btnArr = [{ label: "Cancel", size: "small", className: "cancel-btn" }];
+  const btnArr = [
+    { label: "Cancel", size: "small", className: "cancel-btn" },
+    { label: "Save", size: "small", className: "save-btn" },
+  ];
   const userInfo = getUserInfo();
   const history = useHistory();
   const handleClose = () => {
@@ -72,16 +75,15 @@ const AddStudyModal = ({ open, onClose }) => {
   const allBtnArr = [
     ...btnArr,
     {
-      label: "Import and assign later",
+      label: "Import and Assign later",
       size: "small",
       variant: "secondary",
       onClick: importStudy,
       disabled: loading,
     },
     {
-      label: "Import and assign users",
+      label: "Import and Assign Users",
       size: "small",
-      className: "asign-user-btn",
       onClick: importWithUser,
     },
   ];
@@ -92,7 +94,8 @@ const AddStudyModal = ({ open, onClose }) => {
 
   const FormatCell = ({ row, column: { accessor } }) => {
     const greyedOut = ["In Progress", "Success"].includes(row.ob_stat);
-    const innerEl = (
+    const innerEl = <Highlighted text={row[accessor]} highlight={searchTxt} />;
+    return (
       // eslint-disable-next-line jsx-a11y/click-events-have-key-events
       <div
         className={`result-row ${greyedOut ? "greyedout" : ""}`}
@@ -100,44 +103,33 @@ const AddStudyModal = ({ open, onClose }) => {
         role="menu"
         tabIndex={0}
       >
-        <Highlighted text={row[accessor]} highlight={searchTxt} />
-      </div>
-    );
-    return (
-      <>
         {greyedOut ? (
           <Tooltip
             variant="dark"
             title="This study has been imported into CDAS"
             placement="top"
           >
-            {innerEl}
+            <span>{innerEl}</span>
           </Tooltip>
         ) : (
           innerEl
         )}
-      </>
+      </div>
     );
   };
 
   const columns = [
     {
-      header: "Protocol Number",
+      header: "User",
       accessor: "prot_nbr",
       customCell: FormatCell,
       width: "34%",
     },
     {
-      header: "Sponsor",
+      header: "Role",
       accessor: "spnsr_nm",
       customCell: FormatCell,
       width: "41%",
-    },
-    {
-      header: "Project Code",
-      accessor: "proj_cd",
-      customCell: FormatCell,
-      width: "25%",
     },
   ];
   const backToSearch = () => {
@@ -165,9 +157,9 @@ const AddStudyModal = ({ open, onClose }) => {
       <Modal
         open={openModal}
         onClose={handleClose}
-        title="Add New Study"
+        title="Add New Users"
         buttonProps={selectedStudy ? allBtnArr : btnArr}
-        id="addStudyModal"
+        id="addNewUserModal"
         className="custom-modal"
       >
         <div className="modal-content">
@@ -213,8 +205,8 @@ const AddStudyModal = ({ open, onClose }) => {
               </div>
             </>
           ) : (
-            <div style={{ minHeight: "378px" }} className="search-study">
-              <Typography variant="caption">Search for a study</Typography>
+            <>
+              <Typography variant="caption">Search for a User</Typography>
               <Search
                 // onKeyDown={searchTrigger}
                 placeholder="Search"
@@ -239,7 +231,7 @@ const AddStudyModal = ({ open, onClose }) => {
                   }}
                 />
               )}
-            </div>
+            </>
           )}
         </div>
       </Modal>
@@ -247,4 +239,4 @@ const AddStudyModal = ({ open, onClose }) => {
   );
 };
 
-export default withRouter(AddStudyModal);
+export default withRouter(AddNewUserModal);

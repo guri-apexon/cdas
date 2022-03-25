@@ -1,28 +1,32 @@
+/* eslint-disable import/no-cycle */
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useEffect, useState } from "react";
-import "./StudySetup.scss";
+import React, { useEffect, useState, useSearchParams } from "react";
+import { Link, Route, Switch, BrowserRouter as Router } from "react-router-dom";
+import "./ExistingStudyAssignment.scss";
 import Typography from "apollo-react/components/Typography";
 import PlusIcon from "apollo-react-icons/Plus";
 import Button from "apollo-react/components/Button";
 import { useDispatch, useSelector } from "react-redux";
 import Backdrop from "apollo-react/components/Backdrop";
 import CircularProgress from "apollo-react/components/CircularProgress";
-import StudyNotOnboarded from "./StudyNotOnboarded";
-import StudyTable from "./StudyTable";
+import ChevronLeft from "apollo-react-icons/ChevronLeft";
+import ChevronRight from "apollo-react-icons/ChevronRight";
+import ExistingStudyTable from "./ExistingStudyTable";
 import { ReactComponent as StudyDataIcon } from "../../components/Icons/Icon_StudyData_72x72.svg";
 
 import {
   getStudyboardData,
   getNotOnBordedStatus,
 } from "../../store/actions/StudyBoardAction";
-
 import AddStudyModal from "../../components/AddStudyModal/AddStudyModal";
+import StudySetup from "../StudySetup/StudySetup";
 
-const StudySetup = () => {
+const ExistingStudyAssignment = () => {
   const dispatch = useDispatch();
   const studyData = useSelector((state) => state.studyBoard);
   const [addStudyOpen, setAddStudyOpen] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState("");
+  const [selectedStudy, setSelectedStudy] = useState(null);
   const refreshData = () => {
     dispatch(getStudyboardData());
     dispatch(getNotOnBordedStatus());
@@ -35,57 +39,59 @@ const StudySetup = () => {
 
   useEffect(() => {
     refreshData();
+    setSelectedStudy(null);
   }, []);
 
   const { studyboardData: Studydata } = studyData;
+  const backToSearch = () => {
+    setSelectedStudy(null);
+  };
 
   const studyboardData = selectedFilter
     ? Studydata.filter((e) => e.onboardingprogress === selectedFilter)
     : Studydata;
 
   return (
-    <div className="study-setup-wrapper">
-      <Backdrop style={{ zIndex: 9 }} open={studyData?.loading ?? false}>
-        <CircularProgress variant="indeterminate" size="small" />
-      </Backdrop>
-      <AddStudyModal
-        open={addStudyOpen}
-        onClose={() => setAddStudyOpen(false)}
-      />
+    <>
       <div className="header-section">
         <div className="header-title">
-          {/* <StudyDataIcon
-            height="24"
-            width="24"
-            style={{ marginRight: "18px" }}
-          /> */}
-          <Typography className="study-setup-wrapper-title" variant="title1">
+          <Typography variant="title1">
+            <ChevronRight style={{ width: 12, marginRight: 5 }} width={10} />
             Study Setup
           </Typography>
+          <Typography variant="title1">
+            <ChevronRight style={{ width: 12, marginRight: 5 }} width={10} />
+            Manage Users
+          </Typography>
         </div>
-        <Button
-          variant="primary"
-          icon={<PlusIcon />}
-          size="small"
-          style={{ float: "right" }}
-          onClick={() => setAddStudyOpen(!addStudyOpen)}
-        >
-          Add new study
-        </Button>
       </div>
-      <StudyNotOnboarded
-        studyData={studyData}
-        selectedStatus={selectedStatus}
-        selectedFilter={selectedFilter}
-      />
-      <StudyTable
+
+      <div className="header-section">
+        <Typography variant="title1">
+          <h4>Manage users</h4>
+        </Typography>
+      </div>
+
+      <Link to="/study-setup" onClick={() => console.log(`link clicked`)}>
+        <Button
+          className="back-btn"
+          variant="text"
+          size="small"
+          onClick={backToSearch}
+        >
+          <ChevronLeft style={{ width: 12, marginRight: 5 }} width={10} />
+          Back to search
+        </Button>
+      </Link>
+
+      <ExistingStudyTable
         studyData={studyData}
         studyboardData={studyboardData}
         refreshData={refreshData}
         selectedFilter={selectedFilter}
       />
-    </div>
+    </>
   );
 };
 
-export default StudySetup;
+export default ExistingStudyAssignment;
