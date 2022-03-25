@@ -191,7 +191,7 @@ const AddNewUserModal = ({ open, onClose, users, protocol }) => {
     () => (
       <>
         <Table
-          loading={loading}
+          isLoading={loading}
           columns={columns}
           rows={tableUsers.map((row) => ({
             ...row,

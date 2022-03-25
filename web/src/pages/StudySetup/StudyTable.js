@@ -132,7 +132,6 @@ export default function StudyTable({
   const status = studyData.uniqueProtocolStatus;
   const obs = studyData.uniqueObs;
   const phases = studyData.uniquePhase;
-
   const handleExisting = (row) => {
     history.push("/ExistingStudyAssignment");
     dispatch(updateSelectedStudy(row));
@@ -189,11 +188,11 @@ export default function StudyTable({
       header: "Phase",
       accessor: "phase",
       sortFunction: compareStrings,
-      // filterFunction: createStringArraySearchFilter("phase"),
-      // filterComponent: createSelectFilterComponent(phases, {
-      //   size: "small",
-      //   multiple: true,
-      // }),
+      filterFunction: createStringArraySearchFilter("phase"),
+      filterComponent: createSelectFilterComponent(phases, {
+        size: "small",
+        multiple: true,
+      }),
     },
     {
       header: "Protocol Status",

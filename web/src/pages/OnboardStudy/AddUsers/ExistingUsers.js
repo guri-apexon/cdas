@@ -273,7 +273,7 @@ const ExistingUsers = () => {
           <Grid item xs={12}>
             <div className="user-table">
               <Table
-                loading={loading}
+                isLoading={loading}
                 title="User Assignments"
                 columns={columns}
                 rowId="indexId"

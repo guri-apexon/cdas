@@ -269,7 +269,7 @@ exports.getStudyList = async (req, res) => {
     let uniquePhase = $q3.rows
       .map((e) => Object.values(e))
       .flat()
-      .map((e) => (e === "" ? null : e));
+      .filter((e) => e !== "");
     let uniqueProtocolStatus = $q4.rows.map((e) => Object.values(e)).flat();
     let uniqueObs = $q5.rows.map((e) => Object.values(e)).flat();
 
