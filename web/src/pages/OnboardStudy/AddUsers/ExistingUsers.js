@@ -25,9 +25,9 @@ import ChevronLeft from "apollo-react-icons/ChevronLeft";
 import { MessageContext } from "../../../components/Providers/MessageProvider";
 import {
   fetchRoles,
-  getOnboardUsers,
-  onboardStudy,
   getAssignedUsers,
+  updateAssignUser,
+  deleteAssignUser,
 } from "../../../services/ApiServices";
 import { getUserInfo } from "../../../utils";
 import AddNewUserModal from "../../../components/AddNewUserModal/AddNewUserModal";
@@ -80,16 +80,16 @@ const ExistingUsers = () => {
 
   const [tableUsers, setTableUsers] = useState([]);
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [confirmObj, setConfirmObj] = useState(null);
 
-  const [userList, setUserList] = useState([]);
   const [roleLists, setroleLists] = useState([]);
 
   const [stateMenuItems, setStateMenuItems] = useState([]);
   const studyData = useSelector((state) => state.studyBoard);
   const [addStudyOpen, setAddStudyOpen] = useState(false);
   const { selectedStudy } = studyData;
+  const { prot_id: studyId } = selectedStudy;
 
   const getData = async (id) => {
     const data = await getAssignedUsers(id);
@@ -100,8 +100,6 @@ const ExistingUsers = () => {
         indexId: i + 1,
         user: {
           userId: e.usr_id,
-          firstName: e.usr_fst_nm,
-          lastName: e.usr_lst_nm,
           email: e.usr_mail_id,
           label: `${e.usr_fst_nm} ${e.usr_lst_nm} (${e.usr_mail_id})`,
         },
@@ -109,7 +107,9 @@ const ExistingUsers = () => {
       };
       return userObj;
     });
+    console.log("formatted", formattedData);
     setTableUsers([...formattedData]);
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -122,7 +122,7 @@ const ExistingUsers = () => {
       { label: "Therapeutic Area", value: selectedStudy?.therapeuticarea },
     ];
     setStateMenuItems([...updateData]);
-    getData(selectedStudy?.prot_id);
+    getData(studyId);
   }, [selectedStudy]);
 
   const breadcrumpItems = [
@@ -137,43 +137,23 @@ const ExistingUsers = () => {
     },
   ];
 
+  const getRoles = async () => {
+    const result = await fetchRoles();
+    setroleLists(result || []);
+  };
+
+  useEffect(() => {
+    getRoles();
+  }, []);
+
   const editRow = (e, value, reason, index, key) => {
-    let alreadyExist;
-    if (key === "user" && value) {
-      alreadyExist = tableUsers.find((x) => x.user?.email === value.email)
-        ? true
-        : false;
-    }
     setTableUsers((rows) =>
       rows.map((row) => {
         if (row.index === index) {
-          if (key === "user") {
-            return { ...row, [key]: value, alreadyExist };
-          }
           return { ...row, [key]: value };
         }
         return row;
       })
-    );
-  };
-
-  const EditableUser = ({ row, column: { accessor: key } }) => {
-    return (
-      <AutocompleteV2
-        size="small"
-        fullWidth
-        forcePopupIcon
-        popupIcon={<SearchIcon fontSize="extraSmall" />}
-        source={userList}
-        value={row[key]}
-        onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
-        error={row.alreadyExist || !row[key]}
-        helperText={
-          row.alreadyExist
-            ? "This user is already assigned"
-            : !row[key] && "Required"
-        }
-      />
     );
   };
 
@@ -194,13 +174,19 @@ const ExistingUsers = () => {
     );
   };
 
-  const onRowDelete = (index) => {
+  const onRowDelete = async (index) => {
+    const selected = await tableUsers.find((row) => row.index === index);
+    deleteAssignUser({
+      protocol: studyId,
+      loginId: getUserInfo.user_id,
+      users: [selected.userId],
+    });
     setTableUsers(tableUsers.filter((row) => row.index !== index));
   };
 
-  const onRowEdit = (index) => {
+  const onRowEdit = async (index) => {
+    const selected = await tableUsers.find((row) => row.index === index);
     const tempTable = tableUsers.filter((row) => row.index !== index);
-    const selected = tableUsers.find((row) => row.index === index);
     selected.editMode = true;
     setTableUsers([...tempTable, selected]);
   };
@@ -209,7 +195,6 @@ const ExistingUsers = () => {
     {
       header: "User",
       accessor: "user",
-      customCell: EditableUser,
       width: "50%",
     },
     {
@@ -231,6 +216,7 @@ const ExistingUsers = () => {
         <AddNewUserModal
           open={addStudyOpen}
           onClose={() => setAddStudyOpen(false)}
+          users={tableUsers.map((e) => e.user)}
         />
         <div>
           <Button
@@ -256,153 +242,9 @@ const ExistingUsers = () => {
     );
   };
 
-  const addNewUser = () => {
-    if (tableUsers.find((x) => x.user == null)) {
-      toast.showErrorMessage(
-        "Please fill user or remove blank rows to add new row"
-      );
-      return false;
-    }
-    const userObj = {
-      index: Math.max(...tableUsers.map((o) => o.index), 0) + 1,
-      user: null,
-      roles: [],
-    };
-    setTableUsers((u) => [...u, userObj]);
-  };
-
-  const getRoles = async () => {
-    const result = await fetchRoles();
-    setroleLists(result || []);
-    addNewUser();
-  };
-
-  const getUserList = async () => {
-    const result = await getOnboardUsers();
-    const filtered =
-      result?.map((user) => {
-        return {
-          ...user,
-          label: `${user.firstName} ${user.lastName} (${user.email})`,
-        };
-      }) || [];
-    filtered.sort(function (a, b) {
-      if (a.firstName < b.firstName) {
-        return -1;
-      }
-      if (a.firstName > b.firstName) {
-        return 1;
-      }
-      return 0;
-    });
-    setUserList(filtered);
-    getRoles();
-  };
-
   const backToSearch = () => {
     // setSelectedStudy(null);
   };
-
-  const importStudy = async (assign) => {
-    if (assign) {
-      if (!tableUsers.length) {
-        toast.showErrorMessage("Add some users to proceed");
-        return false;
-      }
-      if (tableUsers.find((x) => x.user == null)) {
-        toast.showErrorMessage("Please fill user or remove blank rows");
-        return false;
-      }
-      if (tableUsers.find((x) => x.alreadyExist)) {
-        toast.showErrorMessage("Please remove duplicate values");
-        return false;
-      }
-      const emptyRoles = tableUsers.filter((x) => x.roles.length === 0);
-      if (emptyRoles.length) {
-        toast.showErrorMessage(
-          `Please fill roles for ${emptyRoles[0].user.email}`
-        );
-        return false;
-      }
-    }
-    const { spnsr_nm_stnd: sponsorNameStnd, prot_nbr_stnd: protNbrStnd } =
-      selectedStudy;
-    const reqBody = {
-      sponsorNameStnd,
-      protNbrStnd,
-      userId: userInfo.user_id,
-    };
-    if (assign) {
-      reqBody.users = tableUsers;
-    }
-    setLoading(true);
-    const response = await onboardStudy(reqBody);
-    setLoading(false);
-    if (response.status === "BAD_REQUEST") {
-      toast.showErrorMessage(response.message, 0);
-    }
-    if (response.status === "OK") {
-      toast.showSuccessMessage(response.message, 0);
-      // history.push("/study-setup");
-    }
-  };
-  const importWithAssign = () => {
-    importStudy(true);
-  };
-  const setConfirmCancel = () => {
-    const confirm = {
-      title: "Cancel Import?",
-      subtitle: "This study has not been onboarded.",
-      cancelLabel: "Cancel Import",
-      cancelAction: () => {
-        // history.push("/study-setup");
-      },
-      submitAction: () => {
-        setConfirmObj(null);
-      },
-      submitLabel: "Return to assignments",
-    };
-    setConfirmObj(confirm);
-  };
-  const setConfirmWithoutUser = () => {
-    const confirm = {
-      title: "Import without Assignments?",
-      subtitle: "This study has not been onboarded.",
-      cancelLabel: "Import study without assignment",
-      cancelAction: () => {
-        importStudy();
-      },
-      submitAction: () => {
-        setConfirmObj(null);
-      },
-      submitLabel: "Don't import - return to assignments",
-    };
-    setConfirmObj(confirm);
-  };
-
-  const actionBtns = [
-    {
-      variant: "text",
-      size: "small",
-      disabled: loading,
-      label: "Import without assigning",
-      onClick: setConfirmWithoutUser,
-    },
-    {
-      variant: "secondary",
-      size: "small",
-      label: "Cancel import",
-      disabled: loading,
-      onClick: setConfirmCancel,
-    },
-    {
-      variant: "primary",
-      size: "small",
-      disabled: loading,
-      label: "Import and assign",
-      onClick: importWithAssign,
-    },
-  ];
 
   return (
     <>
@@ -435,6 +277,7 @@ const ExistingUsers = () => {
           <Grid item xs={12}>
             <div className="user-table">
               <Table
+                loading={loading}
                 title="User Assignments"
                 columns={columns}
                 rowId="indexId"
@@ -446,7 +289,6 @@ const ExistingUsers = () => {
                 rowProps={{ hover: false }}
                 hidePagination={true}
                 CustomHeader={CustomHeader}
-                headerProps={{ addNewUser }}
               />
             </div>
           </Grid>

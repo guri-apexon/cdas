@@ -166,6 +166,7 @@ exports.onboardStudy = async function (req, res) {
       }
     });
 };
+
 exports.studyList = function (req, res) {
   try {
     const searchParam = req.params.query.toLowerCase();
@@ -346,6 +347,29 @@ exports.AddStudyAssign = async (req, res) => {
   try {
     const { protocol, loginId, data } = req.body;
     const curDate = helper.getCurrentTime();
+    const roUsers = data.map((e) => e.user_id).join(", ");
+
+    axios
+      .post(
+        `${FSR_API_URI}/study/grant`,
+        {
+          studyId: protocol,
+          userId: loginId,
+          roUsers,
+        },
+        {
+          headers: FSR_HEADERS,
+        }
+      )
+      .then(async (response) => {
+        const onboardStatus = response?.data?.code || null;
+        if (onboardStatus === 202) {
+          Logger.info({ message: "FSR API update" });
+        }
+      })
+      .catch((err) => {
+        return apiResponse.ErrorResponse(res, err);
+      });
 
     const insertUserQuery = `INSERT INTO ${schemaName}.study_user (prot_id,usr_id,act_flg,insrt_tm)
                               VALUES($1,$2,$3,$4)`;
@@ -399,6 +423,31 @@ exports.updateStudyAssign = async (req, res) => {
   try {
     const { protocol, loginId, data } = req.body;
     const curDate = helper.getCurrentTime();
+
+    // We are not use roles in FRS API so commented
+    // const roUsers = data.map((e) => e.user_id).join(", ");
+
+    // axios
+    //   .post(
+    //     `${FSR_API_URI}/study/grant`,
+    //     {
+    //       studyId: protocol,
+    //       userId: loginId,
+    //       roUsers,
+    //     },
+    //     {
+    //       headers: FSR_HEADERS,
+    //     }
+    //   )
+    //   .then(async (response) => {
+    //     const onboardStatus = response?.data?.code || null;
+    //     if (onboardStatus === 202) {
+    //       Logger.info({ message: "FSR API update" });
+    //     }
+    //   })
+    //   .catch((err) => {
+    //     return apiResponse.ErrorResponse(res, err);
+    //   });
 
     const roleUpdateQuery = `UPDATE ${schemaName}.study_user_role SET act_flg =0,updated_by=$4,
                         updated_on=$5 WHERE prot_id =$1 and usr_id = $2 and role_id <> ALL ($3);`;
@@ -457,13 +506,35 @@ exports.updateStudyAssign = async (req, res) => {
 
 exports.deleteStudyAssign = async (req, res) => {
   try {
-    const { protocol, loginId, user_id } = req.body;
+    const { protocol, loginId, users } = req.body;
     const curDate = helper.getCurrentTime();
     const userDeleteQuery = `UPDATE ${schemaName}.study_user SET act_flg =0,updt_tm=$3 WHERE prot_id =$1 and usr_id = $2`;
     const roleDeleteQuery = `UPDATE ${schemaName}.study_user_role SET act_flg =0,updated_by=$3,updated_on=$4 WHERE prot_id =$1 and usr_id =$2`;
     Logger.info({ message: "deleteStudyAssign" });
 
-    user_id.forEach(async (id) => {
+    axios
+      .post(
+        `${FSR_API_URI}/study/revoke`,
+        {
+          studyId: protocol,
+          userId: loginId,
+          roUser: users.join(", "),
+        },
+        {
+          headers: FSR_HEADERS,
+        }
+      )
+      .then(async (response) => {
+        const onboardStatus = response?.data?.code || null;
+        if (onboardStatus === 202) {
+          Logger.info({ message: "FSR API update" });
+        }
+      })
+      .catch((err) => {
+        return apiResponse.ErrorResponse(res, err);
+      });
+
+    users.forEach(async (id) => {
       try {
         await DB.executeQuery(userDeleteQuery, [protocol, id, curDate]);
 

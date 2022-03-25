@@ -14,17 +14,14 @@ import { MessageContext } from "../Providers/MessageProvider";
 import { fetchRoles, getOnboardUsers } from "../../services/ApiServices";
 import { debounceFunction, getUserInfo } from "../../utils";
 
-const AddNewUserModal = ({ open, onClose }) => {
+const AddNewUserModal = ({ open, onClose, users }) => {
   const [openModal, setOpenModal] = useState(open);
   const [tableUsers, setTableUsers] = useState([]);
   const [userList, setUserList] = useState([]);
   const [roleLists, setroleLists] = useState([]);
   const [loading, setLoading] = useState(false);
   const toast = useContext(MessageContext);
-  const btnArr = [
-    { label: "Cancel", size: "small", className: "cancel-btn" },
-    { label: "Save", size: "small", className: "save-btn" },
-  ];
+
   const userInfo = getUserInfo();
   const history = useHistory();
   const handleClose = () => {
@@ -69,6 +66,11 @@ const AddNewUserModal = ({ open, onClose }) => {
       alreadyExist = tableUsers.find((x) => x.user?.email === value.email)
         ? true
         : false;
+      if (!alreadyExist) {
+        alreadyExist = users.find((x) => x.user?.email === value.email)
+          ? true
+          : false;
+      }
       disableRole = false;
       addNewRow();
     }
@@ -185,6 +187,7 @@ const AddNewUserModal = ({ open, onClose }) => {
     () => (
       <>
         <Table
+          loading={loading}
           columns={columns}
           rows={tableUsers.map((row) => ({
             ...row,
@@ -198,11 +201,9 @@ const AddNewUserModal = ({ open, onClose }) => {
     [tableUsers, userList]
   );
 
-  // const customTable = () => {
-  //   return(<>
-
-  //   </>)
-  // }
+  const addUsers = () => {
+    setOpenModal(!openModal);
+  };
 
   return (
     <>
@@ -210,7 +211,24 @@ const AddNewUserModal = ({ open, onClose }) => {
         open={openModal}
         onClose={handleClose}
         title="Add New Users"
-        buttonProps={btnArr}
+        buttonProps={[
+          {
+            label: "Cancel",
+            size: "small",
+            className: "cancel-btn",
+            onClick: () => {
+              setOpenModal(!openModal);
+            },
+          },
+          {
+            label: "Save",
+            size: "small",
+            className: "save-btn",
+            onClick: () => {
+              addUsers();
+            },
+          },
+        ]}
         id="addNewUserModal"
         className="custom-modal"
       >
