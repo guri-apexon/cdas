@@ -13,23 +13,23 @@ import Button from "apollo-react/components/Button";
 import BreadcrumbsUI from "apollo-react/components/Breadcrumbs";
 import Box from "apollo-react/components/Box";
 import Grid from "apollo-react/components/Grid";
-import Modal from "apollo-react/components/Modal";
 import ProjectHeader from "apollo-react/components/ProjectHeader";
 import EllipsisVerticalIcon from "apollo-react-icons/EllipsisVertical";
 import Tooltip from "apollo-react/components/Tooltip";
 import IconMenuButton from "apollo-react/components/IconMenuButton";
-import "../OnboardStudy.scss";
 import AutocompleteV2 from "apollo-react/components/AutocompleteV2";
 import ChevronLeft from "apollo-react-icons/ChevronLeft";
 import { MessageContext } from "../../../components/Providers/MessageProvider";
 import {
   fetchRoles,
   getAssignedUsers,
+  getOnboardUsers,
   updateAssignUser,
   deleteAssignUser,
 } from "../../../services/ApiServices";
 import { getUserInfo } from "../../../utils";
 import AddNewUserModal from "../../../components/AddNewUserModal/AddNewUserModal";
+import "../OnboardStudy.scss";
 
 const ActionCell = ({ row }) => {
   const {
@@ -80,6 +80,7 @@ const ExistingUsers = () => {
   const [tableUsers, setTableUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [roleLists, setroleLists] = useState([]);
+  const [userList, setUserList] = useState([]);
   const [stateMenuItems, setStateMenuItems] = useState([]);
   const studyData = useSelector((state) => state.studyBoard);
   const [addStudyOpen, setAddStudyOpen] = useState(false);
@@ -103,7 +104,7 @@ const ExistingUsers = () => {
       return userObj;
     });
     console.log("formatted", formattedData);
-    setTableUsers([...formattedData]);
+    // setTableUsers([...formattedData]);
     setLoading(false);
   };
 
@@ -137,8 +138,30 @@ const ExistingUsers = () => {
     setroleLists(result || []);
   };
 
+  const getUserList = async () => {
+    const result = await getOnboardUsers();
+    const filtered =
+      result?.map((user) => {
+        return {
+          ...user,
+          label: `${user.firstName} ${user.lastName} (${user.email})`,
+        };
+      }) || [];
+    filtered.sort(function (a, b) {
+      if (a.firstName < b.firstName) {
+        return -1;
+      }
+      if (a.firstName > b.firstName) {
+        return 1;
+      }
+      return 0;
+    });
+    setUserList(filtered);
+  };
+
   useEffect(() => {
     getRoles();
+    getUserList();
   }, []);
 
   const editRow = (e, value, reason, index, key) => {
@@ -213,6 +236,8 @@ const ExistingUsers = () => {
           onClose={() => setAddStudyOpen(false)}
           users={tableUsers.map((e) => e.user)}
           protocol={protocol}
+          userList={userList}
+          roleLists={roleLists}
         />
         <div>
           <Button
