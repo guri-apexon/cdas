@@ -269,9 +269,16 @@ exports.getStudyList = async (req, res) => {
     let uniquePhase = $q3.rows
       .map((e) => Object.values(e))
       .flat()
-      .filter((e) => e !== "");
-    let uniqueProtocolStatus = $q4.rows.map((e) => Object.values(e)).flat();
-    let uniqueObs = $q5.rows.map((e) => Object.values(e)).flat();
+      .filter((e) => e !== "")
+      .filter((e) => e !== null);
+    let uniqueProtocolStatus = $q4.rows
+      .map((e) => Object.values(e))
+      .flat()
+      .filter((e) => e !== null);
+    let uniqueObs = $q5.rows
+      .map((e) => Object.values(e))
+      .flat()
+      .filter((e) => e !== null);
 
     return apiResponse.successResponseWithData(res, "Operation success", {
       studyData: formatDateValues,
