@@ -1,41 +1,25 @@
-import { withRouter } from "react-router";
 import Modal from "apollo-react/components/Modal";
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext, useMemo } from "react";
 import { useHistory } from "react-router-dom";
 import "./AddNewUserModal.scss";
-import Typography from "apollo-react/components/Typography";
 import Table from "apollo-react/components/Table";
 import Box from "apollo-react/components/Box";
+import IconButton from "apollo-react/components/IconButton";
 import SearchIcon from "apollo-react-icons/Search";
+import Trash from "apollo-react-icons/Trash";
 import AutocompleteV2 from "apollo-react/components/AutocompleteV2";
 import ApolloProgress from "apollo-react/components/ApolloProgress";
 import { MessageContext } from "../Providers/MessageProvider";
-import { searchStudy, onboardStudy } from "../../services/ApiServices";
+import { fetchRoles, getOnboardUsers } from "../../services/ApiServices";
 import { debounceFunction, getUserInfo } from "../../utils";
 
-const Label = ({ children }) => {
-  return (
-    <Typography className="label" variant="body2">
-      {children}
-    </Typography>
-  );
-};
-const Value = ({ children }) => {
-  return (
-    <Typography className="value" variant="body2">
-      {children}
-    </Typography>
-  );
-};
 const AddNewUserModal = ({ open, onClose }) => {
   const [openModal, setOpenModal] = useState(open);
-  const [searchTxt, setSearchTxt] = useState("");
   const [tableUsers, setTableUsers] = useState([]);
   const [userList, setUserList] = useState([]);
   const [roleLists, setroleLists] = useState([]);
-  const [studies, setStudies] = useState([]);
   const [loading, setLoading] = useState(false);
-  const messageContext = useContext(MessageContext);
+  const toast = useContext(MessageContext);
   const btnArr = [
     { label: "Cancel", size: "small", className: "cancel-btn" },
     { label: "Save", size: "small", className: "save-btn" },
@@ -46,18 +30,14 @@ const AddNewUserModal = ({ open, onClose }) => {
     setOpenModal(false);
     onClose();
   };
-  const importStudy = async () => {
-    const reqBody = {};
-    setLoading(true);
-    const response = await onboardStudy(reqBody);
-    setLoading(false);
-    if (response.status === "BAD_REQUEST") {
-      messageContext.showErrorMessage(response.message, 0);
-    }
-    if (response.status === "OK") {
-      messageContext.showSuccessMessage(response.message, 0);
-      handleClose();
-    }
+
+  const DeleteUserCell = ({ row }) => {
+    const { index, onDelete } = row;
+    return (
+      <IconButton size="small" onClick={() => onDelete(index)}>
+        <Trash />
+      </IconButton>
+    );
   };
 
   const editRow = (e, value, reason, index, key) => {
@@ -132,22 +112,72 @@ const AddNewUserModal = ({ open, onClose }) => {
     },
   ];
 
-  const searchTrigger = (e) => {
-    const newValue = e.target.value;
-    setSearchTxt(newValue);
-    debounceFunction(async () => {
-      setLoading(true);
-      const newStudies = await searchStudy(newValue);
-      console.log("event", newValue, newStudies);
-      setStudies(newStudies);
-      setLoading(false);
-    }, 1000);
-  };
   useEffect(() => {
     setOpenModal(open);
-    setStudies([]);
-    setSearchTxt("");
   }, [open]);
+
+  const getRoles = async () => {
+    const result = await fetchRoles();
+    setroleLists(result || []);
+  };
+
+  const getUserList = async () => {
+    const result = await getOnboardUsers();
+    const filtered =
+      result?.map((user) => {
+        return {
+          ...user,
+          label: `${user.firstName} ${user.lastName} (${user.email})`,
+        };
+      }) || [];
+    filtered.sort(function (a, b) {
+      if (a.firstName < b.firstName) {
+        return -1;
+      }
+      if (a.firstName > b.firstName) {
+        return 1;
+      }
+      return 0;
+    });
+    setUserList(filtered);
+    getRoles();
+  };
+
+  // eslint-disable-next-line consistent-return
+  useEffect(() => {
+    if (tableUsers.find((x) => x.user == null)) {
+      setTableUsers([...tableUsers]);
+      return false;
+    }
+    const userObj = {
+      index: Math.max(...tableUsers.map((o) => o.index), 0) + 1,
+      user: null,
+      roles: [],
+    };
+    setTableUsers((u) => [...u, userObj]);
+  }, []);
+
+  const onDelete = (index) => {
+    setTableUsers(tableUsers.filter((row) => row.index !== index));
+  };
+
+  const getTable = useMemo(
+    () => (
+      <>
+        <Table
+          columns={columns}
+          rows={tableUsers.map((row) => ({
+            ...row,
+            onDelete,
+          }))}
+          rowProps={{ hover: false }}
+          hidePagination={true}
+        />
+      </>
+    ),
+    [tableUsers]
+  );
+
   return (
     <>
       <Modal
@@ -165,17 +195,7 @@ const AddNewUserModal = ({ open, onClose }) => {
                 <ApolloProgress />
               </Box>
             ) : (
-              <Table
-                columns={columns}
-                rows={studies}
-                rowId="employeeId"
-                hidePagination
-                maxHeight="40vh"
-                emptyProps={{
-                  text:
-                    searchTxt === "" && !loading ? "" : "No data to display",
-                }}
-              />
+              <div className="user-table">{getTable}</div>
             )}
           </>
         </div>

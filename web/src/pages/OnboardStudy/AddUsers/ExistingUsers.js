@@ -32,6 +32,47 @@ import {
 import { getUserInfo } from "../../../utils";
 import AddNewUserModal from "../../../components/AddNewUserModal/AddNewUserModal";
 
+const ActionCell = ({ row }) => {
+  const {
+    indexId,
+    onRowEdit,
+    onRowSave,
+    editMode,
+    onCancel,
+    editedRow,
+    onRowDelete,
+  } = row;
+  const menuItems = [
+    { text: "Edit", id: 1, onClick: () => onRowEdit(row.indexId) },
+    { text: "Delete", id: 2, onClick: () => onRowDelete(row.indexId) },
+  ];
+  return editMode ? (
+    <div style={{ marginTop: 8, whiteSpace: "nowrap" }}>
+      <Button size="small" style={{ marginRight: 8 }} onClick={onCancel}>
+        Cancel
+      </Button>
+      <Button
+        size="small"
+        variant="primary"
+        onClick={onRowSave}
+        disabled={
+          Object.values(editedRow).some((item) => !item) ||
+          (editMode &&
+            !Object.keys(editedRow).some((key) => editedRow[key] !== row[key]))
+        }
+      >
+        Save
+      </Button>
+    </div>
+  ) : (
+    <Tooltip title="Actions" disableFocusListener>
+      <IconMenuButton id="actions" menuItems={menuItems} size="small">
+        <EllipsisVerticalIcon />
+      </IconMenuButton>
+    </Tooltip>
+  );
+};
+
 const ExistingUsers = () => {
   const history = useHistory();
   const userInfo = getUserInfo();
@@ -117,7 +158,7 @@ const ExistingUsers = () => {
   };
 
   const EditableUser = ({ row, column: { accessor: key } }) => {
-    return row.editMode ? (
+    return (
       <AutocompleteV2
         size="small"
         fullWidth
@@ -133,14 +174,11 @@ const ExistingUsers = () => {
             : !row[key] && "Required"
         }
       />
-    ) : (
-      row[key]
     );
   };
 
   const EditableRoles = ({ row, column: { accessor: key } }) => {
-    return row.editMode ? (
-      // return (
+    return (
       <AutocompleteV2
         size="small"
         fullWidth
@@ -153,53 +191,18 @@ const ExistingUsers = () => {
         error={!row[key]}
         helperText={!row[key] && "Required"}
       />
-    ) : (
-      // );
-      row[key]
     );
   };
 
-  const ActionCell = ({ row }) => {
-    const {
-      indexId,
-      onRowEdit,
-      onRowSave,
-      editMode,
-      onCancel,
-      editedRow,
-      onRowDelete,
-    } = row;
-    const menuItems = [
-      { text: "Edit", id: 1, onClick: () => onRowEdit(row.indexId) },
-      { text: "Delete", id: 2, onClick: () => onRowDelete(row.indexId) },
-    ];
-    return editMode ? (
-      <div style={{ marginTop: 8, whiteSpace: "nowrap" }}>
-        <Button size="small" style={{ marginRight: 8 }} onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button
-          size="small"
-          variant="primary"
-          onClick={onRowSave}
-          disabled={
-            Object.values(editedRow).some((item) => !item) ||
-            (editMode &&
-              !Object.keys(editedRow).some(
-                (key) => editedRow[key] !== row[key]
-              ))
-          }
-        >
-          Save
-        </Button>
-      </div>
-    ) : (
-      <Tooltip title="Actions" disableFocusListener>
-        <IconMenuButton id="actions" menuItems={menuItems} size="small">
-          <EllipsisVerticalIcon />
-        </IconMenuButton>
-      </Tooltip>
-    );
+  const onRowDelete = (index) => {
+    setTableUsers(tableUsers.filter((row) => row.index !== index));
+  };
+
+  const onRowEdit = (index) => {
+    const tempTable = tableUsers.filter((row) => row.index !== index);
+    const selected = tableUsers.find((row) => row.index === index);
+    selected.editMode = true;
+    setTableUsers([...tempTable, selected]);
   };
 
   const columns = [
@@ -294,17 +297,6 @@ const ExistingUsers = () => {
     });
     setUserList(filtered);
     getRoles();
-  };
-
-  const onRowDelete = (index) => {
-    setTableUsers(tableUsers.filter((row) => row.index !== index));
-  };
-
-  const onRowEdit = (index) => {
-    const tempTable = tableUsers.filter((row) => row.index !== index);
-    const selected = tableUsers.find((row) => row.index === index);
-    selected.editMode = true;
-    setTableUsers([...tempTable, selected]);
   };
 
   const backToSearch = () => {
@@ -448,6 +440,8 @@ const ExistingUsers = () => {
                 rowId="indexId"
                 rows={tableUsers.map((row) => ({
                   ...row,
+                  onRowEdit,
+                  onRowDelete,
                 }))}
                 rowProps={{ hover: false }}
                 hidePagination={true}
