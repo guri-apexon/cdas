@@ -6,10 +6,10 @@
     margin-bottom: 24px;
   }
   .custom-modal {
-    max-width: 860px;
+    max-width: 960px;
     margin: 0;
     .modal-content {
-      width: 810px;
+      width: 910px;
       thead {
         padding-right: 16px;
         display: block;
@@ -87,5 +87,11 @@
       width: 100%;
       justify-content: flex-end;
     }
+  }
+  .hide {
+    display: none;
+  }
+  .show {
+    display: block;
   }
 }

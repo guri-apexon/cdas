@@ -1,3 +1,4 @@
+/* eslint-disable consistent-return */
 import Modal from "apollo-react/components/Modal";
 import { useState, useEffect, useContext, useMemo } from "react";
 import { useHistory } from "react-router-dom";
@@ -34,30 +35,58 @@ const AddNewUserModal = ({ open, onClose }) => {
   const DeleteUserCell = ({ row }) => {
     const { index, onDelete } = row;
     return (
-      <IconButton size="small" onClick={() => onDelete(index)}>
+      <IconButton
+        className={row.disableRole ? "hide" : "show"}
+        size="small"
+        onClick={() => onDelete(index)}
+      >
         <Trash />
       </IconButton>
     );
   };
 
+  const addNewRow = () => {
+    if (tableUsers.find((x) => x.user == null)) {
+      const empty = tableUsers.filter((x) => x.user == null);
+      if (empty.length > 1) {
+        setTableUsers([...tableUsers]);
+        return false;
+      }
+    }
+    const userObj = {
+      index: Math.max(...tableUsers.map((o) => o.index), 0) + 1,
+      user: null,
+      roles: [],
+      disableRole: true,
+    };
+    setTableUsers((u) => [...u, userObj]);
+  };
+
   const editRow = (e, value, reason, index, key) => {
     let alreadyExist;
+    let disableRole;
     if (key === "user" && value) {
       alreadyExist = tableUsers.find((x) => x.user?.email === value.email)
         ? true
         : false;
+      disableRole = false;
+      addNewRow();
     }
     setTableUsers((rows) =>
       rows.map((row) => {
         if (row.index === index) {
           if (key === "user") {
-            return { ...row, [key]: value, alreadyExist };
+            return { ...row, [key]: value, alreadyExist, disableRole };
           }
           return { ...row, [key]: value };
         }
         return row;
       })
     );
+  };
+
+  const onDelete = (index) => {
+    setTableUsers(tableUsers.filter((row) => row.index !== index));
   };
 
   const EditableRoles = ({ row, column: { accessor: key } }) => {
@@ -69,6 +98,7 @@ const AddNewUserModal = ({ open, onClose }) => {
         forcePopupIcon
         chipColor="white"
         source={roleLists}
+        className={row.disableRole ? "hide" : "show"}
         value={row[key]}
         onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
       />
@@ -86,7 +116,10 @@ const AddNewUserModal = ({ open, onClose }) => {
         value={row[key]}
         onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
         error={row.alreadyExist}
-        helperText={row.alreadyExist && "This user is already assigned"}
+        helperText={
+          row.alreadyExist &&
+          "This user already as assignments. Please select a different user to continue"
+        }
       />
     );
   };
@@ -96,13 +129,19 @@ const AddNewUserModal = ({ open, onClose }) => {
       header: "User",
       accessor: "user",
       customCell: EditableUser,
-      width: 380,
+      width: "430",
     },
     {
       header: "Role",
       accessor: "roles",
       customCell: EditableRoles,
-      width: 380,
+      width: "430",
+    },
+    {
+      header: "",
+      accessor: "delete",
+      width: "40px",
+      customCell: DeleteUserCell,
     },
   ];
 
@@ -137,18 +176,9 @@ const AddNewUserModal = ({ open, onClose }) => {
     getRoles();
   };
 
-  // eslint-disable-next-line consistent-return
   useEffect(() => {
-    if (tableUsers.find((x) => x.user == null)) {
-      setTableUsers([...tableUsers]);
-      return false;
-    }
-    const userObj = {
-      index: Math.max(...tableUsers.map((o) => o.index), 0) + 1,
-      user: null,
-      roles: [],
-    };
-    setTableUsers((u) => [...u, userObj]);
+    addNewRow();
+    getUserList();
   }, []);
 
   const getTable = useMemo(
@@ -158,13 +188,14 @@ const AddNewUserModal = ({ open, onClose }) => {
           columns={columns}
           rows={tableUsers.map((row) => ({
             ...row,
+            onDelete,
           }))}
           rowProps={{ hover: false }}
           hidePagination={true}
         />
       </>
     ),
-    [tableUsers]
+    [tableUsers, userList]
   );
 
   // const customTable = () => {
