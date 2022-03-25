@@ -164,6 +164,7 @@ exports.onboardStudy = async function (req, res) {
       }
     });
 };
+
 exports.studyList = function (req, res) {
   try {
     const searchParam = req.params.query.toLowerCase();
@@ -175,9 +176,7 @@ exports.studyList = function (req, res) {
     AND ms.spnsr_nm_stnd !='' AND ms.prot_nbr_stnd !=''
         LIMIT 60
         `;
-    Logger.info({
-      message: "studyList",
-    });
+    Logger.info({ message: "studyList" });
 
     DB.executeQuery(searchQuery).then((response) => {
       const studies = response.rows || [];
@@ -240,6 +239,7 @@ exports.getStudyList = async (req, res) => {
     const query2 = `SELECT prot_id, COUNT(DISTINCT usr_id) FROM ${schemaName}.study_user GROUP BY prot_id`;
     const query3 = `SELECT DISTINCT phase FROM ${schemaName}.study`;
     const query4 = `SELECT DISTINCT prot_stat as protocolstatus FROM ${schemaName}.study`;
+    const query5 = `SELECT DISTINCT ob_stat as onboardingprogress FROM ${schemaName}.study`;
 
     Logger.info({ message: "getStudyList" });
 
@@ -247,29 +247,35 @@ exports.getStudyList = async (req, res) => {
     const $q2 = await DB.executeQuery(query2);
     const $q3 = await DB.executeQuery(query3);
     const $q4 = await DB.executeQuery(query4);
+    const $q5 = await DB.executeQuery(query5);
 
     const formatDateValues = await $q1.rows.map((e) => {
       let acc = $q2.rows.filter((d) => d.prot_id === e.prot_id);
       let newObj = acc[0] ? acc[0] : { count: 0 };
       let { count } = newObj;
-      // let editT = moment(e.dateedited).format("MM/DD/YYYY");
-      // let addT = moment(e.dateadded).format("MM/DD/YYYY");
-      let newData = _.omit(e, ["prot_id"]);
+      let editT = moment(e.dateedited).format("MM/DD/YYYY");
+      let addT = moment(e.dateadded).format("MM/DD/YYYY");
+      // let newData = _.omit(e, ["prot_id"]);
       return {
-        ...newData,
-        // dateadded: addT,
-        // dateedited: editT,
+        ...e,
+        dateadded: addT,
+        dateedited: editT,
         assignmentcount: count,
       };
     });
 
-    let uniquePhase = $q3.rows.map((e) => Object.values(e)).flat();
+    let uniquePhase = $q3.rows
+      .map((e) => Object.values(e))
+      .flat()
+      .filter((e) => e !== "");
     let uniqueProtocolStatus = $q4.rows.map((e) => Object.values(e)).flat();
-    // console.log('rows', $data.rows, formatDateValues);
+    let uniqueObs = $q5.rows.map((e) => Object.values(e)).flat();
+
     return apiResponse.successResponseWithData(res, "Operation success", {
       studyData: formatDateValues,
       uniquePhase: uniquePhase,
       uniqueProtocolStatus: uniqueProtocolStatus,
+      uniqueObs: uniqueObs,
     });
   } catch (err) {
     //throw error in json response with status 500.
@@ -298,6 +304,252 @@ exports.getSDAUsers = () => {
         return apiResponse.ErrorResponse(res, err);
       });
   } catch (err) {
+    Logger.error(err);
+    return apiResponse.ErrorResponse(res, err);
+  }
+};
+
+exports.listStudyAssign = async (req, res) => {
+  try {
+    const protocol = req.body.protocol;
+    const getQuery = `SELECT t1.prot_id,t1.usr_id,t2.usr_fst_nm,t2.usr_lst_nm,t2.usr_mail_id 
+                        FROM ${schemaName}.study_user as t1 
+                        LEFT JOIN ${schemaName}.user as t2 ON t1.usr_id = t2.usr_id 
+                        where t1.prot_id =$1 and t1.act_flg =1`;
+    const getRole = `SELECT t1.role_id,t1.prot_id,t1.usr_id,t2.role_nm ,t2.role_desc 
+                      FROM ${schemaName}.study_user_role as t1
+                      LEFT JOIN ${schemaName}.role as t2 ON t1.role_id = t2.role_id
+                      where t1.prot_id =$1 and t1.usr_id=$2 and t1.act_flg =1`;
+
+    Logger.info({ message: "listStudyAssign" });
+
+    const list = await DB.executeQuery(getQuery, [protocol]);
+    for (const item of list.rows) {
+      let roles = await DB.executeQuery(getRole, [protocol, item.usr_id]);
+      item.roles = roles.rows;
+    }
+
+    return apiResponse.successResponseWithData(
+      res,
+      "Operation success",
+      list.rows
+    );
+  } catch (err) {
+    Logger.error("catch :listStudyAssign");
+    Logger.error(err);
+    return apiResponse.ErrorResponse(res, err);
+  }
+};
+
+exports.AddStudyAssign = async (req, res) => {
+  try {
+    const { protocol, loginId, data } = req.body;
+    const curDate = helper.getCurrentTime();
+    const roUsers = data.map((e) => e.user_id).join(", ");
+
+    axios
+      .post(
+        `${FSR_API_URI}/study/grant`,
+        {
+          studyId: protocol,
+          userId: loginId,
+          roUsers,
+        },
+        {
+          headers: FSR_HEADERS,
+        }
+      )
+      .then(async (response) => {
+        const onboardStatus = response?.data?.code || null;
+        if (onboardStatus === 202) {
+          Logger.info({ message: "FSR API update" });
+        }
+      })
+      .catch((err) => {
+        return apiResponse.ErrorResponse(res, err);
+      });
+
+    const insertUserQuery = `INSERT INTO ${schemaName}.study_user (prot_id,usr_id,act_flg,insrt_tm)
+                              VALUES($1,$2,$3,$4)`;
+    const insertRoleQuery = `INSERT INTO ${schemaName}.study_user_role 
+                              (role_id,prot_id,usr_id,act_flg,created_by,created_on)
+                              VALUES($1,$2,$3,$4,$5,$6)`;
+
+    Logger.info({ message: "AddStudyAssign" });
+
+    data.forEach(async (element) => {
+      try {
+        await DB.executeQuery(insertUserQuery, [
+          protocol,
+          element.user_id,
+          1,
+          curDate,
+        ]);
+
+        element.role_id.forEach(async (roleId) => {
+          try {
+            await DB.executeQuery(insertRoleQuery, [
+              roleId,
+              protocol,
+              element.user_id,
+              1,
+              loginId,
+              curDate,
+            ]);
+          } catch (e) {
+            console.log(e);
+          }
+        });
+      } catch (err) {
+        console.log(err);
+      }
+    });
+
+    return apiResponse.successResponseWithData(
+      res,
+      "New user Added successfully"
+    );
+  } catch (err) {
+    //throw error in json response with status 500.
+    Logger.error("catch :AddStudyAssign");
+    Logger.error(err);
+    return apiResponse.ErrorResponse(res, err);
+  }
+};
+
+exports.updateStudyAssign = async (req, res) => {
+  try {
+    const { protocol, loginId, data } = req.body;
+    const curDate = helper.getCurrentTime();
+
+    // We are not use roles in FRS API so commented
+    // const roUsers = data.map((e) => e.user_id).join(", ");
+
+    // axios
+    //   .post(
+    //     `${FSR_API_URI}/study/grant`,
+    //     {
+    //       studyId: protocol,
+    //       userId: loginId,
+    //       roUsers,
+    //     },
+    //     {
+    //       headers: FSR_HEADERS,
+    //     }
+    //   )
+    //   .then(async (response) => {
+    //     const onboardStatus = response?.data?.code || null;
+    //     if (onboardStatus === 202) {
+    //       Logger.info({ message: "FSR API update" });
+    //     }
+    //   })
+    //   .catch((err) => {
+    //     return apiResponse.ErrorResponse(res, err);
+    //   });
+
+    const roleUpdateQuery = `UPDATE ${schemaName}.study_user_role SET act_flg =0,updated_by=$4,
+                        updated_on=$5 WHERE prot_id =$1 and usr_id = $2 and role_id <> ALL ($3);`;
+
+    const roleGetQuery = `SELECT * FROM ${schemaName}.study_user_role  WHERE prot_id =$1 and usr_id = $2 and role_id = $3`;
+
+    const insertRoleQuery = `INSERT INTO ${schemaName}.study_user_role (role_id,prot_id,usr_id,act_flg,created_by,created_on)
+                            VALUES($1,$2,$3,$4,$5,$6)`;
+
+    Logger.info({ message: "updateStudyAssign" });
+
+    data.forEach(async (element) => {
+      try {
+        await DB.executeQuery(roleUpdateQuery, [
+          protocol,
+          element.user_id,
+          element.role_id,
+          loginId,
+          curDate,
+        ]);
+
+        element.role_id.forEach(async (rollID) => {
+          try {
+            const roleGet = await DB.executeQuery(roleGetQuery, [
+              protocol,
+              element.user_id,
+              rollID,
+            ]);
+
+            if (roleGet.rows.length == 0) {
+              await DB.executeQuery(insertRoleQuery, [
+                rollID,
+                protocol,
+                element.user_id,
+                1,
+                loginId,
+                curDate,
+              ]);
+            }
+          } catch (e) {
+            console.log(e);
+          }
+        });
+      } catch (err) {
+        console.log(err);
+      }
+    });
+
+    return apiResponse.successResponse(res, "update successfully");
+  } catch (err) {
+    Logger.error("catch :updateStudyAssign");
+    Logger.error(err);
+    return apiResponse.ErrorResponse(res, err);
+  }
+};
+
+exports.deleteStudyAssign = async (req, res) => {
+  try {
+    const { protocol, loginId, users } = req.body;
+    const curDate = helper.getCurrentTime();
+    const userDeleteQuery = `UPDATE ${schemaName}.study_user SET act_flg =0,updt_tm=$3 WHERE prot_id =$1 and usr_id = $2`;
+    const roleDeleteQuery = `UPDATE ${schemaName}.study_user_role SET act_flg =0,updated_by=$3,updated_on=$4 WHERE prot_id =$1 and usr_id =$2`;
+    Logger.info({ message: "deleteStudyAssign" });
+
+    axios
+      .post(
+        `${FSR_API_URI}/study/revoke`,
+        {
+          studyId: protocol,
+          userId: loginId,
+          roUser: users.join(", "),
+        },
+        {
+          headers: FSR_HEADERS,
+        }
+      )
+      .then(async (response) => {
+        const onboardStatus = response?.data?.code || null;
+        if (onboardStatus === 202) {
+          Logger.info({ message: "FSR API update" });
+        }
+      })
+      .catch((err) => {
+        return apiResponse.ErrorResponse(res, err);
+      });
+
+    users.forEach(async (id) => {
+      try {
+        await DB.executeQuery(userDeleteQuery, [protocol, id, curDate]);
+
+        await DB.executeQuery(roleDeleteQuery, [
+          protocol,
+          id,
+          loginId,
+          curDate,
+        ]);
+
+        return apiResponse.successResponse(res, "User Deleted successfully");
+      } catch (err) {
+        console.log(err);
+      }
+    });
+  } catch (err) {
+    Logger.error("catch :deleteStudyAssign");
     Logger.error(err);
     return apiResponse.ErrorResponse(res, err);
   }

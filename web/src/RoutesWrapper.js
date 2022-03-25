@@ -41,9 +41,6 @@ const VendorList = lazy(() =>
 const CreateVendor = lazy(() =>
   import("./pages/Admin/Vendor/CreateVendor/CreateVendor")
 );
-const ExistingStudyAssignment = lazy(() =>
-  import("./pages/ExistingStudyAssignment/ExistingStudyAssignment")
-);
 const Empty = () => <></>;
 
 const RoutesWrapper = () => {
@@ -102,16 +99,10 @@ const RoutesWrapper = () => {
             />
             <Route path="/study-setup" exact render={() => <StudySetup />} />
             <Route
-              path="/ExistingStudyAssignment/:rowValue"
-              exact
-              render={() => <ExistingUsers />}
-            />
-            <Route
               path="/ExistingStudyAssignment"
               exact
               render={() => <ExistingUsers />}
             />
-
             <Route path="/cdm" exact render={() => <DynamicProducts />} />
             <Route path="/cdr" exact render={() => <DynamicProducts />} />
             <Route path="/ca" exact render={() => <DynamicProducts />} />

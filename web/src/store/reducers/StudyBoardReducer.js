@@ -16,6 +16,9 @@ export const initialState = {
   loading: false,
   exportStudy: null,
   selectedStudy: {},
+  uniquePhase: [],
+  uniqueProtocolStatus: [],
+  uniqueObs: [],
 };
 
 const StudyBoardReducer = (state = initialState, action) =>
@@ -32,8 +35,9 @@ const StudyBoardReducer = (state = initialState, action) =>
       case STUDYBOARD_FETCH_SUCCESS:
         newState.loading = false;
         newState.studyboardData = action.studyboardData;
-        newState.uniqurePhase = action.uniqurePhase;
+        newState.uniquePhase = action.uniqurePhase;
         newState.uniqueProtocolStatus = action.uniqueProtocolStatus;
+        newState.uniqueObs = action.uniqueObs;
         newState.studyboardFetchSuccess = true;
         newState.studyboardFetchFailure = false;
         break;
