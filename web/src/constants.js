@@ -53,6 +53,7 @@ export const NOT_ONBOARDED_FETCH = "v1/api/study/notonboarded-studies-stat";
 export const POLICY_LIST_FETCH = "v1/api/policy/list";
 export const ROLES_LIST = "study/select-roles";
 export const VENDOR_BASE = "v1/api/vendor";
+export const ASSIGN_BASE = "v1/api/study/assign";
 // export const VENDOR_LIST_FETCH = `${VENDOR_BASE}/list`;
 // export const ADD_VENDOR = `${VENDOR_BASE}/create`;
 // export const UPDATE_VENDOR = `${VENDOR_BASE}/update`;

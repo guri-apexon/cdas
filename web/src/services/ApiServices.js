@@ -6,6 +6,7 @@ import {
   ROLES_LIST,
   STUDYSEARCH,
   VENDOR_BASE,
+  ASSIGN_BASE,
 } from "../constants";
 import { getCookie } from "../utils";
 
@@ -337,4 +338,21 @@ export const userLogOut = () => {
     .catch((err) => {
       console.log(err);
     });
+};
+
+export const getAssignedUsers = async (protId) => {
+  try {
+    return new Promise((resolve, reject) => {
+      axios
+        .post(`${baseURL}/${ASSIGN_BASE}/list`, { protocol: protId })
+        .then((res) => {
+          resolve(res.data);
+        })
+        .catch((err) => {
+          reject(err.response.data);
+        });
+    });
+  } catch (err) {
+    return console.log("Error", err);
+  }
 };

@@ -256,9 +256,9 @@ exports.getStudyList = async (req, res) => {
       let { count } = newObj;
       // let editT = moment(e.dateedited).format("MM/DD/YYYY");
       // let addT = moment(e.dateadded).format("MM/DD/YYYY");
-      let newData = _.omit(e, ["prot_id"]);
+      // let newData = _.omit(e, ["prot_id"]);
       return {
-        ...newData,
+        ...e,
         // dateadded: addT,
         // dateedited: editT,
         assignmentcount: count,

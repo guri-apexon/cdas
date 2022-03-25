@@ -26,6 +26,7 @@ import {
   fetchRoles,
   getOnboardUsers,
   onboardStudy,
+  getAssignedUsers,
 } from "../../../services/ApiServices";
 import { getUserInfo } from "../../../utils";
 import AddNewUserModal from "../../../components/AddNewUserModal/AddNewUserModal";
@@ -61,7 +62,11 @@ const ExistingUsers = () => {
   const [addStudyOpen, setAddStudyOpen] = useState(false);
   const { selectedStudy } = studyData;
 
-  console.log(studyData.selectedStudy);
+  const getData = async (id) => {
+    const data = await getAssignedUsers(id);
+    console.log("dat", data.data);
+    const formattedData = data.data.map((e) => e);
+  };
 
   useEffect(() => {
     const updateData = [
@@ -73,6 +78,7 @@ const ExistingUsers = () => {
       { label: "Therapeutic Area", value: selectedStudy?.therapeuticarea },
     ];
     setStateMenuItems([...updateData]);
+    getData(selectedStudy?.prot_id);
   }, [selectedStudy]);
 
   const breadcrumpItems = [
@@ -86,6 +92,7 @@ const ExistingUsers = () => {
       title: "Manage Users",
     },
   ];
+
   const editRow = (e, value, reason, index, key) => {
     let alreadyExist;
     if (key === "user" && value) {
@@ -105,6 +112,7 @@ const ExistingUsers = () => {
       })
     );
   };
+
   const EditableUser = ({ row, column: { accessor: key } }) => {
     return (
       <AutocompleteV2
@@ -124,6 +132,7 @@ const ExistingUsers = () => {
       />
     );
   };
+
   const EditableRoles = ({ row, column: { accessor: key } }) => {
     return (
       <AutocompleteV2
@@ -225,6 +234,7 @@ const ExistingUsers = () => {
     };
     setConfirmObj(confirm);
   };
+
   const actionBtns = [
     {
       variant: "text",
@@ -248,23 +258,22 @@ const ExistingUsers = () => {
       onClick: importWithAssign,
     },
   ];
+
   const columns = [
     {
       header: "User",
       accessor: "user",
-      width: "50%",
       customCell: EditableUser,
     },
     {
       header: "Role",
       accessor: "roles",
-      width: "50%",
       customCell: EditableRoles,
     },
     {
       header: "",
       accessor: "delete",
-      width: "40px",
+      width: 40,
       customCell: DeleteUserCell,
     },
   ];
@@ -281,6 +290,7 @@ const ExistingUsers = () => {
             variant="secondary"
             icon={PlusIcon}
             onClick={addNewUser}
+            style={{ marginRight: 16 }}
           >
             Add new users
           </Button>
