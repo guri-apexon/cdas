@@ -9,20 +9,23 @@ import IconButton from "apollo-react/components/IconButton";
 import SearchIcon from "apollo-react-icons/Search";
 import Trash from "apollo-react-icons/Trash";
 import AutocompleteV2 from "apollo-react/components/AutocompleteV2";
+import Select from "apollo-react/components/Select";
+import MenuItem from "apollo-react/components/MenuItem";
 import ApolloProgress from "apollo-react/components/ApolloProgress";
 import { MessageContext } from "../Providers/MessageProvider";
-import {
-  fetchRoles,
-  getOnboardUsers,
-  addAssignUser,
-} from "../../services/ApiServices";
+import { addAssignUser } from "../../services/ApiServices";
 import { debounceFunction, getUserInfo } from "../../utils";
 
-const AddNewUserModal = ({ open, onClose, users, protocol }) => {
+const AddNewUserModal = ({
+  open,
+  onClose,
+  usersEmail,
+  protocol,
+  userList,
+  roleLists,
+}) => {
   const [openModal, setOpenModal] = useState(open);
   const [tableUsers, setTableUsers] = useState([]);
-  const [userList, setUserList] = useState([]);
-  const [roleLists, setroleLists] = useState([]);
   const [loading, setLoading] = useState(false);
   const toast = useContext(MessageContext);
 
@@ -71,7 +74,9 @@ const AddNewUserModal = ({ open, onClose, users, protocol }) => {
         ? true
         : false;
       if (!alreadyExist) {
-        alreadyExist = users.find((x) => x.user?.email === value.email)
+        alreadyExist = usersEmail.find(
+          (x) => x.usersEmail?.email === value.email
+        )
           ? true
           : false;
       }
@@ -102,14 +107,33 @@ const AddNewUserModal = ({ open, onClose, users, protocol }) => {
         fullWidth
         multiple
         forcePopupIcon
-        chipColor="white"
         source={roleLists}
+        chipColor="white"
         className={row.disableRole ? "hide" : "show"}
         value={row[key]}
         onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
       />
     );
   };
+
+  // const EditableRoles = ({ row, column: { accessor: key } }) => {
+  //   return (
+  //     <Select
+  //       size="small"
+  //       fullWidth
+  //       multiple
+  //       forcePopupIcon
+  //       chipColor="white"
+  //       className={row.disableRole ? "hide" : "show"}
+  //       value={row[key]}
+  //       onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
+  //     >
+  //       {roleLists?.map((e) => (
+  //         <MenuItem value={e.value}>{e.label}</MenuItem>
+  //       ))}
+  //     </Select>
+  //   );
+  // };
 
   const EditableUser = ({ row, column: { accessor: key } }) => {
     return (
@@ -155,36 +179,8 @@ const AddNewUserModal = ({ open, onClose, users, protocol }) => {
     setOpenModal(open);
   }, [open]);
 
-  const getRoles = async () => {
-    const result = await fetchRoles();
-    setroleLists(result || []);
-  };
-
-  const getUserList = async () => {
-    const result = await getOnboardUsers();
-    const filtered =
-      result?.map((user) => {
-        return {
-          ...user,
-          label: `${user.firstName} ${user.lastName} (${user.email})`,
-        };
-      }) || [];
-    filtered.sort(function (a, b) {
-      if (a.firstName < b.firstName) {
-        return -1;
-      }
-      if (a.firstName > b.firstName) {
-        return 1;
-      }
-      return 0;
-    });
-    setUserList(filtered);
-    getRoles();
-  };
-
   useEffect(() => {
     addNewRow();
-    getUserList();
   }, []);
 
   const getTable = useMemo(

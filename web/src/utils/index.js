@@ -340,6 +340,51 @@ export const createStringArrayIncludedFilter = (accessor) => {
     );
 };
 
+export const Capitalize = (str) => {
+  // console.log(str, "stt");
+  return str && str.charAt(0).toUpperCase() + str.slice(1);
+};
+
+export const createFilterList = (list) => {
+  return Array.from(
+    new Set(list?.map((r) => ({ label: r })).map((item) => item.label))
+  )
+    .map((label) => {
+      return { label };
+    })
+    .sort((a, b) => {
+      if (a.label < b.label) {
+        return -1;
+      }
+      if (a.label > b.label) {
+        return 1;
+      }
+      return 0;
+    });
+};
+
+export const createSourceFromKey = (tableRows, key) => {
+  return Array.from(
+    new Set(
+      tableRows
+        ?.map((r) => ({ label: Capitalize(r[key]) }))
+        .map((item) => item.label)
+    )
+  )
+    .map((label) => {
+      return { label };
+    })
+    .sort((a, b) => {
+      if (a.label < b.label) {
+        return -1;
+      }
+      if (a.label > b.label) {
+        return 1;
+      }
+      return 0;
+    });
+};
+
 export const getAppUrl = (app) => {
   let appUrl;
   switch (app) {
