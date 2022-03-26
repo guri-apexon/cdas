@@ -1,13 +1,7 @@
 /* eslint-disable no-restricted-globals */
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import React, { useState, useContext, useEffect } from "react";
-import {
-  Link,
-  Route,
-  Switch,
-  BrowserRouter as Router,
-  useHistory,
-} from "react-router-dom";
+import { Link, useHistory } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import moment from "moment";
 import * as XLSX from "xlsx";
@@ -39,6 +33,9 @@ import {
   IntegerFilter,
   DateFilter,
   createStringArraySearchFilter,
+  createStringArrayIncludedFilter,
+  createSourceFromKey,
+  createFilterList,
 } from "../../utils/index";
 import { updateSelectedStudy } from "../../store/actions/StudyBoardAction";
 
@@ -67,7 +64,7 @@ const menuItems = [
 const ActionCell = ({ row }) => {
   return (
     <div style={{ display: "flex", justifyContent: "end" }}>
-      <IconMenuButton size="small" menuItems={menuItems}>
+      <IconMenuButton size="small" id="action" menuItems={menuItems}>
         <EllipsisVertical />
       </IconMenuButton>
     </div>
@@ -76,15 +73,13 @@ const ActionCell = ({ row }) => {
 
 const DateCell = ({ row, column: { accessor } }) => {
   const rowValue = row[accessor];
-  const date =
-    rowValue && moment(rowValue).isSame(moment(), "day")
-      ? moment(rowValue).format("DD-MMM-YYYY hh:mm A")
-      : moment(rowValue).format("DD-MMM-YYYY");
+  const date = rowValue ? moment(rowValue).format("DD-MMM-YYYY") : "";
+  // rowValue && moment(rowValue).isSame(moment(), "day")
+  //   ? moment(rowValue).format("DD-MMM-YYYY hh:mm A")
+  //   : moment(rowValue).format("DD-MMM-YYYY");
 
   return <span>{date}</span>;
 };
-
-const obs = ["Failed", "Success", "In Progress"];
 
 const obIcons = {
   Failed: InFailureIcon,
@@ -125,14 +120,15 @@ export default function StudyTable({
   const [rowsPerPageRecord, setRowPerPageRecord] = useState(10);
   const [pageNo, setPageNo] = useState(0);
   const [sortedColumnValue, setSortedColumnValue] = useState("dateadded");
-  const [sortOrderValue, setSortOrderValue] = useState("asc");
+  const [sortOrderValue, setSortOrderValue] = useState("desc");
   const [inlineFilters, setInlineFilters] = useState([]);
   const messageContext = useContext(MessageContext);
   const dispatch = useDispatch();
   const history = useHistory();
 
   const status = studyData.uniqueProtocolStatus;
-
+  const obs = studyData.uniqueObs;
+  const phases = studyData.uniquePhase;
   const handleExisting = (row) => {
     history.push("/ExistingStudyAssignment");
     dispatch(updateSelectedStudy(row));
@@ -142,7 +138,9 @@ export default function StudyTable({
     const rowValue = row[accessor];
     return (
       <>
-        <Link onClick={() => handleExisting(row)}>{rowValue}</Link>
+        <Link to="#" onClick={() => handleExisting(row)}>
+          {rowValue}
+        </Link>
       </>
     );
   };
@@ -189,38 +187,15 @@ export default function StudyTable({
       header: "Phase",
       accessor: "phase",
       sortFunction: compareStrings,
-      filterFunction: createStringArraySearchFilter("phase"),
-      filterComponent: createAutocompleteFilter(
-        Array.from(
-          new Set(
-            studyboardData
-              .map((r) => ({ label: r.phase && r.phase }))
-              .map((item) => (item.label ? item.label : " "))
-          )
-        )
-          .map((label) => {
-            return { label };
-          })
-          .sort((a, b) => {
-            if (a.label < b.label) {
-              return -1;
-            }
-            if (a.label > b.label) {
-              return 1;
-            }
-            return 0;
-          })
-      ),
+      filterFunction: createStringArrayIncludedFilter("phase"),
+      filterComponent: createFilterList(phases),
     },
     {
       header: "Protocol Status",
       accessor: "protocolstatus",
       sortFunction: compareStrings,
-      filterFunction: createStringArraySearchFilter("protocolstatus"),
-      filterComponent: createSelectFilterComponent(status, {
-        size: "small",
-        multiple: true,
-      }),
+      filterFunction: createStringArrayIncludedFilter("protocolstatus"),
+      filterComponent: createFilterList(status),
     },
     {
       header: "Date Added",
@@ -243,28 +218,8 @@ export default function StudyTable({
       accessor: "onboardingprogress",
       customCell: SelectiveCell,
       sortFunction: compareStrings,
-      filterFunction: createStringArraySearchFilter("onboardingprogress"),
-      filterComponent: createAutocompleteFilter(
-        Array.from(
-          new Set(
-            studyboardData
-              .map((r) => ({ label: r.onboardingprogress }))
-              .map((item) => item.label)
-          )
-        )
-          .map((label) => {
-            return { label };
-          })
-          .sort((a, b) => {
-            if (a.label < b.label) {
-              return -1;
-            }
-            if (a.label > b.label) {
-              return 1;
-            }
-            return 0;
-          })
-      ),
+      filterFunction: createStringArrayIncludedFilter("onboardingprogress"),
+      filterComponent: createFilterList(obs),
     },
     {
       header: "Assignment Count",
@@ -408,7 +363,7 @@ export default function StudyTable({
               hasScroll={true}
               maxHeight="600px"
               initialSortedColumn="dateadded"
-              initialSortOrder="asc"
+              initialSortOrder="desc"
               sortedColumn={sortedColumnValue}
               sortOrder={sortOrderValue}
               rowsPerPageOptions={[10, 50, 100, "All"]}
