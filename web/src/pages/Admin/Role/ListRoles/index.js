@@ -275,9 +275,7 @@ const ListRoles = () => {
     return (
       <Paper>
         <div className="role-header">
-          <Typography style={{ height: "24px" }} variant="h3">
-            Role Management
-          </Typography>
+          <Typography variant="h3">Role Management</Typography>
         </div>
       </Paper>
     );
