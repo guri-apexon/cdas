@@ -174,6 +174,7 @@ const ExistingUsers = () => {
         multiple
         forcePopupIcon
         chipColor="white"
+        style={{ marginTop: 8 }}
         source={roleLists}
         value={row[key]}
         onChange={(e, v, r) => editRowData(e, v, r, row.uniqueId, key)}
@@ -185,22 +186,26 @@ const ExistingUsers = () => {
     );
   };
 
+  const UsersCell = ({ row, column: { accessor: key } }) => {
+    return row.editMode ? (
+      <div style={{ marginTop: 12 }}>{row[key]}</div>
+    ) : (
+      <>{row[key]}</>
+    );
+  };
+
   const onRowDelete = async (uniqueId) => {
     const selected = await tableUsers.find((row) => row.uniqueId === uniqueId);
     deleteAssignUser({
       protocol,
       loginId: userInfo.user_id,
-      users: [selected.userId],
+      users: [selected.user_id],
     });
     setTableUsers(tableUsers.filter((row) => row.uniqueId !== uniqueId));
   };
 
   const onRowEdit = async (uniqueId) => {
     setEditedRow(tableUsers[uniqueId - 1]);
-    // const tempTable = tableUsers.filter((row) => row.uniqueId !== uniqueId);
-    // console.log("selected Row", selected, uniqueId);
-    // selected.editMode = true;
-    // setTableUsers([...tempTable]);
   };
 
   const onRowSave = async () => {
@@ -209,6 +214,16 @@ const ExistingUsers = () => {
         row.uniqueId === editedRow.uniqueId ? editedRow : row
       )
     );
+    updateAssignUser({
+      protocol,
+      loginId: userInfo.user_id,
+      data: [
+        {
+          user_id: editedRow.user_id,
+          role_id: editedRow.roles.map((e) => e.value),
+        },
+      ],
+    });
     setEditedRow({});
   };
 
@@ -224,6 +239,7 @@ const ExistingUsers = () => {
     {
       header: "User",
       accessor: "user",
+      customCell: UsersCell,
       filterFunction: createStringSearchFilter("user"),
       filterComponent: TextFieldFilter,
       width: "50%",
