@@ -88,7 +88,7 @@ export default function StudyNotOnboarded({
                   <Typography
                     variant="title1"
                     gutterBottom
-                    style={{ color: "#015FF1" }}
+                    style={{ color: "#10558a" }}
                   >
                     {`${totalInProgress} In-progress`}
                   </Typography>
