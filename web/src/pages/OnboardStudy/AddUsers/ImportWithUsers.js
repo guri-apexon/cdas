@@ -64,6 +64,13 @@ const ImportWithUsers = () => {
       title: "Assign Users",
     },
   ];
+  const getUserObj = () => {
+    return {
+      index: Math.max(...tableUsers.map((o) => o.index), 0) + 1,
+      user: null,
+      roles: [],
+    };
+  };
   const editRow = (e, value, reason, index, key) => {
     let alreadyExist;
     if (value) {
@@ -76,8 +83,8 @@ const ImportWithUsers = () => {
         ? true
         : false;
     }
-    setTableUsers((rows) =>
-      rows.map((row) => {
+    setTableUsers((rows) => {
+      const newRows = rows.map((row) => {
         if (row.index === index) {
           if (key === "user") {
             return { ...row, [key]: value, alreadyExist };
@@ -85,8 +92,12 @@ const ImportWithUsers = () => {
           return { ...row, [key]: value };
         }
         return row;
-      })
-    );
+      });
+      if (!alreadyExist && key === "user" && value) {
+        return [...newRows, getUserObj()];
+      }
+      return newRows;
+    });
   };
   const EditableUser = ({ row, column: { accessor: key } }) => {
     return (
@@ -110,6 +121,7 @@ const ImportWithUsers = () => {
     );
   };
   const EditableRoles = ({ row, column: { accessor: key } }) => {
+    if (row.user === null) return false;
     return (
       <div className="role">
         <AutocompleteV2
@@ -128,6 +140,7 @@ const ImportWithUsers = () => {
     );
   };
   const DeleteUserCell = ({ row }) => {
+    if (row.user === null) return false;
     const { index, onDelete } = row;
     return (
       <IconButton size="small" onClick={() => onDelete(index)}>
@@ -257,13 +270,17 @@ const ImportWithUsers = () => {
       customCell: DeleteUserCell,
     },
   ];
-  const CustomHeader = ({ addNewUser }) => {
+  const CustomHeader = ({ focusLastUser }) => {
     return (
       <Button
         size="small"
         variant="secondary"
         icon={PlusIcon}
-        onClick={addNewUser}
+        onClick={(e) => {
+          document
+            .querySelector(".user-table tr:nth-last-child(2) .user input")
+            .focus();
+        }}
       >
         Add new users
       </Button>
@@ -278,11 +295,7 @@ const ImportWithUsers = () => {
       );
       return false;
     }
-    const userObj = {
-      index: Math.max(...tableUsers.map((o) => o.index), 0) + 1,
-      user: null,
-      roles: [],
-    };
+    const userObj = getUserObj();
     setTableUsers((u) => [...u, userObj]);
   };
   const onDelete = (index) => {
