@@ -211,7 +211,7 @@ const AppHeader = ({ history, setLoggedIn }) => {
   const profileMenuProps = {
     name: userInfo.fullName,
     title: userInfo.userEmail,
-    email: (
+    email: userInfo.lastLogin && (
       <span style={{ fontSize: "13px" }}>Last Login: {userInfo.lastLogin}</span>
     ),
     // eslint-disable-next-line no-use-before-define

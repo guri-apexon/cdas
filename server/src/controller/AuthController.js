@@ -86,7 +86,7 @@ exports.authHandler = async (req, res) => {
         .format("YYYY-MM-DD HH:mm:ss"),
     };
     if (!last_login || last_login <= 0) {
-      res.cookie("user.last_login_ts", moment().unix());
+      res.cookie("user.last_login_ts", 'first_time');
     } else {
       const stillUtc = moment.utc(last_login[0].login_tm).format();
       res.cookie("user.last_login_ts", moment(stillUtc).local().unix());
