@@ -9,6 +9,7 @@ import { useHistory, Link, useLocation } from "react-router-dom";
 import FilterIcon from "apollo-react-icons/Filter";
 import Table, {
   createStringSearchFilter,
+  createSelectFilterComponent,
   compareStrings,
 } from "apollo-react/components/Table";
 import PlusIcon from "apollo-react-icons/Plus";
@@ -69,10 +70,10 @@ const ExistingUsers = () => {
   const toast = useContext(MessageContext);
   const [tableUsers, setTableUsers] = useState([]);
   const [editedRow, setEditedRow] = useState({});
-  const [tableData, setTableData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [roleLists, setroleLists] = useState([]);
   const [userList, setUserList] = useState([]);
+  const [uniqueRoles, setUniqueRoles] = useState([]);
   const [stateMenuItems, setStateMenuItems] = useState([]);
   const studyData = useSelector((state) => state.studyBoard);
   const [addStudyOpen, setAddStudyOpen] = useState(false);
@@ -82,7 +83,7 @@ const ExistingUsers = () => {
   const getData = async (id) => {
     setLoading(true);
     const data = await getAssignedUsers(id);
-    const forTable = data.data.map((e, i) => ({
+    const forTable = data.data.list.map((e, i) => ({
       alreadyExist: false,
       editMode: false,
       uniqueId: i + 1,
@@ -90,8 +91,10 @@ const ExistingUsers = () => {
       userId: e.usr_id,
       email: e.usr_mail_id,
       roles: e.roles.map((d) => ({ value: d.role_id, label: d.role_nm })),
+      roleList: e.roleList,
     }));
     setTableUsers(forTable);
+    setUniqueRoles(data.data.uniqueRoles);
     setLoading(false);
   };
 
@@ -170,10 +173,7 @@ const ExistingUsers = () => {
   };
 
   const EditableRoles = ({ row, column: { accessor: key } }) => {
-    const rowValue = row[key]
-      .map((e) => e.label)
-      .sort()
-      .join(", ");
+    const rowValue = row[key].map((e) => e.label).join(", ");
     return row.editMode ? (
       <AutocompleteV2
         size="small"
@@ -206,7 +206,7 @@ const ExistingUsers = () => {
     const response = await deleteAssignUser({
       protocol,
       loginId: userInfo.user_id,
-      users: [selected.user_id],
+      users: [selected.userId],
     });
     setLoading(false);
     if (response.status === "BAD_REQUEST") {
@@ -237,7 +237,6 @@ const ExistingUsers = () => {
         },
       ],
     });
-    setLoading(false);
     if (response.status === "BAD_REQUEST") {
       toast.showErrorMessage(response.message, 0);
     }
@@ -245,6 +244,7 @@ const ExistingUsers = () => {
       toast.showSuccessMessage(response.message, 0);
       history.push("/study-setup");
     }
+    getData(protocol);
     setEditedRow({});
   };
 
@@ -269,8 +269,12 @@ const ExistingUsers = () => {
       header: "Role",
       accessor: "roles",
       customCell: EditableRoles,
-      filterFunction: createStringArrayIncludedFilter("roles"),
+      filterFunction: createStringArrayIncludedFilter("roleList"),
       filterComponent: TextFieldFilter,
+      // filterComponent: createSelectFilterComponent(uniqueRoles, {
+      //   size: "small",
+      //   multiple: true,
+      // }),
       width: "50%",
     },
     {
@@ -317,7 +321,6 @@ const ExistingUsers = () => {
   };
 
   const backToSearch = () => {
-    // setSelectedStudy(null);
     history.push("/study-setup");
   };
 
