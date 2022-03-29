@@ -80,17 +80,17 @@ const ExistingUsers = () => {
   const { prot_id: protocol } = selectedStudy;
 
   const getData = async (id) => {
+    setLoading(true);
     const data = await getAssignedUsers(id);
     const forTable = data.data.map((e, i) => ({
       alreadyExist: false,
       editMode: false,
       uniqueId: i + 1,
       user: `${e.usr_fst_nm} ${e.usr_lst_nm} (${e.usr_mail_id})`,
-      user_id: e.usr_id,
+      userId: e.usr_id,
       email: e.usr_mail_id,
       roles: e.roles.map((d) => ({ value: d.role_id, label: d.role_nm })),
     }));
-    // console.log("formatted", forTable);
     setTableUsers(forTable);
     setLoading(false);
   };
@@ -123,6 +123,10 @@ const ExistingUsers = () => {
   const getRoles = async () => {
     const result = await fetchRoles();
     setroleLists(result || []);
+  };
+
+  const saveFromModal = () => {
+    getData(protocol);
   };
 
   const getUserList = async () => {
@@ -199,11 +203,18 @@ const ExistingUsers = () => {
 
   const onRowDelete = async (uniqueId) => {
     const selected = await tableUsers.find((row) => row.uniqueId === uniqueId);
-    deleteAssignUser({
+    const response = await deleteAssignUser({
       protocol,
       loginId: userInfo.user_id,
       users: [selected.user_id],
     });
+    setLoading(false);
+    if (response.status === "BAD_REQUEST") {
+      toast.showErrorMessage(response.message, 0);
+    }
+    if (response.status === "OK") {
+      toast.showSuccessMessage(response.message, 0);
+    }
     setTableUsers(tableUsers.filter((row) => row.uniqueId !== uniqueId));
   };
 
@@ -212,21 +223,28 @@ const ExistingUsers = () => {
   };
 
   const onRowSave = async () => {
-    setTableUsers(
-      tableUsers.map((row) =>
-        row.uniqueId === editedRow.uniqueId ? editedRow : row
-      )
+    const updateData = tableUsers.find(
+      (e) => e.uniqueId === editedRow.uniqueId
     );
-    updateAssignUser({
+
+    const response = await updateAssignUser({
       protocol,
       loginId: userInfo.user_id,
       data: [
         {
-          user_id: editedRow.user_id,
-          role_id: editedRow.roles.map((e) => e.value).flat(),
+          user_id: updateData.userId,
+          role_id: updateData.roles.map((e) => e.value).flat(),
         },
       ],
     });
+    setLoading(false);
+    if (response.status === "BAD_REQUEST") {
+      toast.showErrorMessage(response.message, 0);
+    }
+    if (response.status === "OK") {
+      toast.showSuccessMessage(response.message, 0);
+      history.push("/study-setup");
+    }
     setEditedRow({});
   };
 
@@ -272,6 +290,7 @@ const ExistingUsers = () => {
           protocol={protocol}
           userList={userList}
           roleLists={roleLists}
+          saveData={saveFromModal}
         />
         <div>
           <Button
@@ -299,6 +318,7 @@ const ExistingUsers = () => {
 
   const backToSearch = () => {
     // setSelectedStudy(null);
+    history.push("/study-setup");
   };
 
   return (

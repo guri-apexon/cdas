@@ -23,6 +23,7 @@ const AddNewUserModal = ({
   protocol,
   userList,
   roleLists,
+  saveData,
 }) => {
   const [openModal, setOpenModal] = useState(open);
   const [tableUsers, setTableUsers] = useState([]);
@@ -116,25 +117,6 @@ const AddNewUserModal = ({
     );
   };
 
-  // const EditableRoles = ({ row, column: { accessor: key } }) => {
-  //   return (
-  //     <Select
-  //       size="small"
-  //       fullWidth
-  //       multiple
-  //       forcePopupIcon
-  //       chipColor="white"
-  //       className={row.disableRole ? "hide" : "show"}
-  //       value={row[key]}
-  //       onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
-  //     >
-  //       {roleLists?.map((e) => (
-  //         <MenuItem value={e.value}>{e.label}</MenuItem>
-  //       ))}
-  //     </Select>
-  //   );
-  // };
-
   const EditableUser = ({ row, column: { accessor: key } }) => {
     return (
       <AutocompleteV2
@@ -213,12 +195,21 @@ const AddNewUserModal = ({
         newObj.role_id = d.roles.map((e) => e.value).flat();
         return newObj;
       });
-    await addAssignUser({
+    const response = await addAssignUser({
       protocol,
       loginId: userInfo.user_id,
       data,
     });
-    setOpenModal(!openModal);
+    handleClose();
+    setLoading(false);
+    if (response.status === "BAD_REQUEST") {
+      toast.showErrorMessage(response.message, 0);
+    }
+    if (response.status === "OK") {
+      toast.showSuccessMessage(response.message, 0);
+      history.push("/study-setup");
+    }
+    saveData();
   };
 
   return (
@@ -232,9 +223,7 @@ const AddNewUserModal = ({
             label: "Cancel",
             size: "small",
             className: "cancel-btn",
-            onClick: () => {
-              setOpenModal(!openModal);
-            },
+            onClick: () => handleClose(),
           },
           {
             label: "Save",
@@ -250,13 +239,7 @@ const AddNewUserModal = ({
       >
         <div className="modal-content">
           <>
-            {loading ? (
-              <Box display="flex" className="loader-container">
-                <ApolloProgress />
-              </Box>
-            ) : (
-              <div className="user-table">{getTable}</div>
-            )}
+            <div className="user-table">{getTable}</div>
           </>
         </div>
       </Modal>
