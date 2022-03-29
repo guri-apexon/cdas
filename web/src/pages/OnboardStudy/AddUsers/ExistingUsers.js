@@ -91,7 +91,7 @@ const ExistingUsers = () => {
       userId: e.usr_id,
       email: e.usr_mail_id,
       roles: e.roles.map((d) => ({ value: d.role_id, label: d.role_nm })),
-      roleList: e.roleList,
+      roleList: e.roleList.join(", "),
     }));
     setTableUsers(forTable);
     setUniqueRoles(data.data.uniqueRoles);
@@ -172,7 +172,8 @@ const ExistingUsers = () => {
     );
   };
 
-  const EditableRoles = ({ row, column: { accessor: key } }) => {
+  const EditableRoles = ({ row }) => {
+    const key = "roles";
     const rowValue = row[key].map((e) => e.label).join(", ");
     return row.editMode ? (
       <AutocompleteV2
@@ -267,14 +268,13 @@ const ExistingUsers = () => {
     },
     {
       header: "Role",
-      accessor: "roles",
+      accessor: "roleList",
       customCell: EditableRoles,
       filterFunction: createStringArrayIncludedFilter("roleList"),
-      filterComponent: TextFieldFilter,
-      // filterComponent: createSelectFilterComponent(uniqueRoles, {
-      //   size: "small",
-      //   multiple: true,
-      // }),
+      filterComponent: createSelectFilterComponent(uniqueRoles, {
+        size: "small",
+        multiple: true,
+      }),
       width: "50%",
     },
     {
@@ -326,6 +326,7 @@ const ExistingUsers = () => {
 
   return (
     <>
+      {console.log("user", tableUsers)}
       <div className="container">
         <ProjectHeader
           menuItems={stateMenuItems}
