@@ -77,3 +77,6 @@
     display: flex;
   }
 }
+div[class*='makeStyles-menuContainer-']{
+  max-height: 300px !important;
+}
