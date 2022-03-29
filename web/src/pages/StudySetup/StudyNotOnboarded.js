@@ -101,7 +101,11 @@ export default function StudyNotOnboarded({
                 className={`failure-box ${
                   status === "Failed" ? "selected" : null
                 }`}
-                onClick={() => selectedStatus("Failed")}
+                onClick={() =>
+                  selectedFilter === "Failed"
+                    ? selectedStatus("")
+                    : selectedStatus("Failed")
+                }
               >
                 <div className="full-width">
                   <InFailureIcon />

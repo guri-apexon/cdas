@@ -80,6 +80,7 @@ const ExistingUsers = () => {
   const { prot_id: protocol } = selectedStudy;
 
   const getData = async (id) => {
+    setLoading(true);
     const data = await getAssignedUsers(id);
     const forTable = data.data.map((e, i) => ({
       alreadyExist: false,
@@ -90,7 +91,6 @@ const ExistingUsers = () => {
       email: e.usr_mail_id,
       roles: e.roles.map((d) => ({ value: d.role_id, label: d.role_nm })),
     }));
-    // console.log("formatted", forTable);
     setTableUsers(forTable);
     setLoading(false);
   };
@@ -123,6 +123,10 @@ const ExistingUsers = () => {
   const getRoles = async () => {
     const result = await fetchRoles();
     setroleLists(result || []);
+  };
+
+  const saveFromModal = () => {
+    getData(protocol);
   };
 
   const getUserList = async () => {
@@ -271,6 +275,7 @@ const ExistingUsers = () => {
           protocol={protocol}
           userList={userList}
           roleLists={roleLists}
+          saveData={saveFromModal}
         />
         <div>
           <Button

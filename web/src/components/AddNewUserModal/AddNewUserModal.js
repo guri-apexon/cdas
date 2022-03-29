@@ -23,6 +23,7 @@ const AddNewUserModal = ({
   protocol,
   userList,
   roleLists,
+  saveData,
 }) => {
   const [openModal, setOpenModal] = useState(open);
   const [tableUsers, setTableUsers] = useState([]);
@@ -116,25 +117,6 @@ const AddNewUserModal = ({
     );
   };
 
-  // const EditableRoles = ({ row, column: { accessor: key } }) => {
-  //   return (
-  //     <Select
-  //       size="small"
-  //       fullWidth
-  //       multiple
-  //       forcePopupIcon
-  //       chipColor="white"
-  //       className={row.disableRole ? "hide" : "show"}
-  //       value={row[key]}
-  //       onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
-  //     >
-  //       {roleLists?.map((e) => (
-  //         <MenuItem value={e.value}>{e.label}</MenuItem>
-  //       ))}
-  //     </Select>
-  //   );
-  // };
-
   const EditableUser = ({ row, column: { accessor: key } }) => {
     return (
       <AutocompleteV2
@@ -219,6 +201,7 @@ const AddNewUserModal = ({
       data,
     });
     setOpenModal(!openModal);
+    saveData();
   };
 
   return (
@@ -250,13 +233,7 @@ const AddNewUserModal = ({
       >
         <div className="modal-content">
           <>
-            {loading ? (
-              <Box display="flex" className="loader-container">
-                <ApolloProgress />
-              </Box>
-            ) : (
-              <div className="user-table">{getTable}</div>
-            )}
+            <div className="user-table">{getTable}</div>
           </>
         </div>
       </Modal>
