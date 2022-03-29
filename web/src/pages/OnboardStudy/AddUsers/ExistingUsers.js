@@ -270,10 +270,11 @@ const ExistingUsers = () => {
       accessor: "roles",
       customCell: EditableRoles,
       filterFunction: createStringArrayIncludedFilter("roleList"),
-      filterComponent: createSelectFilterComponent(uniqueRoles, {
-        size: "small",
-        multiple: true,
-      }),
+      filterComponent: TextFieldFilter,
+      // filterComponent: createSelectFilterComponent(uniqueRoles, {
+      //   size: "small",
+      //   multiple: true,
+      // }),
       width: "50%",
     },
     {
