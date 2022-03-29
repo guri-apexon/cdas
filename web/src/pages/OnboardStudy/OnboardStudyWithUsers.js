@@ -1,6 +1,5 @@
 /* eslint-disable consistent-return */
 /* eslint-disable no-script-url */
-/* eslint-disable react/button-has-type */
 import React, { useContext, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useHistory } from "react-router-dom";
@@ -17,15 +16,15 @@ import Paper from "apollo-react/components/Paper";
 import Box from "apollo-react/components/Box";
 import Grid from "apollo-react/components/Grid";
 import Modal from "apollo-react/components/Modal";
-import "../OnboardStudy.scss";
 import AutocompleteV2 from "apollo-react/components/AutocompleteV2";
-import { MessageContext } from "../../../components/Providers/MessageProvider";
+import { MessageContext } from "../../components/Providers/MessageProvider";
 import {
   fetchRoles,
   getOnboardUsers,
   onboardStudy,
-} from "../../../services/ApiServices";
-import { getUserInfo } from "../../../utils";
+} from "../../services/ApiServices";
+import { getUserInfo } from "../../utils";
+import "./OnboardStudyWithUsers.scss";
 
 const Label = ({ children }) => {
   return (
