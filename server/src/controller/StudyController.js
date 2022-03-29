@@ -326,21 +326,23 @@ exports.listStudyAssign = async (req, res) => {
     const getRole = `SELECT t1.role_id,t1.prot_id,t1.usr_id,t2.role_nm ,t2.role_desc 
                       FROM ${schemaName}.study_user_role as t1
                       LEFT JOIN ${schemaName}.role as t2 ON t1.role_id = t2.role_id
-                      where t1.prot_id =$1 and t1.usr_id=$2 and t1.act_flg =1`;
+                      where t1.prot_id =$1 and t1.usr_id=$2 and t1.act_flg =1 order by t2.role_nm`;
 
     Logger.info({ message: "listStudyAssign" });
-
+    const uniqueRoles = [];
     const list = await DB.executeQuery(getQuery, [protocol]);
     for (const item of list.rows) {
       let roles = await DB.executeQuery(getRole, [protocol, item.usr_id]);
       item.roles = roles.rows;
+      let flatten = roles.rows.map((e) => e.role_nm);
+      item.roleList = flatten;
+      uniqueRoles.push(flatten);
     }
 
-    return apiResponse.successResponseWithData(
-      res,
-      "Operation success",
-      list.rows
-    );
+    return apiResponse.successResponseWithData(res, "Operation success", {
+      list: list.rows,
+      uniqueRoles: uniqueRoles.flat(),
+    });
   } catch (err) {
     Logger.error("catch :listStudyAssign");
     Logger.error(err);
