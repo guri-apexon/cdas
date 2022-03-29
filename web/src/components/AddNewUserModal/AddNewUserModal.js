@@ -202,10 +202,21 @@ const AddNewUserModal = ({
   );
 
   const addUsers = async () => {
+    const data = tableUsers
+      .filter((e) => e.user != null)
+      .map((d) => {
+        const newObj = {
+          user_id: "",
+          role_id: "",
+        };
+        newObj.user_id = d.user.userId;
+        newObj.role_id = d.roles.map((e) => e.value).flat();
+        return newObj;
+      });
     await addAssignUser({
       protocol,
       loginId: userInfo.user_id,
-      data: tableUsers,
+      data,
     });
     setOpenModal(!openModal);
   };
