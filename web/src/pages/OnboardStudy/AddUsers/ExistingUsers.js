@@ -36,7 +36,7 @@ import {
   createStringArrayIncludedFilter,
 } from "../../../utils";
 import AddNewUserModal from "../../../components/AddNewUserModal/AddNewUserModal";
-import "../OnboardStudy.scss";
+import "./ExistingUsers.scss";
 
 const ActionCell = ({ row }) => {
   const { uniqueId, onRowEdit, onRowSave, editMode, onCancel, onRowDelete } =
@@ -147,6 +147,9 @@ const ExistingUsers = () => {
   };
 
   useEffect(() => {
+    if (!selectedStudy?.protocolnumber) {
+      history.push("/study-setup");
+    }
     getRoles();
     getUserList();
   }, []);

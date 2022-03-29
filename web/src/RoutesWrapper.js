@@ -14,7 +14,7 @@ const DynamicProducts = lazy(() =>
 const LaunchPad = lazy(() => import("./pages/LaunchPad/LaunchPad"));
 const StudySetup = lazy(() => import("./pages/StudySetup/StudySetup"));
 const ImportWithUsers = lazy(() =>
-  import("./pages/OnboardStudy/AddUsers/ImportWithUsers")
+  import("./pages/OnboardStudy/OnboardStudyWithUsers")
 );
 const ExistingUsers = lazy(() =>
   import("./pages/OnboardStudy/AddUsers/ExistingUsers")
