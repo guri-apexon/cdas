@@ -149,22 +149,23 @@ const ImportWithUsers = () => {
   };
 
   const importStudy = async (assign) => {
+    const usersRows = [...tableUsers].slice(0, -1);
     if (assign) {
-      if (!tableUsers.length) {
+      if (!usersRows.length) {
         toast.showErrorMessage("Add some users to proceed");
         return false;
       }
-      if (tableUsers.find((x) => x.user == null)) {
+      if (usersRows.find((x) => x.user == null)) {
         setInitialRender(!initialRender);
         setTableUsers([...tableUsers]);
         toast.showErrorMessage("Please fill user or remove blank rows");
         return false;
       }
-      if (tableUsers.find((x) => x.alreadyExist)) {
+      if (usersRows.find((x) => x.alreadyExist)) {
         toast.showErrorMessage("Please remove duplicate values");
         return false;
       }
-      const emptyRoles = tableUsers.filter((x) => x.roles.length === 0);
+      const emptyRoles = usersRows.filter((x) => x.roles.length === 0);
       if (emptyRoles.length) {
         toast.showErrorMessage(
           `Please fill roles for ${emptyRoles[0].user.email}`
@@ -180,17 +181,16 @@ const ImportWithUsers = () => {
       userId: userInfo.user_id,
     };
     if (assign) {
-      reqBody.users = tableUsers;
+      reqBody.users = usersRows;
     }
     setLoading(true);
     const response = await onboardStudy(reqBody);
     setLoading(false);
-    if (response.status === "BAD_REQUEST") {
-      toast.showErrorMessage(response.message, 0);
-    }
     if (response.status === "OK") {
       toast.showSuccessMessage(response.message, 0);
       history.push("/study-setup");
+    } else {
+      toast.showErrorMessage(response.message, 0);
     }
   };
   const importWithAssign = () => {

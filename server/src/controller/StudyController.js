@@ -106,63 +106,67 @@ exports.cronUpdateStatus = async () => {
 };
 
 exports.onboardStudy = async function (req, res) {
-  const {
-    sponsorNameStnd: sponsorName,
-    protNbrStnd: studyId,
-    userId,
-    users,
-  } = req.body;
-  Logger.info({ message: "onboardStudy" });
-  axios
-    .post(
-      `${FSR_API_URI}/study/onboard`,
-      {
-        sponsorName,
-        studyId,
-      },
-      {
-        headers: FSR_HEADERS,
-      }
-    )
-    .then(async (response) => {
-      const onboardStatus = response?.data?.code || null;
-      if (onboardStatus === 202) {
-        const insertedStudy = await addOnboardedStudy(studyId, userId);
-        if (!insertedStudy)
-          return apiResponse.ErrorResponse(res, "Something went wrong");
-
-        if (users && users.length) {
-          let insertQuery = "";
-          const currentTime = helper.getCurrentTime();
-          users.forEach((user) => {
-            if (user.user?.userId && insertedStudy.prot_id) {
-              insertQuery += `INSERT into ${schemaName}.study_user (prot_id, usr_id, act_flg, insrt_tm, updt_tm) VALUES('${insertedStudy.prot_id}', '${user.user.userId}', 1, '${currentTime}', '${currentTime}');`;
-              if (user.roles && Array.isArray(user.roles)) {
-                user.roles.forEach((role) => {
-                  insertQuery += `INSERT into ${schemaName}.study_user_role (role_id, prot_id, usr_id, act_flg, created_by, created_on, updated_by, updated_on) VALUES('${role.value}', '${insertedStudy.prot_id}', '${user.user.userId}', 1, '${userId}', '${currentTime}', '${userId}', '${currentTime}');`;
-                });
-              }
-            }
-          });
-          // console.log("insertQuery", insertQuery, insertedStudy);
-          const rolesAdded = await DB.executeQuery(insertQuery);
-          if (!rolesAdded)
-            return apiResponse.ErrorResponse(res, "Something went wrong");
+  try{
+    const {
+      sponsorNameStnd: sponsorName,
+      protNbrStnd: studyId,
+      userId,
+      users,
+    } = req.body;
+    Logger.info({ message: "onboardStudy" });
+    axios
+      .post(
+        `${FSR_API_URI}/study/onboard`,
+        {
+          sponsorName,
+          studyId,
+        },
+        {
+          headers: FSR_HEADERS,
         }
-      }
-      return apiResponse.successResponseWithData(
-        res,
-        "Operation success",
-        response?.data
-      );
-    })
-    .catch((err) => {
-      if (err.response?.data) {
-        return res.json(err.response.data);
-      } else {
-        return apiResponse.ErrorResponse(res, "Something went wrong");
-      }
-    });
+      )
+      .then(async (response) => {
+        const onboardStatus = response?.data?.code || null;
+        if (onboardStatus === 202) {
+          const insertedStudy = await addOnboardedStudy(studyId, userId);
+          if (!insertedStudy)
+            return apiResponse.ErrorResponse(res, "Something went wrong");
+  
+          if (users && users.length) {
+            let insertQuery = "";
+            const currentTime = helper.getCurrentTime();
+            users.forEach((user) => {
+              if (user.user?.userId && insertedStudy.prot_id) {
+                insertQuery += `INSERT into ${schemaName}.study_user (prot_id, usr_id, act_flg, insrt_tm, updt_tm) VALUES('${insertedStudy.prot_id}', '${user.user.userId}', 1, '${currentTime}', '${currentTime}');`;
+                if (user.roles && Array.isArray(user.roles)) {
+                  user.roles.forEach((role) => {
+                    insertQuery += `INSERT into ${schemaName}.study_user_role (role_id, prot_id, usr_id, act_flg, created_by, created_on, updated_by, updated_on) VALUES('${role.value}', '${insertedStudy.prot_id}', '${user.user.userId}', 1, '${userId}', '${currentTime}', '${userId}', '${currentTime}');`;
+                  });
+                }
+              }
+            });
+            DB.executeQuery(insertQuery).then(res=>{
+              return apiResponse.successResponseWithData(
+                res,
+                "Operation success",
+                response?.data
+              );
+            }).catch(err=>{
+              return apiResponse.ErrorResponse(res, err.detail || "Something went wrong");
+            });
+          }
+        }
+      })
+      .catch((err) => {
+        if (err.response?.data) {
+          return res.json(err.response.data);
+        } else {
+          return apiResponse.ErrorResponse(res, "Something went wrong");
+        }
+      });
+  }catch(_err) {
+    return apiResponse.ErrorResponse(res, "Something went wrong");
+  }
 };
 
 exports.studyList = function (req, res) {
