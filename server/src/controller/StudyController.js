@@ -322,7 +322,7 @@ exports.listStudyAssign = async (req, res) => {
     const getQuery = `SELECT t1.prot_id,t1.usr_id,t2.usr_fst_nm,t2.usr_lst_nm,t2.usr_mail_id 
                         FROM ${schemaName}.study_user as t1 
                         LEFT JOIN ${schemaName}.user as t2 ON t1.usr_id = t2.usr_id 
-                        where t1.prot_id =$1 and t1.act_flg =1`;
+                        where t1.prot_id =$1 and t1.act_flg =1 and t1.usr_id is NOT NULL`;
     const getRole = `SELECT t1.role_id,t1.prot_id,t1.usr_id,t2.role_nm ,t2.role_desc 
                       FROM ${schemaName}.study_user_role as t1
                       LEFT JOIN ${schemaName}.role as t2 ON t1.role_id = t2.role_id
@@ -430,8 +430,8 @@ exports.updateStudyAssign = async (req, res) => {
     const curDate = helper.getCurrentTime();
 
     // We are not use roles in FRS API so commented
-    // const roUsers = data.map((e) => e.user_id).join(", ");
 
+    // const roUsers = data.map((e) => e.user_id).join(", ");
     // axios
     //   .post(
     //     `${FSR_API_URI}/study/grant`,

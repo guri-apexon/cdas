@@ -86,7 +86,7 @@ const ExistingUsers = () => {
       editMode: false,
       uniqueId: i + 1,
       user: `${e.usr_fst_nm} ${e.usr_lst_nm} (${e.usr_mail_id})`,
-      user_id: e.usr_id,
+      userId: e.usr_id,
       email: e.usr_mail_id,
       roles: e.roles.map((d) => ({ value: d.role_id, label: d.role_nm })),
     }));
@@ -222,7 +222,7 @@ const ExistingUsers = () => {
       loginId: userInfo.user_id,
       data: [
         {
-          user_id: editedRow.user_id,
+          user_id: editedRow.userId,
           role_id: editedRow.roles.map((e) => e.value).flat(),
         },
       ],
@@ -299,6 +299,7 @@ const ExistingUsers = () => {
 
   const backToSearch = () => {
     // setSelectedStudy(null);
+    history.push("/study-setup");
   };
 
   return (
