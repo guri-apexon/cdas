@@ -203,11 +203,18 @@ const ExistingUsers = () => {
 
   const onRowDelete = async (uniqueId) => {
     const selected = await tableUsers.find((row) => row.uniqueId === uniqueId);
-    deleteAssignUser({
+    const response = await deleteAssignUser({
       protocol,
       loginId: userInfo.user_id,
       users: [selected.user_id],
     });
+    setLoading(false);
+    if (response.status === "BAD_REQUEST") {
+      toast.showErrorMessage(response.message, 0);
+    }
+    if (response.status === "OK") {
+      toast.showSuccessMessage(response.message, 0);
+    }
     setTableUsers(tableUsers.filter((row) => row.uniqueId !== uniqueId));
   };
 
@@ -220,7 +227,7 @@ const ExistingUsers = () => {
       (e) => e.uniqueId === editedRow.uniqueId
     );
 
-    updateAssignUser({
+    const response = await updateAssignUser({
       protocol,
       loginId: userInfo.user_id,
       data: [
@@ -230,6 +237,14 @@ const ExistingUsers = () => {
         },
       ],
     });
+    setLoading(false);
+    if (response.status === "BAD_REQUEST") {
+      toast.showErrorMessage(response.message, 0);
+    }
+    if (response.status === "OK") {
+      toast.showSuccessMessage(response.message, 0);
+      history.push("/study-setup");
+    }
     setEditedRow({});
   };
 

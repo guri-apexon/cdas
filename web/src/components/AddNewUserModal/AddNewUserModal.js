@@ -195,12 +195,20 @@ const AddNewUserModal = ({
         newObj.role_id = d.roles.map((e) => e.value).flat();
         return newObj;
       });
-    await addAssignUser({
+    const response = await addAssignUser({
       protocol,
       loginId: userInfo.user_id,
       data,
     });
-    setOpenModal(!openModal);
+    handleClose();
+    setLoading(false);
+    if (response.status === "BAD_REQUEST") {
+      toast.showErrorMessage(response.message, 0);
+    }
+    if (response.status === "OK") {
+      toast.showSuccessMessage(response.message, 0);
+      history.push("/study-setup");
+    }
     saveData();
   };
 
@@ -215,9 +223,7 @@ const AddNewUserModal = ({
             label: "Cancel",
             size: "small",
             className: "cancel-btn",
-            onClick: () => {
-              setOpenModal(!openModal);
-            },
+            onClick: () => handleClose(),
           },
           {
             label: "Save",
