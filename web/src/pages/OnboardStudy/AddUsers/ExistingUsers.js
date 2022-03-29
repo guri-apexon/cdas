@@ -212,18 +212,17 @@ const ExistingUsers = () => {
   };
 
   const onRowSave = async () => {
-    setTableUsers(
-      tableUsers.map((row) =>
-        row.uniqueId === editedRow.uniqueId ? editedRow : row
-      )
+    const updateData = tableUsers.find(
+      (e) => e.uniqueId === editedRow.uniqueId
     );
+
     updateAssignUser({
       protocol,
       loginId: userInfo.user_id,
       data: [
         {
-          user_id: editedRow.userId,
-          role_id: editedRow.roles.map((e) => e.value).flat(),
+          user_id: updateData.userId,
+          role_id: updateData.roles.map((e) => e.value).flat(),
         },
       ],
     });
