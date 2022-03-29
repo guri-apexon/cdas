@@ -354,6 +354,9 @@ exports.AddStudyAssign = async (req, res) => {
   try {
     const { protocol, loginId, data } = req.body;
     const curDate = helper.getCurrentTime();
+    if (!data || !data.length) {
+      return apiResponse.ErrorResponse(res, "Something went wrong");
+    }
     const roUsers = data.map((e) => e.user_id).join(", ");
 
     axios
@@ -386,38 +389,39 @@ exports.AddStudyAssign = async (req, res) => {
 
     Logger.info({ message: "AddStudyAssign" });
 
-    data.forEach(async (element) => {
-      try {
-        await DB.executeQuery(insertUserQuery, [
-          protocol,
-          element.user_id,
-          1,
-          curDate,
-        ]);
+    if (data && data.length) {
+      data.forEach(async (element) => {
+        try {
+          await DB.executeQuery(insertUserQuery, [
+            protocol,
+            element.user_id,
+            1,
+            curDate,
+          ]);
 
-        element.role_id.forEach(async (roleId) => {
-          try {
-            await DB.executeQuery(insertRoleQuery, [
-              roleId,
-              protocol,
-              element.user_id,
-              1,
-              loginId,
-              curDate,
-            ]);
-          } catch (e) {
-            console.log(e);
-          }
-        });
-      } catch (err) {
-        console.log(err);
-      }
-    });
-
-    return apiResponse.successResponseWithData(
-      res,
-      "New user Added successfully"
-    );
+          element.role_id.forEach(async (roleId) => {
+            try {
+              await DB.executeQuery(insertRoleQuery, [
+                roleId,
+                protocol,
+                element.user_id,
+                1,
+                loginId,
+                curDate,
+              ]);
+            } catch (e) {
+              console.log(e);
+            }
+          });
+        } catch (err) {
+          console.log(err);
+        }
+      });
+      return apiResponse.successResponseWithData(
+        res,
+        "New user Added successfully"
+      );
+    }
   } catch (err) {
     //throw error in json response with status 500.
     Logger.error("catch :AddStudyAssign");
@@ -430,7 +434,9 @@ exports.updateStudyAssign = async (req, res) => {
   try {
     const { protocol, loginId, data } = req.body;
     const curDate = helper.getCurrentTime();
-
+    if (!data || !data.length) {
+      return apiResponse.ErrorResponse(res, "Something went wrong");
+    }
     // We are not use roles in FRS API so commented
 
     // const roUsers = data.map((e) => e.user_id).join(", ");
@@ -502,7 +508,6 @@ exports.updateStudyAssign = async (req, res) => {
         console.log(err);
       }
     });
-
     return apiResponse.successResponse(res, "update successfully");
   } catch (err) {
     Logger.error("catch :updateStudyAssign");
@@ -515,6 +520,11 @@ exports.deleteStudyAssign = async (req, res) => {
   try {
     const { protocol, loginId, users } = req.body;
     const curDate = helper.getCurrentTime();
+
+    if (!users || !users.length) {
+      return apiResponse.ErrorResponse(res, "Something went wrong");
+    }
+
     const userDeleteQuery = `UPDATE ${schemaName}.study_user SET act_flg =0,updt_tm=$3 WHERE prot_id =$1 and usr_id = $2`;
     const roleDeleteQuery = `UPDATE ${schemaName}.study_user_role SET act_flg =0,updated_by=$3,updated_on=$4 WHERE prot_id =$1 and usr_id =$2`;
     Logger.info({ message: "deleteStudyAssign" });
