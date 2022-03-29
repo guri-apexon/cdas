@@ -223,7 +223,7 @@ const ExistingUsers = () => {
       data: [
         {
           user_id: editedRow.user_id,
-          role_id: editedRow.roles.map((e) => e.value),
+          role_id: editedRow.roles.map((e) => e.value).flat(),
         },
       ],
     });
