@@ -92,7 +92,12 @@ const ImportWithUsers = () => {
         }
         return row;
       });
-      if (!alreadyExist && key === "user" && value) {
+      if (
+        !alreadyExist &&
+        key === "user" &&
+        value &&
+        index === tableUsers.length
+      ) {
         return [...newRows, getUserObj()];
       }
       return newRows;
