@@ -155,6 +155,8 @@ exports.onboardStudy = async function (req, res) {
               return apiResponse.ErrorResponse(res, err.detail || "Something went wrong");
             });
           }
+        }else{
+          return res.json({...response?.data, status: "ERROR"});
         }
       })
       .catch((err) => {

@@ -92,9 +92,12 @@ const ImportWithUsers = () => {
         }
         return row;
       });
-      //  should add empty row only when last row user added
-      const shouldAddNewRow = index === rows.length ? true : false;
-      if (!alreadyExist && key === "user" && value && shouldAddNewRow) {
+      if (
+        !alreadyExist &&
+        key === "user" &&
+        value &&
+        index === tableUsers.length
+      ) {
         return [...newRows, getUserObj()];
       }
       return newRows;
