@@ -18,12 +18,16 @@ import Switch from "apollo-react/components/Switch";
 import Typography from "apollo-react/components/Typography";
 import Progress from "../../../../components/Progress";
 import { AppContext } from "../../../../components/Providers/AppProvider";
-import { getPolicyList } from "../../../../store/actions/PolicyActions";
+import {
+  getPolicyList,
+  updateStatus,
+} from "../../../../store/actions/PolicyActions";
 
 import {
   TextFieldFilter,
   createStringArraySearchFilter,
   createStringArrayIncludedFilter,
+  getUserInfo,
 } from "../../../../utils/index";
 
 import "./PolicyList.scss";
@@ -37,6 +41,7 @@ const PolicyList = () => {
   const [createPermission, setCreatePermission] = useState(false);
   const [readPermission, setReadPermission] = useState(false);
   const [updatePermission, setUpdatePermission] = useState(false);
+  const userInfo = getUserInfo();
   const filterMethod = (pPermissions) => {
     const filterpolicyPermissions = pPermissions.filter(
       (item) => item.featureName === "Policy management "
@@ -118,17 +123,29 @@ const PolicyList = () => {
     }
   };
 
-  const handleStatusUpdate = (e, id) => {
+  const handleStatusUpdate = async (e, id, status) => {
     e.preventDefault();
-    const selectedData = tableRows.filter((d) => d.policyId === id);
-    const unSelectedData = tableRows.filter((d) => d.policyId !== id);
-    if (selectedData[0].policyStatus === "Active") {
-      selectedData[0].policyStatus = "Inactive";
-    } else {
-      selectedData[0].policyStatus = "Active";
+    try {
+      const updatePolicyStatus = status === "Active" ? "Inactive" : "Active";
+      const payload = {
+        policyId: id,
+        policyStatus: updatePolicyStatus,
+        userId: userInfo.user_id,
+      };
+      await dispatch(updateStatus(payload));
+    } catch (error) {
+      console.log("error", error);
     }
 
-    setTableRows([...unSelectedData, ...selectedData]);
+    // const selectedData = tableRows.filter((d) => d.policyId === id);
+    // const unSelectedData = tableRows.filter((d) => d.policyId !== id);
+    // if (selectedData[0].policyStatus === "Active") {
+    //   selectedData[0].policyStatus = "Inactive";
+    // } else {
+    //   selectedData[0].policyStatus = "Active";
+    // }
+
+    // setTableRows([...unSelectedData, ...selectedData]);
   };
 
   const StatusCell = ({ row, column: { accessor } }) => {
@@ -142,7 +159,7 @@ const PolicyList = () => {
         <Switch
           checked={data === "Active" ? true : false}
           className="table-checkbox"
-          onChange={(e) => handleStatusUpdate(e, id)}
+          onChange={(e) => handleStatusUpdate(e, id, data)}
           size="small"
           disabled={!updatePermission}
         />

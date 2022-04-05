@@ -92,7 +92,9 @@ const ImportWithUsers = () => {
         }
         return row;
       });
-      if (!alreadyExist && key === "user" && value) {
+      //  should add empty row only when last row user added
+      const shouldAddNewRow = index === rows.length ? true : false;
+      if (!alreadyExist && key === "user" && value && shouldAddNewRow) {
         return [...newRows, getUserObj()];
       }
       return newRows;
@@ -425,6 +427,7 @@ const ImportWithUsers = () => {
         <Modal
           open={confirmObj ? true : false}
           onClose={() => setConfirmObj(null)}
+          disableBackdropClick="true"
           className="save-confirm"
           variant="warning"
           title={confirmObj.title}

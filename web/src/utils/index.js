@@ -63,7 +63,8 @@ export function deleteAllCookies() {
 
 export function getUserInfo() {
   return {
-    fullName: `${getCookie("user.first_name")} ${getCookie("user.last_name")}`,
+    fullName: decodeURIComponent(`${getCookie("user.first_name")} 
+                                  ${getCookie("user.last_name")}`),
     firstName: getCookie("user.first_name"),
     lastName: getCookie("user.last_name"),
     userEmail: decodeURIComponent(getCookie("user.email")),

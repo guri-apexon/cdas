@@ -262,6 +262,7 @@ const CreateRole = () => {
           <Modal
             open={confirmObj ? true : false}
             onClose={() => setConfirmObj(null)}
+            disableBackdropClick="true"
             className="save-confirm"
             variant="warning"
             title="Save before exiting?"
