@@ -123,7 +123,7 @@ const NavigationPanel = ({
         </Box>
         <Box display="flex" m={1} mt={2}>
           <Typography
-            onClick={() => history.push("launchpad")}
+            onClick={() => history.push("/launchpad")}
             className="link flex flex-center"
             variant="body2"
             gutterBottom
