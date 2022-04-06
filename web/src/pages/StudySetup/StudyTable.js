@@ -267,8 +267,12 @@ export default function StudyTable({
     // console.log("data for export", exportData, headers, fileName);
     const wb = XLSX.utils.book_new();
     let ws = XLSX.worksheet;
-    const from = pageNo * rowsPerPageRecord;
-    const to = from + rowsPerPageRecord;
+    let from = pageNo * rowsPerPageRecord;
+    let to = from + rowsPerPageRecord;
+    if (rowsPerPageRecord === "All") {
+      from = 0;
+      to = exportData.length;
+    }
     const newData = exportData.slice(from, to);
     newData.unshift(headers);
     console.log("data", from, rowsPerPageRecord, newData);
