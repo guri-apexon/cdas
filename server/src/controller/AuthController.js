@@ -66,7 +66,7 @@ exports.authHandler = async (req, res) => {
     const get_usr = await userController.getUser(resp.data.userid);
     if (!get_usr || get_usr <= 0) {
       const user_detail = {
-        usr_id: resp.data.userid,
+        usr_id: resp.data.userid?.toLowerCase(),
         usr_fst_nm: resp.data.given_name,
         usr_lst_nm: resp.data.family_name,
         usr_mail_id: resp.data.email,
@@ -98,7 +98,7 @@ exports.authHandler = async (req, res) => {
     const cookieDomainObj = {domain: domainName, maxAge: 24 * 60 * 60 * 1000, secure: domainUrlObj?.protocol==="https:" };
 
     res.cookie("user.token", response.id_token, cookieDomainObj);
-    res.cookie("user.id", resp.data.userid, cookieDomainObj);
+    res.cookie("user.id", resp.data.userid?.toLowerCase(), cookieDomainObj);
     res.cookie("user.first_name", resp.data.given_name, cookieDomainObj);
     res.cookie("user.last_name", resp.data.family_name, cookieDomainObj);
     res.cookie("user.email", resp.data.email, cookieDomainObj);
