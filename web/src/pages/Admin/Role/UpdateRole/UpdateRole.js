@@ -70,7 +70,7 @@ const UpdateRole = () => {
     }
     setRoleName(roleDetails.role_nm);
     setRoleDesc(roleDetails.role_desc);
-    setActive(roleDetails.role_stat === "1");
+    setActive(roleDetails.role_stat === 1);
     const data = await getRolePolicies(params.id);
     setPageloaded(true);
     setProducts(data.uniqueProducts || []);
@@ -293,7 +293,7 @@ const UpdateRole = () => {
       cancelLabel: "Redirect",
       cancelAction: () => {
         setSelectedPolicy(null);
-        history.push(`policy-management/${selectedPolicy.policyId}`);
+        history.push(`/policy-management/${selectedPolicy.policyId}`);
       },
       submitLabel: "Ok, leave it",
     };

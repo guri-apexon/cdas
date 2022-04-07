@@ -23,7 +23,7 @@ import PermissionTable from "./PermissionTable";
 import { getUserInfo, inputAlphaNumeric } from "../../../../utils";
 
 const CreatePolicy = () => {
-  const [active, setActive] = useState(true);
+  const [active, setActive] = useState(false);
   const [loading, setLoading] = useState(false);
   const [currentTab, setCurrentTab] = useState(0);
   const [policyName, setPolicyName] = useState("");
@@ -202,6 +202,7 @@ const CreatePolicy = () => {
                 size="small"
                 label="Policy Name"
                 placeholder="Name your policy"
+                maxLength={255}
                 onChange={handleChange}
               />
               <TextField
