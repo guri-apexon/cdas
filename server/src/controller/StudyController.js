@@ -137,15 +137,16 @@ exports.onboardStudy = async function (req, res) {
             const currentTime = helper.getCurrentTime();
             users.forEach((user) => {
               if (user.user?.userId && insertedStudy.prot_id) {
-                insertQuery += `INSERT into ${schemaName}.study_user (prot_id, usr_id, act_flg, insrt_tm, updt_tm) VALUES('${insertedStudy.prot_id}', '${user.user.userId}', 1, '${currentTime}', '${currentTime}');`;
+                const studyUserId = user.user.userId.toLowerCase();
+                insertQuery += `INSERT into ${schemaName}.study_user (prot_id, usr_id, act_flg, insrt_tm, updt_tm) VALUES('${insertedStudy.prot_id}', '${studyUserId}', 1, '${currentTime}', '${currentTime}');`;
                 if (user.roles && Array.isArray(user.roles)) {
                   user.roles.forEach((role) => {
-                    insertQuery += `INSERT into ${schemaName}.study_user_role (role_id, prot_id, usr_id, act_flg, created_by, created_on, updated_by, updated_on) VALUES('${role.value}', '${insertedStudy.prot_id}', '${user.user.userId}', 1, '${userId}', '${currentTime}', '${userId}', '${currentTime}');`;
+                    insertQuery += `INSERT into ${schemaName}.study_user_role (role_id, prot_id, usr_id, act_flg, created_by, created_on, updated_by, updated_on) VALUES('${role.value}', '${insertedStudy.prot_id}', '${studyUserId}', 1, '${userId}', '${currentTime}', '${userId}', '${currentTime}');`;
                   });
                 }
               }
             });
-            DB.executeQuery(insertQuery).then(res=>{
+            DB.executeQuery(insertQuery).then(resp=>{
               return apiResponse.successResponseWithData(
                 res,
                 "Operation success",
@@ -398,9 +399,10 @@ exports.AddStudyAssign = async (req, res) => {
     if (data && data.length) {
       data.forEach(async (element) => {
         try {
+          const studyUserId = element.user_id?.toLowerCase() || null;
           await DB.executeQuery(insertUserQuery, [
             protocol,
-            element.user_id,
+            studyUserId,
             1,
             curDate,
           ]);
@@ -410,7 +412,7 @@ exports.AddStudyAssign = async (req, res) => {
               await DB.executeQuery(insertRoleQuery, [
                 roleId,
                 protocol,
-                element.user_id,
+                studyUserId,
                 1,
                 loginId,
                 curDate,
@@ -480,9 +482,10 @@ exports.updateStudyAssign = async (req, res) => {
 
     data.forEach(async (element) => {
       try {
+        const studyUserId = element.user_id?.toLowerCase() || null;
         await DB.executeQuery(roleUpdateQuery, [
           protocol,
-          element.user_id,
+          studyUserId,
           element.role_id,
           loginId,
           curDate,
@@ -492,7 +495,7 @@ exports.updateStudyAssign = async (req, res) => {
           try {
             const roleGet = await DB.executeQuery(roleGetQuery, [
               protocol,
-              element.user_id,
+              studyUserId,
               rollID,
             ]);
 
@@ -500,7 +503,7 @@ exports.updateStudyAssign = async (req, res) => {
               await DB.executeQuery(insertRoleQuery, [
                 rollID,
                 protocol,
-                element.user_id,
+                studyUserId,
                 1,
                 loginId,
                 curDate,
@@ -559,11 +562,12 @@ exports.deleteStudyAssign = async (req, res) => {
 
     users.forEach(async (id) => {
       try {
-        await DB.executeQuery(userDeleteQuery, [protocol, id, curDate]);
+        const studyUserId = id.toLowerCase();
+        await DB.executeQuery(userDeleteQuery, [protocol, studyUserId, curDate]);
 
         await DB.executeQuery(roleDeleteQuery, [
           protocol,
-          id,
+          studyUserId,
           loginId,
           curDate,
         ]);
