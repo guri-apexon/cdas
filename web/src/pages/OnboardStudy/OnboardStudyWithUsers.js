@@ -133,6 +133,7 @@ const ImportWithUsers = () => {
           fullWidth
           multiple
           forcePopupIcon
+          showCheckboxes
           chipColor="white"
           source={roleLists}
           value={row[key]}

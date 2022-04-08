@@ -181,6 +181,7 @@ const ExistingUsers = () => {
         fullWidth
         multiple
         forcePopupIcon
+        showCheckboxes
         chipColor="white"
         style={{ marginTop: 8 }}
         source={roleLists}
