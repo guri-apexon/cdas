@@ -247,7 +247,8 @@ exports.getStudyList = async (req, res) => {
     const query3 = `SELECT DISTINCT phase FROM ${schemaName}.study`;
     const query4 = `SELECT DISTINCT prot_stat as protocolstatus FROM ${schemaName}.study`;
     const query5 = `SELECT DISTINCT ob_stat as onboardingprogress FROM ${schemaName}.study`;
-
+    const query6 = `SELECT DISTINCT thptc_area as therapeuticarea FROM ${schemaName}.study`;
+    
     Logger.info({ message: "getStudyList" });
 
     const $q1 = await DB.executeQuery(query);
@@ -255,7 +256,7 @@ exports.getStudyList = async (req, res) => {
     const $q3 = await DB.executeQuery(query3);
     const $q4 = await DB.executeQuery(query4);
     const $q5 = await DB.executeQuery(query5);
-
+    const $q6 = await DB.executeQuery(query6);
     const formatDateValues = await $q1.rows.map((e) => {
       let acc = $q2.rows.filter((d) => d.prot_id === e.prot_id);
       let newObj = acc[0] ? acc[0] : { count: 0 };
@@ -284,12 +285,18 @@ exports.getStudyList = async (req, res) => {
       .map((e) => Object.values(e))
       .flat()
       .filter((e) => e !== null);
+      let uniqueThbtcArea = $q6.rows
+      .map((e) => Object.values(e))
+      .flat()
+      .filter((e) => e !== null); 
+      
 
     return apiResponse.successResponseWithData(res, "Operation success", {
       studyData: formatDateValues,
       uniquePhase: uniquePhase,
       uniqueProtocolStatus: uniqueProtocolStatus,
       uniqueObs: uniqueObs,
+      uniqueThbtcArea
     });
   } catch (err) {
     //throw error in json response with status 500.
