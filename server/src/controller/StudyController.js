@@ -313,7 +313,6 @@ exports.getSDAUsers = () => {
         `${SDA_BASE_URL}/sda-rest-api/api/external/entitlement/V1/ApplicationUsers/getUsersForApplication?appKey=${process.env.SDA_APP_KEY}`
       )
       .then((res) => {
-        console.log("res", res);
         return apiResponse.successResponseWithData(
           res,
           "Users retrieved successfully",
