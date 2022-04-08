@@ -42,7 +42,7 @@ const ConfirmModal = React.memo(({ open, cancel, closeModal, loading }) => {
   );
 });
 const CreatePolicy = () => {
-  const [active, setActive] = useState(true);
+  const [active, setActive] = useState(false);
   const [loading, setLoading] = useState(false);
   const [confirm, setConfirm] = useState(false);
   const [currentTab, setCurrentTab] = useState(0);
@@ -232,6 +232,7 @@ const CreatePolicy = () => {
                 size="small"
                 label="Policy Name"
                 placeholder="Name your policy"
+                maxLength={255}
                 onChange={handleChange}
               />
               <TextField
