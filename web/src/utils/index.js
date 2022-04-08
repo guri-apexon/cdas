@@ -42,7 +42,7 @@ export function getPathnameAndSearch(path) {
 
 export function getLastLogin() {
   const currentLogin = getCookie("user.last_login_ts");
-  if (currentLogin === "first_time") return null;
+  if (currentLogin === "first_time" || !currentLogin) return null;
   const localDate = moment.unix(currentLogin).local();
   return localDate.format("DD-MMM-YYYY hh:mm A");
 }

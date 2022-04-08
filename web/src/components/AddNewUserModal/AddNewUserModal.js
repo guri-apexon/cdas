@@ -83,7 +83,7 @@ const AddNewUserModal = ({
           : false;
       }
       disableRole = false;
-      addNewRow();
+      if (index === tableUsers.length) addNewRow();
     }
     setTableUsers((rows) =>
       rows.map((row) => {
