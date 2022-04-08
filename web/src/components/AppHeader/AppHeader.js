@@ -207,7 +207,6 @@ const AppHeader = ({ history, setLoggedIn }) => {
   } else {
     filteredMenuItems = [...filterMenuItem];
   }
-
   const profileMenuProps = {
     name: userInfo.fullName,
     title: userInfo.userEmail,
