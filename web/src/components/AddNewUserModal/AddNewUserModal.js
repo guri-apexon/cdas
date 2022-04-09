@@ -1,7 +1,7 @@
 /* eslint-disable consistent-return */
 import Modal from "apollo-react/components/Modal";
 import { useState, useEffect, useContext, useMemo } from "react";
-import { useHistory } from "react-router-dom";
+import { useHistory, withRouter } from "react-router-dom";
 import "./AddNewUserModal.scss";
 import Table from "apollo-react/components/Table";
 import Box from "apollo-react/components/Box";
@@ -250,4 +250,4 @@ const AddNewUserModal = ({
   );
 };
 
-export default AddNewUserModal;
+export default withRouter(AddNewUserModal);

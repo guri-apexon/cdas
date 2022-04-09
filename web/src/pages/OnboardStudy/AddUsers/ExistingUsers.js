@@ -351,7 +351,7 @@ const ExistingUsers = () => {
               onClick={backToSearch}
             >
               <ChevronLeft style={{ width: 12, marginRight: 5 }} width={10} />
-              Back to Study Setup
+              Back to Study List
             </Button>
           </Link>
           <Grid item xs={12}>
