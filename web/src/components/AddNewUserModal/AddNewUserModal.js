@@ -1,7 +1,7 @@
 /* eslint-disable consistent-return */
 import Modal from "apollo-react/components/Modal";
 import { useState, useEffect, useContext, useMemo } from "react";
-import { useHistory } from "react-router-dom";
+import { useHistory, withRouter } from "react-router-dom";
 import "./AddNewUserModal.scss";
 import Table from "apollo-react/components/Table";
 import Box from "apollo-react/components/Box";
@@ -83,7 +83,7 @@ const AddNewUserModal = ({
           : false;
       }
       disableRole = false;
-      addNewRow();
+      if (index === tableUsers.length) addNewRow();
     }
     setTableUsers((rows) =>
       rows.map((row) => {
@@ -186,6 +186,21 @@ const AddNewUserModal = ({
   );
 
   const addUsers = async () => {
+    const usersRows = [...tableUsers].slice(0, -1);
+    if (!usersRows.length) {
+      toast.showErrorMessage("Add some users to proceed");
+
+      return false;
+    }
+    const emptyRoles = usersRows.filter((x) => x.roles.length === 0);
+    if (emptyRoles.length) {
+      toast.showErrorMessage(
+        `Please fill roles for ${
+          emptyRoles[0] && emptyRoles[0].user && emptyRoles[0].user.email
+        }`
+      );
+      return false;
+    }
     const data = tableUsers
       .filter((e) => e.user != null)
       .map((d) => {
@@ -250,4 +265,4 @@ const AddNewUserModal = ({
   );
 };
 
-export default AddNewUserModal;
+export default withRouter(AddNewUserModal);

@@ -249,7 +249,7 @@ const UpdatePolicy = () => {
             size="small"
             disabled={!updatePolicyPermission}
           />
-          {updatePolicyPermission && active && (
+          {updatePolicyPermission && (
             <ButtonGroup
               className="action-buttons"
               alignItems="right"
