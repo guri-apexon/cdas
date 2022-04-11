@@ -291,7 +291,42 @@ exports.updateRole = async function (req, res) {
           }
         });
         DB.executeQuery(queryStr)
-          .then((response) => {
+          .then(async(response) => {
+
+            const { rows } = await DB.executeQuery(
+              `SELECT * FROM ${dbSchema}.role_policy where role_id = $1`,
+              [roleId]
+            );
+          
+            const updatedPolicies=policies&&policies.map(policy=>{
+              const Active = policy.value ? "1" : "0";
+              if(policy.existed){
+              return  DB.executeQuery(logQuery, [
+                  "role_policy",
+                  policy.existed,
+                  "act_flg",
+                  Active==="1"?"0":"1",
+                  Active,
+                  "User Requested",
+                  userId,
+                  currentTime,
+                ]);
+              }
+              else {
+                const findrolePolicyId=rows&&rows.find(el=>el.plcy_id===policy.id)
+               return  DB.executeQuery(logQuery, [
+                  "role_policy",
+                  findrolePolicyId.role_plcy_id,
+                  "act_flg",
+                  Active==="1"?"0":"1",
+                  Active,
+                  "User Requested",
+                  userId,
+                  currentTime,
+                ]);
+              }
+            })
+          const addingToAuditTable=await Promise.all(updatedPolicies)
             return apiResponse.successResponseWithData(
               res,
               messages.UPDATE_ROLE_SUCCESS,

@@ -35,7 +35,7 @@ const AddNewUserModal = ({
   const handleClose = () => {
     setOpenModal(false);
     onClose();
-    history.push("/study-setup");
+    // history.push("/study-setup");
   };
 
   const DeleteUserCell = ({ row }) => {
@@ -224,7 +224,7 @@ const AddNewUserModal = ({
     }
     if (response.status === "OK") {
       toast.showSuccessMessage(response.message, 0);
-      history.push("/study-setup");
+      // history.push("/study-setup");
     }
     saveData();
   };
