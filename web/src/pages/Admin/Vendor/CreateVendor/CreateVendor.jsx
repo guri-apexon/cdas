@@ -109,9 +109,11 @@ const CreateVendor = () => {
       setActive(true);
     } else if (isEditPage) {
       setVId(selectedVendor.vId);
-      setVESN(selectedVendor.vESN);
+      setVESN(selectedVendor.vESN ? selectedVendor.vESN : "");
       setVName(selectedVendor.vName);
-      setVDescription(selectedVendor.vDescription);
+      setVDescription(
+        selectedVendor.vDescription ? selectedVendor.vDescription : ""
+      );
       setActive(selectedVendor.vStatus === 1 ? true : false);
     }
     // console.log("inside update");
