@@ -112,6 +112,17 @@ const VendorList = () => {
   const LinkCell = ({ row, column: { accessor } }) => {
     const rowValue = row[accessor];
     const id = row.vId;
+    if (rowValue && rowValue.length > 30) {
+      return (
+        <Link
+          onMouseOver={() => handleMouseOver(row)}
+          onMouseOut={handleMouseOut}
+          onClick={(e) => goToVendor(e, id)}
+        >
+          {`${rowValue.slice(0, 30)}  [...]`}
+        </Link>
+      );
+    }
     return <Link onClick={(e) => goToVendor(e, id)}>{rowValue}</Link>;
   };
 
@@ -277,7 +288,7 @@ const VendorList = () => {
                 gutterBottom
                 style={{ fontWeight: 600 }}
               >
-                Description
+                {curRow.vName}
               </Typography>
               <Typography variant="body2">{curRow.vDescription}</Typography>
             </div>

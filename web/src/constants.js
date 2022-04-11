@@ -20,6 +20,9 @@ export const SELECTED_STUDY_DATA = "SELECTED_STUDY_DATA";
 export const POLICY_LIST = "POLICY_LIST";
 export const POLICY_LIST_SUCCESS = "POLICY_LIST_SUCCESS";
 export const POLICY_LIST_FAILURE = "POLICY_LIST_FAILURE";
+export const UPDATE_POLICY_STATUS_SUCCESS = "UPDATE_POLICY_STATUS_SUCCESS";
+export const UPDATE_POLICY_STATUS = "UPDATE_POLICY_STATUS";
+export const UPDATE_POLICY_STATUS_FAILURE = "UPDATE_POLICY_STATUS_FAILURE";
 
 export const VENDOR_LIST = "VENDOR_LIST";
 export const VENDOR_LIST_SUCCESS = "VENDOR_LIST_SUCCESS";
@@ -51,6 +54,7 @@ export const STUDYBOARD_DATA_FETCH = "v1/api/study/list";
 export const STUDYSEARCH = "v1/api/study/search-study";
 export const NOT_ONBOARDED_FETCH = "v1/api/study/notonboarded-studies-stat";
 export const POLICY_LIST_FETCH = "v1/api/policy/list";
+export const UPDATE_POLICY = "v1/api/policy/update/status";
 export const ROLES_LIST = "study/select-roles";
 export const VENDOR_BASE = "v1/api/vendor";
 export const ASSIGN_BASE = "v1/api/study/assign";

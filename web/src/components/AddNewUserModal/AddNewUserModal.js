@@ -109,6 +109,7 @@ const AddNewUserModal = ({
         fullWidth
         multiple
         forcePopupIcon
+        showCheckboxes
         source={roleLists}
         chipColor="white"
         className={row.disableRole ? "hide" : "show"}
@@ -217,6 +218,7 @@ const AddNewUserModal = ({
     <>
       <Modal
         open={openModal}
+        disableBackdropClick="true"
         onClose={handleClose}
         title="Add New Users"
         buttonProps={[

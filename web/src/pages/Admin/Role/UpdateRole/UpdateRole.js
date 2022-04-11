@@ -16,6 +16,7 @@ import Table, {
   createSelectFilterComponent,
   createStringSearchFilter,
   compareStrings,
+  compareNumbers,
 } from "apollo-react/components/Table";
 import { useHistory, useParams } from "react-router";
 import { MessageContext } from "../../../../components/Providers/MessageProvider";
@@ -120,7 +121,8 @@ const UpdateRole = () => {
   const tableColumns = [
     {
       header: "Included",
-      accessor: "",
+      sortFunction: compareNumbers,
+      accessor: "selected",
       customCell: SelectionCell,
       width: "10%",
     },

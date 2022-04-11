@@ -25,17 +25,23 @@ import { MessageContext } from "../../../../components/Providers/MessageProvider
 import PermissionTable from "./PermissionTable";
 import { getUserInfo, inputAlphaNumeric } from "../../../../utils";
 
-const ConfirmModal = React.memo(({ open, cancel, submitPolicy, loading }) => {
+const ConfirmModal = React.memo(({ open, cancel, closeModal, loading }) => {
   return (
     <Modal
       open={open}
       className="save-confirm"
+      disableBackdropClick="true"
+      onClose={closeModal}
       variant="warning"
-      title="Save before exiting?"
-      message="You have unsaved changes. Do you want to save before exiting?"
+      title="Lose your work?"
+      message="your unsaved changes will be lost. Are you sure you want to leave this page?"
       buttonProps={[
-        { label: "Don't save", onClick: cancel, disabled: loading },
-        { label: "Save", onClick: submitPolicy, disabled: loading },
+        { label: "Leave without saving", onClick: cancel, disabled: loading },
+        {
+          label: "Stay on this page",
+          onClick: closeModal,
+          disabled: loading,
+        },
       ]}
       id="neutral"
     />
@@ -223,13 +229,14 @@ const UpdatePolicy = () => {
   useEffect(() => {
     getProducts();
   }, []);
+  const closeModal = () => setConfirm(false);
   return (
     <div className="update-policy-wrapper">
       <ConfirmModal
         open={confirm}
         cancel={cancelEdit}
         loading={loading}
-        submitPolicy={submitPolicy}
+        closeModal={closeModal}
       />
       <Box className="top-content">
         <BreadcrumbsUI className="breadcrump" items={breadcrumpItems} />

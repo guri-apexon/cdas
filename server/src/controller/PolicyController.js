@@ -313,3 +313,27 @@ exports.getPolicyList = async (req, res) => {
     return apiResponse.ErrorResponse(res, err);
   }
 };
+
+
+exports.updateStatus = async (req, res) => {
+  try {
+    const {userId, policyStatus, policyId } = req.body;
+    const currentTime = moment().format("YYYY-MM-DD HH:mm:ss");
+    const policyValues = [
+      policyStatus,
+      userId,
+      currentTime,
+      policyId,
+    ];
+  let response= await DB.executeQuery(
+      `UPDATE ${constants.DB_SCHEMA_NAME}.policy set plcy_stat=$1, updated_by=$2, updated_on=$3 WHERE plcy_id=$4 RETURNING *`,
+      policyValues
+    )
+  
+    return apiResponse.successResponseWithData(res, "Update success",{updatedPolicy:response.rows&&response.rows[0]});
+  } catch (error) {
+    Logger.error("catch :update status policy");
+    Logger.error(error.message);
+    return apiResponse.ErrorResponse(res, error.message);
+  }
+};
