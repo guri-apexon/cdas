@@ -4,6 +4,7 @@ import { useState, useEffect, useContext, useMemo } from "react";
 import { useHistory, withRouter } from "react-router-dom";
 import "./AddNewUserModal.scss";
 import Table from "apollo-react/components/Table";
+import Banner from "apollo-react/components/Banner";
 import Box from "apollo-react/components/Box";
 import IconButton from "apollo-react/components/IconButton";
 import SearchIcon from "apollo-react-icons/Search";
@@ -28,6 +29,7 @@ const AddNewUserModal = ({
   const [openModal, setOpenModal] = useState(open);
   const [tableUsers, setTableUsers] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [bannerError, setBannerError] = useState("");
   const toast = useContext(MessageContext);
 
   const userInfo = getUserInfo();
@@ -143,18 +145,18 @@ const AddNewUserModal = ({
       header: "User",
       accessor: "user",
       customCell: EditableUser,
-      width: "430",
+      width: "48%",
     },
     {
       header: "Role",
       accessor: "roles",
       customCell: EditableRoles,
-      width: "430",
+      width: "48%",
     },
     {
       header: "",
       accessor: "delete",
-      width: "40px",
+      width: "4%",
       customCell: DeleteUserCell,
     },
   ];
@@ -186,6 +188,21 @@ const AddNewUserModal = ({
   );
 
   const addUsers = async () => {
+    const usersRows = [...tableUsers].slice(0, -1);
+    if (!usersRows.length) {
+      setBannerError("Add some users to proceed");
+      return false;
+    }
+    const emptyRoles = usersRows.filter((x) => x.roles.length === 0);
+    if (emptyRoles.length) {
+      setBannerError(
+        `Please fill roles for ${
+          emptyRoles[0] && emptyRoles[0].user && emptyRoles[0].user.email
+        }`
+      );
+      return false;
+    }
+    setBannerError("");
     const data = tableUsers
       .filter((e) => e.user != null)
       .map((d) => {
@@ -242,7 +259,15 @@ const AddNewUserModal = ({
       >
         <div className="modal-content">
           <>
-            <div className="user-table">{getTable}</div>
+            <div className="user-table">
+              <Banner
+                variant="error"
+                open={bannerError ? true : false}
+                onClose={() => setBannerError("")}
+                message={bannerError}
+              />
+              {getTable}
+            </div>
           </>
         </div>
       </Modal>
