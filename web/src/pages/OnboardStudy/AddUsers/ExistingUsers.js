@@ -288,15 +288,6 @@ const ExistingUsers = () => {
   const CustomHeader = ({ toggleFilters }) => {
     return (
       <>
-        <AddNewUserModal
-          open={addStudyOpen}
-          onClose={() => setAddStudyOpen(false)}
-          usersEmail={tableUsers.map((e) => e.email)}
-          protocol={protocol}
-          userList={userList}
-          roleLists={roleLists}
-          saveData={saveFromModal}
-        />
         <div>
           <Button
             size="small"
@@ -335,6 +326,15 @@ const ExistingUsers = () => {
           style={{ height: 64, zIndex: 998 }}
         />
       </div>
+      <AddNewUserModal
+        open={addStudyOpen}
+        onClose={() => setAddStudyOpen(false)}
+        usersEmail={tableUsers.map((e) => e.email)}
+        protocol={protocol}
+        userList={userList}
+        roleLists={roleLists}
+        saveData={saveFromModal}
+      />
       <div className="existing-study-wrapper">
         <div className="top-content">
           <Box className="onboard-header">
