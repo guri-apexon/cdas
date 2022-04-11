@@ -143,18 +143,18 @@ const AddNewUserModal = ({
       header: "User",
       accessor: "user",
       customCell: EditableUser,
-      width: "48%",
+      width: "430",
     },
     {
       header: "Role",
       accessor: "roles",
       customCell: EditableRoles,
-      width: "48%",
+      width: "430",
     },
     {
       header: "",
       accessor: "delete",
-      width: "4%",
+      width: "40px",
       customCell: DeleteUserCell,
     },
   ];
