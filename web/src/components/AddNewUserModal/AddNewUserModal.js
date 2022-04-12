@@ -1,7 +1,7 @@
 /* eslint-disable consistent-return */
 import Modal from "apollo-react/components/Modal";
 import { useState, useEffect, useContext, useMemo } from "react";
-import { useHistory } from "react-router-dom";
+import { useHistory, withRouter } from "react-router-dom";
 import "./AddNewUserModal.scss";
 import Table from "apollo-react/components/Table";
 import Box from "apollo-react/components/Box";
@@ -23,6 +23,7 @@ const AddNewUserModal = ({
   protocol,
   userList,
   roleLists,
+  saveData,
 }) => {
   const [openModal, setOpenModal] = useState(open);
   const [tableUsers, setTableUsers] = useState([]);
@@ -34,6 +35,7 @@ const AddNewUserModal = ({
   const handleClose = () => {
     setOpenModal(false);
     onClose();
+    history.push("/study-setup");
   };
 
   const DeleteUserCell = ({ row }) => {
@@ -81,7 +83,7 @@ const AddNewUserModal = ({
           : false;
       }
       disableRole = false;
-      addNewRow();
+      if (index === tableUsers.length) addNewRow();
     }
     setTableUsers((rows) =>
       rows.map((row) => {
@@ -107,6 +109,7 @@ const AddNewUserModal = ({
         fullWidth
         multiple
         forcePopupIcon
+        showCheckboxes
         source={roleLists}
         chipColor="white"
         className={row.disableRole ? "hide" : "show"}
@@ -115,25 +118,6 @@ const AddNewUserModal = ({
       />
     );
   };
-
-  // const EditableRoles = ({ row, column: { accessor: key } }) => {
-  //   return (
-  //     <Select
-  //       size="small"
-  //       fullWidth
-  //       multiple
-  //       forcePopupIcon
-  //       chipColor="white"
-  //       className={row.disableRole ? "hide" : "show"}
-  //       value={row[key]}
-  //       onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
-  //     >
-  //       {roleLists?.map((e) => (
-  //         <MenuItem value={e.value}>{e.label}</MenuItem>
-  //       ))}
-  //     </Select>
-  //   );
-  // };
 
   const EditableUser = ({ row, column: { accessor: key } }) => {
     return (
@@ -202,6 +186,21 @@ const AddNewUserModal = ({
   );
 
   const addUsers = async () => {
+    const usersRows = [...tableUsers].slice(0, -1);
+    if (!usersRows.length) {
+      toast.showErrorMessage("Add some users to proceed");
+
+      return false;
+    }
+    const emptyRoles = usersRows.filter((x) => x.roles.length === 0);
+    if (emptyRoles.length) {
+      toast.showErrorMessage(
+        `Please fill roles for ${
+          emptyRoles[0] && emptyRoles[0].user && emptyRoles[0].user.email
+        }`
+      );
+      return false;
+    }
     const data = tableUsers
       .filter((e) => e.user != null)
       .map((d) => {
@@ -213,18 +212,28 @@ const AddNewUserModal = ({
         newObj.role_id = d.roles.map((e) => e.value).flat();
         return newObj;
       });
-    await addAssignUser({
+    const response = await addAssignUser({
       protocol,
       loginId: userInfo.user_id,
       data,
     });
-    setOpenModal(!openModal);
+    handleClose();
+    setLoading(false);
+    if (response.status === "BAD_REQUEST") {
+      toast.showErrorMessage(response.message, 0);
+    }
+    if (response.status === "OK") {
+      toast.showSuccessMessage(response.message, 0);
+      history.push("/study-setup");
+    }
+    saveData();
   };
 
   return (
     <>
       <Modal
         open={openModal}
+        disableBackdropClick="true"
         onClose={handleClose}
         title="Add New Users"
         buttonProps={[
@@ -232,9 +241,7 @@ const AddNewUserModal = ({
             label: "Cancel",
             size: "small",
             className: "cancel-btn",
-            onClick: () => {
-              setOpenModal(!openModal);
-            },
+            onClick: () => handleClose(),
           },
           {
             label: "Save",
@@ -250,13 +257,7 @@ const AddNewUserModal = ({
       >
         <div className="modal-content">
           <>
-            {loading ? (
-              <Box display="flex" className="loader-container">
-                <ApolloProgress />
-              </Box>
-            ) : (
-              <div className="user-table">{getTable}</div>
-            )}
+            <div className="user-table">{getTable}</div>
           </>
         </div>
       </Modal>
@@ -264,4 +265,4 @@ const AddNewUserModal = ({
   );
 };
 
-export default AddNewUserModal;
+export default withRouter(AddNewUserModal);

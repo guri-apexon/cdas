@@ -39,6 +39,7 @@ const ConfirmModal = React.memo(({ open, cancel, stayHere, loading }) => {
       open={open}
       onClose={stayHere}
       className="save-confirm"
+      disableBackdropClick="true"
       variant="warning"
       title="Lose your work?"
       message="Your unsaved changes will be lost. Are you sure you want to leave this page?"
@@ -108,9 +109,11 @@ const CreateVendor = () => {
       setActive(true);
     } else if (isEditPage) {
       setVId(selectedVendor.vId);
-      setVESN(selectedVendor.vESN);
+      setVESN(selectedVendor.vESN ? selectedVendor.vESN : "");
       setVName(selectedVendor.vName);
-      setVDescription(selectedVendor.vDescription);
+      setVDescription(
+        selectedVendor.vDescription ? selectedVendor.vDescription : ""
+      );
       setActive(selectedVendor.vStatus === 1 ? true : false);
     }
     // console.log("inside update");
@@ -232,9 +235,7 @@ const CreateVendor = () => {
       setDisableSave(false);
     }
   }, [contacts]);
-
   const vENSOptions = [...ensList];
-
   const handleSelection = (e) => {
     setVESN(e.target.value);
     updateChanges();
@@ -337,8 +338,8 @@ const CreateVendor = () => {
                 fullWidth
                 label="External System Name"
                 placeholder="Select system name"
+                value={vESN || ""}
                 canDeselect={false}
-                value={vESN}
                 onChange={(e) => handleSelection(e)}
               >
                 {vENSOptions.map((option) => (

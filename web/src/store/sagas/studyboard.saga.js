@@ -26,6 +26,7 @@ export function* fetchStudyboardData() {
       uniqurePhase: fetchSBData.data.data.uniquePhase,
       uniqueProtocolStatus: fetchSBData.data.data.uniqueProtocolStatus,
       uniqueObs: fetchSBData.data.data.uniqueObs,
+      uniqueThbtcArea: fetchSBData.data.data.uniqueThbtcArea,
     });
   } catch (e) {
     yield put({ type: STUDYBOARD_FETCH_FAILURE, message: e.message });

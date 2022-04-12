@@ -39,23 +39,6 @@ import {
 } from "../../utils/index";
 import { updateSelectedStudy } from "../../store/actions/StudyBoardAction";
 
-const columnsToAdd = [
-  {
-    header: "Therapeutic Area",
-    accessor: "therapeuticarea",
-    sortFunction: compareStrings,
-    filterFunction: createStringSearchFilter("therapeuticarea"),
-    filterComponent: TextFieldFilter,
-  },
-  {
-    header: "Project Code",
-    accessor: "projectcode",
-    sortFunction: compareStrings,
-    filterFunction: createStringSearchFilter("projectcode"),
-    filterComponent: TextFieldFilter,
-  },
-];
-
 const menuItems = [
   { text: "Study assignments" },
   { text: "Download study assignments" },
@@ -125,15 +108,14 @@ export default function StudyTable({
   const messageContext = useContext(MessageContext);
   const dispatch = useDispatch();
   const history = useHistory();
-
   const status = studyData.uniqueProtocolStatus;
+  const thbtcArea = studyData.uniqueThbtcArea;
   const obs = studyData.uniqueObs;
   const phases = studyData.uniquePhase;
   const handleExisting = (row) => {
     history.push("/ExistingStudyAssignment");
     dispatch(updateSelectedStudy(row));
   };
-
   const LinkCell = ({ row, column: { accessor } }) => {
     const rowValue = row[accessor];
     return (
@@ -167,7 +149,25 @@ export default function StudyTable({
       </Button>
     </div>
   );
-
+  const columnsToAdd = [
+    {
+      header: "Therapeutic Area",
+      accessor: "therapeuticarea",
+      sortFunction: compareStrings,
+      filterFunction: createStringArrayIncludedFilter("therapeuticarea"),
+      filterComponent: createSelectFilterComponent(thbtcArea, {
+        size: "small",
+        multiple: true,
+      }),
+    },
+    {
+      header: "Project Code",
+      accessor: "projectcode",
+      sortFunction: compareStrings,
+      filterFunction: createStringSearchFilter("projectcode"),
+      filterComponent: TextFieldFilter,
+    },
+  ];
   const columns = [
     {
       header: "Protocol Number",
@@ -188,14 +188,27 @@ export default function StudyTable({
       accessor: "phase",
       sortFunction: compareStrings,
       filterFunction: createStringArrayIncludedFilter("phase"),
-      filterComponent: createFilterList(phases),
+      filterComponent: createSelectFilterComponent(phases, {
+        size: "small",
+        multiple: true,
+      }),
+
+      // filterFunction: createStringArrayIncludedFilter("phase"),
+      // filterComponent: createFilterList(phases),
     },
     {
       header: "Protocol Status",
       accessor: "protocolstatus",
       sortFunction: compareStrings,
+      // filterFunction: createStringArrayIncludedFilter("protocolstatus"),
+      // filterComponent: createFilterList(status),
+      // filterFunction: createStringSearchFilter("protocolstatus"),
+      // filterComponent: TextFieldFilter,
       filterFunction: createStringArrayIncludedFilter("protocolstatus"),
-      filterComponent: createFilterList(status),
+      filterComponent: createSelectFilterComponent(status, {
+        size: "small",
+        multiple: true,
+      }),
     },
     {
       header: "Date Added",
@@ -218,8 +231,10 @@ export default function StudyTable({
       accessor: "onboardingprogress",
       customCell: SelectiveCell,
       sortFunction: compareStrings,
-      filterFunction: createStringArrayIncludedFilter("onboardingprogress"),
-      filterComponent: createFilterList(obs),
+      // filterFunction: createStringArrayIncludedFilter("onboardingprogress"),
+      // filterComponent: createFilterList(obs),
+      filterFunction: createStringSearchFilter("onboardingprogress"),
+      filterComponent: TextFieldFilter,
     },
     {
       header: "Assignment Count",
@@ -261,8 +276,12 @@ export default function StudyTable({
     // console.log("data for export", exportData, headers, fileName);
     const wb = XLSX.utils.book_new();
     let ws = XLSX.worksheet;
-    const from = pageNo * rowsPerPageRecord;
-    const to = from + rowsPerPageRecord;
+    let from = pageNo * rowsPerPageRecord;
+    let to = from + rowsPerPageRecord;
+    if (rowsPerPageRecord === "All") {
+      from = 0;
+      to = exportData.length;
+    }
     const newData = exportData.slice(from, to);
     newData.unshift(headers);
     console.log("data", from, rowsPerPageRecord, newData);

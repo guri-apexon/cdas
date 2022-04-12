@@ -32,7 +32,7 @@ import PolicySnapshot from "./PolicySnapshot";
 const CreateRole = () => {
   const dispatch = useDispatch();
   const history = useHistory();
-  const [active, setActive] = useState(true);
+  const [active, setActive] = useState(false);
   const [confirmObj, setConfirmObj] = useState(null);
   const [loading, setLoading] = useState(false);
   const [pageloaded, setPageloaded] = useState(false);
@@ -262,6 +262,7 @@ const CreateRole = () => {
           <Modal
             open={confirmObj ? true : false}
             onClose={() => setConfirmObj(null)}
+            disableBackdropClick="true"
             className="save-confirm"
             variant="warning"
             title="Save before exiting?"

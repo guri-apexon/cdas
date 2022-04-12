@@ -9,6 +9,7 @@ import { useHistory, Link, useLocation } from "react-router-dom";
 import FilterIcon from "apollo-react-icons/Filter";
 import Table, {
   createStringSearchFilter,
+  createSelectFilterComponent,
   compareStrings,
 } from "apollo-react/components/Table";
 import PlusIcon from "apollo-react-icons/Plus";
@@ -69,10 +70,10 @@ const ExistingUsers = () => {
   const toast = useContext(MessageContext);
   const [tableUsers, setTableUsers] = useState([]);
   const [editedRow, setEditedRow] = useState({});
-  const [tableData, setTableData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [roleLists, setroleLists] = useState([]);
   const [userList, setUserList] = useState([]);
+  const [uniqueRoles, setUniqueRoles] = useState([]);
   const [stateMenuItems, setStateMenuItems] = useState([]);
   const studyData = useSelector((state) => state.studyBoard);
   const [addStudyOpen, setAddStudyOpen] = useState(false);
@@ -80,18 +81,20 @@ const ExistingUsers = () => {
   const { prot_id: protocol } = selectedStudy;
 
   const getData = async (id) => {
+    setLoading(true);
     const data = await getAssignedUsers(id);
-    const forTable = data.data.map((e, i) => ({
+    const forTable = data.data.list.map((e, i) => ({
       alreadyExist: false,
       editMode: false,
       uniqueId: i + 1,
       user: `${e.usr_fst_nm} ${e.usr_lst_nm} (${e.usr_mail_id})`,
-      user_id: e.usr_id,
+      userId: e.usr_id,
       email: e.usr_mail_id,
       roles: e.roles.map((d) => ({ value: d.role_id, label: d.role_nm })),
+      roleList: e.roleList.join(", "),
     }));
-    // console.log("formatted", forTable);
     setTableUsers(forTable);
+    setUniqueRoles(data.data.uniqueRoles);
     setLoading(false);
   };
 
@@ -123,6 +126,10 @@ const ExistingUsers = () => {
   const getRoles = async () => {
     const result = await fetchRoles();
     setroleLists(result || []);
+  };
+
+  const saveFromModal = () => {
+    getData(protocol);
   };
 
   const getUserList = async () => {
@@ -165,17 +172,16 @@ const ExistingUsers = () => {
     );
   };
 
-  const EditableRoles = ({ row, column: { accessor: key } }) => {
-    const rowValue = row[key]
-      .map((e) => e.label)
-      .sort()
-      .join(", ");
+  const EditableRoles = ({ row }) => {
+    const key = "roles";
+    const rowValue = row[key].map((e) => e.label).join(", ");
     return row.editMode ? (
       <AutocompleteV2
         size="small"
         fullWidth
         multiple
         forcePopupIcon
+        showCheckboxes
         chipColor="white"
         style={{ marginTop: 8 }}
         source={roleLists}
@@ -199,11 +205,18 @@ const ExistingUsers = () => {
 
   const onRowDelete = async (uniqueId) => {
     const selected = await tableUsers.find((row) => row.uniqueId === uniqueId);
-    deleteAssignUser({
+    const response = await deleteAssignUser({
       protocol,
       loginId: userInfo.user_id,
-      users: [selected.user_id],
+      users: [selected.userId],
     });
+    setLoading(false);
+    if (response.status === "BAD_REQUEST") {
+      toast.showErrorMessage(response.message, 0);
+    }
+    if (response.status === "OK") {
+      toast.showSuccessMessage(response.message, 0);
+    }
     setTableUsers(tableUsers.filter((row) => row.uniqueId !== uniqueId));
   };
 
@@ -212,21 +225,28 @@ const ExistingUsers = () => {
   };
 
   const onRowSave = async () => {
-    setTableUsers(
-      tableUsers.map((row) =>
-        row.uniqueId === editedRow.uniqueId ? editedRow : row
-      )
+    const updateData = tableUsers.find(
+      (e) => e.uniqueId === editedRow.uniqueId
     );
-    updateAssignUser({
+
+    const response = await updateAssignUser({
       protocol,
       loginId: userInfo.user_id,
       data: [
         {
-          user_id: editedRow.user_id,
-          role_id: editedRow.roles.map((e) => e.value).flat(),
+          user_id: updateData.userId,
+          role_id: updateData.roles.map((e) => e.value).flat(),
         },
       ],
     });
+    if (response.status === "BAD_REQUEST") {
+      toast.showErrorMessage(response.message, 0);
+    }
+    if (response.status === "OK") {
+      toast.showSuccessMessage(response.message, 0);
+      history.push("/study-setup");
+    }
+    getData(protocol);
     setEditedRow({});
   };
 
@@ -249,10 +269,13 @@ const ExistingUsers = () => {
     },
     {
       header: "Role",
-      accessor: "roles",
+      accessor: "roleList",
       customCell: EditableRoles,
-      filterFunction: createStringArrayIncludedFilter("roles"),
-      filterComponent: TextFieldFilter,
+      filterFunction: createStringArrayIncludedFilter("roleList"),
+      filterComponent: createSelectFilterComponent(uniqueRoles, {
+        size: "small",
+        multiple: true,
+      }),
       width: "50%",
     },
     {
@@ -265,14 +288,6 @@ const ExistingUsers = () => {
   const CustomHeader = ({ toggleFilters }) => {
     return (
       <>
-        <AddNewUserModal
-          open={addStudyOpen}
-          onClose={() => setAddStudyOpen(false)}
-          usersEmail={tableUsers.map((e) => e.email)}
-          protocol={protocol}
-          userList={userList}
-          roleLists={roleLists}
-        />
         <div>
           <Button
             size="small"
@@ -298,11 +313,12 @@ const ExistingUsers = () => {
   };
 
   const backToSearch = () => {
-    // setSelectedStudy(null);
+    history.push("/study-setup");
   };
 
   return (
     <>
+      {console.log("user", tableUsers)}
       <div className="container">
         <ProjectHeader
           menuItems={stateMenuItems}
@@ -310,6 +326,15 @@ const ExistingUsers = () => {
           style={{ height: 64, zIndex: 998 }}
         />
       </div>
+      <AddNewUserModal
+        open={addStudyOpen}
+        onClose={() => setAddStudyOpen(false)}
+        usersEmail={tableUsers.map((e) => e.email)}
+        protocol={protocol}
+        userList={userList}
+        roleLists={roleLists}
+        saveData={saveFromModal}
+      />
       <div className="existing-study-wrapper">
         <div className="top-content">
           <Box className="onboard-header">
@@ -326,7 +351,7 @@ const ExistingUsers = () => {
               onClick={backToSearch}
             >
               <ChevronLeft style={{ width: 12, marginRight: 5 }} width={10} />
-              Back to Study Setup
+              Back to Study List
             </Button>
           </Link>
           <Grid item xs={12}>
