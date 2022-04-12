@@ -82,6 +82,7 @@ const ImportWithUsers = () => {
         ? true
         : false;
     }
+    const tableIndex = tableUsers.findIndex((el) => el.index === index);
     setTableUsers((rows) => {
       const newRows = rows.map((row) => {
         if (row.index === index) {
@@ -96,7 +97,7 @@ const ImportWithUsers = () => {
         !alreadyExist &&
         key === "user" &&
         value &&
-        index === tableUsers.length
+        tableIndex + 1 === tableUsers.length
       ) {
         return [...newRows, getUserObj()];
       }

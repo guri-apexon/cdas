@@ -6,7 +6,7 @@ const Highlighted = ({ text = "", highlight = "" }) => {
     `(${highlight.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1")})`,
     "gi"
   );
-  const parts = text.split(regex);
+  const parts = (text || "").split(regex);
   return (
     <span>
       {parts
