@@ -260,7 +260,6 @@ const ExistingUsers = () => {
     if (editedRoles && editedRoles.uniqueId) {
       setTableUsers((rows) =>
         rows.map((row) => {
-          console.log(row.uniqueId, editedRoles.uniqueId);
           if (row.uniqueId === editedRoles.uniqueId) {
             return { ...row, roles: editedRoles.roles };
           }
