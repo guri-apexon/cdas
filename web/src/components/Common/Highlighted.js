@@ -1,12 +1,12 @@
 const Highlighted = ({ text = "", highlight = "" }) => {
-  if (!highlight.trim()) {
+  if (!highlight.trim() || text === null || text === "") {
     return <span>{text}</span>;
   }
   const regex = new RegExp(
     `(${highlight.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1")})`,
     "gi"
   );
-  const parts = text == null ? [] : text.split(regex);
+  const parts = text.split(regex);
   return (
     <span>
       {parts
