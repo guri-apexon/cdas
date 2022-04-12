@@ -32,11 +32,6 @@ const AddNewUserModal = ({
 
   const userInfo = getUserInfo();
   const history = useHistory();
-  const handleClose = () => {
-    setOpenModal(false);
-    onClose();
-    // history.push("/study-setup");
-  };
 
   const DeleteUserCell = ({ row }) => {
     const { index, onDelete } = row;
@@ -51,6 +46,15 @@ const AddNewUserModal = ({
     );
   };
 
+  const getUserObj = () => {
+    return {
+      index: Math.max(...tableUsers.map((o) => o.index), 0) + 1,
+      user: null,
+      roles: [],
+      disableRole: true,
+    };
+  };
+
   const addNewRow = () => {
     if (tableUsers.find((x) => x.user == null)) {
       const empty = tableUsers.filter((x) => x.user == null);
@@ -59,15 +63,15 @@ const AddNewUserModal = ({
         return false;
       }
     }
-    const userObj = {
-      index: Math.max(...tableUsers.map((o) => o.index), 0) + 1,
-      user: null,
-      roles: [],
-      disableRole: true,
-    };
+    const userObj = getUserObj();
     setTableUsers((u) => [...u, userObj]);
   };
-
+  const handleClose = () => {
+    setOpenModal(false);
+    onClose();
+    setTableUsers([]);
+    // history.push("/study-setup");
+  };
   const editRow = (e, value, reason, index, key) => {
     let alreadyExist;
     let disableRole;
@@ -76,17 +80,12 @@ const AddNewUserModal = ({
         ? true
         : false;
       if (!alreadyExist) {
-        alreadyExist = usersEmail.find(
-          (x) => x.usersEmail?.email === value.email
-        )
-          ? true
-          : false;
+        alreadyExist = usersEmail.find((x) => x === value.email) ? true : false;
       }
       disableRole = false;
-      if (index === tableUsers.length) addNewRow();
     }
-    setTableUsers((rows) =>
-      rows.map((row) => {
+    setTableUsers((rows) => {
+      const newRows = rows.map((row) => {
         if (row.index === index) {
           if (key === "user") {
             return { ...row, [key]: value, alreadyExist, disableRole };
@@ -94,8 +93,17 @@ const AddNewUserModal = ({
           return { ...row, [key]: value };
         }
         return row;
-      })
-    );
+      });
+      if (
+        !alreadyExist &&
+        key === "user" &&
+        value &&
+        index === tableUsers.length
+      ) {
+        return [...newRows, getUserObj()];
+      }
+      return newRows;
+    });
   };
 
   const onDelete = (index) => {
@@ -164,8 +172,8 @@ const AddNewUserModal = ({
   }, [open]);
 
   useEffect(() => {
-    addNewRow();
-  }, []);
+    if (open) addNewRow();
+  }, [open]);
 
   const getTable = useMemo(
     () => (
