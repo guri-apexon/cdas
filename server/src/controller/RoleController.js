@@ -293,7 +293,9 @@ exports.updateRole = async function (req, res) {
         DB.executeQuery(queryStr)
           .then(async(response) => {
         if(response){
+          
           const updatedPolicies=[]
+          if((!Array.isArray(response)))response=[response]
           for(let el of response){
             const policy= el.rows&&el.rows[0]
             const oldValue = policy.act_flg == 1 ? 0 : 1;
