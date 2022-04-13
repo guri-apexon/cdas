@@ -285,48 +285,33 @@ exports.updateRole = async function (req, res) {
         policies.forEach((policy) => {
           const Active = policy.value ? "1" : "0";
           if (policy.existed) {
-            queryStr += `UPDATE ${dbSchema}.role_policy set act_flg='${Active}' WHERE role_plcy_id=${policy.existed};`;
+            queryStr += `UPDATE ${dbSchema}.role_policy set act_flg='${Active}' WHERE role_plcy_id=${policy.existed} returning *;`;
           } else {
-            queryStr += `INSERT into ${dbSchema}.role_policy(role_id, plcy_id, act_flg, created_by, created_on, updated_by, updated_on) VALUES('${role.role_id}', '${policy.id}', '${Active}', '${userId}', '${currentTime}', '${userId}', '${currentTime}');`;
+            queryStr += `INSERT into ${dbSchema}.role_policy(role_id, plcy_id, act_flg, created_by, created_on, updated_by, updated_on) VALUES('${role.role_id}', '${policy.id}', '${Active}', '${userId}', '${currentTime}', '${userId}', '${currentTime}') returning *;`;
           }
         });
         DB.executeQuery(queryStr)
           .then(async(response) => {
-
-            const { rows } = await DB.executeQuery(
-              `SELECT * FROM ${dbSchema}.role_policy where role_id = $1`,
-              [roleId]
-            );
-          
-            const updatedPolicies=policies&&policies.map(policy=>{
-              const Active = policy.value ? "1" : "0";
-              if(policy.existed){
-              return  DB.executeQuery(logQuery, [
-                  "role_policy",
-                  policy.existed,
-                  "act_flg",
-                  Active==="1"?"0":"1",
-                  Active,
-                  "User Requested",
-                  userId,
-                  currentTime,
-                ]);
-              }
-              else {
-                const findrolePolicyId=rows&&rows.find(el=>el.plcy_id===policy.id)
-               return  DB.executeQuery(logQuery, [
-                  "role_policy",
-                  findrolePolicyId.role_plcy_id,
-                  "act_flg",
-                  Active==="1"?"0":"1",
-                  Active,
-                  "User Requested",
-                  userId,
-                  currentTime,
-                ]);
-              }
-            })
-          const addingToAuditTable=await Promise.all(updatedPolicies)
+        if(response){
+          const updatedPolicies=[]
+          for(let el of response){
+            const policy= el.rows&&el.rows[0]
+            const oldValue = policy.act_flg == 1 ? 0 : 1;
+            
+              updatedPolicies.push(DB.executeQuery(logQuery, [
+                 "role_plcy_id",
+                 policy.role_plcy_id,
+                 "act_flg",
+                 oldValue,
+                 policy.act_flg,
+                 "User Requested",
+                 userId,
+                 currentTime,
+               ]));
+           }
+         const responses= await Promise.all(updatedPolicies)
+         console.log(responses);
+        }
             return apiResponse.successResponseWithData(
               res,
               messages.UPDATE_ROLE_SUCCESS,
