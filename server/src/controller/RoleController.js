@@ -285,13 +285,34 @@ exports.updateRole = async function (req, res) {
         policies.forEach((policy) => {
           const Active = policy.value ? "1" : "0";
           if (policy.existed) {
-            queryStr += `UPDATE ${dbSchema}.role_policy set act_flg='${Active}' WHERE role_plcy_id=${policy.existed};`;
+            queryStr += `UPDATE ${dbSchema}.role_policy set act_flg='${Active}' WHERE role_plcy_id=${policy.existed} returning *;`;
           } else {
-            queryStr += `INSERT into ${dbSchema}.role_policy(role_id, plcy_id, act_flg, created_by, created_on, updated_by, updated_on) VALUES('${role.role_id}', '${policy.id}', '${Active}', '${userId}', '${currentTime}', '${userId}', '${currentTime}');`;
+            queryStr += `INSERT into ${dbSchema}.role_policy(role_id, plcy_id, act_flg, created_by, created_on, updated_by, updated_on) VALUES('${role.role_id}', '${policy.id}', '${Active}', '${userId}', '${currentTime}', '${userId}', '${currentTime}') returning *;`;
           }
         });
         DB.executeQuery(queryStr)
-          .then((response) => {
+          .then(async(response) => {
+        if(response){
+          
+          const updatedPolicies=[]
+          if((!Array.isArray(response)))response=[response]
+          for(let el of response){
+            const policy= el.rows&&el.rows[0]
+            const oldValue = policy.act_flg == 1 ? 0 : 1;
+            
+              updatedPolicies.push(DB.executeQuery(logQuery, [
+                 "role_plcy_id",
+                 policy.role_plcy_id,
+                 "act_flg",
+                 oldValue,
+                 policy.act_flg,
+                 "User Requested",
+                 userId,
+                 currentTime,
+               ]));
+           }
+         const responses= await Promise.all(updatedPolicies)
+        }
             return apiResponse.successResponseWithData(
               res,
               messages.UPDATE_ROLE_SUCCESS,
