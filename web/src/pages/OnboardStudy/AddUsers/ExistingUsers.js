@@ -77,6 +77,7 @@ const ExistingUsers = () => {
   const [stateMenuItems, setStateMenuItems] = useState([]);
   const studyData = useSelector((state) => state.studyBoard);
   const [addStudyOpen, setAddStudyOpen] = useState(false);
+  const [editedRoles, setEditedRoles] = useState({});
   const { selectedStudy } = studyData;
   const { prot_id: protocol } = selectedStudy;
 
@@ -221,6 +222,7 @@ const ExistingUsers = () => {
   };
 
   const onRowEdit = async (uniqueId) => {
+    setEditedRoles(tableUsers[uniqueId - 1]);
     setEditedRow(tableUsers[uniqueId - 1]);
   };
 
@@ -228,7 +230,11 @@ const ExistingUsers = () => {
     const updateData = tableUsers.find(
       (e) => e.uniqueId === editedRow.uniqueId
     );
-
+    if (updateData && updateData.roles && updateData.roles.length === 0) {
+      toast.showErrorMessage(`Please fill roles for ${updateData.email}`);
+      return false;
+    }
+    setEditedRoles({});
     const response = await updateAssignUser({
       protocol,
       loginId: userInfo.user_id,
@@ -251,6 +257,17 @@ const ExistingUsers = () => {
   };
 
   const onCancel = () => {
+    if (editedRoles && editedRoles.uniqueId) {
+      setTableUsers((rows) =>
+        rows.map((row) => {
+          if (row.uniqueId === editedRoles.uniqueId) {
+            return { ...row, roles: editedRoles.roles };
+          }
+          return row;
+        })
+      );
+      setEditedRoles({});
+    }
     setEditedRow({});
   };
 
