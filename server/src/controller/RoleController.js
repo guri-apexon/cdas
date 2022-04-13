@@ -310,7 +310,6 @@ exports.updateRole = async function (req, res) {
                ]));
            }
          const responses= await Promise.all(updatedPolicies)
-         console.log(responses);
         }
             return apiResponse.successResponseWithData(
               res,
