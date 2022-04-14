@@ -79,7 +79,7 @@ const ExistingUsers = () => {
   const [addStudyOpen, setAddStudyOpen] = useState(false);
   const [editedRoles, setEditedRoles] = useState({});
   const { selectedStudy } = studyData;
-  const { prot_id: protocol } = selectedStudy;
+  const { prot_id: protocol, prot_nbr_stnd: studyId } = selectedStudy;
 
   const getData = async (id) => {
     setLoading(true);
@@ -207,6 +207,7 @@ const ExistingUsers = () => {
   const onRowDelete = async (uniqueId) => {
     const selected = await tableUsers.find((row) => row.uniqueId === uniqueId);
     const response = await deleteAssignUser({
+      studyId,
       protocol,
       loginId: userInfo.user_id,
       users: [selected.userId],
@@ -236,6 +237,7 @@ const ExistingUsers = () => {
     }
     setEditedRoles({});
     const response = await updateAssignUser({
+      studyId,
       protocol,
       loginId: userInfo.user_id,
       data: [
@@ -351,6 +353,7 @@ const ExistingUsers = () => {
         userList={userList}
         roleLists={roleLists}
         saveData={saveFromModal}
+        studyId={studyId}
       />
       <div className="existing-study-wrapper">
         <div className="top-content">
