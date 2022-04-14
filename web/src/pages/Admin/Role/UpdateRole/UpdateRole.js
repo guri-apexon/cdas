@@ -16,6 +16,7 @@ import Table, {
   createSelectFilterComponent,
   createStringSearchFilter,
   compareStrings,
+  compareNumbers,
 } from "apollo-react/components/Table";
 import { useHistory, useParams } from "react-router";
 import { MessageContext } from "../../../../components/Providers/MessageProvider";
@@ -70,7 +71,7 @@ const UpdateRole = () => {
     }
     setRoleName(roleDetails.role_nm);
     setRoleDesc(roleDetails.role_desc);
-    setActive(roleDetails.role_stat === "1");
+    setActive(roleDetails.role_stat === 1);
     const data = await getRolePolicies(params.id);
     setPageloaded(true);
     setProducts(data.uniqueProducts || []);
@@ -120,7 +121,8 @@ const UpdateRole = () => {
   const tableColumns = [
     {
       header: "Included",
-      accessor: "",
+      sortFunction: compareNumbers,
+      accessor: "selected",
       customCell: SelectionCell,
       width: "10%",
     },
@@ -293,7 +295,7 @@ const UpdateRole = () => {
       cancelLabel: "Redirect",
       cancelAction: () => {
         setSelectedPolicy(null);
-        history.push(`policy-management/${selectedPolicy.policyId}`);
+        history.push(`/policy-management/${selectedPolicy.policyId}`);
       },
       submitLabel: "Ok, leave it",
     };

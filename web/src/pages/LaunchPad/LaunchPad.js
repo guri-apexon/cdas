@@ -49,7 +49,7 @@ const LaunchPad = () => {
       imgUrl: CDIIcon,
       url: getAppUrl("CDI"),
       tooltipText:
-        "Business friendly technology to accelerate the setup and management of clinical study data ingestion acquisition from any source, for any data type, for any data type.",
+        "Business friendly technology to accelerate the setup and management of clinical study data ingestion acquisition from any source, for any data type.",
     },
     {
       title: "Clinical Data Mapper",

@@ -42,7 +42,7 @@ export function getPathnameAndSearch(path) {
 
 export function getLastLogin() {
   const currentLogin = getCookie("user.last_login_ts");
-  if (currentLogin === "first_time") return null;
+  if (currentLogin === "first_time" || !currentLogin) return null;
   const localDate = moment.unix(currentLogin).local();
   return localDate.format("DD-MMM-YYYY hh:mm A");
 }
@@ -63,7 +63,8 @@ export function deleteAllCookies() {
 
 export function getUserInfo() {
   return {
-    fullName: `${getCookie("user.first_name")} ${getCookie("user.last_name")}`,
+    fullName: decodeURIComponent(`${getCookie("user.first_name")} 
+                                  ${getCookie("user.last_name")}`),
     firstName: getCookie("user.first_name"),
     lastName: getCookie("user.last_name"),
     userEmail: decodeURIComponent(getCookie("user.email")),

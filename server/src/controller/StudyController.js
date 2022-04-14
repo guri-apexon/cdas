@@ -137,15 +137,16 @@ exports.onboardStudy = async function (req, res) {
             const currentTime = helper.getCurrentTime();
             users.forEach((user) => {
               if (user.user?.userId && insertedStudy.prot_id) {
-                insertQuery += `INSERT into ${schemaName}.study_user (prot_id, usr_id, act_flg, insrt_tm, updt_tm) VALUES('${insertedStudy.prot_id}', '${user.user.userId}', 1, '${currentTime}', '${currentTime}');`;
+                const studyUserId = user.user.userId.toLowerCase();
+                insertQuery += `INSERT into ${schemaName}.study_user (prot_id, usr_id, act_flg, insrt_tm, updt_tm) VALUES('${insertedStudy.prot_id}', '${studyUserId}', 1, '${currentTime}', '${currentTime}');`;
                 if (user.roles && Array.isArray(user.roles)) {
                   user.roles.forEach((role) => {
-                    insertQuery += `INSERT into ${schemaName}.study_user_role (role_id, prot_id, usr_id, act_flg, created_by, created_on, updated_by, updated_on) VALUES('${role.value}', '${insertedStudy.prot_id}', '${user.user.userId}', 1, '${userId}', '${currentTime}', '${userId}', '${currentTime}');`;
+                    insertQuery += `INSERT into ${schemaName}.study_user_role (role_id, prot_id, usr_id, act_flg, created_by, created_on, updated_by, updated_on) VALUES('${role.value}', '${insertedStudy.prot_id}', '${studyUserId}', 1, '${userId}', '${currentTime}', '${userId}', '${currentTime}');`;
                   });
                 }
               }
             });
-            DB.executeQuery(insertQuery).then(res=>{
+            DB.executeQuery(insertQuery).then(resp=>{
               return apiResponse.successResponseWithData(
                 res,
                 "Operation success",
@@ -246,7 +247,8 @@ exports.getStudyList = async (req, res) => {
     const query3 = `SELECT DISTINCT phase FROM ${schemaName}.study`;
     const query4 = `SELECT DISTINCT prot_stat as protocolstatus FROM ${schemaName}.study`;
     const query5 = `SELECT DISTINCT ob_stat as onboardingprogress FROM ${schemaName}.study`;
-
+    const query6 = `SELECT DISTINCT thptc_area as therapeuticarea FROM ${schemaName}.study`;
+    
     Logger.info({ message: "getStudyList" });
 
     const $q1 = await DB.executeQuery(query);
@@ -254,7 +256,7 @@ exports.getStudyList = async (req, res) => {
     const $q3 = await DB.executeQuery(query3);
     const $q4 = await DB.executeQuery(query4);
     const $q5 = await DB.executeQuery(query5);
-
+    const $q6 = await DB.executeQuery(query6);
     const formatDateValues = await $q1.rows.map((e) => {
       let acc = $q2.rows.filter((d) => d.prot_id === e.prot_id);
       let newObj = acc[0] ? acc[0] : { count: 0 };
@@ -283,12 +285,18 @@ exports.getStudyList = async (req, res) => {
       .map((e) => Object.values(e))
       .flat()
       .filter((e) => e !== null);
+      let uniqueThbtcArea = $q6.rows
+      .map((e) => Object.values(e))
+      .flat()
+      .filter((e) => e !== null); 
+      
 
     return apiResponse.successResponseWithData(res, "Operation success", {
       studyData: formatDateValues,
       uniquePhase: uniquePhase,
       uniqueProtocolStatus: uniqueProtocolStatus,
       uniqueObs: uniqueObs,
+      uniqueThbtcArea
     });
   } catch (err) {
     //throw error in json response with status 500.
@@ -305,7 +313,6 @@ exports.getSDAUsers = () => {
         `${SDA_BASE_URL}/sda-rest-api/api/external/entitlement/V1/ApplicationUsers/getUsersForApplication?appKey=${process.env.SDA_APP_KEY}`
       )
       .then((res) => {
-        console.log("res", res);
         return apiResponse.successResponseWithData(
           res,
           "Users retrieved successfully",
@@ -398,9 +405,10 @@ exports.AddStudyAssign = async (req, res) => {
     if (data && data.length) {
       data.forEach(async (element) => {
         try {
+          const studyUserId = element.user_id?.toLowerCase() || null;
           await DB.executeQuery(insertUserQuery, [
             protocol,
-            element.user_id,
+            studyUserId,
             1,
             curDate,
           ]);
@@ -410,7 +418,7 @@ exports.AddStudyAssign = async (req, res) => {
               await DB.executeQuery(insertRoleQuery, [
                 roleId,
                 protocol,
-                element.user_id,
+                studyUserId,
                 1,
                 loginId,
                 curDate,
@@ -480,9 +488,10 @@ exports.updateStudyAssign = async (req, res) => {
 
     data.forEach(async (element) => {
       try {
+        const studyUserId = element.user_id?.toLowerCase() || null;
         await DB.executeQuery(roleUpdateQuery, [
           protocol,
-          element.user_id,
+          studyUserId,
           element.role_id,
           loginId,
           curDate,
@@ -492,7 +501,7 @@ exports.updateStudyAssign = async (req, res) => {
           try {
             const roleGet = await DB.executeQuery(roleGetQuery, [
               protocol,
-              element.user_id,
+              studyUserId,
               rollID,
             ]);
 
@@ -500,7 +509,7 @@ exports.updateStudyAssign = async (req, res) => {
               await DB.executeQuery(insertRoleQuery, [
                 rollID,
                 protocol,
-                element.user_id,
+                studyUserId,
                 1,
                 loginId,
                 curDate,
@@ -559,11 +568,12 @@ exports.deleteStudyAssign = async (req, res) => {
 
     users.forEach(async (id) => {
       try {
-        await DB.executeQuery(userDeleteQuery, [protocol, id, curDate]);
+        const studyUserId = id.toLowerCase();
+        await DB.executeQuery(userDeleteQuery, [protocol, studyUserId, curDate]);
 
         await DB.executeQuery(roleDeleteQuery, [
           protocol,
-          id,
+          studyUserId,
           loginId,
           curDate,
         ]);

@@ -1,7 +1,7 @@
 /* eslint-disable consistent-return */
 import Modal from "apollo-react/components/Modal";
 import { useState, useEffect, useContext, useMemo } from "react";
-import { useHistory } from "react-router-dom";
+import { useHistory, withRouter } from "react-router-dom";
 import "./AddNewUserModal.scss";
 import Table from "apollo-react/components/Table";
 import Box from "apollo-react/components/Box";
@@ -32,11 +32,6 @@ const AddNewUserModal = ({
 
   const userInfo = getUserInfo();
   const history = useHistory();
-  const handleClose = () => {
-    setOpenModal(false);
-    onClose();
-    history.push("/study-setup");
-  };
 
   const DeleteUserCell = ({ row }) => {
     const { index, onDelete } = row;
@@ -51,6 +46,15 @@ const AddNewUserModal = ({
     );
   };
 
+  const getUserObj = () => {
+    return {
+      index: Math.max(...tableUsers.map((o) => o.index), 0) + 1,
+      user: null,
+      roles: [],
+      disableRole: true,
+    };
+  };
+
   const addNewRow = () => {
     if (tableUsers.find((x) => x.user == null)) {
       const empty = tableUsers.filter((x) => x.user == null);
@@ -59,15 +63,15 @@ const AddNewUserModal = ({
         return false;
       }
     }
-    const userObj = {
-      index: Math.max(...tableUsers.map((o) => o.index), 0) + 1,
-      user: null,
-      roles: [],
-      disableRole: true,
-    };
+    const userObj = getUserObj();
     setTableUsers((u) => [...u, userObj]);
   };
-
+  const handleClose = () => {
+    setOpenModal(false);
+    onClose();
+    setTableUsers([]);
+    // history.push("/study-setup");
+  };
   const editRow = (e, value, reason, index, key) => {
     let alreadyExist;
     let disableRole;
@@ -76,17 +80,13 @@ const AddNewUserModal = ({
         ? true
         : false;
       if (!alreadyExist) {
-        alreadyExist = usersEmail.find(
-          (x) => x.usersEmail?.email === value.email
-        )
-          ? true
-          : false;
+        alreadyExist = usersEmail.find((x) => x === value.email) ? true : false;
       }
       disableRole = false;
-      addNewRow();
     }
-    setTableUsers((rows) =>
-      rows.map((row) => {
+    const tableIndex = tableUsers.findIndex((el) => el.index === index);
+    setTableUsers((rows) => {
+      const newRows = rows.map((row) => {
         if (row.index === index) {
           if (key === "user") {
             return { ...row, [key]: value, alreadyExist, disableRole };
@@ -94,8 +94,17 @@ const AddNewUserModal = ({
           return { ...row, [key]: value };
         }
         return row;
-      })
-    );
+      });
+      if (
+        !alreadyExist &&
+        key === "user" &&
+        value &&
+        tableIndex + 1 === tableUsers.length
+      ) {
+        return [...newRows, getUserObj()];
+      }
+      return newRows;
+    });
   };
 
   const onDelete = (index) => {
@@ -109,6 +118,7 @@ const AddNewUserModal = ({
         fullWidth
         multiple
         forcePopupIcon
+        showCheckboxes
         source={roleLists}
         chipColor="white"
         className={row.disableRole ? "hide" : "show"}
@@ -163,8 +173,8 @@ const AddNewUserModal = ({
   }, [open]);
 
   useEffect(() => {
-    addNewRow();
-  }, []);
+    if (open) addNewRow();
+  }, [open]);
 
   const getTable = useMemo(
     () => (
@@ -185,6 +195,21 @@ const AddNewUserModal = ({
   );
 
   const addUsers = async () => {
+    const usersRows = [...tableUsers].slice(0, -1);
+    if (!usersRows.length) {
+      toast.showErrorMessage("Add some users to proceed");
+
+      return false;
+    }
+    const emptyRoles = usersRows.filter((x) => x.roles.length === 0);
+    if (emptyRoles.length) {
+      toast.showErrorMessage(
+        `Please fill roles for ${
+          emptyRoles[0] && emptyRoles[0].user && emptyRoles[0].user.email
+        }`
+      );
+      return false;
+    }
     const data = tableUsers
       .filter((e) => e.user != null)
       .map((d) => {
@@ -208,7 +233,7 @@ const AddNewUserModal = ({
     }
     if (response.status === "OK") {
       toast.showSuccessMessage(response.message, 0);
-      history.push("/study-setup");
+      // history.push("/study-setup");
     }
     saveData();
   };
@@ -217,6 +242,7 @@ const AddNewUserModal = ({
     <>
       <Modal
         open={openModal}
+        disableBackdropClick="true"
         onClose={handleClose}
         title="Add New Users"
         buttonProps={[
@@ -248,4 +274,4 @@ const AddNewUserModal = ({
   );
 };
 
-export default AddNewUserModal;
+export default withRouter(AddNewUserModal);

@@ -82,6 +82,7 @@ const ImportWithUsers = () => {
         ? true
         : false;
     }
+    const tableIndex = tableUsers.findIndex((el) => el.index === index);
     setTableUsers((rows) => {
       const newRows = rows.map((row) => {
         if (row.index === index) {
@@ -96,7 +97,7 @@ const ImportWithUsers = () => {
         !alreadyExist &&
         key === "user" &&
         value &&
-        index === tableUsers.length
+        tableIndex + 1 === tableUsers.length
       ) {
         return [...newRows, getUserObj()];
       }
@@ -133,6 +134,7 @@ const ImportWithUsers = () => {
           fullWidth
           multiple
           forcePopupIcon
+          showCheckboxes
           chipColor="white"
           source={roleLists}
           value={row[key]}
@@ -430,6 +432,7 @@ const ImportWithUsers = () => {
         <Modal
           open={confirmObj ? true : false}
           onClose={() => setConfirmObj(null)}
+          disableBackdropClick="true"
           className="save-confirm"
           variant="warning"
           title={confirmObj.title}
