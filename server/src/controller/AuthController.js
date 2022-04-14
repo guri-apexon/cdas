@@ -47,6 +47,7 @@ exports.authHandler = async (req, res) => {
     const CLIENT_SECRET = process.env.SDA_CLIENT_SECRET;
     const CALLBACK_URL = process.env.SDA_CALLBACK_URL;
     const SSO_URL = process.env.SDA_SSO_URL;
+    const loginMaxMinutes = process.env.SESSION_EXP_TIME || "24*60";
 
     const body = await getToken(
       code,
@@ -95,7 +96,7 @@ exports.authHandler = async (req, res) => {
     //console.log(loginAct, "loginAt")
     const domainUrlObj = new URL(REACT_APP_URL);
     const domainName = helpers.getDomainWithoutSubdomain(REACT_APP_URL);
-    const cookieDomainObj = {domain: domainName, maxAge: 24 * 60 * 60 * 1000, secure: domainUrlObj?.protocol==="https:" };
+    const cookieDomainObj = {domain: domainName, maxAge: (loginMaxMinutes) * 60000, secure: domainUrlObj?.protocol==="https:" };
 
     res.cookie("user.token", response.id_token, cookieDomainObj);
     res.cookie("user.id", resp.data.userid?.toLowerCase(), cookieDomainObj);
