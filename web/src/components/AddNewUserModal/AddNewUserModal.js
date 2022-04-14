@@ -24,6 +24,7 @@ const AddNewUserModal = ({
   userList,
   roleLists,
   saveData,
+  studyId,
 }) => {
   const [openModal, setOpenModal] = useState(open);
   const [tableUsers, setTableUsers] = useState([]);
@@ -222,6 +223,7 @@ const AddNewUserModal = ({
         return newObj;
       });
     const response = await addAssignUser({
+      studyId,
       protocol,
       loginId: userInfo.user_id,
       data,
