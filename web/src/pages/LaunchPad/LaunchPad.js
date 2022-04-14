@@ -113,16 +113,18 @@ const LaunchPad = () => {
             </Typography>
           )}
           <h2>Harness the power of your clinical data</h2>
-          {havingCoreAccess && (
-            <Button
-              variant="secondary"
-              className="linktoStudy"
-              icon={ArrowRight}
-              style={{ marginRight: 10, padding: "0 14px" }}
-              onClick={() => history.push("study-setup")}
-            >
-              Quick Link to Study Setup
-            </Button>
+          {havingCoreAccess && checkAccess("Study Setup ") && (
+            <>
+              <Button
+                variant="secondary"
+                className="linktoStudy"
+                icon={ArrowRight}
+                style={{ marginRight: 10, padding: "0 14px" }}
+                onClick={() => history.push("study-setup")}
+              >
+                Quick Link to Study Setup
+              </Button>
+            </>
           )}
         </div>
       </div>
