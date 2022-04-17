@@ -220,7 +220,6 @@ const TableEditableAll = ({ updateData, deleteAContact }) => {
   };
 
   const editMode = true;
-
   return (
     <Table
       title="Vendor Contacts"
