@@ -115,18 +115,30 @@ const ImportWithUsers = () => {
           source={userList}
           value={row[key]}
           onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
-          error={row.alreadyExist || (!initialRender && !row[key])}
+          error={
+            row.alreadyExist ||
+            (!initialRender &&
+              !row[key] &&
+              row.index !== tableUsers[tableUsers.length - 1].index)
+          }
           helperText={
             row.alreadyExist
               ? "This user is already assigned"
-              : !initialRender && !row[key] && "Required"
+              : !initialRender &&
+                !row[key] &&
+                row.index !== tableUsers[tableUsers.length - 1].index &&
+                "Required"
           }
         />
       </div>
     );
   };
   const EditableRoles = ({ row, column: { accessor: key } }) => {
-    if (row.user === null) return false;
+    if (
+      row.user === null &&
+      row.index === tableUsers[tableUsers.length - 1]?.index
+    )
+      return false;
     return (
       <div className="role">
         <AutocompleteV2
@@ -146,7 +158,11 @@ const ImportWithUsers = () => {
     );
   };
   const DeleteUserCell = ({ row }) => {
-    if (row.user === null) return false;
+    if (
+      row.user === null &&
+      row.index === tableUsers[tableUsers.length - 1]?.index
+    )
+      return false;
     const { index, onDelete } = row;
     return (
       <IconButton size="small" onClick={() => onDelete(index)}>

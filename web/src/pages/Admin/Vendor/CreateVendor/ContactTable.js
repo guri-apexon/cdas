@@ -144,13 +144,14 @@ const TableEditableAll = ({ updateData, deleteAContact }) => {
   const [rows, setRows] = useState(initialRows);
   const [editedRows, setEditedRows] = useState(initialRows);
   const vendor = useSelector((state) => state.vendor);
+  const [currentVcid, setCurrentVcid] = useState(-1);
   const { isEditPage, isCreatePage, selectedContacts } = vendor;
 
   const addAContact = () => {
     setEditedRows((rw) => [
       ...rw,
       {
-        vCId: rw.length + 1,
+        vCId: currentVcid - 1,
         name: "",
         email: "",
         isEmailValid: false,
@@ -159,6 +160,7 @@ const TableEditableAll = ({ updateData, deleteAContact }) => {
         isNew: true,
       },
     ]);
+    setCurrentVcid((val) => val - 1);
   };
 
   useEffect(() => {
@@ -220,7 +222,6 @@ const TableEditableAll = ({ updateData, deleteAContact }) => {
   };
 
   const editMode = true;
-
   return (
     <Table
       title="Vendor Contacts"
