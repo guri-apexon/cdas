@@ -1,5 +1,5 @@
 import withStyles from "@material-ui/core/styles/withStyles";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 
 import { neutral8, gradientHorizontal } from "apollo-react/colors";
 import Blade from "apollo-react/components/Blade";
@@ -11,6 +11,7 @@ import Box from "apollo-react/components/Box";
 import Arrow2Down from "apollo-react-icons/Arrow2Down";
 import App from "apollo-react-icons/App";
 import Tooltip from "apollo-react/components/Tooltip/Tooltip";
+import { AppContext } from "../../Providers/AppProvider";
 import { getAppUrl, goToApp } from "../../../utils";
 
 const styles = {
@@ -42,39 +43,6 @@ const CustomTooltip = withStyles(() => ({
     padding: "1px 10px",
   },
 }))(Tooltip);
-
-const linksArr = [
-  {
-    title: "Clinical Data Ingestion",
-    imgUrl: "assets/svg/CDI_ICON_96x96.svg",
-    haveAccess: true,
-    url: getAppUrl("CDI"),
-  },
-  {
-    title: "Clinical Data Mapper",
-    imgUrl: "assets/svg/CDM_ICON_96x96.svg",
-    haveAccess: false,
-    url: "cdm",
-  },
-  {
-    title: "Clinical Data Review",
-    imgUrl: "assets/svg/CDR_ICON_96x96.svg",
-    haveAccess: false,
-    url: "cdr",
-  },
-  {
-    title: "Clinical Analytics",
-    imgUrl: "assets/svg/CA_ICON_96x96.svg",
-    haveAccess: false,
-    url: "ca",
-  },
-  {
-    title: "Data Science Workbench",
-    imgUrl: "assets/svg/DSW_ICON_96x96.svg",
-    haveAccess: false,
-    url: "dsw",
-  },
-];
 const NavigationPanel = ({
   history,
   location: { pathname },
@@ -83,11 +51,52 @@ const NavigationPanel = ({
 }) => {
   const [openPanel, setOpenPanel] = useState(open);
   const useStyles = makeStyles(styles);
+  const appContext = useContext(AppContext);
   const classes = useStyles();
   const closePanel = () => {
     setOpenPanel(false);
     onClose();
   };
+  const { permissions } = appContext.user;
+  const checkAccess = (name) => {
+    if (permissions.length > 0) {
+      const hasAccess = permissions.some((per) => per.featureName === name);
+      return hasAccess;
+    }
+    return false;
+  };
+  const linksArr = [
+    {
+      title: "Clinical Data Ingestion",
+      imgUrl: "assets/svg/CDI_ICON_96x96.svg",
+      haveAccess: checkAccess("Launchpad-CDI"),
+      url: getAppUrl("CDI"),
+    },
+    {
+      title: "Clinical Data Mapper",
+      imgUrl: "assets/svg/CDM_ICON_96x96.svg",
+      haveAccess: checkAccess("Launchpad-CDM"),
+      url: "cdm",
+    },
+    {
+      title: "Clinical Data Review",
+      imgUrl: "assets/svg/CDR_ICON_96x96.svg",
+      haveAccess: checkAccess("Launchpad-CDR"),
+      url: "cdr",
+    },
+    {
+      title: "Clinical Analytics",
+      imgUrl: "assets/svg/CA_ICON_96x96.svg",
+      haveAccess: checkAccess("Launchpad-CA"),
+      url: "ca",
+    },
+    {
+      title: "Data Science Workbench",
+      imgUrl: "assets/svg/DSW_ICON_96x96.svg",
+      haveAccess: checkAccess("Launchpad-DSW"),
+      url: "dsw",
+    },
+  ];
   const onChange = () => {
     console.log("onChange");
   };
@@ -145,6 +154,7 @@ const NavigationPanel = ({
               <Button
                 darkMode
                 variant="text"
+                style={{ cursor: `${link.haveAccess ? "pointer" : "text"}` }}
                 onClick={() => link.haveAccess && goToApp(link.url)}
               >
                 <img src={link.imgUrl} alt={link.title} />
