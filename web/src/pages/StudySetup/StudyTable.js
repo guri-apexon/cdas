@@ -89,12 +89,7 @@ const SelectiveCell = ({ row, column: { accessor } }) => {
   );
 };
 
-export default function StudyTable({
-  studyData,
-  studyboardData,
-  refreshData,
-  selectedFilter,
-}) {
+export default function StudyTable({ studyData, studyboardData, refreshData }) {
   const [loading, setLoading] = useState(true);
   const [rowsPerPageRecord, setRowPerPageRecord] = useState(10);
   const [pageNo, setPageNo] = useState(0);
