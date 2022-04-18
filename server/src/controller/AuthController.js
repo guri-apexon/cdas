@@ -76,7 +76,12 @@ exports.authHandler = async (req, res) => {
       };
       await userController.addUser(user_detail);
     }
+    let lastLoginTime = 'first_time';
     const last_login = await userController.getLastLoginTime(resp.data.userid);
+
+    if (last_login) {
+      lastLoginTime = moment(moment.utc(last_login[0].login_tm).format()).local().unix();
+    }
     // Set the cookies
     const loginDetails = {
       usrId: resp.data.userid,
@@ -86,18 +91,14 @@ exports.authHandler = async (req, res) => {
         .utc()
         .format("YYYY-MM-DD HH:mm:ss"),
     };
-    if (!last_login || last_login <= 0) {
-      res.cookie("user.last_login_ts", 'first_time');
-    } else {
-      const stillUtc = moment.utc(last_login[0].login_tm).format();
-      res.cookie("user.last_login_ts", moment(stillUtc).local().unix());
-    }
     await userController.addLoginActivity(loginDetails);
     //console.log(loginAct, "loginAt")
     const domainUrlObj = new URL(REACT_APP_URL);
     const domainName = helpers.getDomainWithoutSubdomain(REACT_APP_URL);
     const cookieDomainObj = {domain: domainName, maxAge: loginMaxMinutes, secure: domainUrlObj?.protocol==="https:" };
 
+    console.log("lastLoginTime", lastLoginTime);
+    res.cookie("user.last_login_ts", lastLoginTime, cookieDomainObj);
     res.cookie("user.token", response.id_token, cookieDomainObj);
     res.cookie("user.id", resp.data.userid?.toLowerCase(), cookieDomainObj);
     res.cookie("user.first_name", resp.data.given_name, cookieDomainObj);
