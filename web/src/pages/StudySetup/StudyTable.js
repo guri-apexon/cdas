@@ -231,10 +231,11 @@ export default function StudyTable({
       accessor: "onboardingprogress",
       customCell: SelectiveCell,
       sortFunction: compareStrings,
-      // filterFunction: createStringArrayIncludedFilter("onboardingprogress"),
-      // filterComponent: createFilterList(obs),
-      filterFunction: createStringSearchFilter("onboardingprogress"),
-      filterComponent: TextFieldFilter,
+      filterFunction: createStringArrayIncludedFilter("onboardingprogress"),
+      filterComponent: createSelectFilterComponent(obs, {
+        size: "small",
+        multiple: true,
+      }),
     },
     {
       header: "Assignment Count",
