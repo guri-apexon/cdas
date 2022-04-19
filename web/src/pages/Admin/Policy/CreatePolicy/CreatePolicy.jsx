@@ -238,7 +238,9 @@ const CreatePolicy = () => {
                 size="small"
                 label="Policy Name"
                 placeholder="Name your policy"
-                maxLength={255}
+                inputProps={{
+                  maxLength: 255,
+                }}
                 onChange={handleChange}
               />
               <TextField
