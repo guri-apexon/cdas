@@ -5,7 +5,7 @@ const moment = require("moment");
 const constants = require("../config/constants");
 const { DB_SCHEMA_NAME: schemaName } = constants;
 
-exports.createPolicy = function (req, res) {
+exports.createPolicy =async function (req, res) {
   try {
     const { policyName, policyDesc, permissions, userId, status } = req.body;
     const productsArr = Object.keys(permissions);
@@ -19,6 +19,12 @@ exports.createPolicy = function (req, res) {
       userId,
       currentTime,
     ];
+ 
+    const {rows} = await DB.executeQuery(`SELECT * FROM  ${schemaName}.policy where UPPER(plcy_nm) = UPPER('${policyName}')`);
+   if(rows&&rows.length>0){
+    return apiResponse.ErrorResponse(res, "Policy Name should be unique - Please update the name and Save again");
+   }
+
     DB.executeQuery(
       `INSERT into ${schemaName}.policy(plcy_nm, plcy_desc, plcy_stat, created_by, created_on, updated_by, updated_on) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
       policyValues
@@ -68,10 +74,22 @@ exports.createPolicy = function (req, res) {
   }
 };
 
-exports.updatePolicy = function (req, res) {
+exports.updatePolicy = async function (req, res) {
   try {
     const { policyName, policyDesc, permissions, userId, status, policyId } =
       req.body;
+      const { rows } = await DB.executeQuery(
+        `SELECT * FROM  ${schemaName}.policy where UPPER(plcy_nm) = UPPER('${policyName}')`
+      );
+      if (rows && rows.length > 0) {
+        if (rows.length === 1 && rows[0].plcy_id === policyId) {
+        } else {
+          return apiResponse.ErrorResponse(
+            res,
+            "Policy Name should be unique - Please update the name and Save again"
+          );
+        }
+      }
     const productsArr = Object.keys(permissions);
     const currentTime = moment().format("YYYY-MM-DD HH:mm:ss");
     const policyValues = [
