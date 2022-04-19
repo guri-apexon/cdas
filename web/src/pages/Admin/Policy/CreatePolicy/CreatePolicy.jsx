@@ -83,6 +83,12 @@ const CreatePolicy = () => {
       messageContext.showErrorMessage("Policy Name shouldn't be empty");
       return false;
     }
+    if (policyName.length > 255) {
+      messageContext.showErrorMessage(
+        "Policy name should not allowed to save with more than 255 characters. Max length is 255"
+      );
+      return false;
+    }
     let atleastOneSelected = false;
     if (active) {
       Object.keys(permissions).forEach((product) => {

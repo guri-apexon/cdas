@@ -153,7 +153,7 @@ const AddNewUserModal = ({
         }
         helperText={
           row.alreadyExist
-            ? "This user already as assignments. Please select a different user to continue"
+            ? "This user already has assignments. Please select a different user to continue"
             : !initialRender &&
               !row[key] &&
               row.index !== tableUsers[tableUsers.length - 1].index &&
