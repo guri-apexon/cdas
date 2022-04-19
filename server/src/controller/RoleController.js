@@ -20,7 +20,6 @@ async function getCurrentRole(id) {
 exports.createRole = function (req, res) {
   try {
     const { name, description, policies, userId, status } = req.body;
-    console.log(policies);
     if ((!policies?.length&&status===1) || !Array.isArray(policies) || !userId) {
       return apiResponse.ErrorResponse(
         res,
