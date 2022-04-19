@@ -82,7 +82,6 @@ const StudySetup = () => {
         studyData={studyData}
         studyboardData={studyboardData}
         refreshData={refreshData}
-        selectedFilter={selectedFilter}
       />
     </div>
   );
