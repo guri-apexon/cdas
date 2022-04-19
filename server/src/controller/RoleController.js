@@ -225,7 +225,7 @@ exports.updateStatus = async (req, res) => {
 exports.updateRole = async function (req, res) {
   try {
     const { name, description, policies, userId, status, roleId } = req.body;
-    if (!name || (!description && active) || !userId || !roleId) {
+    if (!name || (!description && status===1) || !userId || !roleId) {
       return apiResponse.ErrorResponse(
         res,
         "Please complete all mandatory information and then click Save"
