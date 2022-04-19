@@ -179,7 +179,7 @@ const CreateRole = () => {
       );
       return false;
     }
-    if (!reqBody.policies.length) {
+    if (!reqBody.policies.length && active) {
       messageContext.showErrorMessage(
         "Role Name should be unique - Please update the name and Save again"
       );
