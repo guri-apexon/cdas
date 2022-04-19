@@ -179,7 +179,7 @@ const CreateRole = () => {
       );
       return false;
     }
-    if (!reqBody.policies.length) {
+    if (!reqBody.policies.length && active) {
       messageContext.showErrorMessage(
         "Please complete all mandatory information and then click Save"
       );

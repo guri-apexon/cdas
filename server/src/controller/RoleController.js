@@ -20,7 +20,7 @@ async function getCurrentRole(id) {
 exports.createRole = function (req, res) {
   try {
     const { name, description, policies, userId, status } = req.body;
-    if (!policies?.length || !Array.isArray(policies) || !userId) {
+    if ((!policies?.length&&status===1) || !Array.isArray(policies) || !userId) {
       return apiResponse.ErrorResponse(
         res,
         "Please complete all mandatory information and then click Save"
@@ -225,7 +225,7 @@ exports.updateStatus = async (req, res) => {
 exports.updateRole = async function (req, res) {
   try {
     const { name, description, policies, userId, status, roleId } = req.body;
-    if (!name || !description || !userId || !roleId) {
+    if (!name || (!description && status===1) || !userId || !roleId) {
       return apiResponse.ErrorResponse(
         res,
         "Please complete all mandatory information and then click Save"
@@ -298,7 +298,8 @@ exports.updateRole = async function (req, res) {
           if((!Array.isArray(response)))response=[response]
           for(let el of response){
             const policy= el.rows&&el.rows[0]
-            const oldValue = policy.act_flg == 1 ? 0 : 1;
+            if(policy){
+              const oldValue = policy.act_flg == 1 ? 0 : 1;
             
               updatedPolicies.push(DB.executeQuery(logQuery, [
                  "role_plcy_id",
@@ -310,6 +311,8 @@ exports.updateRole = async function (req, res) {
                  userId,
                  currentTime,
                ]));
+            }
+            
            }
          const responses= await Promise.all(updatedPolicies)
         }
