@@ -20,7 +20,8 @@ async function getCurrentRole(id) {
 exports.createRole = function (req, res) {
   try {
     const { name, description, policies, userId, status } = req.body;
-    if (!policies?.length || !Array.isArray(policies) || !userId) {
+    console.log(policies);
+    if ((!policies?.length&&status===1) || !Array.isArray(policies) || !userId) {
       return apiResponse.ErrorResponse(
         res,
         "Please complete all mandatory information and then click Save"
@@ -225,7 +226,7 @@ exports.updateStatus = async (req, res) => {
 exports.updateRole = async function (req, res) {
   try {
     const { name, description, policies, userId, status, roleId } = req.body;
-    if (!name || !description || !userId || !roleId) {
+    if (!name || !userId || !roleId) {
       return apiResponse.ErrorResponse(
         res,
         "Please complete all mandatory information and then click Save"
