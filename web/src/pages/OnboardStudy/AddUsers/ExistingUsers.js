@@ -337,7 +337,6 @@ const ExistingUsers = () => {
 
   return (
     <>
-      {console.log("user", tableUsers)}
       <div className="container">
         <ProjectHeader
           menuItems={stateMenuItems}
@@ -392,6 +391,8 @@ const ExistingUsers = () => {
                   editedRow,
                 }))}
                 rowProps={{ hover: false }}
+                initialSortedColumn="user"
+                initialSortOrder="asc"
                 hidePagination={true}
                 CustomHeader={CustomHeader}
               />
