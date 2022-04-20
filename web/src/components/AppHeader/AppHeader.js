@@ -259,10 +259,10 @@ const AppHeader = ({ history, setLoggedIn }) => {
   const onPanelClose = () => {
     setpanelOpen(false);
   };
-  const ConfirmModal = React.memo(({ open, closeModal }) => {
+  const ConfirmModal = React.memo(({ showVersionModal, closeModal }) => {
     return (
       <Modal
-        open={open}
+        open={showVersionModal}
         disableBackdropClick="true"
         onClose={closeModal}
         message={<div><div>Clinical Data Analytics Suite</div><p>Version 1.0</p></div>}
@@ -274,7 +274,7 @@ const AppHeader = ({ history, setLoggedIn }) => {
   return (
     <>
       <ConfirmModal
-        open={showVersionModal}
+        showVersionModal={showVersionModal}
         closeModal={()=>setShowVersionModal(false)}
       />
       <div id="topNavbar">
