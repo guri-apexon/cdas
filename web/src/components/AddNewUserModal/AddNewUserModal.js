@@ -145,6 +145,7 @@ const AddNewUserModal = ({
         source={userList}
         value={row[key]}
         onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
+        matchFrom="any"
         error={
           row.alreadyExist ||
           (!initialRender &&

@@ -108,6 +108,7 @@ const ImportWithUsers = () => {
     return (
       <div className="user">
         <AutocompleteV2
+          matchFrom="any"
           size="small"
           fullWidth
           forcePopupIcon
