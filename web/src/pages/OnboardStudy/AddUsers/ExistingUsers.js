@@ -394,8 +394,6 @@ const ExistingUsers = () => {
                 initialSortedColumn="user"
                 initialSortOrder="asc"
                 rowProps={{ hover: false }}
-                initialSortedColumn="user"
-                initialSortOrder="asc"
                 hidePagination={true}
                 CustomHeader={CustomHeader}
               />
