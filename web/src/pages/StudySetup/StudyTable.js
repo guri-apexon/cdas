@@ -28,14 +28,10 @@ import { ReactComponent as InFailureIcon } from "../../components/Icons/Icon_Fai
 import Progress from "../../components/Progress";
 import { MessageContext } from "../../components/Providers/MessageProvider";
 import {
-  createAutocompleteFilter,
   TextFieldFilter,
   IntegerFilter,
   DateFilter,
-  createStringArraySearchFilter,
   createStringArrayIncludedFilter,
-  createSourceFromKey,
-  createFilterList,
 } from "../../utils/index";
 import { updateSelectedStudy } from "../../store/actions/StudyBoardAction";
 
@@ -93,12 +89,7 @@ const SelectiveCell = ({ row, column: { accessor } }) => {
   );
 };
 
-export default function StudyTable({
-  studyData,
-  studyboardData,
-  refreshData,
-  selectedFilter,
-}) {
+export default function StudyTable({ studyData, studyboardData, refreshData }) {
   const [loading, setLoading] = useState(true);
   const [rowsPerPageRecord, setRowPerPageRecord] = useState(10);
   const [pageNo, setPageNo] = useState(0);
@@ -233,8 +224,13 @@ export default function StudyTable({
       sortFunction: compareStrings,
       // filterFunction: createStringArrayIncludedFilter("onboardingprogress"),
       // filterComponent: createFilterList(obs),
-      filterFunction: createStringSearchFilter("onboardingprogress"),
-      filterComponent: TextFieldFilter,
+      // filterFunction: createStringSearchFilter("onboardingprogress"),
+      // filterComponent: TextFieldFilter,
+      filterFunction: createStringArrayIncludedFilter("onboardingprogress"),
+      filterComponent: createSelectFilterComponent(obs, {
+        size: "small",
+        multiple: true,
+      }),
     },
     {
       header: "Assignment Count",
@@ -273,7 +269,6 @@ export default function StudyTable({
   }, [studyData.loading, studyboardData, studyData.studyboardFetchSuccess]);
 
   const exportToCSV = (exportData, headers, fileName) => {
-    // console.log("data for export", exportData, headers, fileName);
     const wb = XLSX.utils.book_new();
     let ws = XLSX.worksheet;
     let from = pageNo * rowsPerPageRecord;
@@ -284,7 +279,6 @@ export default function StudyTable({
     }
     const newData = exportData.slice(from, to);
     newData.unshift(headers);
-    console.log("data", from, rowsPerPageRecord, newData);
     ws = XLSX.utils.json_to_sheet(newData, { skipHeader: true });
     XLSX.utils.book_append_sheet(wb, ws, "studylist");
     XLSX.writeFile(wb, fileName);
@@ -322,7 +316,6 @@ export default function StudyTable({
   const downloadFile = async (e) => {
     const fileExtension = ".xlsx";
     const fileName = `StudyList_${moment(new Date()).format("DDMMYYYY")}`;
-    // console.log("inDown", exportHeader);
     const tempObj = {};
     const temp = tableColumns
       .slice(0, -1)

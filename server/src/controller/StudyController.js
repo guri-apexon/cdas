@@ -106,7 +106,7 @@ exports.cronUpdateStatus = async () => {
 };
 
 exports.onboardStudy = async function (req, res) {
-  try{
+  try {
     const {
       sponsorNameStnd: sponsorName,
       protNbrStnd: studyId,
@@ -131,7 +131,7 @@ exports.onboardStudy = async function (req, res) {
           const insertedStudy = await addOnboardedStudy(studyId, userId);
           if (!insertedStudy)
             return apiResponse.ErrorResponse(res, "Something went wrong");
-  
+
           if (users && users.length) {
             let insertQuery = "";
             const currentTime = helper.getCurrentTime();
@@ -146,18 +146,29 @@ exports.onboardStudy = async function (req, res) {
                 }
               }
             });
-            DB.executeQuery(insertQuery).then(resp=>{
-              return apiResponse.successResponseWithData(
-                res,
-                "Operation success",
-                response?.data
-              );
-            }).catch(err=>{
-              return apiResponse.ErrorResponse(res, err.detail || "Something went wrong");
-            });
+            DB.executeQuery(insertQuery)
+              .then((resp) => {
+                return apiResponse.successResponseWithData(
+                  res,
+                  "Operation success",
+                  response?.data
+                );
+              })
+              .catch((err) => {
+                return apiResponse.ErrorResponse(
+                  res,
+                  err.detail || "Something went wrong"
+                );
+              });
+          }else{
+            return apiResponse.successResponseWithData(
+              res,
+              "Onboarding successfull",
+              response?.data
+            );
           }
-        }else{
-          return res.json({...response?.data, status: "ERROR"});
+        } else {
+          return res.json({ ...response?.data, status: "ERROR" });
         }
       })
       .catch((err) => {
@@ -167,7 +178,7 @@ exports.onboardStudy = async function (req, res) {
           return apiResponse.ErrorResponse(res, "Something went wrong");
         }
       });
-  }catch(_err) {
+  } catch (_err) {
     return apiResponse.ErrorResponse(res, "Something went wrong");
   }
 };
@@ -239,16 +250,16 @@ exports.noOnboardedStat = function (req, res) {
 
 exports.getStudyList = async (req, res) => {
   try {
-    const query = `SELECT s.prot_id, prot_nbr as protocolnumber, phase, prot_stat as protocolstatus, spnsr_nm as sponsorname, s.insrt_tm as dateadded, s.updt_tm as dateedited, ob_stat as onboardingprogress, s.usr_descr as assignmentcount, thptc_area as therapeuticarea, proj_cd as projectcode FROM ${schemaName}.study s 
+    const query = `SELECT s.prot_id, prot_nbr as protocolnumber, s.prot_nbr_stnd, phase, prot_stat as protocolstatus, spnsr_nm as sponsorname, s.insrt_tm as dateadded, s.updt_tm as dateedited, ob_stat as onboardingprogress, s.usr_descr as assignmentcount, thptc_area as therapeuticarea, proj_cd as projectcode FROM ${schemaName}.study s 
     left join ${schemaName}.study_sponsor ss on s.prot_id = ss.prot_id 
     left JOIN ${schemaName}.sponsor cs2 ON cs2.spnsr_id = ss.spnsr_id ORDER BY s.insrt_tm`;
 
-    const query2 = `SELECT prot_id, COUNT(DISTINCT usr_id) FROM ${schemaName}.study_user GROUP BY prot_id`;
+    const query2 = `SELECT prot_id, COUNT(DISTINCT usr_id) FROM ${schemaName}.study_user where act_flg=1 GROUP BY prot_id`;
     const query3 = `SELECT DISTINCT phase FROM ${schemaName}.study`;
     const query4 = `SELECT DISTINCT prot_stat as protocolstatus FROM ${schemaName}.study`;
     const query5 = `SELECT DISTINCT ob_stat as onboardingprogress FROM ${schemaName}.study`;
     const query6 = `SELECT DISTINCT thptc_area as therapeuticarea FROM ${schemaName}.study`;
-    
+
     Logger.info({ message: "getStudyList" });
 
     const $q1 = await DB.executeQuery(query);
@@ -285,18 +296,17 @@ exports.getStudyList = async (req, res) => {
       .map((e) => Object.values(e))
       .flat()
       .filter((e) => e !== null);
-      let uniqueThbtcArea = $q6.rows
+    let uniqueThbtcArea = $q6.rows
       .map((e) => Object.values(e))
       .flat()
-      .filter((e) => e !== null); 
-      
+      .filter((e) => e !== null);
 
     return apiResponse.successResponseWithData(res, "Operation success", {
       studyData: formatDateValues,
       uniquePhase: uniquePhase,
       uniqueProtocolStatus: uniqueProtocolStatus,
       uniqueObs: uniqueObs,
-      uniqueThbtcArea
+      uniqueThbtcArea,
     });
   } catch (err) {
     //throw error in json response with status 500.
@@ -365,7 +375,7 @@ exports.listStudyAssign = async (req, res) => {
 
 exports.AddStudyAssign = async (req, res) => {
   try {
-    const { protocol, loginId, data } = req.body;
+    const { studyId, protocol, loginId, data } = req.body;
     const curDate = helper.getCurrentTime();
     if (!data || !data.length) {
       return apiResponse.ErrorResponse(res, "Something went wrong");
@@ -376,7 +386,7 @@ exports.AddStudyAssign = async (req, res) => {
       .post(
         `${FSR_API_URI}/study/grant`,
         {
-          studyId: protocol,
+          studyId,
           userId: loginId,
           roUsers,
         },
@@ -533,7 +543,7 @@ exports.updateStudyAssign = async (req, res) => {
 
 exports.deleteStudyAssign = async (req, res) => {
   try {
-    const { protocol, loginId, users } = req.body;
+    const { studyId, protocol, loginId, users } = req.body;
     const curDate = helper.getCurrentTime();
 
     if (!users || !users.length) {
@@ -548,7 +558,7 @@ exports.deleteStudyAssign = async (req, res) => {
       .post(
         `${FSR_API_URI}/study/revoke`,
         {
-          studyId: protocol,
+          studyId,
           userId: loginId,
           roUser: users.join(", "),
         },
@@ -569,7 +579,11 @@ exports.deleteStudyAssign = async (req, res) => {
     users.forEach(async (id) => {
       try {
         const studyUserId = id.toLowerCase();
-        await DB.executeQuery(userDeleteQuery, [protocol, studyUserId, curDate]);
+        await DB.executeQuery(userDeleteQuery, [
+          protocol,
+          studyUserId,
+          curDate,
+        ]);
 
         await DB.executeQuery(roleDeleteQuery, [
           protocol,

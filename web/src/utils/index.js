@@ -47,18 +47,46 @@ export function getLastLogin() {
   return localDate.format("DD-MMM-YYYY hh:mm A");
 }
 
-export function deleteAllCookies() {
-  const cookies = document.cookie.split(";");
+const getDomainName = () => {
+  const urlParts = window.location.hostname.split(".");
+  return urlParts
+    .slice(0)
+    .slice(-(urlParts.length === 4 ? 3 : 2))
+    .join(".");
+};
 
-  // eslint-disable-next-line no-plusplus
-  for (let i = 0; i < cookies.length; i++) {
-    const cookie = cookies[i];
-    const eqPos = cookie.indexOf("=");
-    const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
-    // eslint-disable-next-line prefer-template
-    document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
-  }
+export function deleteAllCookies() {
+  const domain = getDomainName() || "";
+  document.cookie.split(";").forEach(function (c) {
+    document.cookie = c
+      .replace(/^ +/, "")
+      .replace(/=.*/, `=;expires=${new Date().toUTCString()};domain=${domain}`);
+  });
   return true;
+}
+
+export const getUserToken = () => {
+  return getCookie("user.token");
+};
+
+let logoutSetTimeout = null;
+const setLogoutTimeout = () => {
+  if (!logoutSetTimeout) {
+    logoutSetTimeout = setTimeout(() => {
+      console.log("Succesfully login");
+    }, 10000);
+  }
+};
+
+export function getUserId(preventRedirect) {
+  const userId = getCookie("user.id");
+  // if (preventRedirect && userId) {
+  //   setLogoutTimeout();
+  // }
+  if (!userId && !preventRedirect) {
+    window.location.reload();
+  }
+  return userId;
 }
 
 export function getUserInfo() {
@@ -69,7 +97,7 @@ export function getUserInfo() {
     lastName: getCookie("user.last_name"),
     userEmail: decodeURIComponent(getCookie("user.email")),
     lastLogin: getLastLogin(),
-    user_id: getCookie("user.id"),
+    user_id: getUserId(),
   };
 }
 

@@ -208,7 +208,7 @@ exports.activeStatusUpdate = async (req, res) => {
       return apiResponse.validationErrorWithData(
         res,
         "Operation failed",
-        "Vendor cannot be inactivated until removed from all data flows using this Vendor."
+        "Vendor cannot be updated until removed from other dataflows using this Vendor."
       );
     } else {
       const details = await DB.executeQuery($query, [
@@ -275,7 +275,7 @@ exports.updateVendor = async (req, res) => {
       return apiResponse.validationErrorWithData(
         res,
         "Operation failed",
-        "Vendor cannot be inactivated until removed from all data flows using this Vendor."
+        "Vendor cannot be updated until removed from other dataflows using this Vendor."
       );
     } else {
       const { vend_nm, vend_nm_stnd, active, extrnl_sys_nm, description } =

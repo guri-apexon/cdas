@@ -108,6 +108,7 @@ const ImportWithUsers = () => {
     return (
       <div className="user">
         <AutocompleteV2
+          matchFrom="any"
           size="small"
           fullWidth
           forcePopupIcon
@@ -115,18 +116,30 @@ const ImportWithUsers = () => {
           source={userList}
           value={row[key]}
           onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
-          error={row.alreadyExist || (!initialRender && !row[key])}
+          error={
+            row.alreadyExist ||
+            (!initialRender &&
+              !row[key] &&
+              row.index !== tableUsers[tableUsers.length - 1].index)
+          }
           helperText={
             row.alreadyExist
-              ? "This user is already assigned"
-              : !initialRender && !row[key] && "Required"
+              ? "This user already has assignments. Please select a different user to continue."
+              : !initialRender &&
+                !row[key] &&
+                row.index !== tableUsers[tableUsers.length - 1].index &&
+                "Required"
           }
         />
       </div>
     );
   };
   const EditableRoles = ({ row, column: { accessor: key } }) => {
-    if (row.user === null) return false;
+    if (
+      row.user === null &&
+      row.index === tableUsers[tableUsers.length - 1]?.index
+    )
+      return false;
     return (
       <div className="role">
         <AutocompleteV2
@@ -146,7 +159,11 @@ const ImportWithUsers = () => {
     );
   };
   const DeleteUserCell = ({ row }) => {
-    if (row.user === null) return false;
+    if (
+      row.user === null &&
+      row.index === tableUsers[tableUsers.length - 1]?.index
+    )
+      return false;
     const { index, onDelete } = row;
     return (
       <IconButton size="small" onClick={() => onDelete(index)}>
@@ -175,7 +192,7 @@ const ImportWithUsers = () => {
       const emptyRoles = usersRows.filter((x) => x.roles.length === 0);
       if (emptyRoles.length) {
         toast.showErrorMessage(
-          `Please fill roles for ${emptyRoles[0].user.email}`
+          `This assignment is incomplete. Please select a user and a role to continue.`
         );
         return false;
       }

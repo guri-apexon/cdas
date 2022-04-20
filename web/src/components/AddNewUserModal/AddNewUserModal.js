@@ -24,10 +24,12 @@ const AddNewUserModal = ({
   userList,
   roleLists,
   saveData,
+  studyId,
 }) => {
   const [openModal, setOpenModal] = useState(open);
   const [tableUsers, setTableUsers] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [initialRender, setInitialRender] = useState(true);
   const toast = useContext(MessageContext);
 
   const userInfo = getUserInfo();
@@ -73,6 +75,11 @@ const AddNewUserModal = ({
     // history.push("/study-setup");
   };
   const editRow = (e, value, reason, index, key) => {
+    if (value) {
+      setInitialRender(true);
+    } else {
+      setInitialRender(false);
+    }
     let alreadyExist;
     let disableRole;
     if (key === "user" && value) {
@@ -138,10 +145,20 @@ const AddNewUserModal = ({
         source={userList}
         value={row[key]}
         onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
-        error={row.alreadyExist}
+        matchFrom="any"
+        error={
+          row.alreadyExist ||
+          (!initialRender &&
+            !row[key] &&
+            row.index !== tableUsers[tableUsers.length - 1].index)
+        }
         helperText={
-          row.alreadyExist &&
-          "This user already as assignments. Please select a different user to continue"
+          row.alreadyExist
+            ? "This user already has assignments. Please select a different user to continue"
+            : !initialRender &&
+              !row[key] &&
+              row.index !== tableUsers[tableUsers.length - 1].index &&
+              "Required"
         }
       />
     );
@@ -198,15 +215,21 @@ const AddNewUserModal = ({
     const usersRows = [...tableUsers].slice(0, -1);
     if (!usersRows.length) {
       toast.showErrorMessage("Add some users to proceed");
-
+      return false;
+    }
+    if (usersRows.find((x) => x.user == null)) {
+      setInitialRender(!initialRender);
+      setTableUsers([...tableUsers]);
+      toast.showErrorMessage("Please fill user or remove blank rows");
       return false;
     }
     const emptyRoles = usersRows.filter((x) => x.roles.length === 0);
     if (emptyRoles.length) {
       toast.showErrorMessage(
-        `Please fill roles for ${
-          emptyRoles[0] && emptyRoles[0].user && emptyRoles[0].user.email
-        }`
+        `This assignment is incomplete. Please select a user and a role to continue.`
+        // `Please fill roles for ${
+        //   emptyRoles[0] && emptyRoles[0].user && emptyRoles[0].user.email
+        // }`
       );
       return false;
     }
@@ -222,6 +245,7 @@ const AddNewUserModal = ({
         return newObj;
       });
     const response = await addAssignUser({
+      studyId,
       protocol,
       loginId: userInfo.user_id,
       data,

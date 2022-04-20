@@ -173,7 +173,13 @@ const CreateRole = () => {
       messageContext.showErrorMessage("Role Name shouldn't be empty");
       return false;
     }
-    if (!reqBody.policies.length) {
+    if (roleName.length > 255) {
+      messageContext.showErrorMessage(
+        "Role name should not allowed to save with more than 255 characters. Max length is 255"
+      );
+      return false;
+    }
+    if (!reqBody.policies.length && active) {
       messageContext.showErrorMessage(
         "Please complete all mandatory information and then click Save"
       );

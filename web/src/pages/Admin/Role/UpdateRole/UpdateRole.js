@@ -211,7 +211,7 @@ const UpdateRole = () => {
       messageContext.showErrorMessage("Role Name shouldn't be empty");
       return false;
     }
-    if (!policies.filter((x) => x.selected).length) {
+    if (!policies.filter((x) => x.selected).length && active) {
       messageContext.showErrorMessage(
         "Please complete all mandatory information and then click Save"
       );
