@@ -1,5 +1,5 @@
 import axios from "axios";
-import getCookie from "./index";
+import { getUserId, getUserToken } from "./index";
 
 export default function tokenInterceptors() {
   if (process.env.REACT_APP_ENV !== "local") {
@@ -10,10 +10,10 @@ export default function tokenInterceptors() {
       if (process.env.REACT_APP_ENV === "local") {
         config.params = {
           ...config.params,
-          user_id: getCookie("user.id"),
+          user_id: getUserId(),
         };
       } else {
-        const userDataToken = getCookie("user.token");
+        const userDataToken = getUserToken();
         if (userDataToken === "") {
           window.location.href = process.env.REACT_APP_APP_LAUNCH_URL;
           throw new axios.Cancel("No Token redirecting the user to SDA.");
