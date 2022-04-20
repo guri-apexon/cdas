@@ -7,6 +7,7 @@ import {
   STUDY_NOTONBOARDED_STATUS,
   STUDY_NOTONBOARDED_SUCCESS,
   STUDY_NOTONBOARDED_FAILURE,
+  SELECTED_STUDY_DATA,
 } from "../../constants";
 
 export const initialState = {
@@ -14,6 +15,11 @@ export const initialState = {
   notOnBoardedStudyStatus: {},
   loading: false,
   exportStudy: null,
+  selectedStudy: {},
+  uniquePhase: [],
+  uniqueProtocolStatus: [],
+  uniqueThbtcArea: [],
+  uniqueObs: [],
 };
 
 const StudyBoardReducer = (state = initialState, action) =>
@@ -30,8 +36,10 @@ const StudyBoardReducer = (state = initialState, action) =>
       case STUDYBOARD_FETCH_SUCCESS:
         newState.loading = false;
         newState.studyboardData = action.studyboardData;
-        newState.uniqurePhase = action.uniqurePhase;
+        newState.uniquePhase = action.uniqurePhase;
         newState.uniqueProtocolStatus = action.uniqueProtocolStatus;
+        newState.uniqueThbtcArea = action.uniqueThbtcArea;
+        newState.uniqueObs = action.uniqueObs;
         newState.studyboardFetchSuccess = true;
         newState.studyboardFetchFailure = false;
         break;
@@ -39,6 +47,10 @@ const StudyBoardReducer = (state = initialState, action) =>
       case STUDY_NOTONBOARDED_SUCCESS:
         newState.loading = false;
         newState.notOnBoardedStudyStatus = action.notOnBoardedStudyStatus;
+        break;
+
+      case SELECTED_STUDY_DATA:
+        newState.selectedStudy = action.study;
         break;
 
       case STUDY_NOTONBOARDED_FAILURE:

@@ -1,6 +1,5 @@
 /* eslint-disable consistent-return */
 /* eslint-disable no-script-url */
-/* eslint-disable react/button-has-type */
 import React, { useContext, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useHistory } from "react-router-dom";
@@ -17,15 +16,15 @@ import Paper from "apollo-react/components/Paper";
 import Box from "apollo-react/components/Box";
 import Grid from "apollo-react/components/Grid";
 import Modal from "apollo-react/components/Modal";
-import "../OnboardStudy.scss";
 import AutocompleteV2 from "apollo-react/components/AutocompleteV2";
-import { MessageContext } from "../../../components/Providers/MessageProvider";
+import { MessageContext } from "../../components/Providers/MessageProvider";
 import {
   fetchRoles,
   getOnboardUsers,
   onboardStudy,
-} from "../../../services/ApiServices";
-import { getUserInfo } from "../../../utils";
+} from "../../services/ApiServices";
+import { getUserInfo } from "../../utils";
+import "./OnboardStudyWithUsers.scss";
 
 const Label = ({ children }) => {
   return (
@@ -52,6 +51,7 @@ const ImportWithUsers = () => {
   const [userList, setUserList] = useState([]);
   const [roleLists, setroleLists] = useState([]);
   const [selectedStudy, setSelectedStudy] = useState({});
+  const [initialRender, setInitialRender] = useState(true);
   const breadcrumpItems = [
     { href: "javascript:void(0)", onClick: () => history.push("/launchpad") },
     {
@@ -63,15 +63,28 @@ const ImportWithUsers = () => {
       title: "Assign Users",
     },
   ];
+  const getUserObj = () => {
+    return {
+      index: Math.max(...tableUsers.map((o) => o.index), 0) + 1,
+      user: null,
+      roles: [],
+    };
+  };
   const editRow = (e, value, reason, index, key) => {
     let alreadyExist;
+    if (value) {
+      setInitialRender(true);
+    } else {
+      setInitialRender(false);
+    }
     if (key === "user" && value) {
       alreadyExist = tableUsers.find((x) => x.user?.email === value.email)
         ? true
         : false;
     }
-    setTableUsers((rows) =>
-      rows.map((row) => {
+    const tableIndex = tableUsers.findIndex((el) => el.index === index);
+    setTableUsers((rows) => {
+      const newRows = rows.map((row) => {
         if (row.index === index) {
           if (key === "user") {
             return { ...row, [key]: value, alreadyExist };
@@ -79,45 +92,78 @@ const ImportWithUsers = () => {
           return { ...row, [key]: value };
         }
         return row;
-      })
-    );
+      });
+      if (
+        !alreadyExist &&
+        key === "user" &&
+        value &&
+        tableIndex + 1 === tableUsers.length
+      ) {
+        return [...newRows, getUserObj()];
+      }
+      return newRows;
+    });
   };
   const EditableUser = ({ row, column: { accessor: key } }) => {
     return (
-      <AutocompleteV2
-        size="small"
-        fullWidth
-        forcePopupIcon
-        popupIcon={<SearchIcon fontSize="extraSmall" />}
-        source={userList}
-        value={row[key]}
-        onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
-        error={row.alreadyExist || !row[key]}
-        helperText={
-          row.alreadyExist
-            ? "This user is already assigned"
-            : !row[key] && "Required"
-        }
-      />
+      <div className="user">
+        <AutocompleteV2
+          matchFrom="any"
+          size="small"
+          fullWidth
+          forcePopupIcon
+          popupIcon={<SearchIcon fontSize="extraSmall" />}
+          source={userList}
+          value={row[key]}
+          onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
+          error={
+            row.alreadyExist ||
+            (!initialRender &&
+              !row[key] &&
+              row.index !== tableUsers[tableUsers.length - 1].index)
+          }
+          helperText={
+            row.alreadyExist
+              ? "This user already has assignments. Please select a different user to continue."
+              : !initialRender &&
+                !row[key] &&
+                row.index !== tableUsers[tableUsers.length - 1].index &&
+                "Required"
+          }
+        />
+      </div>
     );
   };
   const EditableRoles = ({ row, column: { accessor: key } }) => {
+    if (
+      row.user === null &&
+      row.index === tableUsers[tableUsers.length - 1]?.index
+    )
+      return false;
     return (
-      <AutocompleteV2
-        size="small"
-        fullWidth
-        multiple
-        forcePopupIcon
-        chipColor="white"
-        source={roleLists}
-        value={row[key]}
-        onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
-        error={!row[key]}
-        helperText={!row[key] && "Required"}
-      />
+      <div className="role">
+        <AutocompleteV2
+          size="small"
+          fullWidth
+          multiple
+          forcePopupIcon
+          showCheckboxes
+          chipColor="white"
+          source={roleLists}
+          value={row[key]}
+          onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
+          error={!row[key]}
+          helperText={!row[key] && "Required"}
+        />
+      </div>
     );
   };
   const DeleteUserCell = ({ row }) => {
+    if (
+      row.user === null &&
+      row.index === tableUsers[tableUsers.length - 1]?.index
+    )
+      return false;
     const { index, onDelete } = row;
     return (
       <IconButton size="small" onClick={() => onDelete(index)}>
@@ -127,23 +173,26 @@ const ImportWithUsers = () => {
   };
 
   const importStudy = async (assign) => {
+    const usersRows = [...tableUsers].slice(0, -1);
     if (assign) {
-      if (!tableUsers.length) {
+      if (!usersRows.length) {
         toast.showErrorMessage("Add some users to proceed");
         return false;
       }
-      if (tableUsers.find((x) => x.user == null)) {
+      if (usersRows.find((x) => x.user == null)) {
+        setInitialRender(!initialRender);
+        setTableUsers([...tableUsers]);
         toast.showErrorMessage("Please fill user or remove blank rows");
         return false;
       }
-      if (tableUsers.find((x) => x.alreadyExist)) {
+      if (usersRows.find((x) => x.alreadyExist)) {
         toast.showErrorMessage("Please remove duplicate values");
         return false;
       }
-      const emptyRoles = tableUsers.filter((x) => x.roles.length === 0);
+      const emptyRoles = usersRows.filter((x) => x.roles.length === 0);
       if (emptyRoles.length) {
         toast.showErrorMessage(
-          `Please fill roles for ${emptyRoles[0].user.email}`
+          `This assignment is incomplete. Please select a user and a role to continue.`
         );
         return false;
       }
@@ -156,17 +205,16 @@ const ImportWithUsers = () => {
       userId: userInfo.user_id,
     };
     if (assign) {
-      reqBody.users = tableUsers;
+      reqBody.users = usersRows;
     }
     setLoading(true);
     const response = await onboardStudy(reqBody);
     setLoading(false);
-    if (response.status === "BAD_REQUEST") {
-      toast.showErrorMessage(response.message, 0);
-    }
     if (response.status === "OK") {
       toast.showSuccessMessage(response.message, 0);
       history.push("/study-setup");
+    } else {
+      toast.showErrorMessage(response.message, 0);
     }
   };
   const importWithAssign = () => {
@@ -176,7 +224,7 @@ const ImportWithUsers = () => {
     const confirm = {
       title: "Cancel Import?",
       subtitle: "This study has not been onboarded.",
-      cancelLabel: "Cancel Import",
+      cancelLabel: "Cancel import",
       cancelAction: () => {
         history.push("/study-setup");
       },
@@ -245,13 +293,17 @@ const ImportWithUsers = () => {
       customCell: DeleteUserCell,
     },
   ];
-  const CustomHeader = ({ addNewUser }) => {
+  const CustomHeader = ({ focusLastUser }) => {
     return (
       <Button
         size="small"
         variant="secondary"
         icon={PlusIcon}
-        onClick={addNewUser}
+        onClick={(e) => {
+          document
+            .querySelector(".user-table tr:nth-last-child(2) .user input")
+            .focus();
+        }}
       >
         Add new users
       </Button>
@@ -259,16 +311,14 @@ const ImportWithUsers = () => {
   };
   const addNewUser = () => {
     if (tableUsers.find((x) => x.user == null)) {
+      setInitialRender(!initialRender);
+      setTableUsers([...tableUsers]);
       toast.showErrorMessage(
         "Please fill user or remove blank rows to add new row"
       );
       return false;
     }
-    const userObj = {
-      index: Math.max(...tableUsers.map((o) => o.index), 0) + 1,
-      user: null,
-      roles: [],
-    };
+    const userObj = getUserObj();
     setTableUsers((u) => [...u, userObj]);
   };
   const onDelete = (index) => {
@@ -399,6 +449,7 @@ const ImportWithUsers = () => {
         <Modal
           open={confirmObj ? true : false}
           onClose={() => setConfirmObj(null)}
+          disableBackdropClick="true"
           className="save-confirm"
           variant="warning"
           title={confirmObj.title}

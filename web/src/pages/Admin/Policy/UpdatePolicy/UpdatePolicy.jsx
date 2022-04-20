@@ -15,6 +15,7 @@ import Tab from "apollo-react/components/Tab";
 import Tabs from "apollo-react/components/Tabs";
 import Badge from "apollo-react/components/Badge";
 import Modal from "apollo-react/components/Modal";
+import { AppContext } from "../../../../components/Providers/AppProvider";
 import {
   updatePolicyService,
   fetchProducts,
@@ -24,17 +25,23 @@ import { MessageContext } from "../../../../components/Providers/MessageProvider
 import PermissionTable from "./PermissionTable";
 import { getUserInfo, inputAlphaNumeric } from "../../../../utils";
 
-const ConfirmModal = React.memo(({ open, cancel, submitPolicy, loading }) => {
+const ConfirmModal = React.memo(({ open, cancel, closeModal, loading }) => {
   return (
     <Modal
       open={open}
       className="save-confirm"
+      disableBackdropClick="true"
+      onClose={closeModal}
       variant="warning"
-      title="Save before exiting?"
-      message="You have unsaved changes. Do you want to save before exiting?"
+      title="Lose your work?"
+      message="your unsaved changes will be lost. Are you sure you want to leave this page?"
       buttonProps={[
-        { label: "Don't save", onClick: cancel, disabled: loading },
-        { label: "Save", onClick: submitPolicy, disabled: loading },
+        { label: "Leave without saving", onClick: cancel, disabled: loading },
+        {
+          label: "Stay on this page",
+          onClick: closeModal,
+          disabled: loading,
+        },
       ]}
       id="neutral"
     />
@@ -52,9 +59,21 @@ const UpdatePolicy = () => {
   const [policyDesc, setPolicyDesc] = useState("");
   const [permissions, setPermissions] = useState({});
   const [products, setProducts] = useState([]);
+  const [updatePolicyPermission, setPolicyUpdatePermission] = useState(false);
   const messageContext = useContext(MessageContext);
+  const appContext = useContext(AppContext);
+  const permissionsPolicy = appContext.user;
   const userInfo = getUserInfo();
   const history = useHistory();
+  const filterMethod = (updatepolicyPermissions) => {
+    const filterpolicyPermissions = updatepolicyPermissions.filter(
+      (item) => item.featureName === "Policy management "
+    )[0];
+    if (filterpolicyPermissions.allowedPermission.includes("Update")) {
+      setPolicyUpdatePermission(true);
+    }
+  };
+
   const handleActive = (e, checked) => {
     setActive(checked);
   };
@@ -203,17 +222,21 @@ const UpdatePolicy = () => {
   };
   useEffect(() => {
     fetchPermissions();
+    if (permissionsPolicy.permissions.length > 0) {
+      filterMethod(permissionsPolicy.permissions);
+    }
   }, [products]);
   useEffect(() => {
     getProducts();
   }, []);
+  const closeModal = () => setConfirm(false);
   return (
     <div className="update-policy-wrapper">
       <ConfirmModal
         open={confirm}
         cancel={cancelEdit}
         loading={loading}
-        submitPolicy={submitPolicy}
+        closeModal={closeModal}
       />
       <Box className="top-content">
         <BreadcrumbsUI className="breadcrump" items={breadcrumpItems} />
@@ -224,8 +247,9 @@ const UpdatePolicy = () => {
             checked={active}
             onChange={handleActive}
             size="small"
+            disabled={!updatePolicyPermission}
           />
-          {active && (
+          {updatePolicyPermission && (
             <ButtonGroup
               className="action-buttons"
               alignItems="right"
@@ -250,7 +274,7 @@ const UpdatePolicy = () => {
         <Grid item xs={3}>
           <Box>
             <div className="flex update-sidebar flexWrap">
-              {!active && (
+              {!updatePolicyPermission && (
                 <Button
                   onClick={() => history.goBack()}
                   className="back-btn"
@@ -265,13 +289,16 @@ const UpdatePolicy = () => {
                 {policyName}
               </Typography>
               <br />
-              {active ? (
+              {updatePolicyPermission && active ? (
                 <>
                   <TextField
                     id="policyName"
                     size="small"
                     label="Policy Name"
                     value={policyName}
+                    inputProps={{
+                      maxLength: 255,
+                    }}
                     placeholder="Name your policy"
                     onChange={handleChange}
                   />
@@ -333,7 +360,7 @@ const UpdatePolicy = () => {
                 }
                 return (
                   <PermissionTable
-                    disabled={!active}
+                    disabled={!active || !updatePolicyPermission}
                     messageContext={messageContext}
                     title={product.prod_nm}
                     updateData={updateData}

@@ -3,15 +3,21 @@ import { useLocation, useHistory } from "react-router-dom";
 import { lazy, Suspense, useState, useEffect } from "react";
 import Loader from "apollo-react/components/Loader";
 
-import { getCookie } from "./utils";
-import TopNavbar from "./components/TopNavbar/TopNavbar";
+import { getUserId } from "./utils";
+import AppHeader from "./components/AppHeader/AppHeader";
 import AppFooter from "./components/AppFooter/AppFooter";
 import Logout from "./pages/Logout/Logout";
 
+const DynamicProducts = lazy(() =>
+  import("./pages/DynamicProducts/DynamicProducts")
+);
 const LaunchPad = lazy(() => import("./pages/LaunchPad/LaunchPad"));
 const StudySetup = lazy(() => import("./pages/StudySetup/StudySetup"));
 const ImportWithUsers = lazy(() =>
-  import("./pages/OnboardStudy/AddUsers/ImportWithUsers")
+  import("./pages/OnboardStudy/OnboardStudyWithUsers")
+);
+const ExistingUsers = lazy(() =>
+  import("./pages/OnboardStudy/AddUsers/ExistingUsers")
 );
 const PolicyList = lazy(() =>
   import("./pages/Admin/Policy/ListPolicy/PolicyList")
@@ -35,7 +41,6 @@ const VendorList = lazy(() =>
 const CreateVendor = lazy(() =>
   import("./pages/Admin/Vendor/CreateVendor/CreateVendor")
 );
-
 const Empty = () => <></>;
 
 const RoutesWrapper = () => {
@@ -45,7 +50,7 @@ const RoutesWrapper = () => {
   const location = useLocation();
 
   useEffect(() => {
-    const userId = getCookie("user.id");
+    const userId = getUserId(true);
     // console.log("Wrapper-props:", JSON.stringify(props));
     if (userId) {
       setLoggedIn(true);
@@ -55,16 +60,7 @@ const RoutesWrapper = () => {
   }, [history]);
 
   useEffect(() => {
-    const userId = getCookie("user.id");
-    if (userId) {
-      setLoggedIn(true);
-    } else {
-      setLoggedIn(false);
-    }
-  }, [history]);
-
-  useEffect(() => {
-    const userId = getCookie("user.id");
+    const userId = getUserId(true);
     // console.log(userId);
     if (userId) {
       if (location.pathname === "/checkAuthentication") {
@@ -84,16 +80,28 @@ const RoutesWrapper = () => {
     <Suspense fallback={<Loader isInner />}>
       {loggedIn ? (
         <div className="page-wrapper">
-          <TopNavbar setLoggedIn={setLoggedIn} />
+          <AppHeader setLoggedIn={setLoggedIn} />
           <Switch>
             <Route path="/launchpad" exact render={() => <LaunchPad />} />
             <Route
-              path="/analytics"
+              path="/cdi"
               exact
               render={() => <Redirect to="/launchpad" />}
             />
+            <Route path="/study-setup" exact render={() => <StudySetup />} />
             <Route
-              path="/cdi"
+              path="/ExistingStudyAssignment"
+              exact
+              render={() => <ExistingUsers />}
+            />
+            <Route path="/cdm" exact render={() => <DynamicProducts />} />
+            <Route path="/cdr" exact render={() => <DynamicProducts />} />
+            <Route path="/ca" exact render={() => <DynamicProducts />} />
+            <Route path="/dsw" exact render={() => <DynamicProducts />} />
+            <Route path="/vendor/list" exact render={() => <VendorList />} />
+
+            <Route
+              path="/analytics"
               exact
               render={() => <Redirect to="/launchpad" />}
             />
@@ -129,28 +137,6 @@ const RoutesWrapper = () => {
               exact
               render={() => <Redirect to="/launchpad" />}
             />
-            <Route path="/study-setup" exact render={() => <StudySetup />} />
-            <Route
-              path="/cdm"
-              exact
-              render={() => <Redirect to="/launchpad" />}
-            />
-            <Route
-              path="/cdr"
-              exact
-              render={() => <Redirect to="/launchpad" />}
-            />
-            <Route
-              path="/ca"
-              exact
-              render={() => <Redirect to="/launchpad" />}
-            />
-            <Route
-              path="/dsw"
-              exact
-              render={() => <Redirect to="/launchpad" />}
-            />
-            <Route path="/vendor/list" exact render={() => <VendorList />} />
             <Route
               path="/vendor/edit/:id"
               exact

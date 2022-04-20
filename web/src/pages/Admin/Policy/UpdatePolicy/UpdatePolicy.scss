@@ -15,6 +15,7 @@
         box-shadow: none;
         font-size: 13px;
         font-weight: 600;
+        justify-content: normal;
     }
     .product-tabs{
         .MuiTab-root{
@@ -55,7 +56,4 @@
             z-index: 2;
         }
     }
-}
-.save-confirm{
-    max-width: 320px;
 }

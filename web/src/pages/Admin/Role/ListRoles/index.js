@@ -1,6 +1,6 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import { Typography } from "@material-ui/core";
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect, useContext } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Paper from "apollo-react/components/Paper";
 import { useHistory } from "react-router-dom";
@@ -21,12 +21,14 @@ import {
   TextFieldFilter,
   createStringArraySearchFilter,
   createStringArrayIncludedFilter,
+  getUserInfo,
 } from "../../../../utils/index";
 import "./index.scss";
 import {
   fetchRoles,
   updateStatus,
 } from "../../../../store/actions/RolesActions";
+import { AppContext } from "../../../../components/Providers/AppProvider";
 
 const ProductsCell = ({ row, column: { accessor } }) => {
   const rowValue = row[accessor].split(",").sort().join(", ");
@@ -44,13 +46,36 @@ const ListRoles = () => {
   const Roles = useSelector((state) => state.Roles);
   const [open, setOpen] = useState(false);
   const [curRow, setCurRow] = useState({});
+  const appContext = useContext(AppContext);
+  const { permissions } = appContext.user;
+  const [createRolePermission, setCreateRolePermission] = useState(false);
+  const [readRolePermission, setReadRolePermission] = useState(false);
+  const [updateRolePermission, setUpdateRolePermission] = useState(false);
   const dispatch = useDispatch();
+  const userInfo = getUserInfo();
 
   const fetchData = () => {
     dispatch(fetchRoles());
   };
-
+  // .log(permissions);
+  const filterMethod = (rolePermissions) => {
+    const filterrolePermissions = rolePermissions.filter(
+      (item) => item.featureName === "Role management"
+    )[0];
+    if (filterrolePermissions.allowedPermission.includes("Read")) {
+      setReadRolePermission(true);
+    }
+    if (filterrolePermissions.allowedPermission.includes("Update")) {
+      setUpdateRolePermission(true);
+    }
+    if (filterrolePermissions.allowedPermission.includes("Create")) {
+      setCreateRolePermission(true);
+    }
+  };
   useEffect(() => {
+    if (permissions.length > 0) {
+      filterMethod(permissions);
+    }
     fetchData();
   }, []);
 
@@ -62,8 +87,10 @@ const ListRoles = () => {
   }, [Roles]);
 
   const goToRole = (e, id) => {
-    e.preventDefault();
-    history.push(`/role-management/${id}`);
+    if (readRolePermission) {
+      e.preventDefault();
+      history.push(`/role-management/${id}`);
+    }
   };
 
   const handleMouseOut = () => {
@@ -80,7 +107,11 @@ const ListRoles = () => {
     try {
       // eslint-disable-next-line no-underscore-dangle
       const _status = status === "Active" ? 0 : 1;
-      const payload = { role_id: id, role_stat: _status };
+      const payload = {
+        role_id: id,
+        role_stat: _status,
+        userId: userInfo.user_id,
+      };
       await dispatch(updateStatus(payload));
       await dispatch(fetchRoles());
     } catch (error) {
@@ -91,25 +122,30 @@ const ListRoles = () => {
   const StatusCell = ({ row, column: { accessor } }) => {
     const data = row[accessor];
     const id = row.role_id;
-    if (data === "active") {
-      return (
-        <Tooltip title="Active" disableFocusListener>
-          <Switch
-            className="table-checkbox"
-            checked={true}
-            onChange={(e) => handleStatus(e, id, "Active")}
-            size="small"
-          />
-        </Tooltip>
-      );
-    }
+    const stat = data === "Active" ? true : false;
+    // if (data === "Active") {
+    //   return (
+    //     <Tooltip
+    //       title={data === "Active" ? "Active" : "Inactive"}
+    //       disableFocusListener
+    //     >
+    //       <Switch
+    //         className="table-checkbox"
+    //         checked={true}
+    //         onChange={(e) => handleStatus(e, id, "Active")}
+    //         size="small"
+    //       />
+    //     </Tooltip>
+    //   );
+    // }
     return (
-      <Tooltip title="Inactive" disableFocusListener>
+      <Tooltip title={stat ? "Active" : "Inactive"} disableFocusListener>
         <Switch
           className="table-checkbox"
-          checked={false}
-          onChange={(e) => handleStatus(e, id, "InActive")}
+          checked={stat}
+          onChange={(e) => handleStatus(e, id, data)}
           size="small"
+          disabled={!updateRolePermission}
         />
       </Tooltip>
     );
@@ -124,13 +160,18 @@ const ListRoles = () => {
           <Link
             onMouseOver={() => handleMouseOver(row)}
             onMouseOut={handleMouseOut}
+            disabled={!readRolePermission}
             onClick={(e) => goToRole(e, id)}
           >
             {`${rowValue.slice(0, 30)}  [...]`}
           </Link>
         );
       }
-      return <Link onClick={(e) => goToRole(e, id)}>{rowValue}</Link>;
+      return (
+        <Link disabled={!readRolePermission} onClick={(e) => goToRole(e, id)}>
+          {rowValue}
+        </Link>
+      );
     }
     return null;
   };
@@ -158,15 +199,17 @@ const ListRoles = () => {
 
   const CustomButtonHeader = ({ toggleFilters }) => (
     <div>
-      <Button
-        size="small"
-        variant="secondary"
-        icon={PlusIcon}
-        onClick={() => history.push("/create-role")}
-        style={{ marginRight: "8px", border: "none", boxShadow: "none" }}
-      >
-        Create new role
-      </Button>
+      {createRolePermission && (
+        <Button
+          size="small"
+          variant="secondary"
+          icon={PlusIcon}
+          onClick={() => history.push("/create-role")}
+          style={{ marginRight: "8px", border: "none", boxShadow: "none" }}
+        >
+          Create new role
+        </Button>
+      )}
       <Button
         size="small"
         variant="secondary"

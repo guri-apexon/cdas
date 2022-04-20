@@ -11,10 +11,12 @@ import Typography from "apollo-react/components/Typography";
 import Grid from "apollo-react/components/Grid";
 import Modal from "apollo-react/components/Modal";
 import Link from "apollo-react/components/Link";
+import Button from "apollo-react/components/Button";
 import Table, {
   createSelectFilterComponent,
   createStringSearchFilter,
   compareStrings,
+  compareNumbers,
 } from "apollo-react/components/Table";
 import { useHistory, useParams } from "react-router";
 import { MessageContext } from "../../../../components/Providers/MessageProvider";
@@ -33,6 +35,7 @@ import {
   updateRoleService,
 } from "../../../../services/ApiServices";
 import PolicySnapshot from "./PolicySnapshot";
+import { AppContext } from "../../../../components/Providers/AppProvider";
 
 const UpdateRole = () => {
   const dispatch = useDispatch();
@@ -49,7 +52,18 @@ const UpdateRole = () => {
   const [roleDesc, setRoleDesc] = useState("");
   const [policies, setPolicies] = useState([]);
   const [products, setProducts] = useState([]);
+  const appContext = useContext(AppContext);
+  const { permissions } = appContext.user;
+  const [RoleUpdatePermission, setUpdateRoleUpdatePermission] = useState(false);
   const userInfo = getUserInfo();
+  const filterMethod = (rolePermissions) => {
+    const filterrolePermissions = rolePermissions.filter(
+      (item) => item.featureName === "Role management"
+    )[0];
+    if (filterrolePermissions.allowedPermission.includes("Update")) {
+      setUpdateRoleUpdatePermission(true);
+    }
+  };
   const getPolicies = async () => {
     const roleDetails = await getRoleDetails(params.id);
     if (!roleDetails) {
@@ -57,7 +71,7 @@ const UpdateRole = () => {
     }
     setRoleName(roleDetails.role_nm);
     setRoleDesc(roleDetails.role_desc);
-    setActive(roleDetails.role_stat === "1");
+    setActive(roleDetails.role_stat === 1);
     const data = await getRolePolicies(params.id);
     setPageloaded(true);
     setProducts(data.uniqueProducts || []);
@@ -80,6 +94,7 @@ const UpdateRole = () => {
           checked={checked}
           type="checkbox"
           className="custom-checkbox"
+          disabled={!RoleUpdatePermission}
           onChange={setSelected}
         />
       </>
@@ -106,7 +121,8 @@ const UpdateRole = () => {
   const tableColumns = [
     {
       header: "Included",
-      accessor: "",
+      sortFunction: compareNumbers,
+      accessor: "selected",
       customCell: SelectionCell,
       width: "10%",
     },
@@ -120,14 +136,21 @@ const UpdateRole = () => {
       customCell: ({ row, column: { accessor } }) => {
         const data = row[accessor];
         if (data.length < 40) {
-          return <Link onClick={() => setSelectedPolicy(row)}>{data}</Link>;
+          if (RoleUpdatePermission) {
+            return <Link onClick={() => setSelectedPolicy(row)}>{data}</Link>;
+          }
+          return <span>{data}</span>;
         }
         return (
           <>
-            <Link onClick={() => setSelectedPolicy(row)}>
+            <Link
+              onClick={() => setSelectedPolicy(row)}
+              disabled={!RoleUpdatePermission}
+            >
               {data.slice(0, 20)}
             </Link>
             <Link
+              disabled={!RoleUpdatePermission}
               onMouseOver={() => setPeekRow(row)}
               onMouseOut={() => setPeekRow(null)}
             >
@@ -188,7 +211,7 @@ const UpdateRole = () => {
       messageContext.showErrorMessage("Role Name shouldn't be empty");
       return false;
     }
-    if (!policies.filter((x) => x.selected).length) {
+    if (!policies.filter((x) => x.selected).length && active) {
       messageContext.showErrorMessage(
         "Please complete all mandatory information and then click Save"
       );
@@ -223,6 +246,9 @@ const UpdateRole = () => {
       });
   };
   useEffect(() => {
+    if (permissions.length > 0) {
+      filterMethod(permissions);
+    }
     getPolicies();
   }, []);
   const getPolicyTable = React.useMemo(() => {
@@ -250,11 +276,11 @@ const UpdateRole = () => {
   const setConfirmCancel = () => {
     const confirm = {
       subtitle: "You has started the new role. Do you still want to cancel?",
-      cancelLabel: "Yes, Cancel it",
+      cancelLabel: "Yes, cancel it",
       cancelAction: () => {
         history.push("/role-management");
       },
-      submitLabel: "No, Let's Finish",
+      submitLabel: "No, let's finish",
     };
     setConfirmObj(confirm);
   };
@@ -269,9 +295,9 @@ const UpdateRole = () => {
       cancelLabel: "Redirect",
       cancelAction: () => {
         setSelectedPolicy(null);
-        history.push(`policy-management/${selectedPolicy.policyId}`);
+        history.push(`/policy-management/${selectedPolicy.policyId}`);
       },
-      submitLabel: "Ok, Leave it",
+      submitLabel: "Ok, leave it",
     };
     setConfirmObj(confirm);
   };
@@ -308,54 +334,78 @@ const UpdateRole = () => {
             className="inline-checkbox"
             checked={active}
             onChange={handleActive}
+            disabled={!RoleUpdatePermission}
             size="small"
           />
-          <ButtonGroup
-            alignItems="right"
-            buttonProps={[
-              {
-                label: "Cancel",
-                size: "small",
-                onClick: () => setConfirmCancel(),
-              },
-              {
-                label: "Save",
-                size: "small",
-                disabled: loading,
-                onClick: submitRole,
-              },
-            ]}
-          />
+          {RoleUpdatePermission && (
+            <ButtonGroup
+              alignItems="right"
+              buttonProps={[
+                {
+                  label: "Cancel",
+                  size: "small",
+                  onClick: () => setConfirmCancel(),
+                },
+                {
+                  label: "Save",
+                  size: "small",
+                  disabled: loading,
+                  onClick: submitRole,
+                },
+              ]}
+            />
+          )}
         </div>
       </Box>
       <Grid container spacing={2}>
         <Grid item xs={3}>
           <Box>
             <div className="flex create-sidebar flexWrap">
+              {!RoleUpdatePermission && (
+                <Button
+                  onClick={() => history.goBack()}
+                  className="back-btn"
+                  variant="primary"
+                  size="small"
+                  // icon={PlusIcon}
+                >
+                  &#x276E; Back to Role Management List
+                </Button>
+              )}
               <Typography variant="title1" className="b-font title">
                 {roleName}
               </Typography>
               <br />
-              <TextField
-                id="roleName"
-                size="small"
-                value={roleName}
-                label="Role Name"
-                placeholder="Name your role"
-                onChange={handleChange}
-              />
-              <TextField
-                id="roleDesc"
-                size="small"
-                value={roleDesc}
-                label="Role Description"
-                placeholder="Describe your role"
-                rows="18"
-                multiline={true}
-                minHeight={150}
-                sizeAdjustable
-                onChange={handleChange}
-              />
+              {RoleUpdatePermission ? (
+                <>
+                  <TextField
+                    id="roleName"
+                    size="small"
+                    value={roleName}
+                    label="Role Name"
+                    placeholder="Name your role"
+                    onChange={handleChange}
+                  />
+                  <TextField
+                    id="roleDesc"
+                    size="small"
+                    value={roleDesc}
+                    label="Role Description"
+                    placeholder="Describe your role"
+                    rows="18"
+                    multiline={true}
+                    minHeight={150}
+                    sizeAdjustable
+                    onChange={handleChange}
+                  />
+                </>
+              ) : (
+                <>
+                  <br />
+                  <Typography variant="body2">Role Description</Typography>
+                  <Typography className="b-font">{roleDesc}</Typography>
+                </>
+              )}
             </div>
           </Box>
         </Grid>

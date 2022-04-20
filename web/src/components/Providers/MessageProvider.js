@@ -4,7 +4,7 @@ export const MessageContext = createContext();
 
 const MessageProvider = ({ children }) => {
   const [errorMessage, setErrorMessage] = useState({
-    variant: "",
+    variant: "error",
     messages: "",
     show: false,
     top: 56,

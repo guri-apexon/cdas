@@ -12,6 +12,7 @@ import Typography from "apollo-react/components/Typography";
 import Grid from "apollo-react/components/Grid";
 import Tab from "apollo-react/components/Tab";
 import Tabs from "apollo-react/components/Tabs";
+import Modal from "apollo-react/components/Modal";
 import Badge from "apollo-react/components/Badge";
 import {
   addPolicyService,
@@ -22,9 +23,28 @@ import { MessageContext } from "../../../../components/Providers/MessageProvider
 import PermissionTable from "./PermissionTable";
 import { getUserInfo, inputAlphaNumeric } from "../../../../utils";
 
+const ConfirmModal = React.memo(({ open, cancel, closeModal, loading }) => {
+  return (
+    <Modal
+      open={open}
+      disableBackdropClick="true"
+      onClose={closeModal}
+      className="save-confirm"
+      variant="warning"
+      title="Lose your work?"
+      message="your unsaved changes will be lost. Are you sure you want to leave this page?"
+      buttonProps={[
+        { label: "Leave without saving", onClick: cancel, disabled: loading },
+        { label: "Stay on this page", onClick: closeModal, disabled: loading },
+      ]}
+      id="neutral"
+    />
+  );
+});
 const CreatePolicy = () => {
-  const [active, setActive] = useState(true);
+  const [active, setActive] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [confirm, setConfirm] = useState(false);
   const [currentTab, setCurrentTab] = useState(0);
   const [policyName, setPolicyName] = useState("");
   const [policyDesc, setPolicyDesc] = useState("");
@@ -39,7 +59,6 @@ const CreatePolicy = () => {
   const handleChangeTab = (event, v) => {
     setCurrentTab(v);
   };
-
   const breadcrumpItems = [
     { href: "javascript:void(0)", onClick: () => history.push("/launchpad") },
     {
@@ -62,6 +81,12 @@ const CreatePolicy = () => {
     };
     if (policyName === "") {
       messageContext.showErrorMessage("Policy Name shouldn't be empty");
+      return false;
+    }
+    if (policyName.length > 255) {
+      messageContext.showErrorMessage(
+        "Policy name should not allowed to save with more than 255 characters. Max length is 255"
+      );
       return false;
     }
     let atleastOneSelected = false;
@@ -105,6 +130,10 @@ const CreatePolicy = () => {
     } else if (e.target.id === "policyDesc") {
       setPolicyDesc(val);
     }
+  };
+
+  const cancelCreate = () => {
+    history.push("/policy-management");
   };
   const filterPermission = (arr) => {
     if (!arr) return [];
@@ -153,6 +182,7 @@ const CreatePolicy = () => {
       });
     }).length;
   };
+  const closeModal = () => setConfirm(false);
   useEffect(() => {
     fetchPermissions();
   }, [products]);
@@ -161,6 +191,12 @@ const CreatePolicy = () => {
   }, []);
   return (
     <div className="create-policy-wrapper">
+      <ConfirmModal
+        open={confirm}
+        cancel={cancelCreate}
+        loading={loading}
+        closeModal={closeModal}
+      />
       <Box className="top-content">
         <BreadcrumbsUI className="breadcrump" items={breadcrumpItems} />
         <div className="flex top-actions">
@@ -177,7 +213,7 @@ const CreatePolicy = () => {
               {
                 label: "Cancel",
                 size: "small",
-                onClick: () => history.push("/policy-management"),
+                onClick: setConfirm,
               },
               {
                 label: "Save",
@@ -202,6 +238,9 @@ const CreatePolicy = () => {
                 size="small"
                 label="Policy Name"
                 placeholder="Name your policy"
+                inputProps={{
+                  maxLength: 255,
+                }}
                 onChange={handleChange}
               />
               <TextField

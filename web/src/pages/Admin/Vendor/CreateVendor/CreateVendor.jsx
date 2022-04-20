@@ -39,6 +39,7 @@ const ConfirmModal = React.memo(({ open, cancel, stayHere, loading }) => {
       open={open}
       onClose={stayHere}
       className="save-confirm"
+      disableBackdropClick="true"
       variant="warning"
       title="Lose your work?"
       message="Your unsaved changes will be lost. Are you sure you want to leave this page?"
@@ -67,6 +68,7 @@ const CreateVendor = () => {
   const [vId, setVId] = useState("");
   const [vContacts, setVContacts] = useState([]);
   const [contacts, setContacts] = useState([]);
+  const [initialRender, setInitialRender] = useState(true);
   const messageContext = useContext(MessageContext);
   const userInfo = getUserInfo();
   const history = useHistory();
@@ -108,9 +110,11 @@ const CreateVendor = () => {
       setActive(true);
     } else if (isEditPage) {
       setVId(selectedVendor.vId);
-      setVESN(selectedVendor.vESN);
+      setVESN(selectedVendor.vESN ? selectedVendor.vESN : "");
       setVName(selectedVendor.vName);
-      setVDescription(selectedVendor.vDescription);
+      setVDescription(
+        selectedVendor.vDescription ? selectedVendor.vDescription : ""
+      );
       setActive(selectedVendor.vStatus === 1 ? true : false);
     }
     // console.log("inside update");
@@ -138,6 +142,7 @@ const CreateVendor = () => {
       userName: userInfo.firstName,
       vStatus: active ? 1 : 0,
     };
+    setInitialRender(false);
     if (vName === "") {
       messageContext.showErrorMessage("Vendor Name shouldn't be empty");
       return false;
@@ -232,9 +237,7 @@ const CreateVendor = () => {
       setDisableSave(false);
     }
   }, [contacts]);
-
   const vENSOptions = [...ensList];
-
   const handleSelection = (e) => {
     setVESN(e.target.value);
     updateChanges();
@@ -259,7 +262,12 @@ const CreateVendor = () => {
 
   const deleteAContact = (vCId) => {
     if (isEditPage) {
-      deleteVendorContact({ vId, vCId, userName: userInfo.firstName });
+      deleteVendorContact({
+        vId,
+        vCId,
+        userName: userInfo.firstName,
+        userId: userInfo.user_id,
+      });
     }
   };
 
@@ -326,15 +334,17 @@ const CreateVendor = () => {
                 label="Vendor Name"
                 placeholder="Name your vendor"
                 onChange={handleChange}
+                error={initialRender === false && !vName ? true : false}
               />
               <Select
                 size="small"
                 fullWidth
                 label="External System Name"
                 placeholder="Select system name"
+                value={vESN || ""}
                 canDeselect={false}
-                value={vESN}
                 onChange={(e) => handleSelection(e)}
+                error={initialRender === false && !vESN ? true : false}
               >
                 {vENSOptions.map((option) => (
                   <MenuItem key={option} value={option}>

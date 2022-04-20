@@ -32,7 +32,7 @@ import PolicySnapshot from "./PolicySnapshot";
 const CreateRole = () => {
   const dispatch = useDispatch();
   const history = useHistory();
-  const [active, setActive] = useState(true);
+  const [active, setActive] = useState(false);
   const [confirmObj, setConfirmObj] = useState(null);
   const [loading, setLoading] = useState(false);
   const [pageloaded, setPageloaded] = useState(false);
@@ -173,7 +173,13 @@ const CreateRole = () => {
       messageContext.showErrorMessage("Role Name shouldn't be empty");
       return false;
     }
-    if (!reqBody.policies.length) {
+    if (roleName.length > 255) {
+      messageContext.showErrorMessage(
+        "Role name should not allowed to save with more than 255 characters. Max length is 255"
+      );
+      return false;
+    }
+    if (!reqBody.policies.length && active) {
       messageContext.showErrorMessage(
         "Please complete all mandatory information and then click Save"
       );
@@ -230,11 +236,11 @@ const CreateRole = () => {
   const setConfirmCancel = () => {
     const confirm = {
       subtitle: "You has started the new role. Do you still want to cancel?",
-      cancelLabel: "Yes, Cancel it",
+      cancelLabel: "Yes, cancel it",
       cancelAction: () => {
         history.push("/role-management");
       },
-      submitLabel: "No, Let's Finish",
+      submitLabel: "No, let's finish",
     };
     setConfirmObj(confirm);
   };
@@ -262,6 +268,7 @@ const CreateRole = () => {
           <Modal
             open={confirmObj ? true : false}
             onClose={() => setConfirmObj(null)}
+            disableBackdropClick="true"
             className="save-confirm"
             variant="warning"
             title="Save before exiting?"

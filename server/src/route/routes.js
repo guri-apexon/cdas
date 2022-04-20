@@ -1,6 +1,6 @@
 const db = require("../config/db");
 const express = require("express");
-const authController = require("../controller/authController");
+const AuthController = require("../controller/AuthController");
 const StudyController = require("../controller/StudyController");
 const cron = require("node-cron");
 const CommonController = require("../controller/CommonController");
@@ -18,9 +18,9 @@ router.use(
   })
 );
 
-router.all("/sda", authController.authHandler);
+router.all("/sda", AuthController.authHandler);
 
-router.get("/logout", authController.logoutHandler);
+router.get("/logout", AuthController.logoutHandler);
 
 router.use("/v1/api/study/", studyRoute);
 router.use("/v1/api/policy/", policyRoute);

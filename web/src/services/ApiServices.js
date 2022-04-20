@@ -6,10 +6,11 @@ import {
   ROLES_LIST,
   STUDYSEARCH,
   VENDOR_BASE,
+  ASSIGN_BASE,
 } from "../constants";
-import { getCookie } from "../utils";
+import { getUserId } from "../utils";
 
-const userId = getCookie("user.id");
+const userId = getUserId();
 
 export const searchStudy = async (searchQuery = "") => {
   try {
@@ -304,6 +305,30 @@ export const onboardStudy = (reqBody) => {
   }
 };
 
+export const getRolesPermissions = () => {
+  try {
+    return new Promise((resolve, reject) => {
+      axios
+        .post(`${API_URL}/role/getUserRolesPermissions`, {
+          userId,
+          productName: "Admin",
+        })
+        .then((res) => {
+          resolve(res.data?.data || res.data);
+        })
+        .catch((err) => {
+          if (err.response?.data) {
+            resolve(err.response?.data);
+          } else {
+            resolve({ message: "Something went wrong" });
+          }
+        });
+    });
+  } catch (err) {
+    return console.log("Error", err);
+  }
+};
+
 export const userLogOut = () => {
   return axios
     .get(`${baseURL}/logout`)
@@ -313,4 +338,72 @@ export const userLogOut = () => {
     .catch((err) => {
       console.log(err);
     });
+};
+
+export const getAssignedUsers = async (protId) => {
+  try {
+    return new Promise((resolve, reject) => {
+      axios
+        .post(`${baseURL}/${ASSIGN_BASE}/list`, { protocol: protId })
+        .then((res) => {
+          resolve(res.data);
+        })
+        .catch((err) => {
+          reject(err.response.data);
+        });
+    });
+  } catch (err) {
+    return console.log("Error", err);
+  }
+};
+
+export const addAssignUser = async (reqBody) => {
+  try {
+    return new Promise((resolve, reject) => {
+      axios
+        .post(`${baseURL}/${ASSIGN_BASE}/add`, reqBody)
+        .then((res) => {
+          resolve(res.data);
+        })
+        .catch((err) => {
+          reject(err.response.data);
+        });
+    });
+  } catch (err) {
+    return console.log("Error", err);
+  }
+};
+
+export const updateAssignUser = async (reqBody) => {
+  try {
+    return new Promise((resolve, reject) => {
+      axios
+        .post(`${baseURL}/${ASSIGN_BASE}/update`, reqBody)
+        .then((res) => {
+          resolve(res.data);
+        })
+        .catch((err) => {
+          reject(err.response.data);
+        });
+    });
+  } catch (err) {
+    return console.log("Error", err);
+  }
+};
+
+export const deleteAssignUser = async (reqBody) => {
+  try {
+    return new Promise((resolve, reject) => {
+      axios
+        .post(`${baseURL}/${ASSIGN_BASE}/delete`, reqBody)
+        .then((res) => {
+          resolve(res.data);
+        })
+        .catch((err) => {
+          reject(err.response.data);
+        });
+    });
+  } catch (err) {
+    return console.log("Error", err);
+  }
 };

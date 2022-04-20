@@ -72,15 +72,16 @@ const AddStudyModal = ({ open, onClose }) => {
   const allBtnArr = [
     ...btnArr,
     {
-      label: "Import and Assign later",
+      label: "Import and assign later",
       size: "small",
       variant: "secondary",
       onClick: importStudy,
       disabled: loading,
     },
     {
-      label: "Import and Assign Users",
+      label: "Import and assign users",
       size: "small",
+      className: "asign-user-btn",
       onClick: importWithUser,
     },
   ];
@@ -91,8 +92,7 @@ const AddStudyModal = ({ open, onClose }) => {
 
   const FormatCell = ({ row, column: { accessor } }) => {
     const greyedOut = ["In Progress", "Success"].includes(row.ob_stat);
-    const innerEl = <Highlighted text={row[accessor]} highlight={searchTxt} />;
-    return (
+    const innerEl = (
       // eslint-disable-next-line jsx-a11y/click-events-have-key-events
       <div
         className={`result-row ${greyedOut ? "greyedout" : ""}`}
@@ -100,18 +100,23 @@ const AddStudyModal = ({ open, onClose }) => {
         role="menu"
         tabIndex={0}
       >
+        <Highlighted text={row[accessor]} highlight={searchTxt} />
+      </div>
+    );
+    return (
+      <>
         {greyedOut ? (
           <Tooltip
             variant="dark"
             title="This study has been imported into CDAS"
             placement="top"
           >
-            <span>{innerEl}</span>
+            {innerEl}
           </Tooltip>
         ) : (
           innerEl
         )}
-      </div>
+      </>
     );
   };
 
@@ -208,7 +213,7 @@ const AddStudyModal = ({ open, onClose }) => {
               </div>
             </>
           ) : (
-            <>
+            <div style={{ minHeight: "378px" }} className="search-study">
               <Typography variant="caption">Search for a study</Typography>
               <Search
                 // onKeyDown={searchTrigger}
@@ -234,7 +239,7 @@ const AddStudyModal = ({ open, onClose }) => {
                   }}
                 />
               )}
-            </>
+            </div>
           )}
         </div>
       </Modal>

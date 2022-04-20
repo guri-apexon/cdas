@@ -1,20 +1,15 @@
 @import "../../styles/customscroll.scss";
-#addStudyModal {
+#addNewUserModal {
   z-index: 999 !important;
   div[class^="MuiFormControl-root-"] {
     margin-top: 0;
     margin-bottom: 24px;
   }
   .custom-modal {
-    // max-width: 624px;
+    max-width: 960px;
     margin: 0;
     .modal-content {
-      width: 548px;
-      .search-study{
-        input{
-          cursor: pointer;
-        }
-      }
+      width: 910px;
       thead {
         padding-right: 16px;
         display: block;
@@ -42,7 +37,7 @@
       td {
         color: #000;
         font-weight: 500;
-        padding: 0;
+        padding: 5px;
         &:first-child {
           .result-row {
             padding-left: 15px;
@@ -85,20 +80,18 @@
   .MuiDialogContent-root {
     @extend .customscroll;
     padding-bottom: 0;
-    overflow-x: hidden;
-  };
-
+  }
   .MuiDialogActions-root {
     margin-top: 20px;
     > div {
       width: 100%;
       justify-content: flex-end;
     }
-    button.cancel-btn {
-      margin-right: auto;
-    }
-    button.asign-user-btn {
-      margin-left: 16px;
-    }
+  }
+  .hide {
+    display: none;
+  }
+  .show {
+    display: block;
   }
 }

@@ -1,5 +1,6 @@
+/* eslint-disable no-restricted-syntax */
 /* eslint-disable jsx-a11y/anchor-is-valid */
-import React, { useState, useEffect } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Table, {
   createSelectFilterComponent,
@@ -16,15 +17,17 @@ import { useHistory } from "react-router-dom";
 import Switch from "apollo-react/components/Switch";
 import Typography from "apollo-react/components/Typography";
 import Progress from "../../../../components/Progress";
-
-// import { MessageContext } from "../../../components/MessageProvider";
-
-import { getPolicyList } from "../../../../store/actions/PolicyActions";
+import { AppContext } from "../../../../components/Providers/AppProvider";
+import {
+  getPolicyList,
+  updateStatus,
+} from "../../../../store/actions/PolicyActions";
 
 import {
   TextFieldFilter,
   createStringArraySearchFilter,
   createStringArrayIncludedFilter,
+  getUserInfo,
 } from "../../../../utils/index";
 
 import "./PolicyList.scss";
@@ -33,6 +36,26 @@ const statusList = ["Active", "Inactive"];
 
 const PolicyList = () => {
   const history = useHistory();
+  const appContext = useContext(AppContext);
+  const { permissions } = appContext.user;
+  const [createPermission, setCreatePermission] = useState(false);
+  const [readPermission, setReadPermission] = useState(false);
+  const [updatePermission, setUpdatePermission] = useState(false);
+  const userInfo = getUserInfo();
+  const filterMethod = (pPermissions) => {
+    const filterpolicyPermissions = pPermissions.filter(
+      (item) => item.featureName === "Policy management "
+    )[0];
+    if (filterpolicyPermissions.allowedPermission.includes("Read")) {
+      setReadPermission(true);
+    }
+    if (filterpolicyPermissions.allowedPermission.includes("Update")) {
+      setUpdatePermission(true);
+    }
+    if (filterpolicyPermissions.allowedPermission.includes("Create")) {
+      setCreatePermission(true);
+    }
+  };
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState([]);
   const [tableRows, setTableRows] = useState([]);
@@ -69,12 +92,14 @@ const PolicyList = () => {
       }
       return e;
     });
-    // console.log("unique", Sorted, uniquePolicies);
     return Sorted;
   };
 
   useEffect(() => {
     getData();
+    if (permissions.length > 0) {
+      filterMethod(permissions);
+    }
   }, []);
 
   useEffect(() => {
@@ -92,50 +117,51 @@ const PolicyList = () => {
   // const messageContext = useContext(MessageContext);
 
   const goToPolicy = (e, id) => {
-    e.preventDefault();
-    history.push(`/policy-management/${id}`);
+    if (readPermission) {
+      e.preventDefault();
+      history.push(`/policy-management/${id}`);
+    }
   };
 
-  const handleInActivate = (e, id) => {
+  const handleStatusUpdate = async (e, id, status) => {
     e.preventDefault();
-    const selectedData = tableRows.filter((d) => d.policyId === id);
-    const unSelectedData = tableRows.filter((d) => d.policyId !== id);
-    selectedData[0].policyStatus = "Inactive";
-    setTableRows([...unSelectedData, ...selectedData]);
-    // console.log("tableRows", tableRows, products, id);
-  };
+    try {
+      const updatePolicyStatus = status === "Active" ? "Inactive" : "Active";
+      const payload = {
+        policyId: id,
+        policyStatus: updatePolicyStatus,
+        userId: userInfo.user_id,
+      };
+      await dispatch(updateStatus(payload));
+    } catch (error) {
+      console.log("error", error);
+    }
 
-  const handleActivate = (e, id) => {
-    e.preventDefault();
-    const selectedData = tableRows.filter((d) => d.policyId === id);
-    const unSelectedData = tableRows.filter((d) => d.policyId !== id);
-    selectedData[0].policyStatus = "Active";
-    setTableRows([...unSelectedData, ...selectedData]);
-    // console.log("tableRows", tableRows, products, id);
+    // const selectedData = tableRows.filter((d) => d.policyId === id);
+    // const unSelectedData = tableRows.filter((d) => d.policyId !== id);
+    // if (selectedData[0].policyStatus === "Active") {
+    //   selectedData[0].policyStatus = "Inactive";
+    // } else {
+    //   selectedData[0].policyStatus = "Active";
+    // }
+
+    // setTableRows([...unSelectedData, ...selectedData]);
   };
 
   const StatusCell = ({ row, column: { accessor } }) => {
     const data = row[accessor];
     const id = row.policyId;
-    if (data === "Active") {
-      return (
-        <Tooltip title="Active" disableFocusListener>
-          <Switch
-            checked={true}
-            className="table-checkbox"
-            onChange={(e) => handleInActivate(e, id)}
-            size="small"
-          />
-        </Tooltip>
-      );
-    }
     return (
-      <Tooltip title="Inactive" disableFocusListener>
+      <Tooltip
+        title={data === "Active" ? "Active" : "Inactive"}
+        disableFocusListener
+      >
         <Switch
-          checked={false}
+          checked={data === "Active" ? true : false}
           className="table-checkbox"
-          onChange={(e) => handleActivate(e, id)}
+          onChange={(e) => handleStatusUpdate(e, id, data)}
           size="small"
+          disabled={!updatePermission}
         />
       </Tooltip>
     );
@@ -158,13 +184,18 @@ const PolicyList = () => {
         <Link
           onMouseOver={() => handleMouseOver(row)}
           onMouseOut={handleMouseOut}
+          disabled={!readPermission}
           onClick={(e) => goToPolicy(e, id)}
         >
           {`${rowValue.slice(0, 30)}  [...]`}
         </Link>
       );
     }
-    return <Link onClick={(e) => goToPolicy(e, id)}>{rowValue}</Link>;
+    return (
+      <Link onClick={(e) => goToPolicy(e, id)} disabled={!readPermission}>
+        {rowValue}
+      </Link>
+    );
   };
 
   const DespCell = ({ row, column: { accessor } }) => {
@@ -187,15 +218,17 @@ const PolicyList = () => {
 
   const CustomButtonHeader = ({ toggleFilters }) => (
     <div>
-      <Button
-        size="small"
-        variant="secondary"
-        icon={PlusIcon}
-        onClick={() => history.push("/create-policy")}
-        style={{ marginRight: "8px", border: "none", boxShadow: "none" }}
-      >
-        Create new policy
-      </Button>
+      {createPermission && (
+        <Button
+          size="small"
+          variant="secondary"
+          icon={PlusIcon}
+          onClick={() => history.push("/create-policy")}
+          style={{ marginRight: "8px", border: "none", boxShadow: "none" }}
+        >
+          Create new policy
+        </Button>
+      )}
       <Button
         size="small"
         variant="secondary"

@@ -4,7 +4,8 @@ const axios = require("axios");
 const btoa = require("btoa");
 const apiResponse = require("../helpers/apiResponse");
 const Logger = require("../config/logger");
-const userController = require("../controller/UserController");
+const userController = require("./UserController");
+const helpers = require("../helpers/customFunctions");
 
 const getToken = (code, clientId, clientSecret, callbackUrl, ssoUrl) => {
   return new Promise((resolve, reject) => {
@@ -46,6 +47,7 @@ exports.authHandler = async (req, res) => {
     const CLIENT_SECRET = process.env.SDA_CLIENT_SECRET;
     const CALLBACK_URL = process.env.SDA_CALLBACK_URL;
     const SSO_URL = process.env.SDA_SSO_URL;
+    const loginMaxMinutes = (parseInt(process.env.SESSION_EXP_TIME || 24*60)) * 60000;
 
     const body = await getToken(
       code,
@@ -65,7 +67,7 @@ exports.authHandler = async (req, res) => {
     const get_usr = await userController.getUser(resp.data.userid);
     if (!get_usr || get_usr <= 0) {
       const user_detail = {
-        usr_id: resp.data.userid,
+        usr_id: resp.data.userid?.toLowerCase(),
         usr_fst_nm: resp.data.given_name,
         usr_lst_nm: resp.data.family_name,
         usr_mail_id: resp.data.email,
@@ -74,7 +76,12 @@ exports.authHandler = async (req, res) => {
       };
       await userController.addUser(user_detail);
     }
+    let lastLoginTime = 'first_time';
     const last_login = await userController.getLastLoginTime(resp.data.userid);
+
+    if (last_login) {
+      lastLoginTime = moment(moment.utc(last_login[0].login_tm).format()).local().unix();
+    }
     // Set the cookies
     const loginDetails = {
       usrId: resp.data.userid,
@@ -84,20 +91,20 @@ exports.authHandler = async (req, res) => {
         .utc()
         .format("YYYY-MM-DD HH:mm:ss"),
     };
-    if (!last_login || last_login <= 0) {
-      res.cookie("user.last_login_ts", moment().unix());
-    } else {
-      const stillUtc = moment.utc(last_login[0].login_tm).format();
-      res.cookie("user.last_login_ts", moment(stillUtc).local().unix());
-    }
     await userController.addLoginActivity(loginDetails);
     //console.log(loginAct, "loginAt")
-    res.cookie("user.token", response.id_token);
-    res.cookie("user.id", resp.data.userid);
-    res.cookie("user.first_name", resp.data.given_name);
-    res.cookie("user.last_name", resp.data.family_name);
-    res.cookie("user.email", resp.data.email);
-    res.cookie("user.current_login_ts", moment().unix());
+    const domainUrlObj = new URL(REACT_APP_URL);
+    const domainName = helpers.getDomainWithoutSubdomain(REACT_APP_URL);
+    const cookieDomainObj = {domain: domainName, maxAge: loginMaxMinutes, secure: domainUrlObj?.protocol==="https:" };
+
+    console.log("lastLoginTime", lastLoginTime);
+    res.cookie("user.last_login_ts", lastLoginTime, cookieDomainObj);
+    res.cookie("user.token", response.id_token, cookieDomainObj);
+    res.cookie("user.id", resp.data.userid?.toLowerCase(), cookieDomainObj);
+    res.cookie("user.first_name", resp.data.given_name, cookieDomainObj);
+    res.cookie("user.last_name", resp.data.family_name, cookieDomainObj);
+    res.cookie("user.email", resp.data.email, cookieDomainObj);
+    res.cookie("user.current_login_ts", moment().unix(), cookieDomainObj);
 
     // Prepare for an Upsert
     const userDetails = {

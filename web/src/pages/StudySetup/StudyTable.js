@@ -1,4 +1,8 @@
+/* eslint-disable no-restricted-globals */
+/* eslint-disable jsx-a11y/anchor-is-valid */
 import React, { useState, useContext, useEffect } from "react";
+import { Link, useHistory } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import moment from "moment";
 import * as XLSX from "xlsx";
 import { pick } from "lodash";
@@ -17,7 +21,6 @@ import DownloadIcon from "apollo-react-icons/Download";
 import FilterIcon from "apollo-react-icons/Filter";
 import RefreshIcon from "apollo-react-icons/Refresh";
 import EllipsisVertical from "apollo-react-icons/EllipsisVertical";
-import Link from "apollo-react/components/Link";
 import IconButton from "apollo-react/components/IconButton";
 import IconMenuButton from "apollo-react/components/IconMenuButton";
 import { ReactComponent as InProgressIcon } from "../../components/Icons/Icon_In-progress_72x72.svg";
@@ -25,29 +28,12 @@ import { ReactComponent as InFailureIcon } from "../../components/Icons/Icon_Fai
 import Progress from "../../components/Progress";
 import { MessageContext } from "../../components/Providers/MessageProvider";
 import {
-  createAutocompleteFilter,
   TextFieldFilter,
   IntegerFilter,
   DateFilter,
-  createStringArraySearchFilter,
+  createStringArrayIncludedFilter,
 } from "../../utils/index";
-
-const columnsToAdd = [
-  {
-    header: "Therapeutic Area",
-    accessor: "therapeuticarea",
-    sortFunction: compareStrings,
-    filterFunction: createStringSearchFilter("therapeuticarea"),
-    filterComponent: TextFieldFilter,
-  },
-  {
-    header: "Project Code",
-    accessor: "projectcode",
-    sortFunction: compareStrings,
-    filterFunction: createStringSearchFilter("projectcode"),
-    filterComponent: TextFieldFilter,
-  },
-];
+import { updateSelectedStudy } from "../../store/actions/StudyBoardAction";
 
 const menuItems = [
   { text: "Study assignments" },
@@ -57,34 +43,22 @@ const menuItems = [
 const ActionCell = ({ row }) => {
   return (
     <div style={{ display: "flex", justifyContent: "end" }}>
-      <IconMenuButton size="small" menuItems={menuItems}>
+      <IconMenuButton size="small" id="action" menuItems={menuItems}>
         <EllipsisVertical />
       </IconMenuButton>
     </div>
   );
 };
 
-const LinkCell = ({ row, column: { accessor } }) => {
-  const rowValue = row[accessor];
-  return (
-    // eslint-disable-next-line jsx-a11y/anchor-is-valid
-    <Link onClick={() => console.log(`link clicked ${rowValue}`)}>
-      {rowValue}
-    </Link>
-  );
-};
-
 const DateCell = ({ row, column: { accessor } }) => {
   const rowValue = row[accessor];
-  const date =
-    rowValue && moment(rowValue, "DD-MMM-YYYY").isValid()
-      ? moment(rowValue).format("DD-MMM-YYYY")
-      : moment(rowValue).format("DD-MMM-YYYY");
+  const date = rowValue ? moment(rowValue).format("DD-MMM-YYYY") : "";
+  // rowValue && moment(rowValue).isSame(moment(), "day")
+  //   ? moment(rowValue).format("DD-MMM-YYYY hh:mm A")
+  //   : moment(rowValue).format("DD-MMM-YYYY");
 
   return <span>{date}</span>;
 };
-
-const obs = ["Failed", "Success", "In Progress"];
 
 const obIcons = {
   Failed: InFailureIcon,
@@ -115,21 +89,34 @@ const SelectiveCell = ({ row, column: { accessor } }) => {
   );
 };
 
-export default function StudyTable({
-  studyData,
-  studyboardData,
-  refreshData,
-  selectedFilter,
-}) {
+export default function StudyTable({ studyData, studyboardData, refreshData }) {
   const [loading, setLoading] = useState(true);
   const [rowsPerPageRecord, setRowPerPageRecord] = useState(10);
   const [pageNo, setPageNo] = useState(0);
   const [sortedColumnValue, setSortedColumnValue] = useState("dateadded");
-  const [sortOrderValue, setSortOrderValue] = useState("asc");
+  const [sortOrderValue, setSortOrderValue] = useState("desc");
   const [inlineFilters, setInlineFilters] = useState([]);
   const messageContext = useContext(MessageContext);
-
+  const dispatch = useDispatch();
+  const history = useHistory();
   const status = studyData.uniqueProtocolStatus;
+  const thbtcArea = studyData.uniqueThbtcArea;
+  const obs = studyData.uniqueObs;
+  const phases = studyData.uniquePhase;
+  const handleExisting = (row) => {
+    history.push("/ExistingStudyAssignment");
+    dispatch(updateSelectedStudy(row));
+  };
+  const LinkCell = ({ row, column: { accessor } }) => {
+    const rowValue = row[accessor];
+    return (
+      <>
+        <Link to="#" onClick={() => handleExisting(row)}>
+          {rowValue}
+        </Link>
+      </>
+    );
+  };
 
   const CustomButtonHeader = ({ toggleFilters, rows, downloadFile }) => (
     <div>
@@ -153,7 +140,25 @@ export default function StudyTable({
       </Button>
     </div>
   );
-
+  const columnsToAdd = [
+    {
+      header: "Therapeutic Area",
+      accessor: "therapeuticarea",
+      sortFunction: compareStrings,
+      filterFunction: createStringArrayIncludedFilter("therapeuticarea"),
+      filterComponent: createSelectFilterComponent(thbtcArea, {
+        size: "small",
+        multiple: true,
+      }),
+    },
+    {
+      header: "Project Code",
+      accessor: "projectcode",
+      sortFunction: compareStrings,
+      filterFunction: createStringSearchFilter("projectcode"),
+      filterComponent: TextFieldFilter,
+    },
+  ];
   const columns = [
     {
       header: "Protocol Number",
@@ -173,34 +178,24 @@ export default function StudyTable({
       header: "Phase",
       accessor: "phase",
       sortFunction: compareStrings,
-      filterFunction: createStringArraySearchFilter("phase"),
-      filterComponent: createAutocompleteFilter(
-        Array.from(
-          new Set(
-            studyboardData
-              .map((r) => ({ label: r.phase }))
-              .map((item) => item.label)
-          )
-        )
-          .map((label) => {
-            return { label };
-          })
-          .sort((a, b) => {
-            if (a.label < b.label) {
-              return -1;
-            }
-            if (a.label > b.label) {
-              return 1;
-            }
-            return 0;
-          })
-      ),
+      filterFunction: createStringArrayIncludedFilter("phase"),
+      filterComponent: createSelectFilterComponent(phases, {
+        size: "small",
+        multiple: true,
+      }),
+
+      // filterFunction: createStringArrayIncludedFilter("phase"),
+      // filterComponent: createFilterList(phases),
     },
     {
       header: "Protocol Status",
       accessor: "protocolstatus",
       sortFunction: compareStrings,
-      filterFunction: createStringArraySearchFilter("protocolstatus"),
+      // filterFunction: createStringArrayIncludedFilter("protocolstatus"),
+      // filterComponent: createFilterList(status),
+      // filterFunction: createStringSearchFilter("protocolstatus"),
+      // filterComponent: TextFieldFilter,
+      filterFunction: createStringArrayIncludedFilter("protocolstatus"),
       filterComponent: createSelectFilterComponent(status, {
         size: "small",
         multiple: true,
@@ -227,28 +222,15 @@ export default function StudyTable({
       accessor: "onboardingprogress",
       customCell: SelectiveCell,
       sortFunction: compareStrings,
-      filterFunction: createStringArraySearchFilter("onboardingprogress"),
-      filterComponent: createAutocompleteFilter(
-        Array.from(
-          new Set(
-            studyboardData
-              .map((r) => ({ label: r.onboardingprogress }))
-              .map((item) => item.label)
-          )
-        )
-          .map((label) => {
-            return { label };
-          })
-          .sort((a, b) => {
-            if (a.label < b.label) {
-              return -1;
-            }
-            if (a.label > b.label) {
-              return 1;
-            }
-            return 0;
-          })
-      ),
+      // filterFunction: createStringArrayIncludedFilter("onboardingprogress"),
+      // filterComponent: createFilterList(obs),
+      // filterFunction: createStringSearchFilter("onboardingprogress"),
+      // filterComponent: TextFieldFilter,
+      filterFunction: createStringArrayIncludedFilter("onboardingprogress"),
+      filterComponent: createSelectFilterComponent(obs, {
+        size: "small",
+        multiple: true,
+      }),
     },
     {
       header: "Assignment Count",
@@ -287,14 +269,16 @@ export default function StudyTable({
   }, [studyData.loading, studyboardData, studyData.studyboardFetchSuccess]);
 
   const exportToCSV = (exportData, headers, fileName) => {
-    // console.log("data for export", exportData, headers, fileName);
     const wb = XLSX.utils.book_new();
     let ws = XLSX.worksheet;
-    const from = pageNo * rowsPerPageRecord;
-    const to = from + rowsPerPageRecord;
+    let from = pageNo * rowsPerPageRecord;
+    let to = from + rowsPerPageRecord;
+    if (rowsPerPageRecord === "All") {
+      from = 0;
+      to = exportData.length;
+    }
     const newData = exportData.slice(from, to);
     newData.unshift(headers);
-    console.log("data", from, rowsPerPageRecord, newData);
     ws = XLSX.utils.json_to_sheet(newData, { skipHeader: true });
     XLSX.utils.book_append_sheet(wb, ws, "studylist");
     XLSX.writeFile(wb, fileName);
@@ -332,7 +316,6 @@ export default function StudyTable({
   const downloadFile = async (e) => {
     const fileExtension = ".xlsx";
     const fileName = `StudyList_${moment(new Date()).format("DDMMYYYY")}`;
-    // console.log("inDown", exportHeader);
     const tempObj = {};
     const temp = tableColumns
       .slice(0, -1)
@@ -392,7 +375,7 @@ export default function StudyTable({
               hasScroll={true}
               maxHeight="600px"
               initialSortedColumn="dateadded"
-              initialSortOrder="asc"
+              initialSortOrder="desc"
               sortedColumn={sortedColumnValue}
               sortOrder={sortOrderValue}
               rowsPerPageOptions={[10, 50, 100, "All"]}

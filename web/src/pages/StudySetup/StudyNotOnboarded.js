@@ -77,14 +77,18 @@ export default function StudyNotOnboarded({
                 className={`in-progress-box ${
                   status === "In Progress" ? "selected" : null
                 }`}
-                onClick={() => selectedStatus("In Progress")}
+                onClick={() =>
+                  selectedFilter === "In Progress"
+                    ? selectedStatus("")
+                    : selectedStatus("In Progress")
+                }
               >
                 <div className="full-width">
                   <InProgressIcon />
                   <Typography
                     variant="title1"
                     gutterBottom
-                    style={{ color: "#015FF1" }}
+                    style={{ color: "#10558a" }}
                   >
                     {`${totalInProgress} In-progress`}
                   </Typography>
@@ -97,7 +101,11 @@ export default function StudyNotOnboarded({
                 className={`failure-box ${
                   status === "Failed" ? "selected" : null
                 }`}
-                onClick={() => selectedStatus("Failed")}
+                onClick={() =>
+                  selectedFilter === "Failed"
+                    ? selectedStatus("")
+                    : selectedStatus("Failed")
+                }
               >
                 <div className="full-width">
                   <InFailureIcon />
@@ -106,7 +114,7 @@ export default function StudyNotOnboarded({
                     gutterBottom
                     style={{ color: "#E20000" }}
                   >
-                    {`${totalFailures} Failures`}
+                    {`${totalFailures} Failed`}
                   </Typography>
                 </div>
               </Paper>

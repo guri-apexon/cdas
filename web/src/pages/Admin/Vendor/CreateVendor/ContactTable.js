@@ -70,7 +70,7 @@ const EditableCell = ({ row, column: { accessor: key, header } }) => {
 };
 
 const EmailEditableCell = ({ row, column: { accessor: key, header } }) => {
-  const { isStarted } = row;
+  const { isStarted, email } = row;
   return row.editMode ? (
     <TextField
       size="small"
@@ -79,10 +79,11 @@ const EmailEditableCell = ({ row, column: { accessor: key, header } }) => {
       type="email"
       placeholder={header}
       onChange={(e) => row.editEmail(row.vCId, key, e.target.value)}
-      error={isStarted && !re.test(row[key])}
+      error={isStarted && !re.test(row[key]) && email.length > 0}
       helperText={
-        (isStarted && !row[key] && "Required") ||
-        (isStarted && !re.test(row[key]) && "Invalid Email Format")
+        email.length > 0 &&
+        ((isStarted && !row[key] && "Required") ||
+          (isStarted && !re.test(row[key]) && "Invalid Email Format"))
       }
       {...fieldStyles}
     />
@@ -143,13 +144,14 @@ const TableEditableAll = ({ updateData, deleteAContact }) => {
   const [rows, setRows] = useState(initialRows);
   const [editedRows, setEditedRows] = useState(initialRows);
   const vendor = useSelector((state) => state.vendor);
+  const [currentVcid, setCurrentVcid] = useState(-1);
   const { isEditPage, isCreatePage, selectedContacts } = vendor;
 
   const addAContact = () => {
     setEditedRows((rw) => [
       ...rw,
       {
-        vCId: rw.length + 1,
+        vCId: currentVcid - 1,
         name: "",
         email: "",
         isEmailValid: false,
@@ -158,6 +160,7 @@ const TableEditableAll = ({ updateData, deleteAContact }) => {
         isNew: true,
       },
     ]);
+    setCurrentVcid((val) => val - 1);
   };
 
   useEffect(() => {
@@ -219,7 +222,6 @@ const TableEditableAll = ({ updateData, deleteAContact }) => {
   };
 
   const editMode = true;
-
   return (
     <Table
       title="Vendor Contacts"
@@ -239,7 +241,7 @@ const TableEditableAll = ({ updateData, deleteAContact }) => {
       height="480px"
       tablePaginationProps={{
         labelDisplayedRows: ({ from, to, count }) =>
-          `${count === 1 ? "Items" : "Items"} ${from}-${to} of ${count}`,
+          `${count === 1 ? "Item" : "Items"} ${from}-${to} of ${count}`,
         truncate: true,
       }}
       CustomHeader={(props) => (
