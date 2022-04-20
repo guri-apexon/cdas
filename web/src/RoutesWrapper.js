@@ -3,7 +3,7 @@ import { useLocation, useHistory } from "react-router-dom";
 import { lazy, Suspense, useState, useEffect } from "react";
 import Loader from "apollo-react/components/Loader";
 
-import { getCookie } from "./utils";
+import { getUserId } from "./utils";
 import AppHeader from "./components/AppHeader/AppHeader";
 import AppFooter from "./components/AppFooter/AppFooter";
 import Logout from "./pages/Logout/Logout";
@@ -50,7 +50,7 @@ const RoutesWrapper = () => {
   const location = useLocation();
 
   useEffect(() => {
-    const userId = getCookie("user.id");
+    const userId = getUserId(true);
     // console.log("Wrapper-props:", JSON.stringify(props));
     if (userId) {
       setLoggedIn(true);
@@ -60,16 +60,7 @@ const RoutesWrapper = () => {
   }, [history]);
 
   useEffect(() => {
-    const userId = getCookie("user.id");
-    if (userId) {
-      setLoggedIn(true);
-    } else {
-      setLoggedIn(false);
-    }
-  }, [history]);
-
-  useEffect(() => {
-    const userId = getCookie("user.id");
+    const userId = getUserId(true);
     // console.log(userId);
     if (userId) {
       if (location.pathname === "/checkAuthentication") {

@@ -65,6 +65,30 @@ export function deleteAllCookies() {
   return true;
 }
 
+export const getUserToken = () => {
+  return getCookie("user.token");
+};
+
+let logoutSetTimeout = null;
+const setLogoutTimeout = () => {
+  if (!logoutSetTimeout) {
+    logoutSetTimeout = setTimeout(() => {
+      console.log("Succesfully login");
+    }, 10000);
+  }
+};
+
+export function getUserId(preventRedirect) {
+  const userId = getCookie("user.id");
+  // if (preventRedirect && userId) {
+  //   setLogoutTimeout();
+  // }
+  if (!userId && !preventRedirect) {
+    window.location.reload();
+  }
+  return userId;
+}
+
 export function getUserInfo() {
   return {
     fullName: decodeURIComponent(`${getCookie("user.first_name")} 
@@ -73,7 +97,7 @@ export function getUserInfo() {
     lastName: getCookie("user.last_name"),
     userEmail: decodeURIComponent(getCookie("user.email")),
     lastLogin: getLastLogin(),
-    user_id: getCookie("user.id"),
+    user_id: getUserId(),
   };
 }
 
