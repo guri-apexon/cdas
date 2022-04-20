@@ -226,7 +226,7 @@ const AddNewUserModal = ({
     const emptyRoles = usersRows.filter((x) => x.roles.length === 0);
     if (emptyRoles.length) {
       toast.showErrorMessage(
-        `This assignment is incomplete.  Please select a user and a role to continue.`
+        `This assignment is incomplete. Please select a user and a role to continue.`
         // `Please fill roles for ${
         //   emptyRoles[0] && emptyRoles[0].user && emptyRoles[0].user.email
         // }`

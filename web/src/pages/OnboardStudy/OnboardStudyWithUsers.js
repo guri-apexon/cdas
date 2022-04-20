@@ -192,7 +192,7 @@ const ImportWithUsers = () => {
       const emptyRoles = usersRows.filter((x) => x.roles.length === 0);
       if (emptyRoles.length) {
         toast.showErrorMessage(
-          `This assignment is incomplete.  Please select a user and a role to continue.`
+          `This assignment is incomplete. Please select a user and a role to continue.`
         );
         return false;
       }
