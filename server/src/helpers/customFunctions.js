@@ -43,14 +43,18 @@ exports.stringToBoolean = (string) => {
   }
 };
 
-exports.BooleanValTostring = (string) => {
+const stringToBoolean = (exports.stringToBoolean = (string) => {
   switch (string?.toString().toLowerCase().trim()) {
     case "true":
-      return 1;
+    case "yes":
+    case "1":
+      return true;
     case "false":
+    case "no":
+    case "0":
     case null:
-      return 0;
+      return false;
     default:
-      return 0;
+      return false;
   }
-};
+});

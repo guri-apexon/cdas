@@ -128,7 +128,7 @@ exports.createVendor = async (req, res) => {
       vName || Vendor_Name_Stnd__c,
       vNStd || Vendor_Name_Stnd__c || vName,
       vDescription || Description,
-      vStatus || helpers.BooleanValTostring(Active_Flag__c) ? 1 : 0,
+      vStatus || helpers.stringToBoolean(Active_Flag__c) ? 1 : 0,
       vESN || External_System_Name__c,
       userId || null,
       curDate,
