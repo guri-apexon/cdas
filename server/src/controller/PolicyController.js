@@ -20,7 +20,7 @@ exports.createPolicy =async function (req, res) {
       currentTime,
     ];
  
-    const {rows} = await DB.executeQuery(`SELECT * FROM  ${schemaName}.policy where UPPER(plcy_nm) = UPPER('${policyName}')`);
+    const {rows} = await DB.executeQuery(`SELECT plcy_nm FROM  ${schemaName}.policy where UPPER(plcy_nm) = UPPER('${policyName}')`);
    if(rows&&rows.length>0){
     return apiResponse.ErrorResponse(res, "Policy Name should be unique - Please update the name and Save again");
    }
