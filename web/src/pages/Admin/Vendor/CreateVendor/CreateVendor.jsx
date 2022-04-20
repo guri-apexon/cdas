@@ -68,6 +68,7 @@ const CreateVendor = () => {
   const [vId, setVId] = useState("");
   const [vContacts, setVContacts] = useState([]);
   const [contacts, setContacts] = useState([]);
+  const [initialRender, setInitialRender] = useState(true);
   const messageContext = useContext(MessageContext);
   const userInfo = getUserInfo();
   const history = useHistory();
@@ -141,6 +142,7 @@ const CreateVendor = () => {
       userName: userInfo.firstName,
       vStatus: active ? 1 : 0,
     };
+    setInitialRender(false);
     if (vName === "") {
       messageContext.showErrorMessage("Vendor Name shouldn't be empty");
       return false;
@@ -332,6 +334,7 @@ const CreateVendor = () => {
                 label="Vendor Name"
                 placeholder="Name your vendor"
                 onChange={handleChange}
+                error={initialRender === false && !vName ? true : false}
               />
               <Select
                 size="small"
@@ -341,6 +344,7 @@ const CreateVendor = () => {
                 value={vESN || ""}
                 canDeselect={false}
                 onChange={(e) => handleSelection(e)}
+                error={initialRender === false && !vESN ? true : false}
               >
                 {vENSOptions.map((option) => (
                   <MenuItem key={option} value={option}>

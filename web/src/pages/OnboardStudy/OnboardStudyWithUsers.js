@@ -108,6 +108,7 @@ const ImportWithUsers = () => {
     return (
       <div className="user">
         <AutocompleteV2
+          matchFrom="any"
           size="small"
           fullWidth
           forcePopupIcon
@@ -191,7 +192,7 @@ const ImportWithUsers = () => {
       const emptyRoles = usersRows.filter((x) => x.roles.length === 0);
       if (emptyRoles.length) {
         toast.showErrorMessage(
-          `Please fill roles for ${emptyRoles[0].user.email}`
+          `This assignment is incomplete. Please select a user and a role to continue.`
         );
         return false;
       }
