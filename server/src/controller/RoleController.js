@@ -298,8 +298,7 @@ exports.updateRole = async function (req, res) {
           if((!Array.isArray(response)))response=[response]
           for(let el of response){
             const policy= el.rows&&el.rows[0]
-            if(policy){
-              console.log("comming to policy audit table")
+            if(policy){    
               const oldValue = policy.act_flg == 1 ? 0 : 1;
             
               updatedPolicies.push(DB.executeQuery(logQuery, [

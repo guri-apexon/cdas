@@ -79,7 +79,7 @@ exports.updatePolicy = async function (req, res) {
     const { policyName, policyDesc, permissions, userId, status, policyId } =
       req.body;
       const { rows } = await DB.executeQuery(
-        `SELECT * FROM  ${schemaName}.policy where UPPER(plcy_nm) = UPPER('${policyName}')`
+        `SELECT plcy_nm FROM  ${schemaName}.policy where UPPER(plcy_nm) = UPPER('${policyName}')`
       );
       if (rows && rows.length > 0) {
         if (rows.length === 1 && rows[0].plcy_id === policyId) {
