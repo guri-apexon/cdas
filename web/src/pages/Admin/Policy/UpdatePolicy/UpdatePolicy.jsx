@@ -296,6 +296,9 @@ const UpdatePolicy = () => {
                     size="small"
                     label="Policy Name"
                     value={policyName}
+                    inputProps={{
+                      maxLength: 255,
+                    }}
                     placeholder="Name your policy"
                     onChange={handleChange}
                   />

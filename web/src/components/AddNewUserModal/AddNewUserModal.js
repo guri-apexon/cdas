@@ -145,6 +145,7 @@ const AddNewUserModal = ({
         source={userList}
         value={row[key]}
         onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
+        matchFrom="any"
         error={
           row.alreadyExist ||
           (!initialRender &&
@@ -225,9 +226,10 @@ const AddNewUserModal = ({
     const emptyRoles = usersRows.filter((x) => x.roles.length === 0);
     if (emptyRoles.length) {
       toast.showErrorMessage(
-        `Please fill roles for ${
-          emptyRoles[0] && emptyRoles[0].user && emptyRoles[0].user.email
-        }`
+        `This assignment is incomplete. Please select a user and a role to continue.`
+        // `Please fill roles for ${
+        //   emptyRoles[0] && emptyRoles[0].user && emptyRoles[0].user.email
+        // }`
       );
       return false;
     }

@@ -282,6 +282,7 @@ const ExistingUsers = () => {
       header: "User",
       accessor: "user",
       customCell: UsersCell,
+      sortFunction: compareStrings,
       filterFunction: createStringSearchFilter("user"),
       filterComponent: TextFieldFilter,
       width: "50%",
@@ -390,6 +391,8 @@ const ExistingUsers = () => {
                   editMode: editedRow.uniqueId === row.uniqueId,
                   editedRow,
                 }))}
+                initialSortedColumn="user"
+                initialSortOrder="asc"
                 rowProps={{ hover: false }}
                 initialSortedColumn="user"
                 initialSortOrder="asc"

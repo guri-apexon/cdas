@@ -160,6 +160,12 @@ exports.onboardStudy = async function (req, res) {
                   err.detail || "Something went wrong"
                 );
               });
+          }else{
+            return apiResponse.successResponseWithData(
+              res,
+              "Onboarding successfull",
+              response?.data
+            );
           }
         } else {
           return res.json({ ...response?.data, status: "ERROR" });

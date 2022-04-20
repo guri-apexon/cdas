@@ -6,6 +6,7 @@ import { withRouter } from "react-router";
 import NavigationBar from "apollo-react/components/NavigationBar";
 import makeStyles from "@material-ui/core/styles/makeStyles";
 import { neutral7 } from "apollo-react/colors";
+import Modal from "apollo-react/components/Modal";
 import Typography from "apollo-react/components/Typography";
 import Backdrop from "apollo-react/components/Backdrop";
 import CircularProgress from "apollo-react/components/CircularProgress";
@@ -16,6 +17,7 @@ import Question from "apollo-react-icons/Question";
 import moment from "moment";
 import Button from "apollo-react/components/Button";
 import NavigationPanel from "./NavigationPanel/NavigationPanel";
+
 // eslint-disable-next-line import/named
 import { deleteAllCookies, getUserInfo } from "../../utils/index";
 // eslint-disable-next-line import/named
@@ -93,6 +95,7 @@ const AppHeader = ({ history, setLoggedIn }) => {
   const [panelOpen, setpanelOpen] = useState(true);
   const [notLoggedOutErr, setNotLoggedOutErr] = useState(false);
   const [open, setOpen] = useState(false);
+  const [showVersionModal, setShowVersionModal] = useState(false);
   const { permissions } = appContext.user;
 
   const getPermisions = async () => {
@@ -256,8 +259,24 @@ const AppHeader = ({ history, setLoggedIn }) => {
   const onPanelClose = () => {
     setpanelOpen(false);
   };
+  const ConfirmModal = React.memo(({ showVersionModal, closeModal }) => {
+    return (
+      <Modal
+        open={showVersionModal}
+        disableBackdropClick="true"
+        onClose={closeModal}
+        message={<div><div>Clinical Data Analytics Suite</div><p>Version 1.0</p></div>}
+        buttonProps={[{ label: "Close", onClick: closeModal }]}
+        id="neutral"
+      />
+    );
+  });
   return (
     <>
+      <ConfirmModal
+        showVersionModal={showVersionModal}
+        closeModal={()=>setShowVersionModal(false)}
+      />
       <div id="topNavbar">
         <Backdrop style={{ zIndex: 1 }} open={open}>
           <CircularProgress variant="indeterminate" size="small" />
@@ -305,7 +324,7 @@ const AppHeader = ({ history, setLoggedIn }) => {
             // eslint-disable-next-line react/jsx-wrap-multilines
             <div className={classes.centerAligned}>
               <Button
-                onClick={() => history.push("help")}
+                onClick={() =>setShowVersionModal(true)}
                 className={classes.fullNavHeight}
               >
                 <Question className={classes.appIcon} />
