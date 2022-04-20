@@ -138,18 +138,16 @@ exports.createVendor = async (req, res) => {
 
     const vId = getId.rows[0].vend_id;
 
-    if (vContacts !== undefined) {
-      if (vContacts.length > 0) {
-        await vContacts.map((e) => {
-          DB.executeQuery(contactInsert, [
-            vId,
-            e.name,
-            e.email,
-            userName,
-            curDate,
-          ]);
-        });
-      }
+    if (vContacts?.length > 0) {
+      await vContacts.map((e) => {
+        DB.executeQuery(contactInsert, [
+          vId,
+          e.name,
+          e.email,
+          userName,
+          curDate,
+        ]);
+      });
     }
 
     return apiResponse.successResponse(res, "Vendor created successfully");
