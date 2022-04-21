@@ -356,66 +356,72 @@ export default function StudyTable({ studyData, studyboardData, refreshData }) {
   const getTableData = React.useMemo(
     () => (
       <>
-        {loading ? (
-          <Progress />
-        ) : (
-          <>
-            <Table
-              isLoading={loading}
-              title="Studies"
-              subtitle={
-                // eslint-disable-next-line react/jsx-wrap-multilines
-                <IconButton color="primary" onClick={refreshData}>
-                  <RefreshIcon />
-                </IconButton>
-              }
-              columns={tableColumns}
+        <Table
+          isLoading={loading}
+          title="Studies"
+          subtitle={
+            // eslint-disable-next-line react/jsx-wrap-multilines
+            <IconButton color="primary" onClick={refreshData}>
+              <RefreshIcon />
+            </IconButton>
+          }
+          columns={tableColumns}
+          rows={tableRows}
+          rowId="protocolnumber"
+          hasScroll={true}
+          maxHeight="600px"
+          initialSortedColumn="dateadded"
+          initialSortOrder="desc"
+          sortedColumn={sortedColumnValue}
+          sortOrder={sortOrderValue}
+          rowsPerPageOptions={[10, 50, 100, "All"]}
+          tablePaginationProps={{
+            labelDisplayedRows: ({ from, to, count }) =>
+              `${count === 1 ? "Item " : "Items"} ${from}-${to} of ${count}`,
+            truncate: true,
+          }}
+          page={pageNo}
+          rowsPerPage={rowsPerPageRecord}
+          onChange={(rpp, sc, so, filts, page) => {
+            setRowPerPageRecord(rpp);
+            setSortedColumnValue(sc);
+            setSortOrderValue(so);
+            setInlineFilters(filts);
+            setPageNo(page);
+          }}
+          columnSettings={{
+            enabled: true,
+            defaultColumns: moreColumns,
+            onChange: (changeColumns) => {
+              setTableColumns(changeColumns);
+            },
+          }}
+          CustomHeader={(props) => (
+            <CustomButtonHeader
+              downloadFile={downloadFile}
               rows={tableRows}
-              rowId="protocolnumber"
-              hasScroll={true}
-              maxHeight="600px"
-              initialSortedColumn="dateadded"
-              initialSortOrder="desc"
-              sortedColumn={sortedColumnValue}
-              sortOrder={sortOrderValue}
-              rowsPerPageOptions={[10, 50, 100, "All"]}
-              tablePaginationProps={{
-                labelDisplayedRows: ({ from, to, count }) =>
-                  `${
-                    count === 1 ? "Item " : "Items"
-                  } ${from}-${to} of ${count}`,
-                truncate: true,
-              }}
-              page={pageNo}
-              rowsPerPage={rowsPerPageRecord}
-              onChange={(rpp, sc, so, filts, page) => {
-                setRowPerPageRecord(rpp);
-                setSortedColumnValue(sc);
-                setSortOrderValue(so);
-                setInlineFilters(filts);
-                setPageNo(page);
-              }}
-              columnSettings={{
-                enabled: true,
-                defaultColumns: moreColumns,
-                onChange: (changeColumns) => {
-                  setTableColumns(changeColumns);
-                },
-              }}
-              CustomHeader={(props) => (
-                <CustomButtonHeader
-                  downloadFile={downloadFile}
-                  rows={tableRows}
-                  {...props}
-                />
-              )}
+              {...props}
             />
-          </>
-        )}
+          )}
+        />
       </>
     ),
-    [tableColumns, tableRows, pageNo, rowsPerPageRecord, loading]
+    [
+      tableColumns,
+      tableRows,
+      pageNo,
+      rowsPerPageRecord,
+      loading,
+      sortOrderValue,
+      sortedColumnValue,
+      inlineFilters,
+    ]
   );
 
-  return <div className="study-table">{getTableData}</div>;
+  return (
+    <div className="study-table">
+      {loading && <Progress />}
+      {!loading && getTableData}
+    </div>
+  );
 }
