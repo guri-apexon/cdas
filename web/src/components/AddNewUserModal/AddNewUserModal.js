@@ -26,17 +26,14 @@ const AddNewUserModal = ({
   saveData,
   studyId,
 }) => {
-  console.log(userList);
   const [openModal, setOpenModal] = useState(open);
   const [tableUsers, setTableUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [initialRender, setInitialRender] = useState(true);
   const [disableSave, setDisableSave] = useState(false);
   const toast = useContext(MessageContext);
-
   const userInfo = getUserInfo();
   const history = useHistory();
-  const [disableSave, SetDisableSave] = useState(false);
 
   const DeleteUserCell = ({ row }) => {
     const { index, onDelete } = row;
@@ -72,7 +69,7 @@ const AddNewUserModal = ({
     setTableUsers((u) => [...u, userObj]);
   };
   const handleClose = () => {
-    SetDisableSave(false);
+    setDisableSave(false);
     setOpenModal(false);
     onClose();
     setTableUsers([]);
@@ -223,7 +220,7 @@ const AddNewUserModal = ({
   );
 
   const addUsers = async () => {
-    SetDisableSave(true);
+    setDisableSave(true);
     const usersRows = [...tableUsers].slice(0, -1);
     if (!usersRows.length) {
       toast.showErrorMessage("Add some users to proceed");
@@ -295,7 +292,6 @@ const AddNewUserModal = ({
             label: "Save",
             size: "small",
             className: "save-btn",
-            disabled: disableSave,
             onClick: () => {
               addUsers();
             },
