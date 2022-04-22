@@ -108,6 +108,10 @@ const PermissionTable = ({
     if (!filtered) {
       return false;
     }
+
+    if (accessor === "Admin") {
+      console.log(filtered);
+    }
     return (
       <input
         type="checkbox"

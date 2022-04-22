@@ -26,10 +26,12 @@ const AddNewUserModal = ({
   saveData,
   studyId,
 }) => {
+  console.log(userList);
   const [openModal, setOpenModal] = useState(open);
   const [tableUsers, setTableUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [initialRender, setInitialRender] = useState(true);
+  const [disableSave, setDisableSave] = useState(false);
   const toast = useContext(MessageContext);
 
   const userInfo = getUserInfo();
@@ -115,7 +117,14 @@ const AddNewUserModal = ({
   };
 
   const onDelete = (index) => {
-    setTableUsers(tableUsers.filter((row) => row.index !== index));
+    setTableUsers((rows) => {
+      const newRows = rows.filter((row) => row.index !== index);
+      const tableIndex = tableUsers.findIndex((el) => el.index === index);
+      if (tableIndex + 1 === tableUsers.length) {
+        return [...newRows, getUserObj()];
+      }
+      return newRows;
+    });
   };
 
   const EditableRoles = ({ row, column: { accessor: key } }) => {
@@ -233,6 +242,7 @@ const AddNewUserModal = ({
       );
       return false;
     }
+    setDisableSave(true);
     const data = tableUsers
       .filter((e) => e.user != null)
       .map((d) => {
@@ -250,6 +260,7 @@ const AddNewUserModal = ({
       loginId: userInfo.user_id,
       data,
     });
+    setDisableSave(false);
     handleClose();
     setLoading(false);
     if (response.status === "BAD_REQUEST") {
@@ -280,6 +291,7 @@ const AddNewUserModal = ({
             label: "Save",
             size: "small",
             className: "save-btn",
+            disabled: disableSave,
             onClick: () => {
               addUsers();
             },

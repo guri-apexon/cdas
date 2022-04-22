@@ -96,6 +96,7 @@ export default function StudyTable({ studyData, studyboardData, refreshData }) {
   const [sortedColumnValue, setSortedColumnValue] = useState("dateadded");
   const [sortOrderValue, setSortOrderValue] = useState("desc");
   const [inlineFilters, setInlineFilters] = useState([]);
+  const [componentKey, setComponentKey] = useState(1);
   const messageContext = useContext(MessageContext);
   const dispatch = useDispatch();
   const history = useHistory();
@@ -417,5 +418,9 @@ export default function StudyTable({ studyData, studyboardData, refreshData }) {
     [tableColumns, tableRows, pageNo, rowsPerPageRecord, loading]
   );
 
-  return <div className="study-table">{getTableData}</div>;
+  return (
+    <div key={componentKey} className="study-table">
+      {getTableData}
+    </div>
+  );
 }

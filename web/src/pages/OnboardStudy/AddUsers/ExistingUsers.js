@@ -343,7 +343,7 @@ const ExistingUsers = () => {
         <ProjectHeader
           menuItems={stateMenuItems}
           maxCellWidth={280}
-          style={{ height: 64, zIndex: 998 }}
+          style={{ height: 64, zIndex: 10 }}
         />
       </div>
       <AddNewUserModal

@@ -237,7 +237,7 @@ exports.listPermission = function (req, res) {
     from (select distinct p2.prod_nm ,c.ctgy_nm ,f.feat_nm ,p.permsn_nm , ppp.plcy_prod_permsn_id,
     case when ppp.plcy_prod_permsn_id is not null ${
       policyId ? "and ppp.act_flg='1'" : ""
-    } then '1' else '0' end as select_check_box
+    } then '1' else null end as select_check_box
     from ${schemaName}.product_permission pp
     left outer join ${schemaName}.policy_product_permission ppp on (pp.prod_permsn_id=ppp.prod_permsn_id and ${
       policyId ? `ppp.plcy_id='${policyId}'` : "ppp.act_flg=1"

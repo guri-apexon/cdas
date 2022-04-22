@@ -23,7 +23,9 @@ const StudySetup = () => {
   const studyData = useSelector((state) => state.studyBoard);
   const [addStudyOpen, setAddStudyOpen] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState("");
+  const [studyTableKey, setStudyTableKey] = useState("studyTable");
   const refreshData = () => {
+    setStudyTableKey((prevState) => prevState + 1);
     dispatch(getStudyboardData());
     dispatch(getNotOnBordedStatus());
     setSelectedFilter("");
@@ -79,6 +81,7 @@ const StudySetup = () => {
         selectedFilter={selectedFilter}
       />
       <StudyTable
+        key={studyTableKey}
         studyData={studyData}
         studyboardData={studyboardData}
         refreshData={refreshData}
