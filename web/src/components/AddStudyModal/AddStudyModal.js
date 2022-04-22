@@ -57,6 +57,8 @@ const AddStudyModal = ({ open, onClose }) => {
     setLoading(false);
     if (response.status === "BAD_REQUEST") {
       messageContext.showErrorMessage(response.message, 0);
+    } else if (response.status === "ERROR") {
+      messageContext.showErrorMessage(response.message, 0);
     }
     if (response.status === "OK") {
       messageContext.showSuccessMessage(response.message, 0);
