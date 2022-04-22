@@ -322,7 +322,14 @@ const ImportWithUsers = () => {
     setTableUsers((u) => [...u, userObj]);
   };
   const onDelete = (index) => {
-    setTableUsers(tableUsers.filter((row) => row.index !== index));
+    setTableUsers((rows) => {
+      const newRows = rows.filter((row) => row.index !== index);
+      const tableIndex = tableUsers.findIndex((el) => el.index === index);
+      if (tableIndex + 1 === tableUsers.length) {
+        return [...newRows, getUserObj()];
+      }
+      return newRows;
+    });
   };
   const getRoles = async () => {
     const result = await fetchRoles();

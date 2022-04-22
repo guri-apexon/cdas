@@ -35,21 +35,6 @@ import {
 } from "../../utils/index";
 import { updateSelectedStudy } from "../../store/actions/StudyBoardAction";
 
-const menuItems = [
-  { text: "Study assignments" },
-  { text: "Download study assignments" },
-];
-
-const ActionCell = ({ row }) => {
-  return (
-    <div style={{ display: "flex", justifyContent: "end" }}>
-      <IconMenuButton size="small" id="action" menuItems={menuItems}>
-        <EllipsisVertical />
-      </IconMenuButton>
-    </div>
-  );
-};
-
 const DateCell = ({ row, column: { accessor } }) => {
   const rowValue = row[accessor];
   const date = rowValue ? moment(rowValue).format("DD-MMM-YYYY") : "";
@@ -96,6 +81,7 @@ export default function StudyTable({ studyData, studyboardData, refreshData }) {
   const [sortedColumnValue, setSortedColumnValue] = useState("dateadded");
   const [sortOrderValue, setSortOrderValue] = useState("desc");
   const [inlineFilters, setInlineFilters] = useState([]);
+  const [componentKey, setComponentKey] = useState(1);
   const messageContext = useContext(MessageContext);
   const dispatch = useDispatch();
   const history = useHistory();
@@ -106,6 +92,19 @@ export default function StudyTable({ studyData, studyboardData, refreshData }) {
   const handleExisting = (row) => {
     history.push("/ExistingStudyAssignment");
     dispatch(updateSelectedStudy(row));
+  };
+  const menuItems = (row) => [
+    { text: "Study assignments", onClick: () => handleExisting(row) },
+    // { text: "Download study assignments" },
+  ];
+  const ActionCell = ({ row }) => {
+    return (
+      <div style={{ display: "flex", justifyContent: "end" }}>
+        <IconMenuButton size="small" id="action" menuItems={menuItems(row)}>
+          <EllipsisVertical />
+        </IconMenuButton>
+      </div>
+    );
   };
   const LinkCell = ({ row, column: { accessor } }) => {
     const rowValue = row[accessor];
@@ -419,7 +418,7 @@ export default function StudyTable({ studyData, studyboardData, refreshData }) {
   );
 
   return (
-    <div className="study-table">
+    <div key={componentKey} className="study-table">
       {loading && <Progress />}
       {!loading && getTableData}
     </div>
