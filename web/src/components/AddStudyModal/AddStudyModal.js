@@ -149,7 +149,6 @@ const AddStudyModal = ({ open, onClose }) => {
     debounceFunction(async () => {
       setLoading(true);
       const newStudies = await searchStudy(newValue);
-      console.log("event", newValue, newStudies);
       setStudies(newStudies);
       setLoading(false);
     }, 1000);

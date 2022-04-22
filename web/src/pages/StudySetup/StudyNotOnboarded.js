@@ -6,10 +6,9 @@ import Divider from "apollo-react/components/Divider";
 import Grid from "apollo-react/components/Grid";
 import Paper from "apollo-react/components/Paper";
 import Typography from "apollo-react/components/Typography";
-import ApolloProgress from "apollo-react/components/ApolloProgress";
-import Box from "apollo-react/components/Box";
 import { ReactComponent as InProgressIcon } from "../../components/Icons/Icon_In-progress_72x72.svg";
 import { ReactComponent as InFailureIcon } from "../../components/Icons/Icon_Failure_72x72.svg";
+import Progress from "../../components/Progress";
 
 export default function StudyNotOnboarded({
   studyData,
@@ -20,7 +19,7 @@ export default function StudyNotOnboarded({
   const [totalCount, setTotalCount] = useState(0);
   const [totalInProgress, setInprogressCount] = useState(0);
   const [totalFailures, setFailureCouut] = useState(0);
-  const [isLoading, setIsnLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [status, setStatus] = useState(null);
   const [expanded, setExpanded] = useState(false);
 
@@ -39,7 +38,7 @@ export default function StudyNotOnboarded({
     setTotalCount(inprogressCount + faliureCount);
     setInprogressCount(inprogressCount);
     setFailureCouut(faliureCount);
-    setIsnLoading(false);
+    setIsLoading(false);
   }, [notOnBoardedStudyStatus]);
 
   useEffect(() => {
@@ -50,79 +49,81 @@ export default function StudyNotOnboarded({
     setExpanded(totalCount > 0 ?? false);
   }, [totalCount]);
 
+  useEffect(() => {
+    setIsLoading(studyData.loading);
+  }, [studyData.loading]);
+
   return (
     <div className="studies-not-onboarded">
-      {isLoading && (
-        <Box display="flex" className="loader-container">
-          <ApolloProgress />
-        </Box>
+      {isLoading && <Progress />}
+      {!isLoading && (
+        <Accordion
+          variant="alternate"
+          defaultExpanded={totalCount > 0 ?? false}
+          expanded={expanded}
+          onChange={() => setExpanded(!expanded)}
+          style={{ marginTop: "60px" }}
+        >
+          <AccordionSummary>
+            <Typography>{`Studies Not Onboarded (${totalCount})`}</Typography>
+          </AccordionSummary>
+          <Divider />
+          <AccordionDetails className="accordion-detail">
+            <Grid container spacing={2}>
+              <Grid item xs={3} />
+              <Grid item xs={3}>
+                <Paper
+                  style={styles}
+                  className={`in-progress-box ${
+                    status === "In Progress" ? "selected" : null
+                  }`}
+                  onClick={() =>
+                    selectedFilter === "In Progress"
+                      ? selectedStatus("")
+                      : selectedStatus("In Progress")
+                  }
+                >
+                  <div className="full-width">
+                    <InProgressIcon />
+                    <Typography
+                      variant="title1"
+                      gutterBottom
+                      style={{ color: "#10558a" }}
+                    >
+                      {`${totalInProgress} In-progress`}
+                    </Typography>
+                  </div>
+                </Paper>
+              </Grid>
+              <Grid item xs={3}>
+                <Paper
+                  style={styles}
+                  className={`failure-box ${
+                    status === "Failed" ? "selected" : null
+                  }`}
+                  onClick={() =>
+                    selectedFilter === "Failed"
+                      ? selectedStatus("")
+                      : selectedStatus("Failed")
+                  }
+                >
+                  <div className="full-width">
+                    <InFailureIcon />
+                    <Typography
+                      variant="title1"
+                      gutterBottom
+                      style={{ color: "#E20000" }}
+                    >
+                      {`${totalFailures} Failed`}
+                    </Typography>
+                  </div>
+                </Paper>
+              </Grid>
+              <Grid item xs={3} />
+            </Grid>
+          </AccordionDetails>
+        </Accordion>
       )}
-      <Accordion
-        variant="alternate"
-        defaultExpanded={totalCount > 0 ?? false}
-        expanded={expanded}
-        onChange={() => setExpanded(!expanded)}
-        style={{ marginTop: "60px" }}
-      >
-        <AccordionSummary>
-          <Typography>{`Studies Not Onboarded (${totalCount})`}</Typography>
-        </AccordionSummary>
-        <Divider />
-        <AccordionDetails className="accordion-detail">
-          <Grid container spacing={2}>
-            <Grid item xs={3} />
-            <Grid item xs={3}>
-              <Paper
-                style={styles}
-                className={`in-progress-box ${
-                  status === "In Progress" ? "selected" : null
-                }`}
-                onClick={() =>
-                  selectedFilter === "In Progress"
-                    ? selectedStatus("")
-                    : selectedStatus("In Progress")
-                }
-              >
-                <div className="full-width">
-                  <InProgressIcon />
-                  <Typography
-                    variant="title1"
-                    gutterBottom
-                    style={{ color: "#10558a" }}
-                  >
-                    {`${totalInProgress} In-progress`}
-                  </Typography>
-                </div>
-              </Paper>
-            </Grid>
-            <Grid item xs={3}>
-              <Paper
-                style={styles}
-                className={`failure-box ${
-                  status === "Failed" ? "selected" : null
-                }`}
-                onClick={() =>
-                  selectedFilter === "Failed"
-                    ? selectedStatus("")
-                    : selectedStatus("Failed")
-                }
-              >
-                <div className="full-width">
-                  <InFailureIcon />
-                  <Typography
-                    variant="title1"
-                    gutterBottom
-                    style={{ color: "#E20000" }}
-                  >
-                    {`${totalFailures} Failed`}
-                  </Typography>
-                </div>
-              </Paper>
-            </Grid>
-            <Grid item xs={3} />
-          </Grid>
-        </AccordionDetails>
-      </Accordion>
     </div>
   );
 }
