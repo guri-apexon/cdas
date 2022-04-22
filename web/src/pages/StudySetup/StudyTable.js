@@ -35,21 +35,6 @@ import {
 } from "../../utils/index";
 import { updateSelectedStudy } from "../../store/actions/StudyBoardAction";
 
-const menuItems = [
-  { text: "Study assignments" },
-  { text: "Download study assignments" },
-];
-
-const ActionCell = ({ row }) => {
-  return (
-    <div style={{ display: "flex", justifyContent: "end" }}>
-      <IconMenuButton size="small" id="action" menuItems={menuItems}>
-        <EllipsisVertical />
-      </IconMenuButton>
-    </div>
-  );
-};
-
 const DateCell = ({ row, column: { accessor } }) => {
   const rowValue = row[accessor];
   const date = rowValue ? moment(rowValue).format("DD-MMM-YYYY") : "";
@@ -105,8 +90,22 @@ export default function StudyTable({ studyData, studyboardData, refreshData }) {
   const obs = studyData.uniqueObs;
   const phases = studyData.uniquePhase;
   const handleExisting = (row) => {
+    console.log(row);
     history.push("/ExistingStudyAssignment");
     dispatch(updateSelectedStudy(row));
+  };
+  const menuItems = (row) => [
+    { text: "Study assignments", onClick: () => handleExisting(row) },
+    // { text: "Download study assignments" },
+  ];
+  const ActionCell = ({ row }) => {
+    return (
+      <div style={{ display: "flex", justifyContent: "end" }}>
+        <IconMenuButton size="small" id="action" menuItems={menuItems(row)}>
+          <EllipsisVertical />
+        </IconMenuButton>
+      </div>
+    );
   };
   const LinkCell = ({ row, column: { accessor } }) => {
     const rowValue = row[accessor];
