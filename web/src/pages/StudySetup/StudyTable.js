@@ -90,7 +90,6 @@ export default function StudyTable({ studyData, studyboardData, refreshData }) {
   const obs = studyData.uniqueObs;
   const phases = studyData.uniquePhase;
   const handleExisting = (row) => {
-    console.log(row);
     history.push("/ExistingStudyAssignment");
     dispatch(updateSelectedStudy(row));
   };

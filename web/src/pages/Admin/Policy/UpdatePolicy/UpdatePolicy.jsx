@@ -184,7 +184,6 @@ const UpdatePolicy = () => {
   const fetchPermissions = async () => {
     const permissionsData = await getPolicyPermissions(params.id);
     const filteredData = filterPermission(permissionsData.data);
-    console.log(filteredData);
     setPolicyDetails(permissionsData.policyDetails);
     setPolicyName(permissionsData.policyDetails?.plcy_nm || "");
     setPolicyDesc(permissionsData.policyDetails?.plcy_desc || "");
