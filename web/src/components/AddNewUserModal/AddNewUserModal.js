@@ -36,6 +36,7 @@ const AddNewUserModal = ({
 
   const userInfo = getUserInfo();
   const history = useHistory();
+  const [disableSave, SetDisableSave] = useState(false);
 
   const DeleteUserCell = ({ row }) => {
     const { index, onDelete } = row;
@@ -71,6 +72,7 @@ const AddNewUserModal = ({
     setTableUsers((u) => [...u, userObj]);
   };
   const handleClose = () => {
+    SetDisableSave(false);
     setOpenModal(false);
     onClose();
     setTableUsers([]);
@@ -221,6 +223,7 @@ const AddNewUserModal = ({
   );
 
   const addUsers = async () => {
+    SetDisableSave(true);
     const usersRows = [...tableUsers].slice(0, -1);
     if (!usersRows.length) {
       toast.showErrorMessage("Add some users to proceed");
@@ -288,6 +291,7 @@ const AddNewUserModal = ({
             onClick: () => handleClose(),
           },
           {
+            disabled: disableSave,
             label: "Save",
             size: "small",
             className: "save-btn",

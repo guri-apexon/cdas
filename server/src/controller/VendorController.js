@@ -108,6 +108,10 @@ exports.createVendor = async (req, res) => {
       vContacts,
       userId,
       userName,
+      Vendor_Name_Stnd__c,
+      Active_Flag__c,
+      External_System_Name__c,
+      Description,
     } = req.body;
 
     Logger.info({ message: "createVendor" });
@@ -121,12 +125,12 @@ exports.createVendor = async (req, res) => {
     const idQuery = `SELECT vend_id FROM cdascfg.vendor v ORDER BY insrt_tm DESC LIMIT 1`;
 
     const inset = await DB.executeQuery(insertQuery, [
-      vName,
-      vNStd,
-      vDescription,
-      vStatus,
-      vESN,
-      userId,
+      vName || Vendor_Name_Stnd__c,
+      vNStd || Vendor_Name_Stnd__c || vName,
+      vDescription || Description,
+      vStatus || helpers.stringToBoolean(Active_Flag__c) ? 1 : 0,
+      vESN || External_System_Name__c,
+      userId || null,
       curDate,
     ]);
 
@@ -134,7 +138,7 @@ exports.createVendor = async (req, res) => {
 
     const vId = getId.rows[0].vend_id;
 
-    if (vContacts.length > 0) {
+    if (vContacts?.length > 0) {
       await vContacts.map((e) => {
         DB.executeQuery(contactInsert, [
           vId,
@@ -158,7 +162,7 @@ exports.createVendor = async (req, res) => {
         "vendor name and external system name combination already exists."
       );
     }
-    return apiResponse.ErrorResponseW(res, err);
+    return apiResponse.ErrorResponse(res, err);
   }
 };
 

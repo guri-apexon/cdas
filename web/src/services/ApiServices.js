@@ -8,9 +8,9 @@ import {
   VENDOR_BASE,
   ASSIGN_BASE,
 } from "../constants";
-import { getCookie } from "../utils";
+import { getUserId } from "../utils";
 
-const userId = getCookie("user.id");
+const userId = getUserId();
 
 export const searchStudy = async (searchQuery = "") => {
   try {

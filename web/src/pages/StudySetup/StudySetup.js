@@ -5,11 +5,8 @@ import Typography from "apollo-react/components/Typography";
 import PlusIcon from "apollo-react-icons/Plus";
 import Button from "apollo-react/components/Button";
 import { useDispatch, useSelector } from "react-redux";
-import Backdrop from "apollo-react/components/Backdrop";
-import CircularProgress from "apollo-react/components/CircularProgress";
 import StudyNotOnboarded from "./StudyNotOnboarded";
 import StudyTable from "./StudyTable";
-import { ReactComponent as StudyDataIcon } from "../../components/Icons/Icon_StudyData_72x72.svg";
 
 import {
   getStudyboardData,
@@ -47,20 +44,15 @@ const StudySetup = () => {
 
   return (
     <div className="study-setup-wrapper">
-      <Backdrop style={{ zIndex: 9 }} open={studyData?.loading ?? false}>
+      {/* <Backdrop style={{ zIndex: 9 }} open={studyData?.loading ?? false}>
         <CircularProgress variant="indeterminate" size="small" />
-      </Backdrop>
+      </Backdrop> */}
       <AddStudyModal
         open={addStudyOpen}
         onClose={() => setAddStudyOpen(false)}
       />
       <div className="header-section">
         <div className="header-title">
-          {/* <StudyDataIcon
-            height="24"
-            width="24"
-            style={{ marginRight: "18px" }}
-          /> */}
           <Typography className="study-setup-wrapper-title" variant="title1">
             Study Setup
           </Typography>

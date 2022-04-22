@@ -20,13 +20,13 @@ exports.getCurrentTime = () => {
   return new Date().toISOString();
   return moment().utc().format("YYYY-MM-DD HH:mm:ss");
 };
-exports.getDomainWithoutSubdomain = url => {
-  const urlParts = new URL(url).hostname.split('.');
+exports.getDomainWithoutSubdomain = (url) => {
+  const urlParts = new URL(url).hostname.split(".");
   return urlParts
     .slice(0)
     .slice(-(urlParts.length === 4 ? 3 : 2))
-    .join('.')
-}
+    .join(".");
+};
 exports.stringToBoolean = (string) => {
   switch (string?.toString().toLowerCase().trim()) {
     case "true":
@@ -42,3 +42,19 @@ exports.stringToBoolean = (string) => {
       return Boolean(string);
   }
 };
+
+const stringToBoolean = (exports.stringToBoolean = (string) => {
+  switch (string?.toString().toLowerCase().trim()) {
+    case "true":
+    case "yes":
+    case "1":
+      return true;
+    case "false":
+    case "no":
+    case "0":
+    case null:
+      return false;
+    default:
+      return false;
+  }
+});

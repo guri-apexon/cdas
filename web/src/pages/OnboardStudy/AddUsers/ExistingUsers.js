@@ -338,7 +338,6 @@ const ExistingUsers = () => {
 
   return (
     <>
-      {console.log("user", tableUsers)}
       <div className="container">
         <ProjectHeader
           menuItems={stateMenuItems}
