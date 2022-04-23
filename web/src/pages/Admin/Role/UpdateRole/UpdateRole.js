@@ -230,7 +230,6 @@ const UpdateRole = () => {
       userId: userInfo.user_id,
       roleId: params.id,
     };
-    console.log("ReqBody:", filteredPolicies, params.id);
     setLoading(true);
     updateRoleService(reqBody)
       .then((res) => {
