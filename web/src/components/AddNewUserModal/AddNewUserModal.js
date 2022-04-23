@@ -226,6 +226,13 @@ const AddNewUserModal = ({
       toast.showErrorMessage("Please fill user or remove blank rows");
       return false;
     }
+    if (tableUsers.find((x) => x.alreadyExist)) {
+      toast.showErrorMessage(
+        `This user already has assignments. Please select a different user to continue`
+      );
+      return false;
+    }
+
     const emptyRoles = usersRows.filter((x) => x.roles.length === 0);
     if (emptyRoles.length) {
       toast.showErrorMessage(
