@@ -444,7 +444,7 @@ exports.AddStudyAssign = async (req, res) => {
         }
       });
    
-      await DB.executeQuery(`UPDATE ${schemaName}.study set insrt_tm=$1, updt_tm=$1 WHERE prot_id=$2;`,[
+      await DB.executeQuery(`UPDATE ${schemaName}.study set updt_tm=$1 WHERE prot_id=$2;`,[
         curDate,
         protocol
       ])
