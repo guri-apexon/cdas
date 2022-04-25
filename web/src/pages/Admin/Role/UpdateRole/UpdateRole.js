@@ -290,13 +290,13 @@ const UpdateRole = () => {
       return false;
     }
     const confirm = {
-      subtitle: "if you redirect to detail page will cause changes to be lost",
-      cancelLabel: "Redirect",
+      subtitle: "Unsaved changes will be lost. Are you sure you want to leave?",
+      cancelLabel: "Leave without saving",
       cancelAction: () => {
         setSelectedPolicy(null);
         history.push(`/policy-management/${selectedPolicy.policyId}`);
       },
-      submitLabel: "Ok, leave it",
+      submitLabel: "Stay on this page",
     };
     setConfirmObj(confirm);
   };
