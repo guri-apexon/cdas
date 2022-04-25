@@ -157,7 +157,6 @@ const NavigationPanel = ({
                 style={{ cursor: `${link.haveAccess ? "pointer" : "text"}` }}
                 onClick={() => link.haveAccess && goToApp(link.url)}
               >
-                {console.log(link.imgUrl)}
                 <img src={link.imgUrl} alt={link.title} />
                 {link.title}
               </Button>

@@ -48,7 +48,6 @@ const DateCell = ({ row, column: { accessor } }) => {
 const Statuscell = ({ row, column: { accessor } }) => {
   let rowValue = row[accessor];
   if (rowValue === "Blank") {
-    console.log("coooo");
     rowValue = "";
   }
   return <span>{rowValue}</span>;
