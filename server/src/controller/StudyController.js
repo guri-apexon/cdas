@@ -272,9 +272,16 @@ exports.getStudyList = async (req, res) => {
       let acc = $q2.rows.filter((d) => d.prot_id === e.prot_id);
       let newObj = acc[0] ? acc[0] : { count: 0 };
       let { count } = newObj;
+    if(e.protocolnumber==="P16 Enhanced Protocol"){
+      console.log(e)
+    }
       let editT = moment(e.dateedited).format("MM/DD/YYYY");
       let addT = moment(e.dateadded).format("MM/DD/YYYY");
       // let newData = _.omit(e, ["prot_id"]);
+    if(!e.protocolstatus){
+     
+      e.protocolstatus="Blank"
+    }
       return {
         ...e,
         dateadded: addT,
@@ -403,9 +410,8 @@ exports.AddStudyAssign = async (req, res) => {
       .catch((err) => {
         return apiResponse.ErrorResponse(res, err);
       });
-
-    const insertUserQuery = `INSERT INTO ${schemaName}.study_user (prot_id,usr_id,act_flg,insrt_tm)
-                              VALUES($1,$2,$3,$4)`;
+    const insertUserQuery = `INSERT INTO ${schemaName}.study_user (prot_id,usr_id,act_flg,insrt_tm,updt_tm)
+                              VALUES($1,$2,$3,$4,$5)`;
     const insertRoleQuery = `INSERT INTO ${schemaName}.study_user_role 
                               (role_id,prot_id,usr_id,act_flg,created_by,created_on)
                               VALUES($1,$2,$3,$4,$5,$6)`;
@@ -421,6 +427,7 @@ exports.AddStudyAssign = async (req, res) => {
             studyUserId,
             1,
             curDate,
+            curDate
           ]);
 
           element.role_id.forEach(async (roleId) => {
@@ -441,6 +448,11 @@ exports.AddStudyAssign = async (req, res) => {
           console.log(err);
         }
       });
+   
+      await DB.executeQuery(`UPDATE ${schemaName}.study set insrt_tm=$1, updt_tm=$1 WHERE prot_id=$2;`,[
+        curDate,
+        protocol
+      ])
       return apiResponse.successResponseWithData(
         res,
         "New user Added successfully"
@@ -533,6 +545,10 @@ exports.updateStudyAssign = async (req, res) => {
         console.log(err);
       }
     });
+    await DB.executeQuery(`UPDATE ${schemaName}.study set updt_tm=$1 WHERE prot_id=$2;`,[
+      curDate,
+      protocol
+    ])
     return apiResponse.successResponse(res, "update successfully");
   } catch (err) {
     Logger.error("catch :updateStudyAssign");
