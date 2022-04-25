@@ -222,6 +222,13 @@ const AddNewUserModal = ({
   const addUsers = async () => {
     setDisableSave(true);
     const usersRows = [...tableUsers].slice(0, -1);
+    if (tableUsers.find((x) => x.alreadyExist)) {
+      toast.showErrorMessage(
+        `This user already has assignments. Please select a different user to continue`
+      );
+      setDisableSave(false);
+      return false;
+    }
     if (!usersRows.length) {
       toast.showErrorMessage("Add some users to proceed");
       return false;
