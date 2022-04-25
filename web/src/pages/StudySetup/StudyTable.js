@@ -45,6 +45,14 @@ const DateCell = ({ row, column: { accessor } }) => {
   return <span>{date}</span>;
 };
 
+const Statuscell = ({ row, column: { accessor } }) => {
+  let rowValue = row[accessor];
+  if (rowValue === "Blank") {
+    console.log("coooo");
+    rowValue = "";
+  }
+  return <span>{rowValue}</span>;
+};
 const obIcons = {
   Failed: InFailureIcon,
   "In Progress": InProgressIcon,
@@ -85,7 +93,7 @@ export default function StudyTable({ studyData, studyboardData, refreshData }) {
   const messageContext = useContext(MessageContext);
   const dispatch = useDispatch();
   const history = useHistory();
-  const status = studyData.uniqueProtocolStatus;
+  const status = [...studyData.uniqueProtocolStatus, "Blank"];
   const thbtcArea = studyData.uniqueThbtcArea;
   const obs = studyData.uniqueObs;
   const phases = studyData.uniquePhase;
@@ -194,6 +202,7 @@ export default function StudyTable({ studyData, studyboardData, refreshData }) {
       // filterComponent: createFilterList(status),
       // filterFunction: createStringSearchFilter("protocolstatus"),
       // filterComponent: TextFieldFilter,
+      customCell: Statuscell,
       filterFunction: createStringArrayIncludedFilter("protocolstatus"),
       filterComponent: createSelectFilterComponent(status, {
         size: "small",
