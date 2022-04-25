@@ -1,6 +1,12 @@
 .import-with-users-wrapper {
   .action-btns {
     margin-bottom: 20px;
+    .MuiButton-sizeSmall {
+      height: 32px;
+      padding: 0 8px;
+      font-size: 14px;
+      margin-left: 16px;
+  }
   }
   .study-details {
     h3 {

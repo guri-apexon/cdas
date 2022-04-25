@@ -200,7 +200,9 @@ const ExistingUsers = () => {
     return row.editMode ? (
       <div style={{ marginTop: 12 }}>{row[key]}</div>
     ) : (
-      <>{row[key]}</>
+      <>
+        <div style={{ fontWeight: "600" }}>{row[key]}</div>
+      </>
     );
   };
 
@@ -286,6 +288,7 @@ const ExistingUsers = () => {
       filterFunction: createStringSearchFilter("user"),
       filterComponent: TextFieldFilter,
       width: "50%",
+      fontWeight: "bolder",
     },
     {
       header: "Role",
