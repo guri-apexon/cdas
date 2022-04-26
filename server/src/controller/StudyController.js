@@ -582,32 +582,31 @@ exports.deleteStudyAssign = async (req, res) => {
         if (onboardStatus === 202) {
           Logger.info({ message: "FSR API update" });
         }
+        users.forEach(async (id) => {
+          try {
+            const studyUserId = id.toLowerCase();
+            await DB.executeQuery(userDeleteQuery, [
+              protocol,
+              studyUserId,
+              curDate,
+            ]);
+    
+            await DB.executeQuery(roleDeleteQuery, [
+              protocol,
+              studyUserId,
+              loginId,
+              curDate,
+            ]);
+    
+            return apiResponse.successResponse(res, "User Deleted successfully");
+          } catch (err) {
+            console.log(err);
+          }
+        });
       })
       .catch((err) => {
-        return apiResponse.ErrorResponse(res, err);
+        return apiResponse.ErrorResponse(res, err.response?.data);
       });
-
-    users.forEach(async (id) => {
-      try {
-        const studyUserId = id.toLowerCase();
-        await DB.executeQuery(userDeleteQuery, [
-          protocol,
-          studyUserId,
-          curDate,
-        ]);
-
-        await DB.executeQuery(roleDeleteQuery, [
-          protocol,
-          studyUserId,
-          loginId,
-          curDate,
-        ]);
-
-        return apiResponse.successResponse(res, "User Deleted successfully");
-      } catch (err) {
-        console.log(err);
-      }
-    });
   } catch (err) {
     Logger.error("catch :deleteStudyAssign");
     Logger.error(err);
