@@ -345,9 +345,9 @@ const PolicyList = () => {
               >
                 {curRow.policyName}
               </Typography>
-              <Typography variant="body2">
+              {/* <Typography variant="body2">
                 {curRow.policyDescription}
-              </Typography>
+              </Typography> */}
             </div>
           }
         />

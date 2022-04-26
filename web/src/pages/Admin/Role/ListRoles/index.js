@@ -330,9 +330,10 @@ const ListRoles = () => {
               gutterBottom
               style={{ fontWeight: 600 }}
             >
-              {curRow.role_nm}
+              {curRow.role_desc}
+              {/* {curRow.role_nm} */}
             </Typography>
-            <Typography variant="body2">{curRow.role_desc}</Typography>
+            {/* <Typography variant="body2">{curRow.role_desc}</Typography> */}
           </div>
         }
       />
