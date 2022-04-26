@@ -214,7 +214,7 @@ const AddStudyModal = ({ open, onClose }) => {
               </div>
             </>
           ) : (
-            <div style={{ minHeight: "378px" }} className="search-study">
+            <div style={{ minHeight: "400px" }} className="search-study">
               <Typography variant="caption">Search for a study</Typography>
               <Search
                 // onKeyDown={searchTrigger}
