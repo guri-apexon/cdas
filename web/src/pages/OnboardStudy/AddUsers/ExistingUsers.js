@@ -288,7 +288,6 @@ const ExistingUsers = () => {
       filterFunction: createStringSearchFilter("user"),
       filterComponent: TextFieldFilter,
       width: "50%",
-      fontWeight: "bolder",
     },
     {
       header: "Role",
