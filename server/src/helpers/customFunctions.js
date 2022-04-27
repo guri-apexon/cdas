@@ -16,9 +16,9 @@ exports.createUniqueID = () => {
   return getAlphaNumeric();
   // return crypto.randomBytes(3 * 4).toString("base64");
 };
-exports.getCurrentTime = () => {
+exports.getCurrentTime = (utc) => {
+  if(utc) return moment().utc();
   return new Date().toISOString();
-  return moment().utc().format("YYYY-MM-DD HH:mm:ss");
 };
 exports.getDomainWithoutSubdomain = (url) => {
   const urlParts = new URL(url).hostname.split(".");

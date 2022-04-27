@@ -5,7 +5,7 @@ const btoa = require("btoa");
 const apiResponse = require("../helpers/apiResponse");
 const Logger = require("../config/logger");
 const userController = require("./UserController");
-const helpers = require("../helpers/customFunctions");
+const {getDomainWithoutSubdomain, getCurrentTime} = require("../helpers/customFunctions");
 
 const getToken = (code, clientId, clientSecret, callbackUrl, ssoUrl) => {
   return new Promise((resolve, reject) => {
@@ -48,6 +48,7 @@ exports.authHandler = async (req, res) => {
     const CALLBACK_URL = process.env.SDA_CALLBACK_URL;
     const SSO_URL = process.env.SDA_SSO_URL;
     const loginMaxMinutes = (parseInt(process.env.SESSION_EXP_TIME || 24*60)) * 60000;
+    // console.log("loginMaxMinutes", loginMaxMinutes, 24*60*60000);
 
     const body = await getToken(
       code,
@@ -64,40 +65,35 @@ exports.authHandler = async (req, res) => {
     const resp = await axios.get(ssoUserInfoUrl, {
       headers: { Authorization: authStr },
     });
-    const get_usr = await userController.getUser(resp.data.userid);
-    if (!get_usr || get_usr <= 0) {
-      const user_detail = {
+    const appUser = await userController.getUser(resp.data.userid);
+    if (!appUser) {
+      await userController.addUser({
         usr_id: resp.data.userid?.toLowerCase(),
         usr_fst_nm: resp.data.given_name,
         usr_lst_nm: resp.data.family_name,
         usr_mail_id: resp.data.email,
-        insrt_tm: moment().format("YYYY-MM-DD HH:mm:ss"),
-        updt_tm: moment().format("YYYY-MM-DD HH:mm:ss"),
-      };
-      await userController.addUser(user_detail);
+        insrt_tm: getCurrentTime(true),
+        updt_tm: getCurrentTime(true),
+      });
     }
     let lastLoginTime = 'first_time';
-    const last_login = await userController.getLastLoginTime(resp.data.userid);
+    const last_login_tm = await userController.getLastLoginTime(resp.data.userid);
 
-    if (last_login) {
-      lastLoginTime = moment(moment.utc(last_login[0].login_tm).format()).local().unix();
+    if (last_login_tm) {
+      lastLoginTime = moment(last_login_tm).unix();
     }
-    // Set the cookies
     const loginDetails = {
       usrId: resp.data.userid,
-      login_tm: moment().format("YYYY-MM-DD HH:mm:ss"),
       logout_tm: moment()
         .add(response.expires_in, "seconds")
-        .utc()
-        .format("YYYY-MM-DD HH:mm:ss"),
+        .utc(),
     };
     await userController.addLoginActivity(loginDetails);
-    //console.log(loginAct, "loginAt")
+    // Set the cookies
     const domainUrlObj = new URL(REACT_APP_URL);
-    const domainName = helpers.getDomainWithoutSubdomain(REACT_APP_URL);
+    const domainName = getDomainWithoutSubdomain(REACT_APP_URL);
     const cookieDomainObj = {domain: domainName, maxAge: loginMaxMinutes, secure: domainUrlObj?.protocol==="https:" };
 
-    console.log("lastLoginTime", lastLoginTime);
     res.cookie("user.last_login_ts", lastLoginTime, cookieDomainObj);
     res.cookie("user.token", response.id_token, cookieDomainObj);
     res.cookie("user.id", resp.data.userid?.toLowerCase(), cookieDomainObj);

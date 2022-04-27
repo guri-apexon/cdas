@@ -3,10 +3,11 @@ import { useLocation, useHistory } from "react-router-dom";
 import { lazy, Suspense, useState, useEffect } from "react";
 import Loader from "apollo-react/components/Loader";
 
-import { getUserId } from "./utils";
+import { getUserId, setIdleLogout } from "./utils";
 import AppHeader from "./components/AppHeader/AppHeader";
 import AppFooter from "./components/AppFooter/AppFooter";
 import Logout from "./pages/Logout/Logout";
+import { userLogOut } from "./services/ApiServices";
 
 const DynamicProducts = lazy(() =>
   import("./pages/DynamicProducts/DynamicProducts")
@@ -75,6 +76,20 @@ const RoutesWrapper = () => {
       }
     }
   }, [checkedOnce, history]);
+
+  const logoutOnIdle = async () => {
+    const isLogout = await userLogOut();
+    if (isLogout) {
+      setLoggedIn(false);
+      history.push("/logout");
+    }
+  };
+
+  useEffect(() => {
+    setIdleLogout(() => {
+      logoutOnIdle();
+    });
+  }, []);
 
   return (
     <Suspense fallback={<Loader isInner />}>
