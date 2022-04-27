@@ -99,10 +99,10 @@ export default function StudyTable({ studyData, studyboardData, refreshData }) {
   const messageContext = useContext(MessageContext);
   const dispatch = useDispatch();
   const history = useHistory();
-  const status = [...studyData.uniqueProtocolStatus, "Blank"];
+  const status = studyData.uniqueProtocolStatus;
   const thbtcArea = studyData.uniqueThbtcArea;
   const obs = studyData.uniqueObs;
-  const phases = [...studyData.uniquePhase, "Blank"];
+  const phases = studyData.uniquePhase;
   const handleExisting = (row) => {
     history.push("/ExistingStudyAssignment");
     dispatch(updateSelectedStudy(row));
