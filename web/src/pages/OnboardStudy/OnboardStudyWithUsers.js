@@ -116,6 +116,7 @@ const ImportWithUsers = () => {
           source={userList}
           value={row[key]}
           onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
+          limitChips={2}
           error={
             row.alreadyExist ||
             (!initialRender &&
@@ -150,6 +151,7 @@ const ImportWithUsers = () => {
           showCheckboxes
           chipColor="white"
           source={roleLists}
+          limitChips={2}
           value={row[key]}
           onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
           error={!row[key]}

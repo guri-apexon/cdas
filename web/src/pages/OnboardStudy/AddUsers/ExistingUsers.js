@@ -186,6 +186,7 @@ const ExistingUsers = () => {
         chipColor="white"
         style={{ marginTop: 8 }}
         source={roleLists}
+        limitChips={2}
         value={row[key]}
         onChange={(e, v, r) => editRowData(e, v, r, row.uniqueId, key)}
         error={!row[key]}
