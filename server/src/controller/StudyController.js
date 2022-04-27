@@ -275,9 +275,9 @@ exports.getStudyList = async (req, res) => {
       let editT = moment(e.dateedited).format("MM/DD/YYYY");
       let addT = moment(e.dateadded).format("MM/DD/YYYY");
       // let newData = _.omit(e, ["prot_id"]);
-    if(!e.protocolstatus){
-      e.protocolstatus="Blank"
-    }
+      if (!e.protocolstatus) {
+        e.protocolstatus = "Blank";
+      }
       return {
         ...e,
         dateadded: addT,
@@ -443,11 +443,11 @@ exports.AddStudyAssign = async (req, res) => {
           console.log(err);
         }
       });
-   
-      await DB.executeQuery(`UPDATE ${schemaName}.study set updt_tm=$1 WHERE prot_id=$2;`,[
-        curDate,
-        protocol
-      ])
+
+      await DB.executeQuery(
+        `UPDATE ${schemaName}.study set updt_tm=$1 WHERE prot_id=$2;`,
+        [curDate, protocol]
+      );
       return apiResponse.successResponseWithData(
         res,
         "New user Added successfully"
@@ -540,10 +540,10 @@ exports.updateStudyAssign = async (req, res) => {
         console.log(err);
       }
     });
-    await DB.executeQuery(`UPDATE ${schemaName}.study set updt_tm=$1 WHERE prot_id=$2;`,[
-      curDate,
-      protocol
-    ])
+    await DB.executeQuery(
+      `UPDATE ${schemaName}.study set updt_tm=$1 WHERE prot_id=$2;`,
+      [curDate, protocol]
+    );
     return apiResponse.successResponse(res, "update successfully");
   } catch (err) {
     Logger.error("catch :updateStudyAssign");
@@ -571,7 +571,7 @@ exports.deleteStudyAssign = async (req, res) => {
         {
           studyId,
           userId: loginId,
-          roUser: users.join(", "),
+          roUsers: users.join(", "),
         },
         {
           headers: FSR_HEADERS,
@@ -590,15 +590,18 @@ exports.deleteStudyAssign = async (req, res) => {
               studyUserId,
               curDate,
             ]);
-    
+
             await DB.executeQuery(roleDeleteQuery, [
               protocol,
               studyUserId,
               loginId,
               curDate,
             ]);
-    
-            return apiResponse.successResponse(res, "User Deleted successfully");
+
+            return apiResponse.successResponse(
+              res,
+              "User Deleted successfully"
+            );
           } catch (err) {
             console.log(err);
           }
