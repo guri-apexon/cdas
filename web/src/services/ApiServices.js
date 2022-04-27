@@ -8,7 +8,7 @@ import {
   VENDOR_BASE,
   ASSIGN_BASE,
 } from "../constants";
-import { getUserId } from "../utils";
+import { deleteAllCookies, getUserId } from "../utils";
 
 const userId = getUserId();
 
@@ -332,8 +332,12 @@ export const getRolesPermissions = () => {
 export const userLogOut = () => {
   return axios
     .get(`${baseURL}/logout`)
-    .then((res) => {
-      return res.data || false;
+    .then(async (res) => {
+      if (res.data) {
+        const deleted = await deleteAllCookies();
+        return deleted;
+      }
+      return false;
     })
     .catch((err) => {
       console.log(err);

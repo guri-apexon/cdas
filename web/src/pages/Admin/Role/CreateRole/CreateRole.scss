@@ -1,4 +1,6 @@
 @import '../../../../styles/customscroll.scss';
+
+
 .create-role-wrapper{
     .policies-wrapper{
         div[class*=" Table-scrollRoot-"]{
@@ -24,6 +26,9 @@
         max-width: 75%;
         .title{
             font-size: 24px;
+        }
+        #roleDesc{
+            margin-top: -3px !important;
         }
     }
     .policies-wrapper{

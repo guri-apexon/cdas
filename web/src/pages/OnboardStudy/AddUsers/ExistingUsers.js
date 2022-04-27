@@ -200,7 +200,9 @@ const ExistingUsers = () => {
     return row.editMode ? (
       <div style={{ marginTop: 12 }}>{row[key]}</div>
     ) : (
-      <>{row[key]}</>
+      <>
+        <div style={{ fontWeight: "600" }}>{row[key]}</div>
+      </>
     );
   };
 

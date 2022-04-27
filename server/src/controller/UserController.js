@@ -1,22 +1,19 @@
 const DB = require("../config/db");
 const constants = require("../config/constants");
+const { getCurrentTime } = require("../helpers/customFunctions");
 const { DB_SCHEMA_NAME: schemaName } = constants;
 
 exports.getUser = function (user_id) {
   try {
     const usrId = user_id;
-    const query = `SELECT * from ${schemaName}.user where usr_id = '${usrId}'`;
-    return DB.executeQuery(query).then((response) => {
+    return DB.executeQuery(
+      `SELECT * from ${schemaName}.user where usr_id = '${usrId}';`
+    ).then((response) => {
       const users = response.rows || [];
-      if (response.rowCount > 0) {
-        return users;
-      } else {
-        return 0;
-      }
+      return users?.length ? users[0] : false;
     });
   } catch (err) {
-    //throw error in json response with status 500.
-    return err;
+    return false;
   }
 };
 
@@ -37,14 +34,11 @@ exports.addUser = function (userDetails) {
 exports.getLastLoginTime = function (user_id) {
   try {
     const usrId = user_id;
-    const query = `SELECT login_tm from ${schemaName}.user_login_details where usr_id = '${usrId}' order by login_tm desc LIMIT 1`;
-    return DB.executeQuery(query).then((response) => {
+    return DB.executeQuery(
+      `SELECT login_tm from ${schemaName}.user_login_details where usr_id = '${usrId}' order by login_tm desc LIMIT 1;`
+    ).then((response) => {
       const login = response.rows || [];
-      if (response.rowCount > 0) {
-        return login;
-      } else {
-        return 0;
-      }
+      return (login?.length && login[0]?.login_tm) ? login[0]?.login_tm : false;
     });
   } catch (err) {
     //throw error in json response with status 500.
@@ -52,10 +46,19 @@ exports.getLastLoginTime = function (user_id) {
   }
 };
 
-exports.addLoginActivity = function (loginDetails) {
+exports.addLoginActivity = async (loginDetails) => {
   try {
-    const { usrId, login_tm, logout_tm } = loginDetails;
-    const query = `INSERT INTO ${schemaName}.user_login_details(usr_id, login_tm, logout_tm) VALUES('${usrId}', '${login_tm}', '${logout_tm}')`;
+    const { usrId, logout_tm } = loginDetails;
+    const loginTime = getCurrentTime(true);
+    const { rows } = await DB.executeQuery(
+      `SELECT * from ${schemaName}.user_login_details WHERE usr_id='${usrId}'`
+    );
+    let query = '';
+    if (rows.length) {
+      query = `UPDATE ${schemaName}.user_login_details set login_tm='${loginTime}', logout_tm='${logout_tm}' WHERE usr_id='${usrId}'`;
+    } else {
+      query = `INSERT INTO ${schemaName}.user_login_details(usr_id, login_tm, logout_tm) VALUES('${usrId}', '${loginTime}', '${logout_tm}')`;
+    }
     return DB.executeQuery(query).then((response) => {
       return response.rowCount;
     });
