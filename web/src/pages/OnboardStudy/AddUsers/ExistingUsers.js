@@ -88,6 +88,8 @@ const ExistingUsers = () => {
       alreadyExist: false,
       editMode: false,
       uniqueId: i + 1,
+      fName: e.usr_fst_nm,
+      lName: e.usr_lst_nm,
       user: `${e.usr_fst_nm} ${e.usr_lst_nm} (${e.usr_mail_id})`,
       userId: e.usr_id,
       email: e.usr_mail_id,
@@ -197,12 +199,18 @@ const ExistingUsers = () => {
     );
   };
 
-  const UsersCell = ({ row, column: { accessor: key } }) => {
+  const UsersCell = ({ row }) => {
     return row.editMode ? (
-      <div style={{ marginTop: 12 }}>{row[key]}</div>
+      <div style={{ marginTop: 12 }}>
+        <b>{`${row.fName} ${row.lName} `}</b>
+        {row.email}
+      </div>
     ) : (
       <>
-        <div style={{ fontWeight: "600" }}>{row[key]}</div>
+        <div>
+          <b>{`${row.fName} ${row.lName} `}</b>
+          {row.email}
+        </div>
       </>
     );
   };
