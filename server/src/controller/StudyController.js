@@ -565,8 +565,6 @@ exports.deleteStudyAssign = async (req, res) => {
     const roleDeleteQuery = `UPDATE ${schemaName}.study_user_role SET act_flg =0,updated_by=$3,updated_on=$4 WHERE prot_id =$1 and usr_id =$2`;
     Logger.info({ message: "deleteStudyAssign" });
 
-    console.log("data", users.join(", "));
-
     axios
       .post(
         `${FSR_API_URI}/study/revoke`,
