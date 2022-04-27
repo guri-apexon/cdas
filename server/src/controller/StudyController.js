@@ -275,26 +275,39 @@ exports.getStudyList = async (req, res) => {
       let editT = moment(e.dateedited).format("MM/DD/YYYY");
       let addT = moment(e.dateadded).format("MM/DD/YYYY");
       // let newData = _.omit(e, ["prot_id"]);
-      if (!e.protocolstatus) {
-        e.protocolstatus = "Blank";
-      }
-      return {
-        ...e,
-        dateadded: addT,
-        dateedited: editT,
-        assignmentcount: count,
-      };
+    if (!e.protocolstatus) {
+      e.protocolstatus = "Blank";
+    }
+    if (!e.phase) {
+      e.phase = "Blank";
+    }
+    return {
+      ...e,
+      dateadded: addT,
+      dateedited: editT,
+      assignmentcount: count,
+    };
     });
 
-    let uniquePhase = $q3.rows
+    let uniquePhase =$q3.rows
       .map((e) => Object.values(e))
-      .flat()
-      .filter((e) => e !== "")
-      .filter((e) => e !== null);
+      .flat().map(el=>{
+        if(el===null ||el ===""){
+          return "Blank"
+        }
+        return el;
+      });
+      // .filter((e) => e !== "")
+      // .filter((e) => e !== null);
     let uniqueProtocolStatus = $q4.rows
       .map((e) => Object.values(e))
-      .flat()
-      .filter((e) => e !== null);
+      .flat().map(el=>{
+        if(el===null ||el ===""){
+          return "Blank"
+        }
+        return el;
+      });
+     
     let uniqueObs = $q5.rows
       .map((e) => Object.values(e))
       .flat()
@@ -303,11 +316,11 @@ exports.getStudyList = async (req, res) => {
       .map((e) => Object.values(e))
       .flat()
       .filter((e) => e !== null);
-
+    console.log(uniquePhase);
     return apiResponse.successResponseWithData(res, "Operation success", {
       studyData: formatDateValues,
-      uniquePhase: uniquePhase,
-      uniqueProtocolStatus: uniqueProtocolStatus,
+      uniquePhase: [...new Set(uniquePhase)],
+      uniqueProtocolStatus: [...new Set(uniqueProtocolStatus)],
       uniqueObs: uniqueObs,
       uniqueThbtcArea,
     });
