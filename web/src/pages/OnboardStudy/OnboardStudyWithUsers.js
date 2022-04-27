@@ -116,7 +116,6 @@ const ImportWithUsers = () => {
           source={userList}
           value={row[key]}
           onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
-          limitChips={2}
           error={
             row.alreadyExist ||
             (!initialRender &&
