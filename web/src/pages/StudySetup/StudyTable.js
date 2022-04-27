@@ -52,6 +52,13 @@ const Statuscell = ({ row, column: { accessor } }) => {
   }
   return <span>{rowValue}</span>;
 };
+const PhaseCell = ({ row, column: { accessor } }) => {
+  let rowValue = row[accessor];
+  if (rowValue === "Blank") {
+    rowValue = "";
+  }
+  return <span>{rowValue}</span>;
+};
 const obIcons = {
   Failed: InFailureIcon,
   "In Progress": InProgressIcon,
@@ -95,7 +102,7 @@ export default function StudyTable({ studyData, studyboardData, refreshData }) {
   const status = [...studyData.uniqueProtocolStatus, "Blank"];
   const thbtcArea = studyData.uniqueThbtcArea;
   const obs = studyData.uniqueObs;
-  const phases = studyData.uniquePhase;
+  const phases = [...studyData.uniquePhase, "Blank"];
   const handleExisting = (row) => {
     history.push("/ExistingStudyAssignment");
     dispatch(updateSelectedStudy(row));
@@ -184,6 +191,7 @@ export default function StudyTable({ studyData, studyboardData, refreshData }) {
       header: "Phase",
       accessor: "phase",
       sortFunction: compareStrings,
+      customCell: PhaseCell,
       filterFunction: createStringArrayIncludedFilter("phase"),
       filterComponent: createSelectFilterComponent(phases, {
         size: "small",

@@ -278,6 +278,9 @@ exports.getStudyList = async (req, res) => {
     if(!e.protocolstatus){
       e.protocolstatus="Blank"
     }
+    if(!e.phase){
+      e.phase="Blank"
+    }
       return {
         ...e,
         dateadded: addT,
@@ -294,7 +297,7 @@ exports.getStudyList = async (req, res) => {
     let uniqueProtocolStatus = $q4.rows
       .map((e) => Object.values(e))
       .flat()
-      .filter((e) => e !== null);
+      .filter((e) => (e !== null&&e !==""));
     let uniqueObs = $q5.rows
       .map((e) => Object.values(e))
       .flat()
