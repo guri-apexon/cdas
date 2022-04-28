@@ -3,7 +3,7 @@
     margin-bottom: 20px;
     .MuiButton-sizeSmall {
       margin-left: 16px;
-  }
+    }
   }
   .study-details {
     h3 {
@@ -32,6 +32,12 @@
     }
     tr {
       vertical-align: top;
+    }
+    .user {
+      padding-right: 4px;
+    }
+    .role {
+      padding-left: 4px;
     }
   }
 }
