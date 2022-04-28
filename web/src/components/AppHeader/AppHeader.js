@@ -2,7 +2,7 @@
 /* eslint-disable prettier/prettier */
 /* eslint-disable no-shadow */
 import React, { useContext, useState, useEffect } from "react";
-import { withRouter } from "react-router";
+import { useLocation, withRouter } from "react-router";
 import NavigationBar from "apollo-react/components/NavigationBar";
 import makeStyles from "@material-ui/core/styles/makeStyles";
 import { neutral7 } from "apollo-react/colors";
@@ -97,6 +97,7 @@ const AppHeader = ({ history, setLoggedIn }) => {
   const [open, setOpen] = useState(false);
   const [showVersionModal, setShowVersionModal] = useState(false);
   const { permissions } = appContext.user;
+  const { pathname } = useLocation();
 
   const getPermisions = async () => {
     if (permissions.length === 0) {
@@ -310,11 +311,11 @@ const AppHeader = ({ history, setLoggedIn }) => {
             // eslint-disable-next-line prefer-template
             "nav"
           }
-          // checkIsActive={(item) =>
-          //   item.pathname
-          //     ? item.pathname === pathname
-          //     : item.menuItems.some((item) => item.pathname === pathname)
-          // }
+          checkIsActive={(item) =>
+            item.pathname
+              ? item.pathname === pathname
+              : item.menuItems.some((item) => item.pathname === pathname)
+          }
           waves
           notificationsMenuProps={notificationsMenuProps}
           otherButtons={
