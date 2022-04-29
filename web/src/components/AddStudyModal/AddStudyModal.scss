@@ -8,11 +8,11 @@
   .custom-modal {
     // max-width: 624px;
     margin: 0;
-    max-height: 544px;
+    height: 666px;
     .modal-content {
       width: 548px;
-      .search-study{
-        input{
+      .search-study {
+        input {
           cursor: pointer;
         }
       }
@@ -87,7 +87,7 @@
     @extend .customscroll;
     padding-bottom: 0;
     overflow-x: hidden;
-  };
+  }
 
   .MuiDialogActions-root {
     margin-top: 20px;
