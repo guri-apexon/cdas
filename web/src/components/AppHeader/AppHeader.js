@@ -1,7 +1,6 @@
 /* eslint-disable no-use-before-define */
 /* eslint-disable react/jsx-wrap-multilines */
 /* eslint-disable react/jsx-one-expression-per-line */
-/* eslint-disable prettier/prettier */
 /* eslint-disable no-shadow */
 import React, { useContext, useState, useEffect, useRef } from "react";
 import { useLocation, withRouter } from "react-router";
