@@ -42,6 +42,7 @@ const PolicyList = () => {
   const [createPermission, setCreatePermission] = useState(false);
   const [readPermission, setReadPermission] = useState(false);
   const [updatePermission, setUpdatePermission] = useState(false);
+  const [peekContent, setPeekContent] = useState("");
   const userInfo = getUserInfo();
   const filterMethod = (pPermissions) => {
     const filterpolicyPermissions = pPermissions.filter(
@@ -168,13 +169,15 @@ const PolicyList = () => {
     );
   };
 
-  const handleMouseOver = (row) => {
+  const handleMouseOver = (row, peekData) => {
     setOpen(!open);
+    setPeekContent(peekData);
     setCurRow(row);
   };
 
   const handleMouseOut = () => {
     setOpen(false);
+    setPeekContent("");
   };
   function isEllipsisActive(el) {
     const width = el.offsetWidth;
@@ -214,7 +217,7 @@ const PolicyList = () => {
       <>
         {data.slice(0, charLimit)}
         <Link
-          onMouseOver={() => handleMouseOver(row)}
+          onMouseOver={() => handleMouseOver(row, "desName")}
           onMouseOut={handleMouseOut}
         >
           {` [...]`}
@@ -345,16 +348,10 @@ const PolicyList = () => {
           content={
             // eslint-disable-next-line react/jsx-wrap-multilines
             <div style={{ maxWidth: 400 }}>
-              <Typography
-                variant="title2"
-                gutterBottom
-                style={{ fontWeight: 600 }}
-              >
-                {curRow.policyName}
+              <Typography variant="body2">
+                {peekContent === "policyName" && curRow.policyName}
+                {peekContent === "desName" && curRow.policyDescription}
               </Typography>
-              {/* <Typography variant="body2">
-                {curRow.policyDescription}
-              </Typography> */}
             </div>
           }
         />

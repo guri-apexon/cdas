@@ -46,6 +46,7 @@ const ListRoles = () => {
   const [roleLists, setroleLists] = useState([]);
   const Roles = useSelector((state) => state.Roles);
   const [open, setOpen] = useState(false);
+  const [peekContent, setPeekContent] = useState("");
   const [curRow, setCurRow] = useState({});
   const appContext = useContext(AppContext);
   const { permissions } = appContext.user;
@@ -96,10 +97,12 @@ const ListRoles = () => {
 
   const handleMouseOut = () => {
     setOpen(false);
+    setPeekContent("");
   };
 
-  const handleMouseOver = (row) => {
+  const handleMouseOver = (row, peekData) => {
     setOpen(!open);
+    setPeekContent(peekData);
     setCurRow(row);
   };
 
@@ -166,7 +169,7 @@ const ListRoles = () => {
     }
     return (
       <Link
-        onMouseOver={() => handleMouseOver(row)}
+        onMouseOver={() => handleMouseOver(row, "roleName")}
         onMouseOut={handleMouseOut}
         disabled={!readRolePermission}
         onClick={(e) => goToRole(e, id)}
@@ -187,7 +190,7 @@ const ListRoles = () => {
       <>
         {data.slice(0, charLimit - 6)}
         <Link
-          onMouseOver={() => handleMouseOver(row)}
+          onMouseOver={() => handleMouseOver(row, "roleDes")}
           onMouseOut={handleMouseOut}
         >
           {` [...]`}
@@ -324,15 +327,10 @@ const ListRoles = () => {
         content={
           // eslint-disable-next-line react/jsx-wrap-multilines
           <div style={{ maxWidth: 400 }}>
-            <Typography
-              variant="title2"
-              gutterBottom
-              style={{ fontWeight: 600 }}
-            >
-              {curRow.role_desc}
-              {/* {curRow.role_nm} */}
+            <Typography variant="body2">
+              {peekContent === "roleName" && curRow.role_nm}
+              {peekContent === "roleDes" && curRow.role_desc}
             </Typography>
-            {/* <Typography variant="body2">{curRow.role_desc}</Typography> */}
           </div>
         }
       />
