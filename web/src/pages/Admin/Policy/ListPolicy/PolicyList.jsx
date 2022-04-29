@@ -28,6 +28,7 @@ import {
   createStringArraySearchFilter,
   createStringArrayIncludedFilter,
   getUserInfo,
+  getOverflowLimit,
 } from "../../../../utils/index";
 
 import "./PolicyList.scss";
@@ -178,42 +179,48 @@ const PolicyList = () => {
     setOpen(false);
     setPeekContent("");
   };
-
-  const LinkCell = ({ row, column: { accessor } }) => {
+  function isEllipsisActive(el) {
+    const width = el.offsetWidth;
+    const widthChild = el.firstChild.offsetWidth;
+    return widthChild >= width;
+  }
+  const LinkCell = ({ row, column: { accessor, width } }) => {
     const rowValue = row[accessor];
     const id = row.policyId;
-    if (rowValue.length > 30) {
+    const charLimit = getOverflowLimit(width, 80);
+    if (rowValue.length < charLimit) {
       return (
-        <Link
-          onMouseOver={() => handleMouseOver(row, "policyName")}
-          onMouseOut={handleMouseOut}
-          disabled={!readPermission}
-          onClick={(e) => goToPolicy(e, id)}
-        >
-          {`${rowValue.slice(0, 30)}  [...]`}
+        <Link onClick={(e) => goToPolicy(e, id)} disabled={!readPermission}>
+          {rowValue}
         </Link>
       );
     }
     return (
-      <Link onClick={(e) => goToPolicy(e, id)} disabled={!readPermission}>
-        {rowValue}
+      <Link
+        onMouseOver={() => handleMouseOver(row)}
+        onMouseOut={handleMouseOut}
+        disabled={!readPermission}
+        onClick={(e) => goToPolicy(e, id)}
+      >
+        {`${rowValue.slice(0, charLimit - 5)} [...]`}
       </Link>
     );
   };
 
-  const DespCell = ({ row, column: { accessor } }) => {
+  const DespCell = ({ row, column: { accessor, width } }) => {
     const data = row[accessor];
-    if (data.length < 80) {
+    const charLimit = getOverflowLimit(width, 80);
+    if (data.length < charLimit) {
       return <>{data}</>;
     }
     return (
       <>
-        {data.slice(0, 50)}
+        {data.slice(0, charLimit)}
         <Link
           onMouseOver={() => handleMouseOver(row, "desName")}
           onMouseOut={handleMouseOut}
         >
-          {`  [...]`}
+          {` [...]`}
         </Link>
       </>
     );

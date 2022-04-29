@@ -155,6 +155,11 @@ const ImportWithUsers = () => {
           onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
           error={!row[key]}
           helperText={!row[key] && "Required"}
+          filterSelectedOptions={false}
+          blurOnSelect={false}
+          clearOnBlur={false}
+          disableCloseOnSelect
+          alwaysLimitChips
         />
       </div>
     );

@@ -140,6 +140,11 @@ const AddNewUserModal = ({
         className={row.disableRole ? "hide" : "show"}
         value={row[key]}
         onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
+        filterSelectedOptions={false}
+        blurOnSelect={false}
+        clearOnBlur={false}
+        disableCloseOnSelect
+        alwaysLimitChips
       />
     );
   };
