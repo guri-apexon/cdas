@@ -40,6 +40,15 @@ export function getPathnameAndSearch(path) {
     search: `?${arr[1]}`,
   };
 }
+export const getOverflowLimit = (width, pageSpace = 0, fontSize = 14) => {
+  if (width.includes("%")) {
+    width =
+      ((window.innerWidth - Number(pageSpace)) *
+        Number(width.replace("%", ""))) /
+      100;
+  }
+  return Math.round((Number(width) * 1.91) / fontSize);
+};
 
 export function getLastLogin() {
   const currentLogin = getCookie("user.last_login_ts");
