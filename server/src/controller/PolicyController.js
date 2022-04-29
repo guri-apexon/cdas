@@ -5,7 +5,7 @@ const moment = require("moment");
 const constants = require("../config/constants");
 const { DB_SCHEMA_NAME: schemaName } = constants;
 
-exports.createPolicy =async function (req, res) {
+exports.createPolicy = async function (req, res) {
   try {
     const { policyName, policyDesc, permissions, userId, status } = req.body;
     const productsArr = Object.keys(permissions);
@@ -19,11 +19,16 @@ exports.createPolicy =async function (req, res) {
       userId,
       currentTime,
     ];
- 
-    const {rows} = await DB.executeQuery(`SELECT plcy_nm FROM  ${schemaName}.policy where UPPER(plcy_nm) = UPPER('${policyName}')`);
-   if(rows&&rows.length>0){
-    return apiResponse.ErrorResponse(res, "Policy Name should be unique - Please update the name and Save again");
-   }
+
+    const { rows } = await DB.executeQuery(
+      `SELECT plcy_nm FROM  ${schemaName}.policy where UPPER(plcy_nm) = UPPER('${policyName}')`
+    );
+    if (rows && rows.length > 0) {
+      return apiResponse.ErrorResponse(
+        res,
+        "Policy Name should be unique. Please update the name and save again"
+      );
+    }
 
     DB.executeQuery(
       `INSERT into ${schemaName}.policy(plcy_nm, plcy_desc, plcy_stat, created_by, created_on, updated_by, updated_on) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
@@ -54,7 +59,7 @@ exports.createPolicy =async function (req, res) {
           .then((response) => {
             return apiResponse.successResponseWithData(
               res,
-              "Added Successfully",
+              "Added successfully",
               []
             );
           })
@@ -65,7 +70,7 @@ exports.createPolicy =async function (req, res) {
       .catch((err) => {
         const errMessage =
           err.code == 23505
-            ? "Policy Name should be unique - Please update the name and Save again"
+            ? "Policy Name should be unique. Please update the name and save again"
             : err.detail;
         return apiResponse.ErrorResponse(res, errMessage);
       });
@@ -78,17 +83,17 @@ exports.updatePolicy = async function (req, res) {
   try {
     const { policyName, policyDesc, permissions, userId, status, policyId } =
       req.body;
-      console.log(policyId)
-      const { rows } = await DB.executeQuery(
-        `SELECT plcy_nm FROM  ${schemaName}.policy where plcy_id!=${policyId} And UPPER(plcy_nm) = UPPER('${policyName}')`
+    console.log(policyId);
+    const { rows } = await DB.executeQuery(
+      `SELECT plcy_nm FROM  ${schemaName}.policy where plcy_id!=${policyId} And UPPER(plcy_nm) = UPPER('${policyName}')`
+    );
+    console.log(rows);
+    if (rows && rows.length > 0) {
+      return apiResponse.ErrorResponse(
+        res,
+        "Policy Name should be unique. Please update the name and save again"
       );
-      console.log(rows);
-      if (rows && rows.length > 0) {
-        return apiResponse.ErrorResponse(
-          res,
-          "Policy Name should be unique - Please update the name and Save again"
-        );
-      }
+    }
     const productsArr = Object.keys(permissions);
     const currentTime = moment().format("YYYY-MM-DD HH:mm:ss");
     const policyValues = [
@@ -176,9 +181,9 @@ exports.getProducts = function (req, res) {
 
 exports.getSnapshot = function (req, res) {
   try {
-    const {policyId} = req.params;
-    if(!policyId) return apiResponse.ErrorResponse(res, 'Policy not found');
-    
+    const { policyId } = req.params;
+    if (!policyId) return apiResponse.ErrorResponse(res, "Policy not found");
+
     const searchQuery = `select row_number() over(order by prod_nm asc) as indx ,prod_nm,ctgy_nm ,feat_nm ,permsn_nm , plcy_prod_permsn_id
     from (select distinct p2.prod_nm ,c.ctgy_nm ,f.feat_nm ,p.permsn_nm , ppp.plcy_prod_permsn_id
     from ${constants.DB_SCHEMA_NAME}.product_permission pp
@@ -189,7 +194,7 @@ exports.getSnapshot = function (req, res) {
     left outer join ${constants.DB_SCHEMA_NAME}.product p2 on (p2.prod_id=pp.prod_id) WHERE ppp.plcy_prod_permsn_id is not null) oprd;`;
     DB.executeQuery(searchQuery).then(async (response) => {
       let permissions = response?.rows || [];
-      if(permissions?.length){
+      if (permissions?.length) {
         const helper = {};
         permissions = permissions.reduce((r, o) => {
           const key = `${o.prod_nm}: ${o.feat_nm}`;
@@ -200,7 +205,9 @@ exports.getSnapshot = function (req, res) {
             };
             r.push(helper[key]);
           } else {
-            const filtered = helper[key].category.find((x) => x.name === o.ctgy_nm);
+            const filtered = helper[key].category.find(
+              (x) => x.name === o.ctgy_nm
+            );
             if (filtered) {
               filtered.values.push(o.permsn_nm);
             } else {
@@ -277,17 +284,31 @@ exports.listPermission = function (req, res) {
 exports.getPolicyList = async (req, res) => {
   try {
     Logger.info({ message: "getPolicyList" });
-    if(req.method==="GET"){
+    if (req.method === "GET") {
       const { roleId } = req.params;
       const query = `select distinct p.plcy_nm as "policyName", p.plcy_desc as "policyDescription", p.plcy_id as "policyId", string_agg(distinct p2.prod_nm, ', ') AS products, p.plcy_stat as "policyStatus" 
-      ${roleId ? `,case when rp.plcy_id is null or rp.act_flg ='0' then false else true end as "selected", rp.role_plcy_id` : ""}
+      ${
+        roleId
+          ? `,case when rp.plcy_id is null or rp.act_flg ='0' then false else true end as "selected", rp.role_plcy_id`
+          : ""
+      }
       from ${constants.DB_SCHEMA_NAME}."policy" p
-      ${roleId ? `left outer join cdascfg.role_policy rp on rp.plcy_id = p.plcy_id and rp.role_id =${roleId}` : ""}
-      inner join ${constants.DB_SCHEMA_NAME}.policy_product_permission ppp on (p.plcy_id=ppp.plcy_id)
-      inner JOIN ${constants.DB_SCHEMA_NAME}.product_permission pp ON ppp.prod_permsn_id = pp.prod_permsn_id
-      inner JOIN ${constants.DB_SCHEMA_NAME}.product p2 ON p2.prod_id = pp.prod_id
+      ${
+        roleId
+          ? `left outer join cdascfg.role_policy rp on rp.plcy_id = p.plcy_id and rp.role_id =${roleId}`
+          : ""
+      }
+      inner join ${
+        constants.DB_SCHEMA_NAME
+      }.policy_product_permission ppp on (p.plcy_id=ppp.plcy_id)
+      inner JOIN ${
+        constants.DB_SCHEMA_NAME
+      }.product_permission pp ON ppp.prod_permsn_id = pp.prod_permsn_id
+      inner JOIN ${
+        constants.DB_SCHEMA_NAME
+      }.product p2 ON p2.prod_id = pp.prod_id
       where ppp.act_flg =1
-      GROUP  BY p.plcy_id${roleId ? `, rp.plcy_id, rp.role_plcy_id` : ''};`;
+      GROUP  BY p.plcy_id${roleId ? `, rp.plcy_id, rp.role_plcy_id` : ""};`;
       const $q1 = await DB.executeQuery(query);
       const products = [];
       await $q1.rows.forEach(function (obj) {
@@ -297,10 +318,14 @@ exports.getPolicyList = async (req, res) => {
           if (products.indexOf(user) === -1) products.push(user);
         });
       });
-      return apiResponse.successResponseWithData(res, "Policy retrieved successfully", {
-        policyList: $q1.rows,
-        uniqueProducts: products,
-      });
+      return apiResponse.successResponseWithData(
+        res,
+        "Policy retrieved successfully",
+        {
+          policyList: $q1.rows,
+          uniqueProducts: products,
+        }
+      );
     }
     // const query = `select p.plcy_nm as "policyName", p.plcy_desc as "policyDescription", p.plcy_id as "policyId", p2.prod_nm as "productName", p.plcy_stat as "policyStatus" from ${schemaName}."policy" p
     // inner join ${schemaName}.policy_product pp on (pp.plcy_id=p.plcy_id)
@@ -331,23 +356,19 @@ exports.getPolicyList = async (req, res) => {
   }
 };
 
-
 exports.updateStatus = async (req, res) => {
   try {
-    const {userId, policyStatus, policyId } = req.body;
+    const { userId, policyStatus, policyId } = req.body;
     const currentTime = moment().format("YYYY-MM-DD HH:mm:ss");
-    const policyValues = [
-      policyStatus,
-      userId,
-      currentTime,
-      policyId,
-    ];
-  let response= await DB.executeQuery(
+    const policyValues = [policyStatus, userId, currentTime, policyId];
+    let response = await DB.executeQuery(
       `UPDATE ${constants.DB_SCHEMA_NAME}.policy set plcy_stat=$1, updated_by=$2, updated_on=$3 WHERE plcy_id=$4 RETURNING *`,
       policyValues
-    )
-  
-    return apiResponse.successResponseWithData(res, "Update success",{updatedPolicy:response.rows&&response.rows[0]});
+    );
+
+    return apiResponse.successResponseWithData(res, "Update success", {
+      updatedPolicy: response.rows && response.rows[0],
+    });
   } catch (error) {
     Logger.error("catch :update status policy");
     Logger.error(error.message);
