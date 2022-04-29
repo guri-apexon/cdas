@@ -211,7 +211,7 @@ const ExistingUsers = () => {
     if (rowValue.length > charLimit) {
       return (
         <>
-          {rowValue.slice(0, charLimit - 100)}
+          {rowValue.slice(0, charLimit - 5)}
           <Link
             onMouseOver={() => setPeekData(rowValue)}
             onMouseOut={() => setPeekData(null)}
