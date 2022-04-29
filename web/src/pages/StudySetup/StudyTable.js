@@ -263,8 +263,12 @@ export default function StudyTable({ studyData, studyboardData, refreshData }) {
   ];
 
   const moreColumns = [
-    ...columns.map((column) => ({ ...column })).slice(0, -1),
-    ...columnsToAdd.map((column) => ({ ...column, hidden: true })),
+    ...columns.map((column) => ({ ...column, fixedWidth: false })).slice(0, -1),
+    ...columnsToAdd.map((column) => ({
+      ...column,
+      hidden: true,
+      fixedWidth: false,
+    })),
     columns.slice(-1)[0],
   ];
 

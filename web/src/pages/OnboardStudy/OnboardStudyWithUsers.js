@@ -150,6 +150,7 @@ const ImportWithUsers = () => {
           showCheckboxes
           chipColor="white"
           source={roleLists}
+          limitChips={2}
           value={row[key]}
           onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
           error={!row[key]}

@@ -183,7 +183,7 @@ const PermissionTable = ({ title, data, updateData, messageContext }) => {
       </div>
       <Table
         title="Permissions"
-        subtitle={title}
+        subtitle={title === "Admin" ? "CDAS Admin" : title}
         columns={columns}
         rows={filteredData}
         rowsPerPage={tableRows.length}

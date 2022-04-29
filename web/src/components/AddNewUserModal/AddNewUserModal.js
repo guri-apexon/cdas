@@ -135,6 +135,7 @@ const AddNewUserModal = ({
         forcePopupIcon
         showCheckboxes
         source={roleLists}
+        limitChips={2}
         chipColor="white"
         className={row.disableRole ? "hide" : "show"}
         value={row[key]}
