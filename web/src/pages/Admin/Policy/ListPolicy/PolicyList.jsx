@@ -197,7 +197,7 @@ const PolicyList = () => {
     }
     return (
       <Link
-        onMouseOver={() => handleMouseOver(row)}
+        onMouseOver={() => handleMouseOver(row, "policyName")}
         onMouseOut={handleMouseOut}
         disabled={!readPermission}
         onClick={(e) => goToPolicy(e, id)}
