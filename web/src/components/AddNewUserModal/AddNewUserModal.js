@@ -140,6 +140,11 @@ const AddNewUserModal = ({
         className={row.disableRole ? "hide" : "show"}
         value={row[key]}
         onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
+        filterSelectedOptions={false}
+        blurOnSelect={false}
+        clearOnBlur={false}
+        disableCloseOnSelect
+        alwaysLimitChips
       />
     );
   };
@@ -232,12 +237,14 @@ const AddNewUserModal = ({
     }
     if (!usersRows.length) {
       toast.showErrorMessage("Add some users to proceed");
+      setDisableSave(false);
       return false;
     }
     if (usersRows.find((x) => x.user == null)) {
       setInitialRender(!initialRender);
       setTableUsers([...tableUsers]);
       toast.showErrorMessage("Please fill user or remove blank rows");
+      setDisableSave(false);
       return false;
     }
     if (tableUsers.find((x) => x.alreadyExist)) {
@@ -255,6 +262,7 @@ const AddNewUserModal = ({
         //   emptyRoles[0] && emptyRoles[0].user && emptyRoles[0].user.email
         // }`
       );
+      setDisableSave(false);
       return false;
     }
     setDisableSave(true);

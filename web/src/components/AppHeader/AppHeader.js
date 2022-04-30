@@ -1,6 +1,8 @@
+/* eslint-disable no-use-before-define */
+/* eslint-disable react/jsx-wrap-multilines */
 /* eslint-disable react/jsx-one-expression-per-line */
 /* eslint-disable no-shadow */
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useState, useEffect, useRef } from "react";
 import { useLocation, withRouter } from "react-router";
 import NavigationBar from "apollo-react/components/NavigationBar";
 import makeStyles from "@material-ui/core/styles/makeStyles";
@@ -86,6 +88,35 @@ const styles = {
 
 const useStyles = makeStyles(styles);
 
+// function useOuterClick(callback) {
+//   const innerRef = useRef();
+//   const callbackRef = useRef();
+
+//   // set current callback in ref, before second useEffect uses it
+//   useEffect(() => {
+//     // useEffect wrapper to be safe for concurrent mode
+//     callbackRef.current = callback;
+//   });
+
+//   useEffect(() => {
+//     document.addEventListener("click", handleClick);
+//     return () => document.removeEventListener("click", handleClick);
+
+//     // read most recent callback and innerRef dom node from refs
+//     function handleClick(e) {
+//       if (
+//         innerRef.current &&
+//         callbackRef.current &&
+//         !innerRef.current.contains(e.target)
+//       ) {
+//         callbackRef.current(e);
+//       }
+//     }
+//   }, []); // no need for callback + innerRef dep
+
+//   return innerRef; // return ref; client can omit `useRef`
+// }
+
 const AppHeader = ({ history, setLoggedIn }) => {
   const classes = useStyles();
   const userInfo = getUserInfo();
@@ -97,6 +128,17 @@ const AppHeader = ({ history, setLoggedIn }) => {
   const [showVersionModal, setShowVersionModal] = useState(false);
   const { permissions } = appContext.user;
   const { pathname } = useLocation();
+
+  const onPanelClose = () => {
+    setpanelOpen(false);
+  };
+
+  // const innerRef = useOuterClick((e) => {
+  //   // counter state is up-to-date, when handler is called
+  //   if (panelOpen === true) {
+  //     onPanelClose();
+  //   }
+  // });
 
   const getPermisions = async () => {
     if (permissions.length === 0) {
@@ -253,9 +295,7 @@ const AppHeader = ({ history, setLoggedIn }) => {
     // eslint-disable-next-line no-shadow
     setpanelOpen((panelOpen) => !panelOpen);
   };
-  const onPanelClose = () => {
-    setpanelOpen(false);
-  };
+
   const ConfirmModal = React.memo(({ showVersionModal, closeModal }) => {
     return (
       <Modal
@@ -263,7 +303,6 @@ const AppHeader = ({ history, setLoggedIn }) => {
         disableBackdropClick="true"
         onClose={closeModal}
         message={
-          // eslint-disable-next-line react/jsx-wrap-multilines
           <div>
             <div>Clinical Data Analytics Suite</div>
             <p>Version 1.0</p>
@@ -335,7 +374,9 @@ const AppHeader = ({ history, setLoggedIn }) => {
             </div>
           }
         />
+        {/* <div id="container" ref={innerRef}> */}
         <NavigationPanel open={panelOpen} onClose={onPanelClose} />
+        {/* </div> */}
       </div>
       <Banner
         variant={messageContext.errorMessage.variant}
