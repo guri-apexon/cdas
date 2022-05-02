@@ -128,48 +128,52 @@ const AddNewUserModal = ({
 
   const EditableRoles = ({ row, column: { accessor: key } }) => {
     return (
-      <AutocompleteV2
-        size="small"
-        fullWidth
-        multiple
-        forcePopupIcon
-        showCheckboxes
-        source={roleLists}
-        limitChips={2}
-        chipColor="white"
-        className={row.disableRole ? "hide" : "show"}
-        value={row[key]}
-        onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
-      />
+      <div className="role">
+        <AutocompleteV2
+          size="small"
+          fullWidth
+          multiple
+          forcePopupIcon
+          showCheckboxes
+          source={roleLists}
+          limitChips={2}
+          chipColor="white"
+          className={row.disableRole ? "hide" : "show"}
+          value={row[key]}
+          onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
+        />
+      </div>
     );
   };
 
   const EditableUser = ({ row, column: { accessor: key } }) => {
     return (
-      <AutocompleteV2
-        size="small"
-        fullWidth
-        forcePopupIcon
-        popupIcon={<SearchIcon fontSize="extraSmall" />}
-        source={userList}
-        value={row[key]}
-        onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
-        matchFrom="any"
-        error={
-          row.alreadyExist ||
-          (!initialRender &&
-            !row[key] &&
-            row.index !== tableUsers[tableUsers.length - 1].index)
-        }
-        helperText={
-          row.alreadyExist
-            ? "This user already has assignments. Please select a different user to continue"
-            : !initialRender &&
+      <div className="user">
+        <AutocompleteV2
+          size="small"
+          fullWidth
+          forcePopupIcon
+          popupIcon={<SearchIcon fontSize="extraSmall" />}
+          source={userList}
+          value={row[key]}
+          onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
+          matchFrom="any"
+          error={
+            row.alreadyExist ||
+            (!initialRender &&
               !row[key] &&
-              row.index !== tableUsers[tableUsers.length - 1].index &&
-              "Required"
-        }
-      />
+              row.index !== tableUsers[tableUsers.length - 1].index)
+          }
+          helperText={
+            row.alreadyExist
+              ? "This user already has assignments. Please select a different user to continue"
+              : !initialRender &&
+                !row[key] &&
+                row.index !== tableUsers[tableUsers.length - 1].index &&
+                "Required"
+          }
+        />
+      </div>
     );
   };
 
