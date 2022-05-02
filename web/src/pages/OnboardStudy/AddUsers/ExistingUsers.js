@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/anchor-is-valid */
 /* eslint-disable no-return-assign */
 /* eslint-disable no-use-before-define */
 /* eslint-disable consistent-return */
@@ -22,6 +23,8 @@ import EllipsisVerticalIcon from "apollo-react-icons/EllipsisVertical";
 import Tooltip from "apollo-react/components/Tooltip";
 import IconMenuButton from "apollo-react/components/IconMenuButton";
 import AutocompleteV2 from "apollo-react/components/AutocompleteV2";
+import Peek from "apollo-react/components/Peek";
+import Typography from "apollo-react/components/Typography";
 import ChevronLeft from "apollo-react-icons/ChevronLeft";
 import { MessageContext } from "../../../components/Providers/MessageProvider";
 import {
@@ -35,6 +38,7 @@ import {
   getUserInfo,
   TextFieldFilter,
   createStringArrayIncludedFilter,
+  getOverflowLimit,
 } from "../../../utils";
 import AddNewUserModal from "../../../components/AddNewUserModal/AddNewUserModal";
 import "./ExistingUsers.scss";
@@ -78,6 +82,7 @@ const ExistingUsers = () => {
   const studyData = useSelector((state) => state.studyBoard);
   const [addStudyOpen, setAddStudyOpen] = useState(false);
   const [editedRoles, setEditedRoles] = useState({});
+  const [peekData, setPeekData] = useState(null);
   const { selectedStudy } = studyData;
   const { prot_id: protocol, prot_nbr_stnd: studyId } = selectedStudy;
 
@@ -178,27 +183,47 @@ const ExistingUsers = () => {
   const EditableRoles = ({ row }) => {
     const key = "roles";
     const rowValue = row[key].map((e) => e.label).join(", ");
-    return row.editMode ? (
-      <AutocompleteV2
-        size="small"
-        fullWidth
-        multiple
-        forcePopupIcon
-        showCheckboxes
-        chipColor="white"
-        style={{ marginTop: 8 }}
-        source={roleLists}
-        limitChips={2}
-        value={row[key]}
-        onChange={(e, v, r) => editRowData(e, v, r, row.uniqueId, key)}
-        error={!row[key]}
-        helperText={!row[key] && "Required"}
-      />
-    ) : (
-      <>{rowValue}</>
-    );
+    if (row.editMode) {
+      return (
+        <AutocompleteV2
+          size="small"
+          fullWidth
+          multiple
+          forcePopupIcon
+          showCheckboxes
+          chipColor="white"
+          style={{ marginTop: 8 }}
+          source={roleLists}
+          limitChips={2}
+          value={row[key]}
+          onChange={(e, v, r) => editRowData(e, v, r, row.uniqueId, key)}
+          error={!row[key]}
+          helperText={!row[key] && "Required"}
+          alwaysLimitChips
+          filterSelectedOptions={false}
+          blurOnSelect={false}
+          clearOnBlur={false}
+          disableCloseOnSelect
+        />
+      );
+    }
+    const charLimit = getOverflowLimit("50%", 360);
+    if (rowValue.length > charLimit) {
+      return (
+        <>
+          {rowValue.slice(0, charLimit - 5)}
+          <Link
+            onMouseOver={() => setPeekData(rowValue)}
+            onMouseOut={() => setPeekData(null)}
+          >
+            {` [...]`}
+          </Link>
+        </>
+      );
+    }
+    return rowValue;
   };
-
+  // rowValue.slice(0, 100)
   const UsersCell = ({ row }) => {
     return row.editMode ? (
       <div style={{ marginTop: 12 }}>
@@ -412,6 +437,20 @@ const ExistingUsers = () => {
           </Grid>
         </div>
       </div>
+      {peekData && (
+        <Peek
+          open={peekData}
+          id="rolesTooltip"
+          followCursor
+          placement="bottom"
+          content={
+            // eslint-disable-next-line react/jsx-wrap-multilines
+            <Typography variant="body" gutterBottom>
+              {peekData}
+            </Typography>
+          }
+        />
+      )}
     </>
   );
 };
