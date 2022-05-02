@@ -42,14 +42,10 @@ const ConfirmModal = React.memo(({ open, cancel, stayHere, loading }) => {
       disableBackdropClick="true"
       variant="warning"
       title="Lose your work?"
-      message="Your unsaved changes will be lost. Are you sure you want to leave this page?"
+      message="All unsaved changes will be lost."
       buttonProps={[
+        { label: "Keep editing", disabled: loading },
         { label: "Leave without saving", onClick: cancel, disabled: loading },
-        {
-          label: "Stay on this page",
-          onClick: stayHere,
-          disabled: loading,
-        },
       ]}
       id="neutral"
     />

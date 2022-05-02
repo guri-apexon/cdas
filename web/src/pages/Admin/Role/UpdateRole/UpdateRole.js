@@ -274,12 +274,12 @@ const UpdateRole = () => {
 
   const setConfirmCancel = () => {
     const confirm = {
-      subtitle: "You has started the new role. Do you still want to cancel?",
-      cancelLabel: "Yes, cancel it",
+      subtitle: "All unsaved changes will be lost.",
+      cancelLabel: "Leave without saving",
       cancelAction: () => {
         history.push("/role-management");
       },
-      submitLabel: "No, let's finish",
+      submitLabel: "Keep editing",
     };
     setConfirmObj(confirm);
   };
@@ -290,13 +290,13 @@ const UpdateRole = () => {
       return false;
     }
     const confirm = {
-      subtitle: "Unsaved changes will be lost. Are you sure you want to leave?",
+      subtitle: "All unsaved changes will be lost.",
       cancelLabel: "Leave without saving",
       cancelAction: () => {
         setSelectedPolicy(null);
         history.push(`/policy-management/${selectedPolicy.policyId}`);
       },
-      submitLabel: "Stay on this page",
+      submitLabel: "Keep editing",
     };
     setConfirmObj(confirm);
   };
@@ -309,17 +309,17 @@ const UpdateRole = () => {
             onClose={() => setConfirmObj(null)}
             className="save-confirm"
             variant="warning"
-            title="Save before exiting?"
+            title="Lose your work?"
             message={confirmObj.subtitle}
             buttonProps={[
               {
-                label: confirmObj.cancelLabel,
-                onClick: () => confirmObj.cancelAction(),
+                label: confirmObj.submitLabel,
+                onClick: () => setConfirmObj(null),
                 disabled: loading,
               },
               {
-                label: confirmObj.submitLabel,
-                onClick: () => setConfirmObj(null),
+                label: confirmObj.cancelLabel,
+                onClick: () => confirmObj.cancelAction(),
                 disabled: loading,
               },
             ]}

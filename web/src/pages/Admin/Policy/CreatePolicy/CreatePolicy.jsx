@@ -32,10 +32,10 @@ const ConfirmModal = React.memo(({ open, cancel, closeModal, loading }) => {
       className="save-confirm"
       variant="warning"
       title="Lose your work?"
-      message="your unsaved changes will be lost. Are you sure you want to leave this page?"
+      message="All unsaved changes will be lost."
       buttonProps={[
+        { label: "Keep editing", onClick: closeModal, disabled: loading },
         { label: "Leave without saving", onClick: cancel, disabled: loading },
-        { label: "Stay on this page", onClick: closeModal, disabled: loading },
       ]}
       id="neutral"
     />
