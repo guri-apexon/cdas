@@ -6,10 +6,10 @@
     margin-bottom: 24px;
   }
   .custom-modal {
-    max-width: 960px;
+    max-width: 1010px;
     margin: 0;
     .modal-content {
-      width: 910px;
+      width: 960px;
       thead {
         padding-right: 16px;
         display: block;
@@ -93,5 +93,11 @@
   }
   .show {
     display: block;
+  }
+  .user {
+    height: 40px;
+  }
+  .role {
+    height: 40px;
   }
 }
