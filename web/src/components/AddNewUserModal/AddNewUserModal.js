@@ -4,14 +4,10 @@ import { useState, useEffect, useContext, useMemo } from "react";
 import { useHistory, withRouter } from "react-router-dom";
 import "./AddNewUserModal.scss";
 import Table from "apollo-react/components/Table";
-import Box from "apollo-react/components/Box";
 import IconButton from "apollo-react/components/IconButton";
 import SearchIcon from "apollo-react-icons/Search";
 import Trash from "apollo-react-icons/Trash";
 import AutocompleteV2 from "apollo-react/components/AutocompleteV2";
-import Select from "apollo-react/components/Select";
-import MenuItem from "apollo-react/components/MenuItem";
-import ApolloProgress from "apollo-react/components/ApolloProgress";
 import { MessageContext } from "../Providers/MessageProvider";
 import { addAssignUser } from "../../services/ApiServices";
 import { debounceFunction, getUserInfo } from "../../utils";
@@ -128,53 +124,57 @@ const AddNewUserModal = ({
 
   const EditableRoles = ({ row, column: { accessor: key } }) => {
     return (
-      <AutocompleteV2
-        size="small"
-        fullWidth
-        multiple
-        forcePopupIcon
-        showCheckboxes
-        source={roleLists}
-        limitChips={2}
-        chipColor="white"
-        className={row.disableRole ? "hide" : "show"}
-        value={row[key]}
-        onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
-        filterSelectedOptions={false}
-        blurOnSelect={false}
-        clearOnBlur={false}
-        disableCloseOnSelect
-        alwaysLimitChips
-      />
+      <div className="role">
+        <AutocompleteV2
+          size="small"
+          fullWidth
+          multiple
+          forcePopupIcon
+          showCheckboxes
+          source={roleLists}
+          limitChips={2}
+          chipColor="white"
+          className={row.disableRole ? "hide" : "show"}
+          value={row[key]}
+          onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
+          filterSelectedOptions={false}
+          blurOnSelect={false}
+          clearOnBlur={false}
+          disableCloseOnSelect
+          alwaysLimitChips
+        />
+      </div>
     );
   };
 
   const EditableUser = ({ row, column: { accessor: key } }) => {
     return (
-      <AutocompleteV2
-        size="small"
-        fullWidth
-        forcePopupIcon
-        popupIcon={<SearchIcon fontSize="extraSmall" />}
-        source={userList}
-        value={row[key]}
-        onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
-        matchFrom="any"
-        error={
-          row.alreadyExist ||
-          (!initialRender &&
-            !row[key] &&
-            row.index !== tableUsers[tableUsers.length - 1].index)
-        }
-        helperText={
-          row.alreadyExist
-            ? "This user already has assignments. Please select a different user to continue"
-            : !initialRender &&
+      <div className="user">
+        <AutocompleteV2
+          size="small"
+          fullWidth
+          forcePopupIcon
+          popupIcon={<SearchIcon fontSize="extraSmall" />}
+          source={userList}
+          value={row[key]}
+          onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
+          matchFrom="any"
+          error={
+            row.alreadyExist ||
+            (!initialRender &&
               !row[key] &&
-              row.index !== tableUsers[tableUsers.length - 1].index &&
-              "Required"
-        }
-      />
+              row.index !== tableUsers[tableUsers.length - 1].index)
+          }
+          helperText={
+            row.alreadyExist
+              ? "This user already has assignments. Please select a different user to continue"
+              : !initialRender &&
+                !row[key] &&
+                row.index !== tableUsers[tableUsers.length - 1].index &&
+                "Required"
+          }
+        />
+      </div>
     );
   };
 
