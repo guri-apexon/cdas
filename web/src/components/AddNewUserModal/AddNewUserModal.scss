@@ -43,6 +43,9 @@
             padding-left: 15px;
           }
         }
+        &:nth-child(3n) {
+          padding-top: 0px;
+        }
       }
       .result-row {
         display: flex;
