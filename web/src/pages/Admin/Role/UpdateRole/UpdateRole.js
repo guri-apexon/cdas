@@ -1,6 +1,6 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import Box from "apollo-react/components/Box";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import BreadcrumbsUI from "apollo-react/components/Breadcrumbs";
 import Switch from "apollo-react/components/Switch";
@@ -52,10 +52,26 @@ const UpdateRole = () => {
   const [roleDesc, setRoleDesc] = useState("");
   const [policies, setPolicies] = useState([]);
   const [products, setProducts] = useState([]);
+  const routerHandle = useRef();
   const appContext = useContext(AppContext);
   const { permissions } = appContext.user;
   const [RoleUpdatePermission, setUpdateRoleUpdatePermission] = useState(false);
   const userInfo = getUserInfo();
+  const unblockRouter = () => {
+    if (routerHandle) {
+      routerHandle.current();
+    }
+  };
+
+  const cancelModalObj = {
+    subtitle: "All unsaved changes will be lost.",
+    cancelLabel: "Leave without saving",
+    cancelAction: () => {
+      unblockRouter();
+      history.push("/role-management");
+    },
+    submitLabel: "Keep editing",
+  };
   const filterMethod = (rolePermissions) => {
     const filterrolePermissions = rolePermissions.filter(
       (item) => item.featureName === "Role management"
@@ -236,6 +252,7 @@ const UpdateRole = () => {
         messageContext.showSuccessMessage(
           res.message || "Successfully Updated"
         );
+        unblockRouter();
         history.push("/role-management");
         setLoading(false);
       })
@@ -273,15 +290,7 @@ const UpdateRole = () => {
   }, [policies]);
 
   const setConfirmCancel = () => {
-    const confirm = {
-      subtitle: "All unsaved changes will be lost.",
-      cancelLabel: "Leave without saving",
-      cancelAction: () => {
-        history.push("/role-management");
-      },
-      submitLabel: "Keep editing",
-    };
-    setConfirmObj(confirm);
+    setConfirmObj(cancelModalObj);
   };
   // eslint-disable-next-line consistent-return
   const setConfirmViewPolicy = (param) => {
@@ -293,6 +302,7 @@ const UpdateRole = () => {
       subtitle: "All unsaved changes will be lost.",
       cancelLabel: "Leave without saving",
       cancelAction: () => {
+        unblockRouter();
         setSelectedPolicy(null);
         history.push(`/policy-management/${selectedPolicy.policyId}`);
       },
@@ -300,6 +310,17 @@ const UpdateRole = () => {
     };
     setConfirmObj(confirm);
   };
+  useEffect(() => {
+    routerHandle.current = history.block((tx) => {
+      setConfirmObj(cancelModalObj);
+      return false;
+    });
+
+    return function () {
+      /* eslint-disable */
+      routerHandle.current.current && routerHandle.current.current();
+    };
+  });
   return (
     <div className="create-role-wrapper">
       <Box className="top-content">
