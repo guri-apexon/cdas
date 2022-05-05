@@ -67,7 +67,7 @@ const UpdateRole = () => {
     subtitle: "All unsaved changes will be lost.",
     cancelLabel: "Leave without saving",
     cancelAction: () => {
-      unblockRouter();
+      unblockRouter(); // should be above history push
       history.push("/role-management");
     },
     submitLabel: "Keep editing",
@@ -252,7 +252,7 @@ const UpdateRole = () => {
         messageContext.showSuccessMessage(
           res.message || "Successfully Updated"
         );
-        unblockRouter();
+        unblockRouter(); // should be above history push
         history.push("/role-management");
         setLoading(false);
       })

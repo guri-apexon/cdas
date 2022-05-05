@@ -92,7 +92,7 @@ const CreateRole = () => {
     submitLabel: "Keep editing",
     cancelLabel: "Leave without saving",
     cancelAction: () => {
-      unblockRouter();
+      unblockRouter(); // should be above history push
       history.push("/role-management");
     },
   };
@@ -207,7 +207,7 @@ const CreateRole = () => {
         messageContext.showSuccessMessage(
           res.message || "Successfully Created"
         );
-        unblockRouter();
+        unblockRouter(); // should be above history push
         history.push("/role-management");
         setLoading(false);
       })
@@ -262,7 +262,7 @@ const CreateRole = () => {
       subtitle: "All unsaved changes will be lost.",
       cancelLabel: "Leave without saving",
       cancelAction: () => {
-        unblockRouter();
+        unblockRouter(); // should be above history push
         setSelectedPolicy(null);
         history.push(`policy-management/${selectedPolicy.policyId}`);
       },
