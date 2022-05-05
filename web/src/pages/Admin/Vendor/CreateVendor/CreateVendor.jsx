@@ -292,7 +292,6 @@ const CreateVendor = () => {
 
   return (
     <div className="create-vendor-wrapper">
-      {isAnyUpdate && <p>Changes with the route</p>}
       {isAnyUpdate && (
         <ConfirmModal
           open={confirm}
