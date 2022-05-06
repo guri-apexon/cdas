@@ -4,8 +4,8 @@ import React, { useState, useContext, useEffect } from "react";
 import { Link, useHistory } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import moment from "moment";
-import * as XLSX from "xlsx";
-import { pick } from "lodash";
+// import * as XLSX from "xlsx";
+// import { pick } from "lodash";
 
 import Table, {
   createSelectFilterComponent,
@@ -17,7 +17,7 @@ import Table, {
   compareStrings,
 } from "apollo-react/components/Table";
 import Button from "apollo-react/components/Button";
-import DownloadIcon from "apollo-react-icons/Download";
+// import DownloadIcon from "apollo-react-icons/Download";
 import FilterIcon from "apollo-react-icons/Filter";
 import RefreshIcon from "apollo-react-icons/Refresh";
 import EllipsisVertical from "apollo-react-icons/EllipsisVertical";
@@ -26,7 +26,7 @@ import IconMenuButton from "apollo-react/components/IconMenuButton";
 import { ReactComponent as InProgressIcon } from "../../components/Icons/Icon_In-progress_72x72.svg";
 import { ReactComponent as InFailureIcon } from "../../components/Icons/Icon_Failure_72x72.svg";
 import Progress from "../../components/Progress";
-import { MessageContext } from "../../components/Providers/MessageProvider";
+// import { MessageContext } from "../../components/Providers/MessageProvider";
 import {
   TextFieldFilter,
   IntegerFilter,
@@ -90,13 +90,13 @@ const SelectiveCell = ({ row, column: { accessor } }) => {
 
 export default function StudyTable({ studyData, studyboardData, refreshData }) {
   const [loading, setLoading] = useState(true);
-  const [rowsPerPageRecord, setRowPerPageRecord] = useState(10);
-  const [pageNo, setPageNo] = useState(0);
-  const [sortedColumnValue, setSortedColumnValue] = useState("dateadded");
-  const [sortOrderValue, setSortOrderValue] = useState("desc");
-  const [inlineFilters, setInlineFilters] = useState([]);
+  // const [rowsPerPageRecord, setRowPerPageRecord] = useState(10);
+  // const [pageNo, setPageNo] = useState(0);
+  // const [sortedColumnValue, setSortedColumnValue] = useState("dateadded");
+  // const [sortOrderValue, setSortOrderValue] = useState("desc");
+  // const [inlineFilters, setInlineFilters] = useState([]);
   const [componentKey, setComponentKey] = useState(1);
-  const messageContext = useContext(MessageContext);
+  // const messageContext = useContext(MessageContext);
   const dispatch = useDispatch();
   const history = useHistory();
   const status = studyData.uniqueProtocolStatus;
@@ -131,9 +131,9 @@ export default function StudyTable({ studyData, studyboardData, refreshData }) {
     );
   };
 
-  const CustomButtonHeader = ({ toggleFilters, rows, downloadFile }) => (
+  const CustomButtonHeader = ({ toggleFilters, rows }) => (
     <div>
-      <Button
+      {/* <Button
         size="small"
         variant="secondary"
         icon={DownloadIcon}
@@ -141,7 +141,7 @@ export default function StudyTable({ studyData, studyboardData, refreshData }) {
         style={{ marginRight: "8px", border: "none", boxShadow: "none" }}
       >
         Download
-      </Button>
+      </Button> */}
       <Button
         size="small"
         variant="secondary"
@@ -197,18 +197,11 @@ export default function StudyTable({ studyData, studyboardData, refreshData }) {
         size: "small",
         multiple: true,
       }),
-
-      // filterFunction: createStringArrayIncludedFilter("phase"),
-      // filterComponent: createFilterList(phases),
     },
     {
       header: "Protocol Status",
       accessor: "protocolstatus",
       sortFunction: compareStrings,
-      // filterFunction: createStringArrayIncludedFilter("protocolstatus"),
-      // filterComponent: createFilterList(status),
-      // filterFunction: createStringSearchFilter("protocolstatus"),
-      // filterComponent: TextFieldFilter,
       customCell: Statuscell,
       filterFunction: createStringArrayIncludedFilter("protocolstatus"),
       filterComponent: createSelectFilterComponent(status, {
@@ -237,10 +230,6 @@ export default function StudyTable({ studyData, studyboardData, refreshData }) {
       accessor: "onboardingprogress",
       customCell: SelectiveCell,
       sortFunction: compareStrings,
-      // filterFunction: createStringArrayIncludedFilter("onboardingprogress"),
-      // filterComponent: createFilterList(obs),
-      // filterFunction: createStringSearchFilter("onboardingprogress"),
-      // filterComponent: TextFieldFilter,
       filterFunction: createStringArrayIncludedFilter("onboardingprogress"),
       filterComponent: createSelectFilterComponent(obs, {
         size: "small",
@@ -287,84 +276,85 @@ export default function StudyTable({ studyData, studyboardData, refreshData }) {
     }
   }, [studyData.loading, studyboardData, studyData.studyboardFetchSuccess]);
 
-  const exportToCSV = (exportData, headers, fileName) => {
-    const wb = XLSX.utils.book_new();
-    let ws = XLSX.worksheet;
-    let from = pageNo * rowsPerPageRecord;
-    let to = from + rowsPerPageRecord;
-    if (rowsPerPageRecord === "All") {
-      from = 0;
-      to = exportData.length;
-    }
-    const newData = exportData.slice(from, to);
-    newData.unshift(headers);
-    ws = XLSX.utils.json_to_sheet(newData, { skipHeader: true });
-    XLSX.utils.book_append_sheet(wb, ws, "studylist");
-    XLSX.writeFile(wb, fileName);
-    exportData.shift();
-  };
+  // const exportToCSV = (exportData, headers, fileName) => {
+  //   const wb = XLSX.utils.book_new();
+  //   let ws = XLSX.worksheet;
+  //   let from = pageNo * rowsPerPageRecord;
+  //   let to = from + rowsPerPageRecord;
+  //   if (rowsPerPageRecord === "All") {
+  //     from = 0;
+  //     to = exportData.length;
+  //   }
+  //   const newData = exportData.slice(from, to);
+  //   newData.unshift(headers);
+  //   ws = XLSX.utils.json_to_sheet(newData, { skipHeader: true });
+  //   XLSX.utils.book_append_sheet(wb, ws, "studylist");
+  //   XLSX.writeFile(wb, fileName);
+  //   exportData.shift();
+  // };
 
-  const applyFilter = (cols, rows, filts) => {
-    let filteredRows = rows;
-    Object.values(cols).forEach((column) => {
-      if (column.filterFunction) {
-        filteredRows = filteredRows.filter((row) => {
-          return column.filterFunction(row, filts);
-        });
-        if (column.sortFunction) {
-          filteredRows.sort(
-            column.sortFunction(sortedColumnValue, sortOrderValue)
-          );
-        }
-      }
-    });
-    return filteredRows;
-  };
+  // const applyFilter = (cols, rows, filts) => {
+  //   let filteredRows = rows;
+  //   Object.values(cols).forEach((column) => {
+  //     if (column.filterFunction) {
+  //       filteredRows = filteredRows.filter((row) => {
+  //         return column.filterFunction(row, filts);
+  //       });
+  //       if (column.sortFunction) {
+  //         filteredRows.sort(
+  //           column.sortFunction(sortedColumnValue, sortOrderValue)
+  //         );
+  //       }
+  //     }
+  //   });
+  //   return filteredRows;
+  // };
 
-  const exportDataRows = () => {
-    const toBeExportRows = [...studyboardData];
-    const sortedFilteredData = applyFilter(
-      tableColumns,
-      toBeExportRows,
-      inlineFilters
-    );
-    setExportTableRows(sortedFilteredData);
-    return sortedFilteredData;
-  };
+  // const exportDataRows = () => {
+  //   const toBeExportRows = [...studyboardData];
+  //   const sortedFilteredData = applyFilter(
+  //     tableColumns,
+  //     toBeExportRows,
+  //     inlineFilters
+  //   );
+  //   setExportTableRows(sortedFilteredData);
+  //   return sortedFilteredData;
+  // };
 
-  const downloadFile = async (e) => {
-    const fileExtension = ".xlsx";
-    const fileName = `StudyList_${moment(new Date()).format("DDMMYYYY")}`;
-    const tempObj = {};
-    const temp = tableColumns
-      .slice(0, -1)
-      .filter((d) => d.hidden !== true)
-      .map((d) => {
-        tempObj[d.accessor] = d.header;
-        return d;
-      });
-    const newData = exportTableRows.map((obj) => {
-      const newObj = pick(obj, Object.keys(tempObj));
-      return newObj;
-    });
-    exportToCSV(newData, tempObj, fileName + fileExtension);
-    const exportRows = exportDataRows();
-    if (exportRows.length <= 0) {
-      e.preventDefault();
-      messageContext.showErrorMessage(
-        `There is no data on the screen to download because of which an empty file has been downloaded.`,
-        56
-      );
-    } else {
-      messageContext.showSuccessMessage(`File downloaded successfully.`);
-    }
-  };
+  // const downloadFile = async (e) => {
+  //   const fileExtension = ".xlsx";
+  //   const fileName = `StudyList_${moment(new Date()).format("DDMMYYYY")}`;
+  //   const tempObj = {};
+  //   const temp = tableColumns
+  //     .slice(0, -1)
+  //     .filter((d) => d.hidden !== true)
+  //     .map((d) => {
+  //       tempObj[d.accessor] = d.header;
+  //       return d;
+  //     });
+  //   const newData = exportTableRows.map((obj) => {
+  //     const newObj = pick(obj, Object.keys(tempObj));
+  //     return newObj;
+  //   });
+  //   exportToCSV(newData, tempObj, fileName + fileExtension);
+  //   const exportRows = [];
+  //   // exportDataRows();
+  //   if (exportRows.length <= 0) {
+  //     e.preventDefault();
+  //     messageContext.showErrorMessage(
+  //       `There is no data on the screen to download because of which an empty file has been downloaded.`,
+  //       56
+  //     );
+  //   } else {
+  //     messageContext.showSuccessMessage(`File downloaded successfully.`);
+  //   }
+  // };
 
-  useEffect(() => {
-    const rows = exportDataRows();
-    setTableRows([...rows]);
-    setExportTableRows(rows);
-  }, [inlineFilters, sortedColumnValue, sortOrderValue]);
+  // useEffect(() => {
+  //   const rows = exportDataRows();
+  //   setTableRows([...rows]);
+  //   setExportTableRows(rows);
+  // }, [inlineFilters, sortedColumnValue, sortOrderValue]);
 
   useEffect(() => {
     setTableColumns([...moreColumns]);
@@ -388,26 +378,26 @@ export default function StudyTable({ studyData, studyboardData, refreshData }) {
           rows={tableRows}
           rowId="protocolnumber"
           hasScroll={true}
-          maxHeight="600px"
+          maxHeight="610px"
           initialSortedColumn="dateadded"
           initialSortOrder="desc"
-          sortedColumn={sortedColumnValue}
-          sortOrder={sortOrderValue}
+          // sortedColumn={sortedColumnValue}
+          // sortOrder={sortOrderValue}
           rowsPerPageOptions={[10, 50, 100, "All"]}
           tablePaginationProps={{
             labelDisplayedRows: ({ from, to, count }) =>
               `${count === 1 ? "Item " : "Items"} ${from}-${to} of ${count}`,
             truncate: true,
           }}
-          page={pageNo}
-          rowsPerPage={rowsPerPageRecord}
-          onChange={(rpp, sc, so, filts, page) => {
-            setRowPerPageRecord(rpp);
-            setSortedColumnValue(sc);
-            setSortOrderValue(so);
-            setInlineFilters(filts);
-            setPageNo(page);
-          }}
+          // page={pageNo}
+          // rowsPerPage={rowsPerPageRecord}
+          // onChange={(rpp, sc, so, filts, page) => {
+          //   setRowPerPageRecord(rpp);
+          //   setSortedColumnValue(sc);
+          //   setSortOrderValue(so);
+          //   setInlineFilters(filts);
+          //   setPageNo(page);
+          // }}
           columnSettings={{
             enabled: true,
             defaultColumns: moreColumns,
@@ -417,7 +407,7 @@ export default function StudyTable({ studyData, studyboardData, refreshData }) {
           }}
           CustomHeader={(props) => (
             <CustomButtonHeader
-              downloadFile={downloadFile}
+              // downloadFile={downloadFile}
               rows={tableRows}
               {...props}
             />
@@ -428,12 +418,12 @@ export default function StudyTable({ studyData, studyboardData, refreshData }) {
     [
       tableColumns,
       tableRows,
-      pageNo,
-      rowsPerPageRecord,
+      // pageNo,
+      // rowsPerPageRecord,
       loading,
-      sortOrderValue,
-      sortedColumnValue,
-      inlineFilters,
+      // sortOrderValue,
+      // sortedColumnValue,
+      // inlineFilters,
     ]
   );
 
