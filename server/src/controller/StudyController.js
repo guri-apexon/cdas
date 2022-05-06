@@ -382,7 +382,7 @@ exports.listStudyAssign = async (req, res) => {
 
     return apiResponse.successResponseWithData(res, "Operation success", {
       list: list.rows,
-      uniqueRoles: uniqueRoles.flat(),
+      uniqueRoles: _.uniq(uniqueRoles.flat()),
     });
   } catch (err) {
     Logger.error("catch :listStudyAssign");
