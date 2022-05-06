@@ -335,6 +335,6 @@ exports.updateRole = async function (req, res) {
   } catch (err) {
     Logger.error("catch :updateRole");
     Logger.error(err);
-    return apiResponse.ErrorResponse(res, err);
+    return apiResponse.ErrorResponse(res, err.message);
   }
 };
