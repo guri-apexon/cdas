@@ -270,7 +270,7 @@ exports.getStudyList = async (req, res) => {
     const $q6 = await DB.executeQuery(query6);
     const formatDateValues = await $q1.rows.map((e) => {
       let acc = $q2.rows.filter((d) => d.prot_id === e.prot_id);
-      let newObj = acc[0] ? acc[0] : { count: 0 };
+      let newObj = acc[0] ? acc[0] : { count: "0" };
       let { count } = newObj;
       let editT = moment(e.dateedited).format("MM/DD/YYYY");
       let addT = moment(e.dateadded).format("MM/DD/YYYY");
