@@ -7,6 +7,10 @@ import Button from "apollo-react/components/Button";
 import { useDispatch, useSelector } from "react-redux";
 import StudyNotOnboarded from "./StudyNotOnboarded";
 import StudyTable from "./StudyTable";
+import usePermission, {
+  Categories,
+  Features,
+} from "../../components/Common/usePermission";
 
 import {
   getStudyboardData,
@@ -25,7 +29,7 @@ const StudySetup = () => {
     dispatch(getNotOnBordedStatus());
     setSelectedFilter("");
   };
-
+  const { canCreate } = usePermission(Categories.STUDIES, Features.STUDY_SETUP);
   const selectedStatus = (val) => {
     setSelectedFilter(val);
   };
@@ -55,15 +59,17 @@ const StudySetup = () => {
             Study Setup
           </Typography>
         </div>
-        <Button
-          variant="primary"
-          icon={<PlusIcon />}
-          size="small"
-          style={{ float: "right" }}
-          onClick={() => setAddStudyOpen(!addStudyOpen)}
-        >
-          Add new study
-        </Button>
+        {canCreate && (
+          <Button
+            variant="primary"
+            icon={<PlusIcon />}
+            size="small"
+            style={{ float: "right" }}
+            onClick={() => setAddStudyOpen(!addStudyOpen)}
+          >
+            Add new study
+          </Button>
+        )}
       </div>
       <StudyNotOnboarded
         studyData={studyData}

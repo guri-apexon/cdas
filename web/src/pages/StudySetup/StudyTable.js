@@ -34,6 +34,10 @@ import {
   createStringArrayIncludedFilter,
 } from "../../utils/index";
 import { updateSelectedStudy } from "../../store/actions/StudyBoardAction";
+import usePermission, {
+  Categories,
+  Features,
+} from "../../components/Common/usePermission";
 
 const menuItems = [
   { text: "Study assignments" },
@@ -107,6 +111,15 @@ export default function StudyTable({ studyData, studyboardData, refreshData }) {
     history.push("/ExistingStudyAssignment");
     dispatch(updateSelectedStudy(row));
   };
+  const {
+    canRead,
+    canCreate,
+    canDownload,
+    canUpdate,
+    canEnabled,
+    noPermission,
+  } = usePermission(Categories.STUDIES, Features.STUDY_ASSIGNMENTS);
+
   const LinkCell = ({ row, column: { accessor } }) => {
     const rowValue = row[accessor];
     return (
@@ -236,7 +249,7 @@ export default function StudyTable({ studyData, studyboardData, refreshData }) {
       header: "Assignment Count",
       accessor: "assignmentcount",
       sortFunction: compareNumbers,
-      customCell: LinkCell,
+      customCell: canUpdate ? LinkCell : null,
       filterFunction: numberSearchFilter("assignmentcount"),
       filterComponent: IntegerFilter,
     },

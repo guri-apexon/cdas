@@ -32,6 +32,10 @@ import {
   getUserInfo,
   inputAlphaNumericWithUnderScore,
 } from "../../../../utils";
+import usePermission, {
+  Categories,
+  Features,
+} from "../../../../components/Common/usePermission";
 
 const ConfirmModal = React.memo(({ open, cancel, stayHere, loading }) => {
   return (
@@ -76,6 +80,10 @@ const CreateVendor = () => {
   const dispatch = useDispatch();
   const vendor = useSelector((state) => state.vendor);
   const { isEditPage, isCreatePage, selectedVendor, ensList } = vendor;
+  const { canRead, canCreate, canUpdate, readOnly } = usePermission(
+    Categories.SYS_ADMIN,
+    Features.VENDOR_MANAGEMENT
+  );
 
   useEffect(() => {});
 
@@ -298,22 +306,35 @@ const CreateVendor = () => {
               checked={active}
               onChange={handleActive}
               size="small"
+              disabled={readOnly}
             />
             <ButtonGroup
               alignItems="right"
-              buttonProps={[
-                {
-                  label: "Cancel",
-                  size: "small",
-                  onClick: handleCancel,
-                },
-                {
-                  label: "Save",
-                  size: "small",
-                  disabled: loading || disableSave,
-                  onClick: submitVendor,
-                },
-              ]}
+              buttonProps={
+                readOnly
+                  ? [
+                      {
+                        label: "Cancel",
+                        size: "small",
+                        onClick: handleCancel,
+                        hidden: true,
+                      },
+                    ]
+                  : [
+                      {
+                        label: "Cancel",
+                        size: "small",
+                        onClick: handleCancel,
+                        hidden: true,
+                      },
+                      {
+                        label: "Save",
+                        size: "small",
+                        disabled: loading || disableSave,
+                        onClick: submitVendor,
+                      },
+                    ]
+              }
             />
           </div>
         </div>
@@ -335,6 +356,7 @@ const CreateVendor = () => {
                 placeholder="Name your vendor"
                 onChange={handleChange}
                 error={initialRender === false && !vName ? true : false}
+                disabled={readOnly}
               />
               <Select
                 size="small"
@@ -345,6 +367,7 @@ const CreateVendor = () => {
                 canDeselect={false}
                 onChange={(e) => handleSelection(e)}
                 error={initialRender === false && !vESN ? true : false}
+                disabled={readOnly}
               >
                 {vENSOptions.map((option) => (
                   <MenuItem key={option} value={option}>
@@ -363,6 +386,7 @@ const CreateVendor = () => {
                 minHeight={150}
                 sizeAdjustable
                 onChange={handleChange}
+                disabled={readOnly}
               />
             </div>
           </Box>
@@ -374,6 +398,7 @@ const CreateVendor = () => {
             <TableEditableAll
               deleteAContact={deleteAContact}
               updateData={updateData}
+              disabled={readOnly}
             />
           </div>
         </Grid>

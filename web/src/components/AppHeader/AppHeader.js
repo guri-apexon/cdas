@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-wrap-multilines */
 /* eslint-disable react/jsx-one-expression-per-line */
 /* eslint-disable prettier/prettier */
 /* eslint-disable no-shadow */
@@ -102,6 +103,7 @@ const AppHeader = ({ history, setLoggedIn }) => {
     if (permissions.length === 0) {
       let uniquePermissions = [];
       const data = await getRolesPermissions();
+      console.log(">>> all permissions", data);
       if (data.message === "Something went wrong") {
         messageContext.showErrorMessage(
           `There was an issue authorizing your login information. Please contact your Administrator.`
@@ -265,7 +267,12 @@ const AppHeader = ({ history, setLoggedIn }) => {
         open={showVersionModal}
         disableBackdropClick="true"
         onClose={closeModal}
-        message={<div><div>Clinical Data Analytics Suite</div><p>Version 1.0</p></div>}
+        message={
+          <div>
+            <div>Clinical Data Analytics Suite</div>
+            <p>Version 1.0</p>
+          </div>
+        }
         buttonProps={[{ label: "Close", onClick: closeModal }]}
         id="neutral"
       />
@@ -275,7 +282,7 @@ const AppHeader = ({ history, setLoggedIn }) => {
     <>
       <ConfirmModal
         showVersionModal={showVersionModal}
-        closeModal={()=>setShowVersionModal(false)}
+        closeModal={() => setShowVersionModal(false)}
       />
       <div id="topNavbar">
         <Backdrop style={{ zIndex: 1 }} open={open}>
@@ -324,7 +331,7 @@ const AppHeader = ({ history, setLoggedIn }) => {
             // eslint-disable-next-line react/jsx-wrap-multilines
             <div className={classes.centerAligned}>
               <Button
-                onClick={() =>setShowVersionModal(true)}
+                onClick={() => setShowVersionModal(true)}
                 className={classes.fullNavHeight}
               >
                 <Question className={classes.appIcon} />
