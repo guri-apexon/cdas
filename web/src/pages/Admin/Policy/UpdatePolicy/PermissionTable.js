@@ -193,7 +193,7 @@ const PermissionTable = ({
       </div>
       <Table
         title="Permissions"
-        subtitle={title}
+        subtitle={title === "Admin" ? "CDAS Admin" : title}
         columns={columns}
         rows={filteredData}
         rowsPerPage={tableRows.length}

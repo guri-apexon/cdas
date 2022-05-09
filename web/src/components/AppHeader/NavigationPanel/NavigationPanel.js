@@ -40,6 +40,7 @@ const CustomTooltip = withStyles(() => ({
   tooltip: {
     fontSize: 13,
     width: 220,
+    minWidth: 300,
     padding: "1px 10px",
   },
 }))(Tooltip);
@@ -68,31 +69,31 @@ const NavigationPanel = ({
   const linksArr = [
     {
       title: "Clinical Data Ingestion",
-      imgUrl: "assets/svg/CDI_ICON_96x96.svg",
+      imgUrl: "/assets/svg/CDI_ICON_96x96.svg",
       haveAccess: checkAccess("Launchpad-CDI"),
       url: getAppUrl("CDI"),
     },
     {
       title: "Clinical Data Mapper",
-      imgUrl: "assets/svg/CDM_ICON_96x96.svg",
+      imgUrl: "/assets/svg/CDM_ICON_96x96.svg",
       haveAccess: checkAccess("Launchpad-CDM"),
       url: "cdm",
     },
     {
       title: "Clinical Data Review",
-      imgUrl: "assets/svg/CDR_ICON_96x96.svg",
+      imgUrl: "/assets/svg/CDR_ICON_96x96.svg",
       haveAccess: checkAccess("Launchpad-CDR"),
       url: "cdr",
     },
     {
       title: "Clinical Analytics",
-      imgUrl: "assets/svg/CA_ICON_96x96.svg",
+      imgUrl: "/assets/svg/CA_ICON_96x96.svg",
       haveAccess: checkAccess("Launchpad-CA"),
       url: "ca",
     },
     {
       title: "Data Science Workbench",
-      imgUrl: "assets/svg/DSW_ICON_96x96.svg",
+      imgUrl: "/assets/svg/DSW_ICON_96x96.svg",
       haveAccess: checkAccess("Launchpad-DSW"),
       url: "dsw",
     },
@@ -122,7 +123,7 @@ const NavigationPanel = ({
         title=""
       >
         <div className="waves">
-          <img src="assets/svg/waves.svg" alt="waves" />
+          <img src="/assets/svg/waves.svg" alt="waves" />
         </div>
         <App onClick={closePanel} className="close-panel" />
         <Box display="flex" m={1} mt={5}>

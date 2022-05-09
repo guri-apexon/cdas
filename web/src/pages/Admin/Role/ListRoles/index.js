@@ -22,6 +22,7 @@ import {
   createStringArraySearchFilter,
   createStringArrayIncludedFilter,
   getUserInfo,
+  getOverflowLimit,
 } from "../../../../utils/index";
 import "./index.scss";
 import {
@@ -45,6 +46,7 @@ const ListRoles = () => {
   const [roleLists, setroleLists] = useState([]);
   const Roles = useSelector((state) => state.Roles);
   const [open, setOpen] = useState(false);
+  const [peekContent, setPeekContent] = useState("");
   const [curRow, setCurRow] = useState({});
   const appContext = useContext(AppContext);
   const { permissions } = appContext.user;
@@ -95,10 +97,12 @@ const ListRoles = () => {
 
   const handleMouseOut = () => {
     setOpen(false);
+    setPeekContent("");
   };
 
-  const handleMouseOver = (row) => {
+  const handleMouseOver = (row, peekData) => {
     setOpen(!open);
+    setPeekContent(peekData);
     setCurRow(row);
   };
 
@@ -151,50 +155,48 @@ const ListRoles = () => {
     );
   };
 
-  const LinkCell = ({ row, column: { accessor } }) => {
+  const LinkCell = ({ row, column: { accessor, width } }) => {
     const rowValue = row[accessor];
     const id = row.role_id;
-    if (rowValue) {
-      if (rowValue.length > 30) {
-        return (
-          <Link
-            onMouseOver={() => handleMouseOver(row)}
-            onMouseOut={handleMouseOut}
-            disabled={!readRolePermission}
-            onClick={(e) => goToRole(e, id)}
-          >
-            {`${rowValue.slice(0, 30)}  [...]`}
-          </Link>
-        );
-      }
+    if (!rowValue) return null;
+    const charLimit = getOverflowLimit(width, 100);
+    if (rowValue.length < charLimit) {
       return (
         <Link disabled={!readRolePermission} onClick={(e) => goToRole(e, id)}>
           {rowValue}
         </Link>
       );
     }
-    return null;
+    return (
+      <Link
+        onMouseOver={() => handleMouseOver(row, "roleName")}
+        onMouseOut={handleMouseOut}
+        disabled={!readRolePermission}
+        onClick={(e) => goToRole(e, id)}
+      >
+        {`${rowValue.slice(0, charLimit - 10)} [...]`}
+      </Link>
+    );
   };
 
-  const DespCell = ({ row, column: { accessor } }) => {
+  const DespCell = ({ row, column: { accessor, width } }) => {
     const data = row[accessor];
-    if (data) {
-      if (data.length < 80) {
-        return <>{data}</>;
-      }
-      return (
-        <>
-          {data.slice(0, 50)}
-          <Link
-            onMouseOver={() => handleMouseOver(row)}
-            onMouseOut={handleMouseOut}
-          >
-            {`  [...]`}
-          </Link>
-        </>
-      );
+    const charLimit = getOverflowLimit(width, 100);
+    if (!data) return null;
+    if (data.length < charLimit) {
+      return <>{data}</>;
     }
-    return null;
+    return (
+      <>
+        {data.slice(0, charLimit - 6)}
+        <Link
+          onMouseOver={() => handleMouseOver(row, "roleDes")}
+          onMouseOut={handleMouseOut}
+        >
+          {` [...]`}
+        </Link>
+      </>
+    );
   };
 
   const CustomButtonHeader = ({ toggleFilters }) => (
@@ -325,14 +327,10 @@ const ListRoles = () => {
         content={
           // eslint-disable-next-line react/jsx-wrap-multilines
           <div style={{ maxWidth: 400 }}>
-            <Typography
-              variant="title2"
-              gutterBottom
-              style={{ fontWeight: 600 }}
-            >
-              {curRow.role_nm}
+            <Typography variant="body2">
+              {peekContent === "roleName" && curRow.role_nm}
+              {peekContent === "roleDes" && curRow.role_desc}
             </Typography>
-            <Typography variant="body2">{curRow.role_desc}</Typography>
           </div>
         }
       />

@@ -26,15 +26,18 @@ module.exports = {
         },
         function (err, response, body) {
           if (response?.body) {
-            try{
+            try {
               const responseBody = JSON.parse(response.body);
               return apiResponse.successResponseWithData(
                 res,
                 "Users retrieved successfully",
                 responseBody
               );
-            }catch(err){
-              return apiResponse.ErrorResponse(res, err.message || "Something wrong");
+            } catch (err) {
+              return apiResponse.ErrorResponse(
+                res,
+                err.message || "Something wrong"
+              );
             }
           } else {
             return apiResponse.ErrorResponse(res, "Something wrong");

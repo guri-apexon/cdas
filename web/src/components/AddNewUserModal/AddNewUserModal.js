@@ -4,14 +4,10 @@ import { useState, useEffect, useContext, useMemo } from "react";
 import { useHistory, withRouter } from "react-router-dom";
 import "./AddNewUserModal.scss";
 import Table from "apollo-react/components/Table";
-import Box from "apollo-react/components/Box";
 import IconButton from "apollo-react/components/IconButton";
 import SearchIcon from "apollo-react-icons/Search";
 import Trash from "apollo-react-icons/Trash";
 import AutocompleteV2 from "apollo-react/components/AutocompleteV2";
-import Select from "apollo-react/components/Select";
-import MenuItem from "apollo-react/components/MenuItem";
-import ApolloProgress from "apollo-react/components/ApolloProgress";
 import { MessageContext } from "../Providers/MessageProvider";
 import { addAssignUser } from "../../services/ApiServices";
 import { debounceFunction, getUserInfo } from "../../utils";
@@ -30,11 +26,10 @@ const AddNewUserModal = ({
   const [tableUsers, setTableUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [initialRender, setInitialRender] = useState(true);
+  const [disableSave, setDisableSave] = useState(false);
   const toast = useContext(MessageContext);
-
   const userInfo = getUserInfo();
   const history = useHistory();
-  const [disableSave, SetDisableSave] = useState(false);
 
   const DeleteUserCell = ({ row }) => {
     const { index, onDelete } = row;
@@ -70,7 +65,7 @@ const AddNewUserModal = ({
     setTableUsers((u) => [...u, userObj]);
   };
   const handleClose = () => {
-    SetDisableSave(false);
+    setDisableSave(false);
     setOpenModal(false);
     onClose();
     setTableUsers([]);
@@ -117,52 +112,69 @@ const AddNewUserModal = ({
   };
 
   const onDelete = (index) => {
-    setTableUsers(tableUsers.filter((row) => row.index !== index));
+    setTableUsers((rows) => {
+      const newRows = rows.filter((row) => row.index !== index);
+      const tableIndex = tableUsers.findIndex((el) => el.index === index);
+      if (tableIndex + 1 === tableUsers.length) {
+        return [...newRows, getUserObj()];
+      }
+      return newRows;
+    });
   };
 
   const EditableRoles = ({ row, column: { accessor: key } }) => {
     return (
-      <AutocompleteV2
-        size="small"
-        fullWidth
-        multiple
-        forcePopupIcon
-        showCheckboxes
-        source={roleLists}
-        chipColor="white"
-        className={row.disableRole ? "hide" : "show"}
-        value={row[key]}
-        onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
-      />
+      <div className="role">
+        <AutocompleteV2
+          size="small"
+          fullWidth
+          multiple
+          forcePopupIcon
+          showCheckboxes
+          source={roleLists}
+          limitChips={2}
+          chipColor="white"
+          className={row.disableRole ? "hide" : "show"}
+          value={row[key]}
+          onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
+          filterSelectedOptions={false}
+          blurOnSelect={false}
+          clearOnBlur={false}
+          disableCloseOnSelect
+          alwaysLimitChips
+        />
+      </div>
     );
   };
 
   const EditableUser = ({ row, column: { accessor: key } }) => {
     return (
-      <AutocompleteV2
-        size="small"
-        fullWidth
-        forcePopupIcon
-        popupIcon={<SearchIcon fontSize="extraSmall" />}
-        source={userList}
-        value={row[key]}
-        onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
-        matchFrom="any"
-        error={
-          row.alreadyExist ||
-          (!initialRender &&
-            !row[key] &&
-            row.index !== tableUsers[tableUsers.length - 1].index)
-        }
-        helperText={
-          row.alreadyExist
-            ? "This user already has assignments. Please select a different user to continue"
-            : !initialRender &&
+      <div className="user">
+        <AutocompleteV2
+          size="small"
+          fullWidth
+          forcePopupIcon
+          popupIcon={<SearchIcon fontSize="extraSmall" />}
+          source={userList}
+          value={row[key]}
+          onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
+          matchFrom="any"
+          error={
+            row.alreadyExist ||
+            (!initialRender &&
               !row[key] &&
-              row.index !== tableUsers[tableUsers.length - 1].index &&
-              "Required"
-        }
-      />
+              row.index !== tableUsers[tableUsers.length - 1].index)
+          }
+          helperText={
+            row.alreadyExist
+              ? "This user already has assignments. Please select a different user to continue"
+              : !initialRender &&
+                !row[key] &&
+                row.index !== tableUsers[tableUsers.length - 1].index &&
+                "Required"
+          }
+        />
+      </div>
     );
   };
 
@@ -214,16 +226,25 @@ const AddNewUserModal = ({
   );
 
   const addUsers = async () => {
-    SetDisableSave(true);
+    setDisableSave(true);
     const usersRows = [...tableUsers].slice(0, -1);
+    if (tableUsers.find((x) => x.alreadyExist)) {
+      toast.showErrorMessage(
+        `This user already has assignments. Please select a different user to continue`
+      );
+      setDisableSave(false);
+      return false;
+    }
     if (!usersRows.length) {
       toast.showErrorMessage("Add some users to proceed");
+      setDisableSave(false);
       return false;
     }
     if (usersRows.find((x) => x.user == null)) {
       setInitialRender(!initialRender);
       setTableUsers([...tableUsers]);
       toast.showErrorMessage("Please fill user or remove blank rows");
+      setDisableSave(false);
       return false;
     }
     const emptyRoles = usersRows.filter((x) => x.roles.length === 0);
@@ -234,8 +255,10 @@ const AddNewUserModal = ({
         //   emptyRoles[0] && emptyRoles[0].user && emptyRoles[0].user.email
         // }`
       );
+      setDisableSave(false);
       return false;
     }
+    setDisableSave(true);
     const data = tableUsers
       .filter((e) => e.user != null)
       .map((d) => {
@@ -253,6 +276,7 @@ const AddNewUserModal = ({
       loginId: userInfo.user_id,
       data,
     });
+    setDisableSave(false);
     handleClose();
     setLoading(false);
     if (response.status === "BAD_REQUEST") {

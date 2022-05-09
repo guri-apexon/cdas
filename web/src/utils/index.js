@@ -3,6 +3,7 @@ import React from "react";
 import AutocompleteV2 from "apollo-react/components/AutocompleteV2";
 import DateRangePickerV2 from "apollo-react/components/DateRangePickerV2";
 import { TextField } from "apollo-react/components/TextField/TextField";
+import { IDLE_LOGOUT_TIME } from "./constants";
 
 // export const getURL = (apiPath) => {
 //   return (
@@ -39,12 +40,23 @@ export function getPathnameAndSearch(path) {
     search: `?${arr[1]}`,
   };
 }
+export const getOverflowLimit = (width, pageSpace = 0, fontSize = 14) => {
+  if (width.includes("%")) {
+    width =
+      ((window.innerWidth - Number(pageSpace)) *
+        Number(width.replace("%", ""))) /
+      100;
+  }
+  return Math.round((Number(width) * 1.91) / fontSize);
+};
 
 export function getLastLogin() {
   const currentLogin = getCookie("user.last_login_ts");
   if (currentLogin === "first_time" || !currentLogin) return null;
-  const localDate = moment.unix(currentLogin).local();
-  return localDate.format("DD-MMM-YYYY hh:mm A");
+  return moment
+    .utc(moment.unix(currentLogin))
+    .local()
+    .format("DD-MMM-YYYY hh:mm A");
 }
 
 const getDomainName = () => {
@@ -432,4 +444,18 @@ export const getAppUrl = (app) => {
 };
 export const goToApp = (path) => {
   window.location.href = path;
+};
+
+export const setIdleLogout = (logout) => {
+  let time;
+  // DOM Events
+  function resetTimer() {
+    clearTimeout(time);
+    time = setTimeout(() => {
+      logout();
+    }, IDLE_LOGOUT_TIME);
+  }
+  document.onmousemove = resetTimer;
+  document.onkeypress = resetTimer;
+  window.onload = resetTimer;
 };

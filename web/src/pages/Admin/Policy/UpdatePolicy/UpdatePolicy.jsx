@@ -154,7 +154,7 @@ const UpdatePolicy = () => {
   const filterPermission = (arr) => {
     const helper = {};
     return arr.reduce((r, o) => {
-      const key = `${o.ctgy_nm}-${o.feat_nm}`;
+      const key = `${o.ctgy_nm}-${o.feat_nm}-${o.prod_nm}`;
       const checked = o.select_check_box === "1" ? true : false;
       if (!helper[key]) {
         helper[key] = {
@@ -345,7 +345,9 @@ const UpdatePolicy = () => {
                         badgeContent={getBadgeCount(product.prod_nm)}
                         max={999}
                       >
-                        {product.prod_nm}
+                        {product.prod_nm === "Admin"
+                          ? "CDAS Admin"
+                          : product.prod_nm}
                       </Badge>
                     }
                   />

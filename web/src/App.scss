@@ -151,3 +151,8 @@ label.table-checkbox {
     }
   }
 }
+ul[class*="MuiMenu-list-"] {
+  li:focus:not(:hover) {
+    background: none;
+  }
+}

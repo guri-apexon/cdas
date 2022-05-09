@@ -73,6 +73,7 @@ const EditableCell = ({ row, column: { accessor: key, header } }) => {
 
 const EmailEditableCell = ({ row, column: { accessor: key, header } }) => {
   const { isStarted, email, disabled } = row;
+  const [blurred, setBlurred] = useState(true);
   return row.editMode ? (
     <TextField
       size="small"
@@ -81,9 +82,12 @@ const EmailEditableCell = ({ row, column: { accessor: key, header } }) => {
       type="email"
       placeholder={header}
       disabled={disabled}
+      onFocus={() => setBlurred(false)}
+      onBlur={() => setBlurred(true)}
       onChange={(e) => row.editEmail(row.vCId, key, e.target.value)}
-      error={isStarted && !re.test(row[key]) && email.length > 0}
+      error={blurred && isStarted && !re.test(row[key]) && email.length > 0}
       helperText={
+        blurred &&
         email.length > 0 &&
         ((isStarted && !row[key] && "Required") ||
           (isStarted && !re.test(row[key]) && "Invalid Email Format"))

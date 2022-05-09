@@ -20,7 +20,11 @@ async function getCurrentRole(id) {
 exports.createRole = function (req, res) {
   try {
     const { name, description, policies, userId, status } = req.body;
-    if ((!policies?.length&&status===1) || !Array.isArray(policies) || !userId) {
+    if (
+      (!policies?.length && status === 1) ||
+      !Array.isArray(policies) ||
+      !userId
+    ) {
       return apiResponse.ErrorResponse(
         res,
         "Please complete all mandatory information and then click Save"
@@ -178,7 +182,7 @@ exports.getRolesPermissions = async (req, res) => {
   inner join ${dbSchema}.product p3 on pp.prod_id = p3.prod_id 
   inner join ${dbSchema}.category c on pp.ctgy_id = c.ctgy_id 
   inner join ${dbSchema}.feature f on pp.feat_id = f.feat_id 
-  where sur.usr_id = $1 and p3.prod_nm = $2 and p.plcy_stat = 'Active' and r.role_stat = 1 and rp.act_flg = 1 and ppp.act_flg = 1 and pp.act_flg =1 and f.act_flg =1 and c.act_flg = 1`;
+  where sur.usr_id = $1 and sur.act_flg = 1 and p3.prod_nm = $2 and p.plcy_stat = 'Active' and r.role_stat = 1 and rp.act_flg = 1 and ppp.act_flg = 1 and pp.act_flg =1 and f.act_flg =1 and c.act_flg = 1`;
 
     const $q1 = await DB.executeQuery(query, [userId, productName]);
 
@@ -225,7 +229,7 @@ exports.updateStatus = async (req, res) => {
 exports.updateRole = async function (req, res) {
   try {
     const { name, description, policies, userId, status, roleId } = req.body;
-    if (!name || (!description && status===1) || !userId || !roleId) {
+    if (!name || (!description && status === 1) || !userId || !roleId) {
       return apiResponse.ErrorResponse(
         res,
         "Please complete all mandatory information and then click Save"
@@ -291,31 +295,31 @@ exports.updateRole = async function (req, res) {
           }
         });
         DB.executeQuery(queryStr)
-          .then(async(response) => {
-        if(response){
-          
-          const updatedPolicies=[]
-          if((!Array.isArray(response)))response=[response]
-          for(let el of response){
-            const policy= el.rows&&el.rows[0]
-            if(policy){    
-              const oldValue = policy.act_flg == 1 ? 0 : 1;
-            
-              updatedPolicies.push(DB.executeQuery(logQuery, [
-                 "role_plcy_id",
-                 policy.role_plcy_id,
-                 "act_flg",
-                 oldValue,
-                 policy.act_flg,
-                 "User Requested",
-                 userId,
-                 currentTime,
-               ]));
+          .then(async (response) => {
+            if (response) {
+              const updatedPolicies = [];
+              if (!Array.isArray(response)) response = [response];
+              for (let el of response) {
+                const policy = el.rows && el.rows[0];
+                if (policy) {
+                  const oldValue = policy.act_flg == 1 ? 0 : 1;
+
+                  updatedPolicies.push(
+                    DB.executeQuery(logQuery, [
+                      "role_plcy_id",
+                      policy.role_plcy_id,
+                      "act_flg",
+                      oldValue,
+                      policy.act_flg,
+                      "User Requested",
+                      userId,
+                      currentTime,
+                    ])
+                  );
+                }
+              }
+              const responses = await Promise.all(updatedPolicies);
             }
-            
-           }
-         const responses= await Promise.all(updatedPolicies)
-        }
             return apiResponse.successResponseWithData(
               res,
               messages.UPDATE_ROLE_SUCCESS,
@@ -335,6 +339,6 @@ exports.updateRole = async function (req, res) {
   } catch (err) {
     Logger.error("catch :updateRole");
     Logger.error(err);
-    return apiResponse.ErrorResponse(res, err);
+    return apiResponse.ErrorResponse(res, err.message);
   }
 };

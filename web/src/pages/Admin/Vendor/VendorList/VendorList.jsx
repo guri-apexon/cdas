@@ -301,7 +301,7 @@ const VendorList = () => {
               >
                 {curRow.vName}
               </Typography>
-              <Typography variant="body2">{curRow.vDescription}</Typography>
+              {/* <Typography variant="body2">{curRow.vDescription}</Typography> */}
             </div>
           }
         />

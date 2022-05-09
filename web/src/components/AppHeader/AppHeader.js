@@ -1,9 +1,9 @@
+/* eslint-disable no-use-before-define */
 /* eslint-disable react/jsx-wrap-multilines */
 /* eslint-disable react/jsx-one-expression-per-line */
-/* eslint-disable prettier/prettier */
 /* eslint-disable no-shadow */
-import React, { useContext, useState, useEffect } from "react";
-import { withRouter } from "react-router";
+import React, { useContext, useState, useEffect, useRef } from "react";
+import { useLocation, withRouter } from "react-router";
 import NavigationBar from "apollo-react/components/NavigationBar";
 import makeStyles from "@material-ui/core/styles/makeStyles";
 import { neutral7 } from "apollo-react/colors";
@@ -20,7 +20,7 @@ import Button from "apollo-react/components/Button";
 import NavigationPanel from "./NavigationPanel/NavigationPanel";
 
 // eslint-disable-next-line import/named
-import { deleteAllCookies, getUserInfo } from "../../utils/index";
+import { getUserInfo } from "../../utils/index";
 // eslint-disable-next-line import/named
 import { userLogOut, getRolesPermissions } from "../../services/ApiServices";
 import { MessageContext } from "../Providers/MessageProvider";
@@ -88,6 +88,35 @@ const styles = {
 
 const useStyles = makeStyles(styles);
 
+// function useOuterClick(callback) {
+//   const innerRef = useRef();
+//   const callbackRef = useRef();
+
+//   // set current callback in ref, before second useEffect uses it
+//   useEffect(() => {
+//     // useEffect wrapper to be safe for concurrent mode
+//     callbackRef.current = callback;
+//   });
+
+//   useEffect(() => {
+//     document.addEventListener("click", handleClick);
+//     return () => document.removeEventListener("click", handleClick);
+
+//     // read most recent callback and innerRef dom node from refs
+//     function handleClick(e) {
+//       if (
+//         innerRef.current &&
+//         callbackRef.current &&
+//         !innerRef.current.contains(e.target)
+//       ) {
+//         callbackRef.current(e);
+//       }
+//     }
+//   }, []); // no need for callback + innerRef dep
+
+//   return innerRef; // return ref; client can omit `useRef`
+// }
+
 const AppHeader = ({ history, setLoggedIn }) => {
   const classes = useStyles();
   const userInfo = getUserInfo();
@@ -98,6 +127,18 @@ const AppHeader = ({ history, setLoggedIn }) => {
   const [open, setOpen] = useState(false);
   const [showVersionModal, setShowVersionModal] = useState(false);
   const { permissions } = appContext.user;
+  const { pathname } = useLocation();
+
+  const onPanelClose = () => {
+    setpanelOpen(false);
+  };
+
+  // const innerRef = useOuterClick((e) => {
+  //   // counter state is up-to-date, when handler is called
+  //   if (panelOpen === true) {
+  //     onPanelClose();
+  //   }
+  // });
 
   const getPermisions = async () => {
     if (permissions.length === 0) {
@@ -232,12 +273,9 @@ const AppHeader = ({ history, setLoggedIn }) => {
     setOpen(true);
     const isLogout = await userLogOut();
     if (isLogout) {
-      const deleted = await deleteAllCookies();
-      if (deleted) {
-        setLoggedIn(false);
-        history.push("/logout");
-        setOpen(false);
-      }
+      setLoggedIn(false);
+      history.push("/logout");
+      setOpen(false);
     } else {
       setNotLoggedOutErr(true);
       setOpen(false);
@@ -258,9 +296,7 @@ const AppHeader = ({ history, setLoggedIn }) => {
     // eslint-disable-next-line no-shadow
     setpanelOpen((panelOpen) => !panelOpen);
   };
-  const onPanelClose = () => {
-    setpanelOpen(false);
-  };
+
   const ConfirmModal = React.memo(({ showVersionModal, closeModal }) => {
     return (
       <Modal
@@ -320,11 +356,11 @@ const AppHeader = ({ history, setLoggedIn }) => {
             // eslint-disable-next-line prefer-template
             "nav"
           }
-          // checkIsActive={(item) =>
-          //   item.pathname
-          //     ? item.pathname === pathname
-          //     : item.menuItems.some((item) => item.pathname === pathname)
-          // }
+          checkIsActive={(item) =>
+            item.pathname
+              ? item.pathname === pathname
+              : item.menuItems.some((item) => item.pathname === pathname)
+          }
           waves
           notificationsMenuProps={notificationsMenuProps}
           otherButtons={
@@ -339,7 +375,9 @@ const AppHeader = ({ history, setLoggedIn }) => {
             </div>
           }
         />
+        {/* <div id="container" ref={innerRef}> */}
         <NavigationPanel open={panelOpen} onClose={onPanelClose} />
+        {/* </div> */}
       </div>
       <Banner
         variant={messageContext.errorMessage.variant}
