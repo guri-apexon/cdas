@@ -194,7 +194,7 @@ const VendorList = () => {
     {
       header: "Vendor Name",
       accessor: "vName",
-      customCell: canUpdate && canRead && LinkCell,
+      customCell: (canUpdate || canRead) && LinkCell,
       sortFunction: compareStrings,
       filterFunction: createStringSearchFilter("vName"),
       filterComponent: TextFieldFilter,
