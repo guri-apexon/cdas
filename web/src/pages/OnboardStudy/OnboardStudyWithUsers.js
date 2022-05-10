@@ -116,6 +116,7 @@ const ImportWithUsers = () => {
           source={userList}
           value={row[key]}
           onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
+          enableVirtualization
           error={
             row.alreadyExist ||
             (!initialRender &&
@@ -160,6 +161,7 @@ const ImportWithUsers = () => {
           clearOnBlur={false}
           disableCloseOnSelect
           alwaysLimitChips
+          enableVirtualization
         />
       </div>
     );
