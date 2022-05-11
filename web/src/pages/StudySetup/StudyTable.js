@@ -362,9 +362,24 @@ export default function StudyTable({ studyData, studyboardData, refreshData }) {
     setTableRows([...studyboardData]);
   }, []);
 
-  const getTableData = React.useMemo(
-    () => (
-      <>
+  // const getTableData = React.useMemo(
+  //   () => <></>,
+  //   [
+  //     tableColumns,
+  //     tableRows,
+  //     // pageNo,
+  //     // rowsPerPageRecord,
+  //     loading,
+  //     // sortOrderValue,
+  //     // sortedColumnValue,
+  //     // inlineFilters,
+  //   ]
+  // );
+
+  return (
+    <div key={componentKey} className="study-table">
+      {loading && <Progress />}
+      {!loading && (
         <Table
           isLoading={loading}
           title="Studies"
@@ -413,24 +428,7 @@ export default function StudyTable({ studyData, studyboardData, refreshData }) {
             />
           )}
         />
-      </>
-    ),
-    [
-      tableColumns,
-      tableRows,
-      // pageNo,
-      // rowsPerPageRecord,
-      loading,
-      // sortOrderValue,
-      // sortedColumnValue,
-      // inlineFilters,
-    ]
-  );
-
-  return (
-    <div key={componentKey} className="study-table">
-      {loading && <Progress />}
-      {!loading && getTableData}
+      )}
     </div>
   );
 }
