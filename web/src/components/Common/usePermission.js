@@ -86,18 +86,7 @@ const usePermission = (category, feature) => {
   const readOnly = canRead && !canUpdate && !canCreate;
   const canEnabled = checkPermission(Permissions.ENABLE);
   const noPermission = permission && permission.allowedPermission?.length === 0;
-  console.log(
-    ">> permission ",
-    permission,
-    category,
-    feature,
-    canCreate,
-    canRead,
-    canUpdate,
-    canDownload,
-    canRead,
-    canEnabled
-  );
+
   return {
     canCreate,
     canRead,
