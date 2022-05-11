@@ -22,7 +22,7 @@ const updateStatus = async (studyId, status = "Success") => {
   }
 };
 
-const addOnboardedStudy = async (protNbrStnd, userId) => {
+const addOnboardedStudy = async (protNbrStnd, userId, currentTime) => {
   try {
     if (!protNbrStnd || !userId) return false;
     const result = await DB.executeQuery(
@@ -31,7 +31,7 @@ const addOnboardedStudy = async (protNbrStnd, userId) => {
     const study = result.rows[0] || null;
     if (!study) return false;
     const uniqueId = helper.createUniqueID();
-    const currentTime = helper.getCurrentTime();
+    //   const currentTime = helper.getCurrentTime();
     const userDesc = "mdm study import";
     const valueArr = [
       uniqueId,
@@ -112,6 +112,8 @@ exports.onboardStudy = async function (req, res) {
       protNbrStnd: studyId,
       userId,
       users,
+      insrt_tm,
+      updt_tm,
     } = req.body;
     Logger.info({ message: "onboardStudy" });
     axios
@@ -128,20 +130,24 @@ exports.onboardStudy = async function (req, res) {
       .then(async (response) => {
         const onboardStatus = response?.data?.code || null;
         if (onboardStatus === 202) {
-          const insertedStudy = await addOnboardedStudy(studyId, userId);
+          const insertedStudy = await addOnboardedStudy(
+            studyId,
+            userId,
+            currentTime
+          );
           if (!insertedStudy)
             return apiResponse.ErrorResponse(res, "Something went wrong");
 
           if (users && users.length) {
             let insertQuery = "";
-            const currentTime = helper.getCurrentTime();
+            //const currentTime = helper.getCurrentTime();
             users.forEach((user) => {
               if (user.user?.userId && insertedStudy.prot_id) {
                 const studyUserId = user.user.userId.toLowerCase();
-                insertQuery += `INSERT into ${schemaName}.study_user (prot_id, usr_id, act_flg, insrt_tm, updt_tm) VALUES('${insertedStudy.prot_id}', '${studyUserId}', 1, '${currentTime}', '${currentTime}');`;
+                insertQuery += `INSERT into ${schemaName}.study_user (prot_id, usr_id, act_flg, insrt_tm, updt_tm) VALUES('${insertedStudy.prot_id}', '${studyUserId}', 1, '${insrt_tm}', '${updt_tm}');`;
                 if (user.roles && Array.isArray(user.roles)) {
                   user.roles.forEach((role) => {
-                    insertQuery += `INSERT into ${schemaName}.study_user_role (role_id, prot_id, usr_id, act_flg, created_by, created_on, updated_by, updated_on) VALUES('${role.value}', '${insertedStudy.prot_id}', '${studyUserId}', 1, '${userId}', '${currentTime}', '${userId}', '${currentTime}');`;
+                    insertQuery += `INSERT into ${schemaName}.study_user_role (role_id, prot_id, usr_id, act_flg, created_by, created_on, updated_by, updated_on) VALUES('${role.value}', '${insertedStudy.prot_id}', '${studyUserId}', 1, '${userId}', '${insrt_tm}', '${userId}', '${updt_tm}');`;
                   });
                 }
               }
@@ -270,18 +276,21 @@ exports.getStudyList = async (req, res) => {
     const $q6 = await DB.executeQuery(query6);
     const formatDateValues = await $q1.rows.map((e) => {
       let acc = $q2.rows.filter((d) => d.prot_id === e.prot_id);
-      let newObj = acc[0] ? acc[0] : { count: 0 };
+      let newObj = acc[0] ? acc[0] : { count: "0" };
       let { count } = newObj;
-      let editT = moment(e.dateedited).format("MM/DD/YYYY");
-      let addT = moment(e.dateadded).format("MM/DD/YYYY");
+      //let editT = moment(e.dateedited).format("MM/DD/YYYY");
+      //let addT = moment(e.dateadded).format("MM/DD/YYYY");
       // let newData = _.omit(e, ["prot_id"]);
-    if(!e.protocolstatus){
-      e.protocolstatus="Blank"
-    }
+      if (!e.protocolstatus) {
+        e.protocolstatus = "Blank";
+      }
+      if (!e.phase) {
+        e.phase = "Blank";
+      }
       return {
         ...e,
-        dateadded: addT,
-        dateedited: editT,
+        // dateadded: addT,
+        // dateedited: editT,
         assignmentcount: count,
       };
     });
@@ -289,12 +298,24 @@ exports.getStudyList = async (req, res) => {
     let uniquePhase = $q3.rows
       .map((e) => Object.values(e))
       .flat()
-      .filter((e) => e !== "")
-      .filter((e) => e !== null);
+      .map((el) => {
+        if (el === null || el === "") {
+          return "Blank";
+        }
+        return el;
+      });
+    // .filter((e) => e !== "")
+    // .filter((e) => e !== null);
     let uniqueProtocolStatus = $q4.rows
       .map((e) => Object.values(e))
       .flat()
-      .filter((e) => e !== null);
+      .map((el) => {
+        if (el === null || el === "") {
+          return "Blank";
+        }
+        return el;
+      });
+
     let uniqueObs = $q5.rows
       .map((e) => Object.values(e))
       .flat()
@@ -303,11 +324,11 @@ exports.getStudyList = async (req, res) => {
       .map((e) => Object.values(e))
       .flat()
       .filter((e) => e !== null);
-
+    // console.log(uniquePhase);
     return apiResponse.successResponseWithData(res, "Operation success", {
       studyData: formatDateValues,
-      uniquePhase: uniquePhase,
-      uniqueProtocolStatus: uniqueProtocolStatus,
+      uniquePhase: [...new Set(uniquePhase)],
+      uniqueProtocolStatus: [...new Set(uniqueProtocolStatus)],
       uniqueObs: uniqueObs,
       uniqueThbtcArea,
     });
@@ -367,7 +388,7 @@ exports.listStudyAssign = async (req, res) => {
 
     return apiResponse.successResponseWithData(res, "Operation success", {
       list: list.rows,
-      uniqueRoles: uniqueRoles.flat(),
+      uniqueRoles: _.uniq(uniqueRoles.flat()),
     });
   } catch (err) {
     Logger.error("catch :listStudyAssign");
@@ -443,11 +464,11 @@ exports.AddStudyAssign = async (req, res) => {
           console.log(err);
         }
       });
-   
-      await DB.executeQuery(`UPDATE ${schemaName}.study set updt_tm=$1 WHERE prot_id=$2;`,[
-        curDate,
-        protocol
-      ])
+
+      await DB.executeQuery(
+        `UPDATE ${schemaName}.study set updt_tm=$1 WHERE prot_id=$2;`,
+        [curDate, protocol]
+      );
       return apiResponse.successResponseWithData(
         res,
         "New user Added successfully"
@@ -540,10 +561,10 @@ exports.updateStudyAssign = async (req, res) => {
         console.log(err);
       }
     });
-    await DB.executeQuery(`UPDATE ${schemaName}.study set updt_tm=$1 WHERE prot_id=$2;`,[
-      curDate,
-      protocol
-    ])
+    await DB.executeQuery(
+      `UPDATE ${schemaName}.study set updt_tm=$1 WHERE prot_id=$2;`,
+      [curDate, protocol]
+    );
     return apiResponse.successResponse(res, "update successfully");
   } catch (err) {
     Logger.error("catch :updateStudyAssign");
@@ -571,7 +592,7 @@ exports.deleteStudyAssign = async (req, res) => {
         {
           studyId,
           userId: loginId,
-          roUser: users.join(", "),
+          roUsers: users.join(", "),
         },
         {
           headers: FSR_HEADERS,
@@ -590,15 +611,18 @@ exports.deleteStudyAssign = async (req, res) => {
               studyUserId,
               curDate,
             ]);
-    
+
             await DB.executeQuery(roleDeleteQuery, [
               protocol,
               studyUserId,
               loginId,
               curDate,
             ]);
-    
-            return apiResponse.successResponse(res, "User Deleted successfully");
+
+            return apiResponse.successResponse(
+              res,
+              "User Deleted successfully"
+            );
           } catch (err) {
             console.log(err);
           }

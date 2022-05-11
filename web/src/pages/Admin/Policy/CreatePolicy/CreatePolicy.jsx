@@ -296,7 +296,9 @@ const CreatePolicy = () => {
                         badgeContent={getBadgeCount(product.prod_nm)}
                         max={999}
                       >
-                        {product.prod_nm}
+                        {product.prod_nm === "Admin"
+                          ? "CDAS Admin"
+                          : product.prod_nm}
                       </Badge>
                     }
                   />

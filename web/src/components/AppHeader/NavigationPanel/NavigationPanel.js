@@ -40,6 +40,7 @@ const CustomTooltip = withStyles(() => ({
   tooltip: {
     fontSize: 13,
     width: 220,
+    minWidth: 300,
     padding: "1px 10px",
   },
 }))(Tooltip);

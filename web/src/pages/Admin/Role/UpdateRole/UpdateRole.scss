@@ -1,85 +1,88 @@
-@import '../../../../styles/customscroll.scss';
-.create-role-wrapper{
-    .policies-wrapper{
-        div[class*=" Table-scrollRoot-"]{
-            @extend .customscroll;
-        }
-        .policy-name{
-            max-width: 200px;
-        }
+@import "../../../../styles/customscroll.scss";
+.create-role-wrapper {
+  .policies-wrapper {
+    div[class*=" Table-scrollRoot-"] {
+      @extend .customscroll;
     }
-    padding: 0 28px;
-    .breadcrump{
-        margin-left: -8px;
-        margin-bottom: 0;
-        padding-left: 0;
+    .policy-name {
+      max-width: 200px;
     }
-    .back-btn{
-        background-color: #ECF3FF;
-        color: #0768FD;
-        height: 28px;
-        margin-bottom: 17px;
-        margin-top: -12px;
-        box-shadow: none;
-        font-size: 13px;
-        font-weight: 600;
-        justify-content: normal;
+  }
+  padding: 0 28px;
+  .breadcrump {
+    margin-left: -8px;
+    margin-bottom: 0;
+    padding-left: 0;
+  }
+  .back-btn {
+    background-color: #ecf3ff;
+    color: #0768fd;
+    height: 28px;
+    margin-bottom: 17px;
+    margin-top: -12px;
+    box-shadow: none;
+    font-size: 13px;
+    font-weight: 600;
+    justify-content: normal;
+  }
+  .top-actions {
+    justify-content: end;
+    label {
+      margin-right: 40px;
     }
-    .top-actions{
-        justify-content: end;
-        label{
-            margin-right: 40px;
-        }
+  }
+  .create-sidebar {
+    max-width: 75%;
+    .title {
+      font-size: 24px;
     }
-    .create-sidebar{
-        max-width: 75%;
-        .title{
-            font-size: 24px;
-        }
+    #roleDesc {
+      margin-top: -3px !important;
     }
-    .policies-wrapper{
-        padding-top: 70px;
+  }
+  .policies-wrapper {
+    padding-top: 70px;
+  }
+  #policySnapshot {
+    div[class^="Blade-expandPanelButton-"] {
+      display: none;
     }
-    #policySnapshot{
-        div[class^=Blade-expandPanelButton-]{
-            display: none;
-        }
-        div[class^=Blade-header-]{
-            h3{
-                font-size: 20px;
-            }
-            p{
-                max-width: 80%;
-                text-overflow: ellipsis;
-                overflow: hidden;
-            }
-        }
-        div[class^=Blade-body-]{
-            padding: 0;
-            margin-top: -17px;
-            @extend .customscroll;
-        }
-        .loader{
-            display: flex;
-            justify-content: center;
-            min-height: 70vh;
-            align-items: center;
-        }
-        .product-title{
-            background-color: #F6F7FB;
-            height: 48px;
-            font-weight: 600;
-            border-top: 1px solid #E9E9E9;
-            border-bottom: 1px solid #E9E9E9;
-            display: flex;
-            align-items: center;
-            padding: 0 35px;
-        }
-        .category-content{
-            padding: 20px 50px;
-            .category-name{
-                width: 50%;
-            }
-        }
+    div[class^="Blade-header-"] {
+      h3 {
+        font-size: 20px;
+      }
+      p {
+        max-width: 80%;
+        text-overflow: ellipsis;
+        overflow: hidden;
+      }
     }
+    div[class^="Blade-body-"] {
+      padding: 0;
+      margin-top: -17px;
+      @extend .customscroll;
+    }
+    .loader {
+      display: flex;
+      justify-content: center;
+      min-height: 70vh;
+      align-items: center;
+    }
+    .product-title {
+      background-color: #f6f7fb;
+      height: 48px;
+      font-weight: 600;
+      border-top: 1px solid #e9e9e9;
+      border-bottom: 1px solid #e9e9e9;
+      display: flex;
+      align-items: center;
+      padding: 0 35px;
+    }
+    .category-content {
+      padding: 20px 50px;
+      .category-name {
+        width: 50%;
+      }
+    }
+  }
 }
