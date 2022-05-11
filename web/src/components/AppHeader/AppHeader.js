@@ -144,6 +144,7 @@ const AppHeader = ({ history, setLoggedIn }) => {
     if (permissions.length === 0) {
       let uniquePermissions = [];
       const data = await getRolesPermissions();
+      console.log(">>> all permissions", data);
       if (data.message === "Something went wrong") {
         messageContext.showErrorMessage(
           `There was an issue authorizing your login information. Please contact your Administrator.`

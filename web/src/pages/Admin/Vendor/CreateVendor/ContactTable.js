@@ -26,13 +26,14 @@ const initialRows = [
   },
 ];
 
-const CustomButtonHeader = ({ addAContact }) => (
+const CustomButtonHeader = ({ addAContact, disabled }) => (
   <div>
     <Button
       size="small"
       variant="secondary"
       icon={PlusIcon}
       onClick={addAContact}
+      disabled={disabled}
     >
       Add contact
     </Button>
@@ -50,7 +51,7 @@ const re =
   /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 
 const EditableCell = ({ row, column: { accessor: key, header } }) => {
-  const { isStarted } = row;
+  const { isStarted, disabled } = row;
   const hasError = !row[key] && isStarted;
   return row.editMode ? (
     <TextField
@@ -63,6 +64,7 @@ const EditableCell = ({ row, column: { accessor: key, header } }) => {
       error={hasError}
       helperText={hasError && "Required"}
       {...fieldStyles}
+      disabled={disabled}
     />
   ) : (
     row[key]
@@ -70,7 +72,7 @@ const EditableCell = ({ row, column: { accessor: key, header } }) => {
 };
 
 const EmailEditableCell = ({ row, column: { accessor: key, header } }) => {
-  const { isStarted, email } = row;
+  const { isStarted, email, disabled } = row;
   const [blurred, setBlurred] = useState(true);
   return row.editMode ? (
     <TextField
@@ -79,6 +81,7 @@ const EmailEditableCell = ({ row, column: { accessor: key, header } }) => {
       value={row[key]}
       type="email"
       placeholder={header}
+      disabled={disabled}
       onFocus={() => setBlurred(false)}
       onBlur={() => setBlurred(true)}
       onChange={(e) => row.editEmail(row.vCId, key, e.target.value)}
@@ -97,7 +100,7 @@ const EmailEditableCell = ({ row, column: { accessor: key, header } }) => {
 };
 
 const ActionCell = ({ row }) => {
-  const { editMode } = row;
+  const { editMode, disabled } = row;
   const { vCId, onRowDelete } = row;
   return editMode ? (
     <Tooltip title="Delete contact">
@@ -105,6 +108,7 @@ const ActionCell = ({ row }) => {
         size="small"
         onClick={() => onRowDelete(vCId)}
         style={{ marginTop: 7 }}
+        disabled={disabled}
       >
         <Trash />
       </IconButton>
@@ -144,7 +148,7 @@ const columns = [
   },
 ];
 
-const TableEditableAll = ({ updateData, deleteAContact }) => {
+const TableEditableAll = ({ updateData, deleteAContact, disabled }) => {
   const [rows, setRows] = useState(initialRows);
   const [editedRows, setEditedRows] = useState(initialRows);
   const vendor = useSelector((state) => state.vendor);
@@ -238,6 +242,7 @@ const TableEditableAll = ({ updateData, deleteAContact }) => {
         editEmail,
         editName,
         editMode,
+        disabled,
       }))}
       initialSortedColumn="vCId"
       initialSortOrder="asc"
@@ -249,7 +254,11 @@ const TableEditableAll = ({ updateData, deleteAContact }) => {
         truncate: true,
       }}
       CustomHeader={(props) => (
-        <CustomButtonHeader addAContact={addAContact} {...props} />
+        <CustomButtonHeader
+          disabled={disabled}
+          addAContact={addAContact}
+          {...props}
+        />
       )}
     />
   );
