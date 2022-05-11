@@ -1,6 +1,6 @@
 /* eslint-disable no-script-url */
 /* eslint-disable react/button-has-type */
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useRef } from "react";
 import Box from "apollo-react/components/Box";
 import { useHistory } from "react-router";
 import BreadcrumbsUI from "apollo-react/components/Breadcrumbs";
@@ -32,10 +32,10 @@ const ConfirmModal = React.memo(({ open, cancel, closeModal, loading }) => {
       className="save-confirm"
       variant="warning"
       title="Lose your work?"
-      message="your unsaved changes will be lost. Are you sure you want to leave this page?"
+      message="All unsaved changes will be lost."
       buttonProps={[
+        { label: "Keep editing", onClick: closeModal, disabled: loading },
         { label: "Leave without saving", onClick: cancel, disabled: loading },
-        { label: "Stay on this page", onClick: closeModal, disabled: loading },
       ]}
       id="neutral"
     />
@@ -53,6 +53,13 @@ const CreatePolicy = () => {
   const messageContext = useContext(MessageContext);
   const userInfo = getUserInfo();
   const history = useHistory();
+  const routerHandle = useRef();
+
+  const unblockRouter = () => {
+    if (routerHandle) {
+      routerHandle.current();
+    }
+  };
   const handleActive = (e, checked) => {
     setActive(checked);
   };
@@ -113,6 +120,7 @@ const CreatePolicy = () => {
     addPolicyService(reqBody)
       .then((res) => {
         messageContext.showSuccessMessage(res.message || "Successfully Done");
+        unblockRouter();
         history.push("/policy-management");
         setLoading(false);
       })
@@ -131,8 +139,8 @@ const CreatePolicy = () => {
       setPolicyDesc(val);
     }
   };
-
   const cancelCreate = () => {
+    unblockRouter();
     history.push("/policy-management");
   };
   const filterPermission = (arr) => {
@@ -189,6 +197,17 @@ const CreatePolicy = () => {
   useEffect(() => {
     getProducts();
   }, []);
+  useEffect(() => {
+    routerHandle.current = history.block((tx) => {
+      setConfirm(true);
+      return false;
+    });
+
+    return function () {
+      /* eslint-disable */
+      routerHandle.current.current && routerHandle.current.current();
+    };
+  });
   return (
     <div className="create-policy-wrapper">
       <ConfirmModal

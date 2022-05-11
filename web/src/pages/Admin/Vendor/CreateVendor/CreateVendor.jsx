@@ -1,6 +1,6 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 /* eslint-disable react/button-has-type */
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Box from "apollo-react/components/Box";
 import { useHistory, useParams } from "react-router";
@@ -42,14 +42,10 @@ const ConfirmModal = React.memo(({ open, cancel, stayHere, loading }) => {
       disableBackdropClick="true"
       variant="warning"
       title="Lose your work?"
-      message="Your unsaved changes will be lost. Are you sure you want to leave this page?"
+      message="All unsaved changes will be lost."
       buttonProps={[
+        { label: "Keep editing", disabled: loading },
         { label: "Leave without saving", onClick: cancel, disabled: loading },
-        {
-          label: "Stay on this page",
-          onClick: stayHere,
-          disabled: loading,
-        },
       ]}
       id="neutral"
     />
@@ -76,7 +72,12 @@ const CreateVendor = () => {
   const dispatch = useDispatch();
   const vendor = useSelector((state) => state.vendor);
   const { isEditPage, isCreatePage, selectedVendor, ensList } = vendor;
-
+  const routerHandle = useRef();
+  const unblockRouter = () => {
+    if (routerHandle) {
+      routerHandle.current();
+    }
+  };
   useEffect(() => {});
 
   useEffect(() => {
@@ -91,10 +92,10 @@ const CreateVendor = () => {
   }, []);
 
   const breadcrumpItems = [
-    { href: "/" },
+    { href: "", onClick: () => history.push("/launchpad") },
     {
       title: "Vendors",
-      href: "/vendor/list",
+      onClick: () => history.push("/vendor/list"),
     },
     {
       title: isEditPage ? vName : "Create New Vendor",
@@ -159,6 +160,7 @@ const CreateVendor = () => {
       addVendorService(reqBody)
         .then((res) => {
           messageContext.showSuccessMessage(res.message || "Successfully Done");
+          unblockRouter(); // should be above history push
           history.push("/vendor/list");
           setLoading(false);
         })
@@ -179,6 +181,7 @@ const CreateVendor = () => {
       updateVendorService(reqBody)
         .then((res) => {
           messageContext.showSuccessMessage(res.message || "Successfully Done");
+          unblockRouter(); // should be above history push
           history.push("/vendor/list");
           setLoading(false);
         })
@@ -244,8 +247,9 @@ const CreateVendor = () => {
   };
 
   const cancelEdit = () => {
+    unblockRouter();
     setConfirm(false);
-    history.goBack();
+    history.push("/vendor/list");
   };
 
   const stayHere = () => {
@@ -253,6 +257,7 @@ const CreateVendor = () => {
   };
 
   const handleCancel = () => {
+    unblockRouter();
     if (isAnyUpdate) {
       setConfirm(true);
     } else {
@@ -270,6 +275,20 @@ const CreateVendor = () => {
       });
     }
   };
+
+  useEffect(() => {
+    routerHandle.current = history.block((tx) => {
+      setIsAnyUpdate(true);
+      setConfirm(true);
+
+      return false;
+    });
+
+    return function () {
+      /* eslint-disable */
+      routerHandle.current.current && routerHandle.current.current();
+    };
+  });
 
   return (
     <div className="create-vendor-wrapper">
