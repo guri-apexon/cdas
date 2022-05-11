@@ -268,7 +268,7 @@ exports.getStudyList = async (req, res) => {
     const $q4 = await DB.executeQuery(query4);
     const $q5 = await DB.executeQuery(query5);
     const $q6 = await DB.executeQuery(query6);
-    const formatDateValues = await $q1.rows.map((e) => {
+    const formatDateValues = await $q1.rows.map((e, i) => {
       let acc = $q2.rows.filter((d) => d.prot_id === e.prot_id);
       let newObj = acc[0] ? acc[0] : { count: "0" };
       let { count } = newObj;
@@ -283,6 +283,7 @@ exports.getStudyList = async (req, res) => {
       }
       return {
         ...e,
+        studyIndex: i+1,
         dateadded: addT,
         dateedited: editT,
         assignmentcount: count,
