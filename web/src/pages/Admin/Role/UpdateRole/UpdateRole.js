@@ -1,6 +1,6 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import Box from "apollo-react/components/Box";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import BreadcrumbsUI from "apollo-react/components/Breadcrumbs";
 import Switch from "apollo-react/components/Switch";
@@ -52,10 +52,26 @@ const UpdateRole = () => {
   const [roleDesc, setRoleDesc] = useState("");
   const [policies, setPolicies] = useState([]);
   const [products, setProducts] = useState([]);
+  const routerHandle = useRef();
   const appContext = useContext(AppContext);
   const { permissions } = appContext.user;
   const [RoleUpdatePermission, setUpdateRoleUpdatePermission] = useState(false);
   const userInfo = getUserInfo();
+  const unblockRouter = () => {
+    if (routerHandle) {
+      routerHandle.current();
+    }
+  };
+
+  const cancelModalObj = {
+    subtitle: "All unsaved changes will be lost.",
+    cancelLabel: "Leave without saving",
+    cancelAction: () => {
+      unblockRouter(); // should be above history push
+      history.push("/role-management");
+    },
+    submitLabel: "Keep editing",
+  };
   const filterMethod = (rolePermissions) => {
     const filterrolePermissions = rolePermissions.filter(
       (item) => item.featureName === "Role management"
@@ -236,6 +252,7 @@ const UpdateRole = () => {
         messageContext.showSuccessMessage(
           res.message || "Successfully Updated"
         );
+        unblockRouter(); // should be above history push
         history.push("/role-management");
         setLoading(false);
       })
@@ -273,15 +290,7 @@ const UpdateRole = () => {
   }, [policies]);
 
   const setConfirmCancel = () => {
-    const confirm = {
-      subtitle: "You has started the new role. Do you still want to cancel?",
-      cancelLabel: "Yes, cancel it",
-      cancelAction: () => {
-        history.push("/role-management");
-      },
-      submitLabel: "No, let's finish",
-    };
-    setConfirmObj(confirm);
+    setConfirmObj(cancelModalObj);
   };
   // eslint-disable-next-line consistent-return
   const setConfirmViewPolicy = (param) => {
@@ -290,16 +299,28 @@ const UpdateRole = () => {
       return false;
     }
     const confirm = {
-      subtitle: "Unsaved changes will be lost. Are you sure you want to leave?",
+      subtitle: "All unsaved changes will be lost.",
       cancelLabel: "Leave without saving",
       cancelAction: () => {
+        unblockRouter();
         setSelectedPolicy(null);
         history.push(`/policy-management/${selectedPolicy.policyId}`);
       },
-      submitLabel: "Stay on this page",
+      submitLabel: "Keep editing",
     };
     setConfirmObj(confirm);
   };
+  useEffect(() => {
+    routerHandle.current = history.block((tx) => {
+      setConfirmObj(cancelModalObj);
+      return false;
+    });
+
+    return function () {
+      /* eslint-disable */
+      routerHandle.current.current && routerHandle.current.current();
+    };
+  });
   return (
     <div className="create-role-wrapper">
       <Box className="top-content">
@@ -309,17 +330,17 @@ const UpdateRole = () => {
             onClose={() => setConfirmObj(null)}
             className="save-confirm"
             variant="warning"
-            title="Save before exiting?"
+            title="Lose your work?"
             message={confirmObj.subtitle}
             buttonProps={[
               {
-                label: confirmObj.cancelLabel,
-                onClick: () => confirmObj.cancelAction(),
+                label: confirmObj.submitLabel,
+                onClick: () => setConfirmObj(null),
                 disabled: loading,
               },
               {
-                label: confirmObj.submitLabel,
-                onClick: () => setConfirmObj(null),
+                label: confirmObj.cancelLabel,
+                onClick: () => confirmObj.cancelAction(),
                 disabled: loading,
               },
             ]}
