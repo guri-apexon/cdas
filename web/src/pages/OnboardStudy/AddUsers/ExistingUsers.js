@@ -127,7 +127,7 @@ const ExistingUsers = () => {
       onClick: () => history.push("/study-setup"),
     },
     {
-      title: "Manage Users",
+      title: "Manage Study Assignments",
     },
   ];
 
@@ -396,7 +396,7 @@ const ExistingUsers = () => {
           <Box className="onboard-header">
             <BreadcrumbsUI className="breadcrump" items={breadcrumpItems} />
           </Box>
-          <div className="header-title">Manage Users</div>
+          <div className="header-title">Manage Study Assignments</div>
         </div>
         <div className="bottom-content">
           <Link to="/study-setup" className="removeUnderLine">

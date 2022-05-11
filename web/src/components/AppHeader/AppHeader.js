@@ -232,7 +232,7 @@ const AppHeader = ({ history, setLoggedIn }) => {
         },
         {
           featureName: "System Admin",
-          text: "System Admin",
+          text: "Vendor Admin",
           pathname: "/vendor/list",
           haveAccess: checkAccess("System management"),
         },
