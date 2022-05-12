@@ -2,7 +2,6 @@
 /* eslint-disable react/button-has-type */
 import React, { useContext, useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import Box from "apollo-react/components/Box";
 import { useHistory, useParams } from "react-router";
 import BreadcrumbsUI from "apollo-react/components/Breadcrumbs";
 import Switch from "apollo-react/components/Switch";
@@ -36,6 +35,33 @@ import usePermission, {
   Categories,
   Features,
 } from "../../../../components/Common/usePermission";
+
+const Box = ({ children }) => {
+  return (
+    <span className="label" variant="body2">
+      {children}
+    </span>
+  );
+};
+
+const Label = ({ children }) => {
+  return (
+    <span className="label" style={{ color: "gray" }}>
+      {children}
+    </span>
+  );
+};
+const Value = ({ children }) => {
+  return (
+    <div
+      className="value"
+      variant="body2"
+      style={{ "word-wrap": "break-word", fontWeight: "bold" }}
+    >
+      {children}
+    </div>
+  );
+};
 
 const ConfirmModal = React.memo(({ open, cancel, stayHere, loading }) => {
   return (
@@ -320,14 +346,15 @@ const CreateVendor = () => {
             </span>
           </div>
           <div className="flex top-actions">
-            <Switch
-              label="Active"
-              className="inline-checkbox"
-              checked={active}
-              onChange={handleActive}
-              size="small"
-              disabled={readOnly}
-            />
+            {!readOnly && (
+              <Switch
+                label="Active"
+                className="inline-checkbox"
+                checked={active}
+                onChange={handleActive}
+                size="small"
+              />
+            )}
             <ButtonGroup
               alignItems="right"
               buttonProps={
@@ -367,47 +394,64 @@ const CreateVendor = () => {
               <Typography variant="title1" className="b-font title">
                 {isEditPage ? vName : "New Vendor"}
               </Typography>
-              {/* <br /> */}
-              <TextField
-                id="vName"
-                size="small"
-                value={vName}
-                label="Vendor Name"
-                placeholder="Name your vendor"
-                onChange={handleChange}
-                error={initialRender === false && !vName ? true : false}
-                disabled={readOnly}
-              />
-              <Select
-                size="small"
-                fullWidth
-                label="External System Name"
-                placeholder="Select system name"
-                value={vESN || ""}
-                canDeselect={false}
-                onChange={(e) => handleSelection(e)}
-                error={initialRender === false && !vESN ? true : false}
-                disabled={readOnly}
-              >
-                {vENSOptions.map((option) => (
-                  <MenuItem key={option} value={option}>
-                    {option}
-                  </MenuItem>
-                ))}
-              </Select>
-              <TextField
-                id="vDescription"
-                size="small"
-                label="Vendor Description"
-                placeholder="Describe your vendor"
-                rows="18"
-                value={vDescription}
-                multiline={true}
-                minHeight={150}
-                sizeAdjustable
-                onChange={handleChange}
-                disabled={readOnly}
-              />
+              <br />
+              {readOnly ? (
+                <>
+                  <Typography>
+                    <Label>Vendor Name</Label>
+                    <Value>{vName}</Value>
+                    <br />
+                    <Label>External System Name</Label>
+                    <Value>{vESN || ""}</Value>
+                    <br />
+                    <Label>Description</Label>
+                    <Value>{vDescription}</Value>
+                  </Typography>
+                </>
+              ) : (
+                <>
+                  <TextField
+                    id="vName"
+                    size="small"
+                    value={vName}
+                    label="Vendor Name"
+                    placeholder="Name your vendor"
+                    onChange={handleChange}
+                    error={initialRender === false && !vName ? true : false}
+                    disabled={readOnly}
+                  />
+                  <Select
+                    size="small"
+                    fullWidth
+                    label="External System Name"
+                    placeholder="Select system name"
+                    value={vESN || ""}
+                    canDeselect={false}
+                    onChange={(e) => handleSelection(e)}
+                    error={initialRender === false && !vESN ? true : false}
+                    disabled={readOnly}
+                  >
+                    {vENSOptions.map((option) => (
+                      <MenuItem key={option} value={option}>
+                        {option}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  <TextField
+                    id="vDescription"
+                    size="small"
+                    label="Vendor Description"
+                    placeholder="Describe your vendor"
+                    rows="18"
+                    value={vDescription}
+                    multiline={true}
+                    minHeight={150}
+                    sizeAdjustable
+                    onChange={handleChange}
+                    disabled={readOnly}
+                  />
+                </>
+              )}
             </div>
           </Box>
         </Grid>
