@@ -16,10 +16,12 @@ export function UTCToLocalString(date) {
 }
 
 export function localStringtoUTCFormat(date) {
+  date = date !== undefined ? date : new Date();
   let updatedTimeStamp = "";
-
-  updatedTimeStamp = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}T${date.getHours()}:${date.getMinutes()}
-   :${date.getSeconds()}z`;
-
+  const month =
+    date.getUTCMonth() + 1 < 10
+      ? `0${date.getUTCMonth() + 1}`
+      : date.getUTCMonth();
+  updatedTimeStamp = `${date.getUTCFullYear()}-${month}-${date.getUTCDate()}T${date.getUTCHours()}:${date.getUTCMinutes()}:${date.getUTCSeconds()}z`;
   return updatedTimeStamp;
 }

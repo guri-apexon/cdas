@@ -15,6 +15,7 @@ import { MessageContext } from "../Providers/MessageProvider";
 import { searchStudy, onboardStudy } from "../../services/ApiServices";
 import Highlighted from "../Common/Highlighted";
 import { debounceFunction, getUserInfo } from "../../utils";
+import { localStringtoUTCFormat } from "../../generic.functions";
 
 const Label = ({ children }) => {
   return (
@@ -51,6 +52,8 @@ const AddStudyModal = ({ open, onClose }) => {
       sponsorNameStnd,
       protNbrStnd,
       userId: userInfo.user_id,
+      insrt_tm: localStringtoUTCFormat(),
+      updt_tm: localStringtoUTCFormat(),
     };
     setLoading(true);
     const response = await onboardStudy(reqBody);

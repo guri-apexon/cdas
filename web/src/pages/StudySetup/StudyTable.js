@@ -34,14 +34,19 @@ import {
   createStringArrayIncludedFilter,
 } from "../../utils/index";
 import { updateSelectedStudy } from "../../store/actions/StudyBoardAction";
+import { UTCToLocalString } from "../../generic.functions";
 
 const DateCell = ({ row, column: { accessor } }) => {
   const rowValue = row[accessor];
-  const date = rowValue ? moment(rowValue).format("DD-MMM-YYYY") : "";
+  // const date = rowValue ? moment(rowValue).format("DD-MMM-YYYY") : "";
+
+  const date =
+    rowValue &&
+    moment(UTCToLocalString(rowValue)).format("MMMM Do YYYY, h:mm:ss a");
   // rowValue && moment(rowValue).isSame(moment(), "day")
   //   ? moment(rowValue).format("DD-MMM-YYYY hh:mm A")
   //   : moment(rowValue).format("DD-MMM-YYYY");
-
+  console.log(date);
   return <span>{date}</span>;
 };
 
