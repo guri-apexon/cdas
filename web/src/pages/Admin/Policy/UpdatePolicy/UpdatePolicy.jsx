@@ -1,6 +1,6 @@
 /* eslint-disable no-script-url */
 /* eslint-disable react/button-has-type */
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useRef } from "react";
 import Box from "apollo-react/components/Box";
 import { useHistory, useParams } from "react-router";
 import BreadcrumbsUI from "apollo-react/components/Breadcrumbs";
@@ -65,6 +65,14 @@ const UpdatePolicy = () => {
   const permissionsPolicy = appContext.user;
   const userInfo = getUserInfo();
   const history = useHistory();
+  const routerHandle = useRef();
+
+  const unblockRouter = () => {
+    if (routerHandle) {
+      routerHandle.current();
+    }
+  };
+
   const filterMethod = (updatepolicyPermissions) => {
     const filterpolicyPermissions = updatepolicyPermissions.filter(
       (item) => item.featureName === "Policy management "
@@ -133,6 +141,7 @@ const UpdatePolicy = () => {
         messageContext.showSuccessMessage(
           res.message || "Successfully Updated"
         );
+        unblockRouter();
         history.push("/policy-management");
         setLoading(false);
       })
@@ -218,6 +227,7 @@ const UpdatePolicy = () => {
     }).length;
   };
   const cancelEdit = () => {
+    unblockRouter();
     history.push("/policy-management");
   };
   useEffect(() => {
@@ -230,6 +240,19 @@ const UpdatePolicy = () => {
     getProducts();
   }, []);
   const closeModal = () => setConfirm(false);
+
+  useEffect(() => {
+    routerHandle.current = history.block((tx) => {
+      setConfirm(true);
+      return false;
+    });
+
+    return function () {
+      /* eslint-disable */
+      routerHandle.current.current && routerHandle.current.current();
+    };
+  });
+
   return (
     <div className="update-policy-wrapper">
       <ConfirmModal
