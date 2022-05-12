@@ -65,7 +65,7 @@ const PermissionTable = ({
       case "Read":
         if (!checked) {
           messageContext.showErrorMessage(
-            "Deselecting Read will automatically remove the options for all other options",
+            "Deselecting read will automatically remove the options for all other options",
             null,
             "info"
           );

@@ -4,6 +4,7 @@ import {
   GET_VENDOR_DETAILS,
   CREATE_VENDOR,
   VENS_LIST,
+  UPDATE_VENDOR_STATUS,
 } from "../../constants";
 
 export const getVendorList = () => {
@@ -28,5 +29,12 @@ export const createVendor = () => {
 export const getENSList = () => {
   return {
     type: VENS_LIST,
+  };
+};
+
+export const updateVendorStatus = (payload) => {
+  return {
+    type: UPDATE_VENDOR_STATUS,
+    payload,
   };
 };

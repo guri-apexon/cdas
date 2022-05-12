@@ -36,11 +36,11 @@ module.exports = {
             } catch (err) {
               return apiResponse.ErrorResponse(
                 res,
-                err.message || "Something wrong"
+                err.message || "Something went wrong"
               );
             }
           } else {
-            return apiResponse.ErrorResponse(res, "Something wrong");
+            return apiResponse.ErrorResponse(res, "Something went wrong");
           }
         }
       );

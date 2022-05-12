@@ -283,7 +283,7 @@ exports.getStudyList = async (req, res) => {
       }
       return {
         ...e,
-        studyIndex: i+1,
+        studyIndex: i + 1,
         dateadded: addT,
         dateedited: editT,
         assignmentcount: count,
@@ -466,7 +466,7 @@ exports.AddStudyAssign = async (req, res) => {
       );
       return apiResponse.successResponseWithData(
         res,
-        "New user Added successfully"
+        "New user added successfully"
       );
     }
   } catch (err) {
@@ -616,7 +616,7 @@ exports.deleteStudyAssign = async (req, res) => {
 
             return apiResponse.successResponse(
               res,
-              "User Deleted successfully"
+              "User deleted successfully"
             );
           } catch (err) {
             console.log(err);
