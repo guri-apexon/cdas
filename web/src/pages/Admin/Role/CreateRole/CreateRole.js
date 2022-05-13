@@ -170,7 +170,7 @@ const CreateRole = () => {
       userId: userInfo.user_id,
     };
     if (roleName === "") {
-      messageContext.showErrorMessage("Role Name shouldn't be empty");
+      messageContext.showErrorMessage("Role name shouldn't be empty");
       return false;
     }
     if (roleName.length > 255) {
@@ -190,7 +190,7 @@ const CreateRole = () => {
     addRoleService(reqBody)
       .then((res) => {
         messageContext.showSuccessMessage(
-          res.message || "Successfully Created"
+          res.message || "Successfully created"
         );
         history.push("/role-management");
         setLoading(false);

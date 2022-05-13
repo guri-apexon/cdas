@@ -32,7 +32,7 @@ const ConfirmModal = React.memo(({ open, cancel, closeModal, loading }) => {
       className="save-confirm"
       variant="warning"
       title="Lose your work?"
-      message="your unsaved changes will be lost. Are you sure you want to leave this page?"
+      message="Your unsaved changes will be lost. Are you sure you want to leave this page?"
       buttonProps={[
         { label: "Leave without saving", onClick: cancel, disabled: loading },
         { label: "Stay on this page", onClick: closeModal, disabled: loading },
@@ -80,7 +80,7 @@ const CreatePolicy = () => {
       status: active ? "Active" : "Inactive",
     };
     if (policyName === "") {
-      messageContext.showErrorMessage("Policy Name shouldn't be empty");
+      messageContext.showErrorMessage("Policy name shouldn't be empty");
       return false;
     }
     if (policyName.length > 255) {
@@ -112,7 +112,7 @@ const CreatePolicy = () => {
     setLoading(true);
     addPolicyService(reqBody)
       .then((res) => {
-        messageContext.showSuccessMessage(res.message || "Successfully Done");
+        messageContext.showSuccessMessage(res.message || "Successfully done");
         history.push("/policy-management");
         setLoading(false);
       })

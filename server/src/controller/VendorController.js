@@ -66,7 +66,7 @@ exports.getVendorById = async (req, res) => {
         contacts: contact.rows,
       });
     } else {
-      return apiResponse.ErrorResponse(res, "No Data found");
+      return apiResponse.ErrorResponse(res, "No data found");
     }
   } catch (err) {
     //throw error in json response with status 500.
@@ -182,7 +182,7 @@ exports.deleteContact = async (req, res) => {
     //   userId,
     //   curDate,
     // ]);
-    return apiResponse.successResponse(res, "Contact Deleted success");
+    return apiResponse.successResponse(res, "Contact deleted success");
   } catch (err) {
     //throw error in json response with status 500.
     Logger.error("catch :deleteVendor");

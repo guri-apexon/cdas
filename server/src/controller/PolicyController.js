@@ -26,7 +26,7 @@ exports.createPolicy = async function (req, res) {
     if (rows && rows.length > 0) {
       return apiResponse.ErrorResponse(
         res,
-        "Policy Name should be unique. Please update the name and save again"
+        "Policy name should be unique. Please update the name and save again"
       );
     }
 
@@ -70,7 +70,7 @@ exports.createPolicy = async function (req, res) {
       .catch((err) => {
         const errMessage =
           err.code == 23505
-            ? "Policy Name should be unique. Please update the name and save again"
+            ? "Policy name should be unique. Please update the name and save again"
             : err.detail;
         return apiResponse.ErrorResponse(res, errMessage);
       });
@@ -91,7 +91,7 @@ exports.updatePolicy = async function (req, res) {
     if (rows && rows.length > 0) {
       return apiResponse.ErrorResponse(
         res,
-        "Policy Name should be unique. Please update the name and save again"
+        "Policy name should be unique. Please update the name and save again"
       );
     }
     const productsArr = Object.keys(permissions);
@@ -143,7 +143,7 @@ exports.updatePolicy = async function (req, res) {
           .then((response) => {
             return apiResponse.successResponseWithData(
               res,
-              "Updated Successfully",
+              "Updated successfully",
               []
             );
           })
@@ -366,7 +366,7 @@ exports.updateStatus = async (req, res) => {
       policyValues
     );
 
-    return apiResponse.successResponseWithData(res, "Update success", {
+    return apiResponse.successResponseWithData(res, "Updated successfully", {
       updatedPolicy: response.rows && response.rows[0],
     });
   } catch (error) {

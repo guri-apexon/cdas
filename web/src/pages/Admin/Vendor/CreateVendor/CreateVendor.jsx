@@ -144,12 +144,12 @@ const CreateVendor = () => {
     };
     setInitialRender(false);
     if (vName === "") {
-      messageContext.showErrorMessage("Vendor Name shouldn't be empty");
+      messageContext.showErrorMessage("Vendor name shouldn't be empty");
       return false;
     }
     if (vESN === "") {
       messageContext.showErrorMessage(
-        "Vendor External System Name need to be selected"
+        "Vendor external system name need to be selected"
       );
       return false;
     }
@@ -158,7 +158,7 @@ const CreateVendor = () => {
     if (isCreatePage) {
       addVendorService(reqBody)
         .then((res) => {
-          messageContext.showSuccessMessage(res.message || "Successfully Done");
+          messageContext.showSuccessMessage(res.message || "Successfully done");
           history.push("/vendor/list");
           setLoading(false);
         })
@@ -166,7 +166,7 @@ const CreateVendor = () => {
           if (err.data) {
             messageContext.showErrorMessage(
               err.data ||
-                "vendor name and external system name combination already exists."
+                "Vendor name and external system name combination already exists."
             );
           } else {
             messageContext.showErrorMessage(
@@ -178,7 +178,7 @@ const CreateVendor = () => {
     } else if (isEditPage) {
       updateVendorService(reqBody)
         .then((res) => {
-          messageContext.showSuccessMessage(res.message || "Successfully Done");
+          messageContext.showSuccessMessage(res.message || "Successfully done");
           history.push("/vendor/list");
           setLoading(false);
         })
@@ -186,7 +186,7 @@ const CreateVendor = () => {
           if (err.data) {
             messageContext.showErrorMessage(
               err.data ||
-                "vendor name and external system name combination already exists."
+                "Vendor name and external system name combination already exists."
             );
           } else {
             messageContext.showErrorMessage(
