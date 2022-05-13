@@ -116,6 +116,7 @@ exports.onboardStudy = async function (req, res) {
       updt_tm,
     } = req.body;
     Logger.info({ message: "onboardStudy" });
+    console.log(">>> onboard", req.body);
     axios
       .post(
         `${FSR_API_URI}/study/onboard`,
@@ -129,14 +130,16 @@ exports.onboardStudy = async function (req, res) {
       )
       .then(async (response) => {
         const onboardStatus = response?.data?.code || null;
+        let insertedStudy = null;
         if (onboardStatus === 202) {
-          const insertedStudy = await addOnboardedStudy(
-            studyId,
-            userId,
-            currentTime
-          );
-          if (!insertedStudy)
+          try {
+            insertedStudy = await addOnboardedStudy(studyId, userId, insrt_tm);
+            if (!insertedStudy)
+              return apiResponse.ErrorResponse(res, "Something went wrong");
+          } catch (error) {
+            console.log(">>> onboard - error", error);
             return apiResponse.ErrorResponse(res, "Something went wrong");
+          }
 
           if (users && users.length) {
             let insertQuery = "";
