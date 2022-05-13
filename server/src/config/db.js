@@ -23,7 +23,7 @@ pool.connect((err) => {
   console.log("Connected to db...");
 });
 
-types.setTypeParser(1114, function (stringValue) {
+types.setTypeParser(types.TypeId.TIMESTAMP, function (stringValue) {
   return new Date(stringValue + "+0000");
 });
 
