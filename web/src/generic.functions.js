@@ -22,6 +22,9 @@ export function localStringtoUTCFormat(date) {
     date.getUTCMonth() + 1 < 10
       ? `0${date.getUTCMonth() + 1}`
       : date.getUTCMonth();
-  updatedTimeStamp = `${date.getUTCFullYear()}-${month}-${date.getUTCDate()}T${date.getUTCHours()}:${date.getUTCMinutes()}:${date.getUTCSeconds()}z`;
+
+  const hours =
+    date.getUTCHours() < 10 ? `0${date.getUTCHours()}` : date.getUTCHours();
+  updatedTimeStamp = `${date.getUTCFullYear()}-${month}-${date.getUTCDate()}T${hours}:${date.getUTCMinutes()}:${date.getUTCSeconds()}z`;
   return updatedTimeStamp;
 }
