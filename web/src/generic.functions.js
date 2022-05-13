@@ -13,7 +13,7 @@ export function localStringtoUTCFormat(date) {
   const month =
     date.getUTCMonth() + 1 < 10
       ? `0${date.getUTCMonth() + 1}`
-      : date.getUTCMonth();
+      : date.getUTCMonth() + 1;
 
   const hours =
     date.getUTCHours() < 10 ? `0${date.getUTCHours()}` : date.getUTCHours();
