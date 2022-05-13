@@ -46,6 +46,8 @@ const CreateRole = () => {
   const userInfo = getUserInfo();
   const policyStore = useSelector((state) => state.policy);
   const routerHandle = useRef();
+  const [targetRoute, setTargetRoute] = useState("");
+
   const unblockRouter = () => {
     if (routerHandle) {
       routerHandle.current();
@@ -272,7 +274,8 @@ const CreateRole = () => {
   };
 
   useEffect(() => {
-    routerHandle.current = history.block((tx) => {
+    routerHandle.current = history.block((tr) => {
+      setTargetRoute(tr?.pathname);
       setConfirmObj(cancelModalObj);
       return false;
     });
@@ -282,6 +285,14 @@ const CreateRole = () => {
       routerHandle.current.current && routerHandle.current.current();
     };
   });
+  const cancelButton = () => {
+    unblockRouter();
+    if (targetRoute === "") {
+      confirmObj.cancelAction();
+    } else {
+      history.push(targetRoute);
+    }
+  };
   return (
     <div className="create-role-wrapper">
       <Box className="top-content">
@@ -302,7 +313,7 @@ const CreateRole = () => {
               },
               {
                 label: confirmObj.cancelLabel,
-                onClick: () => confirmObj.cancelAction(),
+                onClick: () => cancelButton(),
                 disabled: loading,
               },
             ]}
