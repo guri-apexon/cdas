@@ -1,7 +1,7 @@
 // export function convertUTCToLocalString(date) {
 //   var newDate = new Date(date.getTime() + date.getTimezoneOffset() * 60 * 1000);
 
-// IS-8016 UTC format "1994-11-05T13:15:30Z"
+// IS-8601 UTC format "1994-11-05T13:15:30Z"
 
 export function UTCToLocalString(date) {
   return new Date(date);
@@ -17,6 +17,6 @@ export function localStringtoUTCFormat(date) {
 
   const hours =
     date.getUTCHours() < 10 ? `0${date.getUTCHours()}` : date.getUTCHours();
-  updatedTimeStamp = `${date.getUTCFullYear()}-${month}-${date.getUTCDate()}T${hours}:${date.getUTCMinutes()}:${date.getUTCSeconds()}z`;
+  updatedTimeStamp = `${date.getUTCFullYear()}-${month}-${date.getUTCDate()}T${hours}:${date.getUTCMinutes()}:${date.getUTCSeconds()}.${date.getUTCMilliseconds()}z`;
   return updatedTimeStamp;
 }

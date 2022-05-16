@@ -24,6 +24,7 @@ import {
 import { MessageContext } from "../../../../components/Providers/MessageProvider";
 import PermissionTable from "./PermissionTable";
 import { getUserInfo, inputAlphaNumeric } from "../../../../utils";
+import { localStringtoUTCFormat } from "../../../../generic.functions";
 
 const ConfirmModal = React.memo(({ open, cancel, closeModal, loading }) => {
   return (
@@ -110,6 +111,8 @@ const UpdatePolicy = () => {
       policyId: policyDetails.plcy_id,
       userId: userInfo.user_id,
       status: active ? "Active" : "Inactive",
+      created_on: policyDetails?.created_on,
+      updated_on: localStringtoUTCFormat(),
     };
     if (policyName === "") {
       messageContext.showErrorMessage("Policy Name shouldn't be empty");

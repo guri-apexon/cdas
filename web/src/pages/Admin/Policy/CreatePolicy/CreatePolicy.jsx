@@ -14,6 +14,7 @@ import Tab from "apollo-react/components/Tab";
 import Tabs from "apollo-react/components/Tabs";
 import Modal from "apollo-react/components/Modal";
 import Badge from "apollo-react/components/Badge";
+import moment from "moment";
 import {
   addPolicyService,
   fetchProducts,
@@ -22,6 +23,7 @@ import {
 import { MessageContext } from "../../../../components/Providers/MessageProvider";
 import PermissionTable from "./PermissionTable";
 import { getUserInfo, inputAlphaNumeric } from "../../../../utils";
+import { localStringtoUTCFormat } from "../../../../generic.functions";
 
 const ConfirmModal = React.memo(({ open, cancel, closeModal, loading }) => {
   return (
@@ -85,6 +87,9 @@ const CreatePolicy = () => {
       permissions,
       userId: userInfo.user_id,
       status: active ? "Active" : "Inactive",
+      // created_on: localStringtoUTCFormat(),
+      created_on: new Date().toISOString(),
+      updated_on: localStringtoUTCFormat(),
     };
     if (policyName === "") {
       messageContext.showErrorMessage("Policy Name shouldn't be empty");
