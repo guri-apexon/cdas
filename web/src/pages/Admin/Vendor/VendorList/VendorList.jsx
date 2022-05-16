@@ -30,6 +30,10 @@ import {
   createStringArraySearchFilter,
 } from "../../../../utils/index";
 import "./VendorList.scss";
+import usePermission, {
+  Categories,
+  Features,
+} from "../../../../components/Common/usePermission";
 
 const statusList = ["Active", "Inactive"];
 
@@ -42,6 +46,10 @@ const VendorList = () => {
   const dispatch = useDispatch();
   const vendor = useSelector((state) => state.vendor);
   const { vendorList, loading, ensList } = vendor;
+  const { canRead, canCreate, canUpdate } = usePermission(
+    Categories.SYS_ADMIN,
+    Features.VENDOR_MANAGEMENT
+  );
 
   const getData = () => {
     dispatch(getVendorList());
@@ -95,6 +103,7 @@ const VendorList = () => {
           checked={data === "Active" ? true : false}
           onChange={(e) => handleChangeStatus(e, id, data)}
           size="small"
+          disabled={!canUpdate}
         />
       </Tooltip>
     );
@@ -154,15 +163,17 @@ const VendorList = () => {
 
   const CustomButtonHeader = ({ toggleFilters, addVendor }) => (
     <div>
-      <Button
-        size="small"
-        variant="secondary"
-        icon={PlusIcon}
-        onClick={addVendor}
-        style={{ marginRight: "8px", border: "none", boxShadow: "none" }}
-      >
-        Add vendor
-      </Button>
+      {canCreate && (
+        <Button
+          size="small"
+          variant="secondary"
+          icon={PlusIcon}
+          onClick={addVendor}
+          style={{ marginRight: "8px", border: "none", boxShadow: "none" }}
+        >
+          Add vendor
+        </Button>
+      )}
       <Button
         size="small"
         variant="secondary"
@@ -183,7 +194,7 @@ const VendorList = () => {
     {
       header: "Vendor Name",
       accessor: "vName",
-      customCell: LinkCell,
+      customCell: (canUpdate || canRead) && LinkCell,
       sortFunction: compareStrings,
       filterFunction: createStringSearchFilter("vName"),
       filterComponent: TextFieldFilter,

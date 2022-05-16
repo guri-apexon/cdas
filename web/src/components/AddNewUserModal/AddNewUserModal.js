@@ -140,6 +140,10 @@ const AddNewUserModal = ({
           filterSelectedOptions={false}
           blurOnSelect={false}
           clearOnBlur={false}
+          error={row.roles.length === 0 && row.user !== null}
+          helperText={
+            row.roles.length === 0 && row.user !== null && "Select a role"
+          }
           disableCloseOnSelect
           alwaysLimitChips
         />
@@ -151,6 +155,7 @@ const AddNewUserModal = ({
     return (
       <div className="user">
         <AutocompleteV2
+          // open={(!row.user || (row.index === 1 && !row.user)) && true}
           size="small"
           fullWidth
           forcePopupIcon
@@ -161,6 +166,7 @@ const AddNewUserModal = ({
           matchFrom="any"
           error={
             row.alreadyExist ||
+            (row.user === null && row.roles.length >= 1) ||
             (!initialRender &&
               !row[key] &&
               row.index !== tableUsers[tableUsers.length - 1].index)
@@ -168,10 +174,11 @@ const AddNewUserModal = ({
           helperText={
             row.alreadyExist
               ? "This user already has assignments. Please select a different user to continue"
-              : !initialRender &&
-                !row[key] &&
-                row.index !== tableUsers[tableUsers.length - 1].index &&
-                "Required"
+              : ((row.user === null && row.roles.length >= 1) ||
+                  (!initialRender &&
+                    !row[key] &&
+                    row.index !== tableUsers[tableUsers.length - 1].index)) &&
+                "Select a User"
           }
         />
       </div>

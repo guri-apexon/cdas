@@ -26,13 +26,14 @@ const initialRows = [
   },
 ];
 
-const CustomButtonHeader = ({ addAContact }) => (
+const CustomButtonHeader = ({ addAContact, disabled }) => (
   <div>
     <Button
       size="small"
       variant="secondary"
       icon={PlusIcon}
       onClick={addAContact}
+      disabled={disabled}
     >
       Add contact
     </Button>
@@ -49,8 +50,11 @@ const fieldStyles = {
 const re =
   /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 
+const LabelCell = ({ row, column: { accessor: key, header } }) => {
+  return row[key];
+};
 const EditableCell = ({ row, column: { accessor: key, header } }) => {
-  const { isStarted } = row;
+  const { isStarted, disabled } = row;
   const hasError = !row[key] && isStarted;
   return row.editMode ? (
     <TextField
@@ -63,6 +67,7 @@ const EditableCell = ({ row, column: { accessor: key, header } }) => {
       error={hasError}
       helperText={hasError && "Required"}
       {...fieldStyles}
+      disabled={disabled}
     />
   ) : (
     row[key]
@@ -70,7 +75,7 @@ const EditableCell = ({ row, column: { accessor: key, header } }) => {
 };
 
 const EmailEditableCell = ({ row, column: { accessor: key, header } }) => {
-  const { isStarted, email } = row;
+  const { isStarted, email, disabled } = row;
   const [blurred, setBlurred] = useState(true);
   return row.editMode ? (
     <TextField
@@ -79,6 +84,7 @@ const EmailEditableCell = ({ row, column: { accessor: key, header } }) => {
       value={row[key]}
       type="email"
       placeholder={header}
+      disabled={disabled}
       onFocus={() => setBlurred(false)}
       onBlur={() => setBlurred(true)}
       onChange={(e) => row.editEmail(row.vCId, key, e.target.value)}
@@ -97,7 +103,7 @@ const EmailEditableCell = ({ row, column: { accessor: key, header } }) => {
 };
 
 const ActionCell = ({ row }) => {
-  const { editMode } = row;
+  const { editMode, disabled } = row;
   const { vCId, onRowDelete } = row;
   return editMode ? (
     <Tooltip title="Delete contact">
@@ -105,6 +111,7 @@ const ActionCell = ({ row }) => {
         size="small"
         onClick={() => onRowDelete(vCId)}
         style={{ marginTop: 7 }}
+        disabled={disabled}
       >
         <Trash />
       </IconButton>
@@ -144,7 +151,28 @@ const columns = [
   },
 ];
 
-const TableEditableAll = ({ updateData, deleteAContact }) => {
+const columnsReadOnly = [
+  {
+    header: "ID",
+    accessor: "vCId",
+    sortFunction: compareNumbers,
+    hidden: true,
+  },
+  {
+    header: "Contact Name",
+    accessor: "name",
+    type: "text",
+    customCell: LabelCell,
+  },
+  {
+    header: "Email Address",
+    accessor: "email",
+    type: "email",
+    customCell: LabelCell,
+  },
+];
+
+const TableEditableAll = ({ updateData, deleteAContact, disabled }) => {
   const [rows, setRows] = useState(initialRows);
   const [editedRows, setEditedRows] = useState(initialRows);
   const vendor = useSelector((state) => state.vendor);
@@ -226,32 +254,64 @@ const TableEditableAll = ({ updateData, deleteAContact }) => {
   };
 
   const editMode = true;
+
   return (
-    <Table
-      title="Vendor Contacts"
-      subtitle="CDAS Admin"
-      columns={columns}
-      rowId="vCId"
-      rows={(editMode ? editedRows : rows).map((row) => ({
-        ...row,
-        onRowDelete,
-        editEmail,
-        editName,
-        editMode,
-      }))}
-      initialSortedColumn="vCId"
-      initialSortOrder="asc"
-      rowProps={{ hover: false }}
-      height="480px"
-      tablePaginationProps={{
-        labelDisplayedRows: ({ from, to, count }) =>
-          `${count === 1 ? "Item" : "Items"} ${from}-${to} of ${count}`,
-        truncate: true,
-      }}
-      CustomHeader={(props) => (
-        <CustomButtonHeader addAContact={addAContact} {...props} />
+    <>
+      {disabled ? (
+        <div id="tableVendorContacts">
+          <Table
+            title="Vendor Contacts"
+            subtitle="CDAS Admin"
+            columns={columnsReadOnly}
+            rowId="vCId"
+            rows={(editMode ? editedRows : rows).map((row) => ({
+              ...row,
+              onRowDelete,
+              editEmail,
+              editName,
+              editMode,
+              disabled,
+            }))}
+            initialSortedColumn="vCId"
+            initialSortOrder="asc"
+            rowProps={{ hover: false }}
+            height="480px"
+            tablePaginationProps={{
+              labelDisplayedRows: ({ from, to, count }) =>
+                `${count === 1 ? "Item" : "Items"} ${from}-${to} of ${count}`,
+              truncate: true,
+            }}
+          />
+        </div>
+      ) : (
+        <Table
+          title="Vendor Contacts"
+          subtitle="CDAS Admin"
+          columns={columns}
+          rowId="vCId"
+          rows={(editMode ? editedRows : rows).map((row) => ({
+            ...row,
+            onRowDelete,
+            editEmail,
+            editName,
+            editMode,
+            disabled,
+          }))}
+          initialSortedColumn="vCId"
+          initialSortOrder="asc"
+          rowProps={{ hover: false }}
+          height="480px"
+          tablePaginationProps={{
+            labelDisplayedRows: ({ from, to, count }) =>
+              `${count === 1 ? "Item" : "Items"} ${from}-${to} of ${count}`,
+            truncate: true,
+          }}
+          CustomHeader={(props) => (
+            <CustomButtonHeader addAContact={addAContact} {...props} />
+          )}
+        />
       )}
-    />
+    </>
   );
 };
 

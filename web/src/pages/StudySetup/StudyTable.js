@@ -35,6 +35,10 @@ import {
 } from "../../utils/index";
 import { updateSelectedStudy } from "../../store/actions/StudyBoardAction";
 import { UTCToLocalString } from "../../generic.functions";
+import usePermission, {
+  Categories,
+  Features,
+} from "../../components/Common/usePermission";
 
 const DateCell = ({ row, column: { accessor } }) => {
   const rowValue = row[accessor];
@@ -110,6 +114,16 @@ export default function StudyTable({ studyData, studyboardData, refreshData }) {
     history.push("/ExistingStudyAssignment");
     dispatch(updateSelectedStudy(row));
   };
+
+  const {
+    canRead,
+    canCreate,
+    canDownload,
+    canUpdate,
+    canEnabled,
+    noPermission,
+  } = usePermission(Categories.STUDIES, Features.STUDY_ASSIGNMENTS);
+
   const menuItems = (row) => [
     { text: "Study assignments", onClick: () => handleExisting(row) },
     // { text: "Download study assignments" },
@@ -123,6 +137,7 @@ export default function StudyTable({ studyData, studyboardData, refreshData }) {
       </div>
     );
   };
+
   const LinkCell = ({ row, column: { accessor } }) => {
     const rowValue = row[accessor];
     return (
@@ -243,7 +258,7 @@ export default function StudyTable({ studyData, studyboardData, refreshData }) {
       header: "Assignment Count",
       accessor: "assignmentcount",
       sortFunction: compareNumbers,
-      customCell: LinkCell,
+      customCell: canUpdate ? LinkCell : null,
       filterFunction: numberSearchFilter("assignmentcount"),
       filterComponent: IntegerFilter,
     },

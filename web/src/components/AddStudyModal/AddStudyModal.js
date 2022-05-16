@@ -16,6 +16,7 @@ import { searchStudy, onboardStudy } from "../../services/ApiServices";
 import Highlighted from "../Common/Highlighted";
 import { debounceFunction, getUserInfo } from "../../utils";
 import { localStringtoUTCFormat } from "../../generic.functions";
+import usePermission, { Categories, Features } from "../Common/usePermission";
 
 const Label = ({ children }) => {
   return (
@@ -41,6 +42,11 @@ const AddStudyModal = ({ open, onClose }) => {
   const btnArr = [{ label: "Cancel", size: "small", className: "cancel-btn" }];
   const userInfo = getUserInfo();
   const history = useHistory();
+  const { canCreate } = usePermission(
+    Categories.STUDIES,
+    Features.STUDY_ASSIGNMENTS
+  );
+
   const handleClose = () => {
     setOpenModal(false);
     onClose();
@@ -81,13 +87,14 @@ const AddStudyModal = ({ open, onClose }) => {
       size: "small",
       variant: "secondary",
       onClick: importStudy,
-      disabled: loading,
+      disabled: loading || !canCreate,
     },
     {
       label: "Import and assign users",
       size: "small",
       className: "asign-user-btn",
       onClick: importWithUser,
+      disabled: !canCreate,
     },
   ];
 
