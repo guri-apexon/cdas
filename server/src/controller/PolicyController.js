@@ -7,17 +7,24 @@ const { DB_SCHEMA_NAME: schemaName } = constants;
 
 exports.createPolicy = async function (req, res) {
   try {
-    const { policyName, policyDesc, permissions, userId, status } = req.body;
+    const {
+      policyName,
+      policyDesc,
+      permissions,
+      userId,
+      status,
+      created_on,
+      updated_on,
+    } = req.body;
     const productsArr = Object.keys(permissions);
-    const currentTime = moment().format("YYYY-MM-DD HH:mm:ss");
     const policyValues = [
       policyName,
       policyDesc,
       status,
       userId,
-      currentTime,
+      created_on,
       userId,
-      currentTime,
+      updated_on,
     ];
 
     const { rows } = await DB.executeQuery(
@@ -81,8 +88,15 @@ exports.createPolicy = async function (req, res) {
 
 exports.updatePolicy = async function (req, res) {
   try {
-    const { policyName, policyDesc, permissions, userId, status, policyId } =
-      req.body;
+    const {
+      policyName,
+      policyDesc,
+      permissions,
+      userId,
+      status,
+      policyId,
+      updated_on,
+    } = req.body;
     console.log(policyId);
     const { rows } = await DB.executeQuery(
       `SELECT plcy_nm FROM  ${schemaName}.policy where plcy_id!=${policyId} And UPPER(plcy_nm) = UPPER('${policyName}')`
@@ -95,13 +109,13 @@ exports.updatePolicy = async function (req, res) {
       );
     }
     const productsArr = Object.keys(permissions);
-    const currentTime = moment().format("YYYY-MM-DD HH:mm:ss");
+    // const currentTime = moment().format("YYYY-MM-DD HH:mm:ss");
     const policyValues = [
       policyName,
       policyDesc,
       status,
       userId,
-      currentTime,
+      updated_on,
       policyId,
     ];
     DB.executeQuery(
