@@ -57,6 +57,8 @@ const AddStudyModal = ({ open, onClose }) => {
       sponsorNameStnd,
       protNbrStnd,
       userId: userInfo.user_id,
+      insrt_tm: new Date().toISOString(),
+      updt_tm: new Date().toISOString(),
     };
     setLoading(true);
     const response = await onboardStudy(reqBody);

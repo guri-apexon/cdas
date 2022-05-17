@@ -14,6 +14,7 @@ import Tab from "apollo-react/components/Tab";
 import Tabs from "apollo-react/components/Tabs";
 import Modal from "apollo-react/components/Modal";
 import Badge from "apollo-react/components/Badge";
+import moment from "moment";
 import {
   addPolicyService,
   fetchProducts,
@@ -54,6 +55,7 @@ const CreatePolicy = () => {
   const userInfo = getUserInfo();
   const history = useHistory();
   const routerHandle = useRef();
+  const [targetRoute, setTargetRoute] = useState("");
 
   const unblockRouter = () => {
     if (routerHandle) {
@@ -85,6 +87,8 @@ const CreatePolicy = () => {
       permissions,
       userId: userInfo.user_id,
       status: active ? "Active" : "Inactive",
+      created_on: new Date().toISOString(),
+      updated_on: new Date().toISOString(),
     };
     if (policyName === "") {
       messageContext.showErrorMessage("Policy Name shouldn't be empty");
@@ -141,7 +145,11 @@ const CreatePolicy = () => {
   };
   const cancelCreate = () => {
     unblockRouter();
-    history.push("/policy-management");
+    if (targetRoute === "") {
+      history.push("/policy-management");
+    } else {
+      history.push(targetRoute);
+    }
   };
   const filterPermission = (arr) => {
     if (!arr) return [];
@@ -198,7 +206,8 @@ const CreatePolicy = () => {
     getProducts();
   }, []);
   useEffect(() => {
-    routerHandle.current = history.block((tx) => {
+    routerHandle.current = history.block((tr) => {
+      setTargetRoute(tr?.pathname);
       setConfirm(true);
       return false;
     });
