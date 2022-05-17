@@ -18,7 +18,6 @@ import Grid from "apollo-react/components/Grid";
 import Modal from "apollo-react/components/Modal";
 import AutocompleteV2 from "apollo-react/components/AutocompleteV2";
 import { MessageContext } from "../../components/Providers/MessageProvider";
-import { localStringtoUTCFormat } from "../../generic.functions";
 import {
   fetchRoles,
   getOnboardUsers,
@@ -256,8 +255,8 @@ const ImportWithUsers = () => {
       sponsorNameStnd,
       protNbrStnd,
       userId: userInfo.user_id,
-      insrt_tm: localStringtoUTCFormat(),
-      updt_tm: localStringtoUTCFormat(),
+      insrt_tm: new Date().toISOString(),
+      updt_tm: new Date().toISOString(),
     };
     if (assign) {
       reqBody.users = usersRows;

@@ -34,7 +34,6 @@ import {
   createStringArrayIncludedFilter,
 } from "../../utils/index";
 import { updateSelectedStudy } from "../../store/actions/StudyBoardAction";
-import { UTCToLocalString } from "../../generic.functions";
 import usePermission, {
   Categories,
   Features,
