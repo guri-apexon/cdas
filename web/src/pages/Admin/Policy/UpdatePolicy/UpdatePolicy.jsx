@@ -25,7 +25,6 @@ import { MessageContext } from "../../../../components/Providers/MessageProvider
 import PermissionTable from "./PermissionTable";
 import { getUserInfo, inputAlphaNumeric } from "../../../../utils";
 
-
 const ConfirmModal = React.memo(({ open, cancel, closeModal, loading }) => {
   return (
     <Modal
