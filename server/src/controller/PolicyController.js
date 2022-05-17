@@ -109,7 +109,6 @@ exports.updatePolicy = async function (req, res) {
       );
     }
     const productsArr = Object.keys(permissions);
-    // const currentTime = moment().format("YYYY-MM-DD HH:mm:ss");
     const policyValues = [
       policyName,
       policyDesc,
