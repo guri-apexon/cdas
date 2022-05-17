@@ -57,6 +57,8 @@ const UpdateRole = () => {
   const { permissions } = appContext.user;
   const [RoleUpdatePermission, setUpdateRoleUpdatePermission] = useState(false);
   const userInfo = getUserInfo();
+  const [targetRoute, setTargetRoute] = useState("");
+
   const unblockRouter = () => {
     if (routerHandle) {
       routerHandle.current();
@@ -311,7 +313,9 @@ const UpdateRole = () => {
     setConfirmObj(confirm);
   };
   useEffect(() => {
-    routerHandle.current = history.block((tx) => {
+    routerHandle.current = history.block((tr) => {
+      console.log(tr);
+      setTargetRoute(tr?.pathname);
       setConfirmObj(cancelModalObj);
       return false;
     });
@@ -321,6 +325,14 @@ const UpdateRole = () => {
       routerHandle.current.current && routerHandle.current.current();
     };
   });
+  const cancelButton = () => {
+    unblockRouter();
+    if (targetRoute === "") {
+      confirmObj.cancelAction();
+    } else {
+      history.push(targetRoute);
+    }
+  };
   return (
     <div className="create-role-wrapper">
       <Box className="top-content">
@@ -340,7 +352,7 @@ const UpdateRole = () => {
               },
               {
                 label: confirmObj.cancelLabel,
-                onClick: () => confirmObj.cancelAction(),
+                onClick: () => cancelButton(),
                 disabled: loading,
               },
             ]}

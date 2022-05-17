@@ -41,32 +41,34 @@ const Value = ({ children }) => {
   );
 };
 
-const ConfirmModal = React.memo(({ confirmObj, cancel, loading }) => {
-  return (
-    <Modal
-      open={confirmObj ? true : false}
-      onClose={cancel}
-      disableBackdropClick="true"
-      className="save-confirm"
-      variant="warning"
-      title={confirmObj.title}
-      message={confirmObj.subtitle}
-      buttonProps={[
-        {
-          label: confirmObj.submitLabel,
-          onClick: confirmObj.submitAction,
-          disabled: loading,
-        },
-        {
-          label: confirmObj.cancelLabel,
-          onClick: confirmObj.cancelAction,
-          disabled: loading,
-        },
-      ]}
-      id="neutral"
-    />
-  );
-});
+const ConfirmModal = React.memo(
+  ({ confirmObj, cancel, loading, cstmCancelBtn }) => {
+    return (
+      <Modal
+        open={confirmObj ? true : false}
+        onClose={cancel}
+        disableBackdropClick="true"
+        className="save-confirm"
+        variant="warning"
+        title={confirmObj.title}
+        message={confirmObj.subtitle}
+        buttonProps={[
+          {
+            label: confirmObj.submitLabel,
+            onClick: confirmObj.submitAction,
+            disabled: loading,
+          },
+          {
+            label: confirmObj.cancelLabel,
+            onClick: cstmCancelBtn,
+            disabled: loading,
+          },
+        ]}
+        id="neutral"
+      />
+    );
+  }
+);
 
 const ImportWithUsers = () => {
   const history = useHistory();
@@ -80,6 +82,7 @@ const ImportWithUsers = () => {
   const [selectedStudy, setSelectedStudy] = useState({});
   const [initialRender, setInitialRender] = useState(true);
   const routerHandle = useRef();
+  const [targetRoute, setTargetRoute] = useState("");
   const breadcrumpItems = [
     { href: "javascript:void(0)", onClick: () => history.push("/launchpad") },
     {
@@ -427,7 +430,8 @@ const ImportWithUsers = () => {
   }, []);
 
   useEffect(() => {
-    routerHandle.current = history.block((tx) => {
+    routerHandle.current = history.block((tr) => {
+      setTargetRoute(tr?.pathname);
       setConfirmObj(cancelModalObj);
       return false;
     });
@@ -441,6 +445,15 @@ const ImportWithUsers = () => {
 
   const closeConfirm = () => {
     setConfirmObj(null);
+  };
+
+  const cancelButton = () => {
+    unblockRouter();
+    if (targetRoute === "") {
+      confirmObj.cancelAction();
+    } else {
+      history.push(targetRoute);
+    }
   };
 
   const getTable = React.useMemo(
@@ -519,6 +532,7 @@ const ImportWithUsers = () => {
           confirmObj={confirmObj}
           loading={loading}
           cancel={closeConfirm}
+          cstmCancelBtn={cancelButton}
         ></ConfirmModal>
       )}
     </div>

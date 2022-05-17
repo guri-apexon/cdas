@@ -338,7 +338,7 @@ const AppHeader = ({ history, setLoggedIn }) => {
               </Button>
               <Typography
                 className={classes.navLogo}
-                onClick={() => history.push("launchpad")}
+                onClick={() => history.push("/launchpad")}
               >
                 IQVIA™
                 <span style={{ paddingLeft: 3 }} className={classes.bold}>
