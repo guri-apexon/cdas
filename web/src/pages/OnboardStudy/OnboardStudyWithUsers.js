@@ -258,6 +258,8 @@ const ImportWithUsers = () => {
       sponsorNameStnd,
       protNbrStnd,
       userId: userInfo.user_id,
+      insrt_tm: new Date().toISOString(),
+      updt_tm: new Date().toISOString(),
     };
     if (assign) {
       reqBody.users = usersRows;

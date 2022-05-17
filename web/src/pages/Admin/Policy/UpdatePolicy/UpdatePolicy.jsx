@@ -111,6 +111,8 @@ const UpdatePolicy = () => {
       policyId: policyDetails.plcy_id,
       userId: userInfo.user_id,
       status: active ? "Active" : "Inactive",
+      created_on: policyDetails?.created_on,
+      updated_on: new Date().toISOString(),
     };
     if (policyName === "") {
       messageContext.showErrorMessage("Policy Name shouldn't be empty");

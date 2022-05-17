@@ -22,7 +22,7 @@ const updateStatus = async (studyId, status = "Success") => {
   }
 };
 
-const addOnboardedStudy = async (protNbrStnd, userId) => {
+const addOnboardedStudy = async (protNbrStnd, userId, currentTime) => {
   try {
     if (!protNbrStnd || !userId) return false;
     const result = await DB.executeQuery(
@@ -31,7 +31,7 @@ const addOnboardedStudy = async (protNbrStnd, userId) => {
     const study = result.rows[0] || null;
     if (!study) return false;
     const uniqueId = helper.createUniqueID();
-    const currentTime = helper.getCurrentTime();
+    //   const currentTime = helper.getCurrentTime();
     const userDesc = "mdm study import";
     const valueArr = [
       uniqueId,
@@ -112,8 +112,11 @@ exports.onboardStudy = async function (req, res) {
       protNbrStnd: studyId,
       userId,
       users,
+      insrt_tm,
+      updt_tm,
     } = req.body;
     Logger.info({ message: "onboardStudy" });
+    console.log(">>> onboard", req.body);
     axios
       .post(
         `${FSR_API_URI}/study/onboard`,
@@ -127,21 +130,27 @@ exports.onboardStudy = async function (req, res) {
       )
       .then(async (response) => {
         const onboardStatus = response?.data?.code || null;
+        let insertedStudy = null;
         if (onboardStatus === 202) {
-          const insertedStudy = await addOnboardedStudy(studyId, userId);
-          if (!insertedStudy)
+          try {
+            insertedStudy = await addOnboardedStudy(studyId, userId, insrt_tm);
+            if (!insertedStudy)
+              return apiResponse.ErrorResponse(res, "Something went wrong");
+          } catch (error) {
+            console.log(">>> onboard - error", error);
             return apiResponse.ErrorResponse(res, "Something went wrong");
+          }
 
           if (users && users.length) {
             let insertQuery = "";
-            const currentTime = helper.getCurrentTime();
+            //const currentTime = helper.getCurrentTime();
             users.forEach((user) => {
               if (user.user?.userId && insertedStudy.prot_id) {
                 const studyUserId = user.user.userId.toLowerCase();
-                insertQuery += `INSERT into ${schemaName}.study_user (prot_id, usr_id, act_flg, insrt_tm, updt_tm) VALUES('${insertedStudy.prot_id}', '${studyUserId}', 1, '${currentTime}', '${currentTime}');`;
+                insertQuery += `INSERT into ${schemaName}.study_user (prot_id, usr_id, act_flg, insrt_tm, updt_tm) VALUES('${insertedStudy.prot_id}', '${studyUserId}', 1, '${insrt_tm}', '${updt_tm}');`;
                 if (user.roles && Array.isArray(user.roles)) {
                   user.roles.forEach((role) => {
-                    insertQuery += `INSERT into ${schemaName}.study_user_role (role_id, prot_id, usr_id, act_flg, created_by, created_on, updated_by, updated_on) VALUES('${role.value}', '${insertedStudy.prot_id}', '${studyUserId}', 1, '${userId}', '${currentTime}', '${userId}', '${currentTime}');`;
+                    insertQuery += `INSERT into ${schemaName}.study_user_role (role_id, prot_id, usr_id, act_flg, created_by, created_on, updated_by, updated_on) VALUES('${role.value}', '${insertedStudy.prot_id}', '${studyUserId}', 1, '${userId}', '${insrt_tm}', '${userId}', '${updt_tm}');`;
                   });
                 }
               }
@@ -272,8 +281,8 @@ exports.getStudyList = async (req, res) => {
       let acc = $q2.rows.filter((d) => d.prot_id === e.prot_id);
       let newObj = acc[0] ? acc[0] : { count: "0" };
       let { count } = newObj;
-      let editT = moment(e.dateedited).format("MM/DD/YYYY");
-      let addT = moment(e.dateadded).format("MM/DD/YYYY");
+      //let editT = moment(e.dateedited).format("MM/DD/YYYY");
+      //let addT = moment(e.dateadded).format("MM/DD/YYYY");
       // let newData = _.omit(e, ["prot_id"]);
       if (!e.protocolstatus) {
         e.protocolstatus = "Blank";
@@ -283,8 +292,8 @@ exports.getStudyList = async (req, res) => {
       }
       return {
         ...e,
-        dateadded: addT,
-        dateedited: editT,
+        // dateadded: addT,
+        // dateedited: editT,
         assignmentcount: count,
       };
     });
