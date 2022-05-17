@@ -101,6 +101,7 @@ const CreateVendor = () => {
   const params = useParams();
   const dispatch = useDispatch();
   const vendor = useSelector((state) => state.vendor);
+  const [targetRoute, setTargetRoute] = useState("");
   const { isEditPage, isCreatePage, selectedVendor, ensList } = vendor;
   const { canRead, canCreate, canUpdate, readOnly } = usePermission(
     Categories.SYS_ADMIN,
@@ -284,7 +285,11 @@ const CreateVendor = () => {
   const cancelEdit = () => {
     unblockRouter();
     setConfirm(false);
-    history.push("/vendor/list");
+    if (targetRoute === "") {
+      history.push("/vendor/list");
+    } else {
+      history.push(targetRoute);
+    }
   };
 
   const stayHere = () => {
@@ -312,7 +317,8 @@ const CreateVendor = () => {
   };
 
   useEffect(() => {
-    routerHandle.current = history.block((tx) => {
+    routerHandle.current = history.block((tr) => {
+      setTargetRoute(tr?.pathname);
       setIsAnyUpdate(true);
       setConfirm(true);
 

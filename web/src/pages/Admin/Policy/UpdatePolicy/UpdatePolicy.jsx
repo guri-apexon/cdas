@@ -66,6 +66,7 @@ const UpdatePolicy = () => {
   const userInfo = getUserInfo();
   const history = useHistory();
   const routerHandle = useRef();
+  const [targetRoute, setTargetRoute] = useState("");
 
   const unblockRouter = () => {
     if (routerHandle) {
@@ -230,7 +231,11 @@ const UpdatePolicy = () => {
   };
   const cancelEdit = () => {
     unblockRouter();
-    history.push("/policy-management");
+    if (targetRoute === "") {
+      history.push("/policy-management");
+    } else {
+      history.push(targetRoute);
+    }
   };
   useEffect(() => {
     fetchPermissions();
@@ -244,7 +249,8 @@ const UpdatePolicy = () => {
   const closeModal = () => setConfirm(false);
 
   useEffect(() => {
-    routerHandle.current = history.block((tx) => {
+    routerHandle.current = history.block((tr) => {
+      setTargetRoute(tr?.pathname);
       setConfirm(true);
       return false;
     });

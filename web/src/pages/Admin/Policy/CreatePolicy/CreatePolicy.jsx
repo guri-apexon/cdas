@@ -55,6 +55,7 @@ const CreatePolicy = () => {
   const userInfo = getUserInfo();
   const history = useHistory();
   const routerHandle = useRef();
+  const [targetRoute, setTargetRoute] = useState("");
 
   const unblockRouter = () => {
     if (routerHandle) {
@@ -144,7 +145,11 @@ const CreatePolicy = () => {
   };
   const cancelCreate = () => {
     unblockRouter();
-    history.push("/policy-management");
+    if (targetRoute === "") {
+      history.push("/policy-management");
+    } else {
+      history.push(targetRoute);
+    }
   };
   const filterPermission = (arr) => {
     if (!arr) return [];
@@ -201,7 +206,8 @@ const CreatePolicy = () => {
     getProducts();
   }, []);
   useEffect(() => {
-    routerHandle.current = history.block((tx) => {
+    routerHandle.current = history.block((tr) => {
+      setTargetRoute(tr?.pathname);
       setConfirm(true);
       return false;
     });
