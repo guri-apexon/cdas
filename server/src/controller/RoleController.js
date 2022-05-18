@@ -19,7 +19,15 @@ async function getCurrentRole(id) {
 
 exports.createRole = function (req, res) {
   try {
-    const { name, description, policies, userId, status } = req.body;
+    const {
+      name,
+      description,
+      policies,
+      userId,
+      status,
+      created_on,
+      updated_on,
+    } = req.body;
     if (
       (!policies?.length && status === 1) ||
       !Array.isArray(policies) ||
@@ -30,15 +38,14 @@ exports.createRole = function (req, res) {
         "Please complete all mandatory information and then click Save"
       );
     }
-    const currentTime = helpers.getCurrentTime();
     const roleValues = [
       name,
       description,
       status,
       userId,
-      currentTime,
+      created_on,
       userId,
-      currentTime,
+      updated_on,
     ];
     DB.executeQuery(
       `INSERT into ${dbSchema}.role(role_nm, role_desc, role_stat, created_by, created_on, updated_by, updated_on) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
@@ -48,7 +55,7 @@ exports.createRole = function (req, res) {
         const role = response.rows[0];
         let queryStr = "";
         policies.forEach((policyId) => {
-          queryStr += `INSERT into ${dbSchema}.role_policy(role_id, plcy_id, act_flg, created_by, created_on, updated_by, updated_on) VALUES('${role.role_id}', '${policyId}', 1, '${userId}', '${currentTime}', '${userId}', '${currentTime}');`;
+          queryStr += `INSERT into ${dbSchema}.role_policy(role_id, plcy_id, act_flg, created_by, created_on, updated_by, updated_on) VALUES('${role.role_id}', '${policyId}', 1, '${userId}', '${created_on}', '${userId}', '${updated_on}');`;
         });
         DB.executeQuery(queryStr)
           .then((response) => {
@@ -202,10 +209,9 @@ exports.getRolesPermissions = async (req, res) => {
 
 exports.updateStatus = async (req, res) => {
   try {
-    const { role_id, role_stat, userId } = req.body;
+    const { role_id, role_stat, userId, updated_on } = req.body;
     const oldValue = role_stat === 1 ? 0 : 1;
-    const currentTime = helpers.getCurrentTime();
-    let query = `update ${dbSchema}.role set role_stat = '${role_stat}', updated_by = '${userId}', updated_on = '${currentTime}' where role_id = ${role_id}`;
+    let query = `update ${dbSchema}.role set role_stat = '${role_stat}', updated_by = '${userId}', updated_on = '${updated_on}' where role_id = ${role_id}`;
     await DB.executeQuery(query);
     await DB.executeQuery(logQuery, [
       "role",
@@ -215,7 +221,7 @@ exports.updateStatus = async (req, res) => {
       role_stat,
       "User Requested",
       userId,
-      currentTime,
+      updated_on,
     ]);
 
     return apiResponse.successResponseWithData(res, "Update success");
@@ -228,15 +234,15 @@ exports.updateStatus = async (req, res) => {
 
 exports.updateRole = async function (req, res) {
   try {
-    const { name, description, policies, userId, status, roleId } = req.body;
+    const { name, description, policies, userId, status, roleId, updated_on } =
+      req.body;
     if (!name || (!description && status === 1) || !userId || !roleId) {
       return apiResponse.ErrorResponse(
         res,
         "Please complete all mandatory information and then click Save"
       );
     }
-    const currentTime = helpers.getCurrentTime();
-    const roleValues = [name, description, status, userId, currentTime, roleId];
+    const roleValues = [name, description, status, userId, updated_on, roleId];
     const curRole = await getCurrentRole(roleId);
     const { role_stat, role_nm, role_desc } = curRole;
 
@@ -249,7 +255,7 @@ exports.updateRole = async function (req, res) {
         name,
         "User Requested",
         userId,
-        currentTime,
+        updated_on,
       ]);
     }
 
@@ -262,7 +268,7 @@ exports.updateRole = async function (req, res) {
         description,
         "User Requested",
         userId,
-        currentTime,
+        updated_on,
       ]);
     }
 
@@ -275,7 +281,7 @@ exports.updateRole = async function (req, res) {
         status,
         "User Requested",
         userId,
-        currentTime,
+        updated_on,
       ]);
     }
 
@@ -291,7 +297,7 @@ exports.updateRole = async function (req, res) {
           if (policy.existed) {
             queryStr += `UPDATE ${dbSchema}.role_policy set act_flg='${Active}' WHERE role_plcy_id=${policy.existed} returning *;`;
           } else {
-            queryStr += `INSERT into ${dbSchema}.role_policy(role_id, plcy_id, act_flg, created_by, created_on, updated_by, updated_on) VALUES('${role.role_id}', '${policy.id}', '${Active}', '${userId}', '${currentTime}', '${userId}', '${currentTime}') returning *;`;
+            queryStr += `INSERT into ${dbSchema}.role_policy(role_id, plcy_id, act_flg, created_by, created_on, updated_by, updated_on) VALUES('${role.role_id}', '${policy.id}', '${Active}', '${userId}', '${updated_on}', '${userId}', '${updated_on}') returning *;`;
           }
         });
         DB.executeQuery(queryStr)
@@ -313,7 +319,7 @@ exports.updateRole = async function (req, res) {
                       policy.act_flg,
                       "User Requested",
                       userId,
-                      currentTime,
+                      updated_on,
                     ])
                   );
                 }

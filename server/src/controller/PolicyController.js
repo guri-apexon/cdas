@@ -371,9 +371,8 @@ exports.getPolicyList = async (req, res) => {
 
 exports.updateStatus = async (req, res) => {
   try {
-    const { userId, policyStatus, policyId } = req.body;
-    const currentTime = moment().format("YYYY-MM-DD HH:mm:ss");
-    const policyValues = [policyStatus, userId, currentTime, policyId];
+    const { userId, policyStatus, policyId, updated_on } = req.body;
+    const policyValues = [policyStatus, userId, updated_on, policyId];
     let response = await DB.executeQuery(
       `UPDATE ${constants.DB_SCHEMA_NAME}.policy set plcy_stat=$1, updated_by=$2, updated_on=$3 WHERE plcy_id=$4 RETURNING *`,
       policyValues
