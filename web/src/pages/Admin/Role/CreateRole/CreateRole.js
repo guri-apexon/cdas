@@ -185,6 +185,8 @@ const CreateRole = () => {
       description: roleDesc,
       status: active ? "1" : "0",
       userId: userInfo.user_id,
+      created_on: new Date().toISOString(),
+      updated_on: new Date().toISOString(),
     };
     if (roleName === "") {
       messageContext.showErrorMessage("Role Name shouldn't be empty");

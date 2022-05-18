@@ -247,6 +247,7 @@ const UpdateRole = () => {
       status: active ? "1" : "0",
       userId: userInfo.user_id,
       roleId: params.id,
+      updated_on: new Date().toISOString(),
     };
     setLoading(true);
     updateRoleService(reqBody)

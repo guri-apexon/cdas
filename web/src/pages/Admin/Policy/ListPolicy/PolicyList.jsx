@@ -133,6 +133,7 @@ const PolicyList = () => {
         policyId: id,
         policyStatus: updatePolicyStatus,
         userId: userInfo.user_id,
+        updated_on: new Date().toISOString(),
       };
       await dispatch(updateStatus(payload));
     } catch (error) {
