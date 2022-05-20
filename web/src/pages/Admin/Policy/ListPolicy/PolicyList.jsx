@@ -88,7 +88,9 @@ const PolicyList = () => {
         .values()
     );
     const Sorted = uniquePolicies.map((e) => {
-      if (e.productsIncluded.length) {
+      if (e.productsIncluded.length === 1 && !e.productsIncluded[0]) {
+        e.productsIncluded = "Blank";
+      } else {
         e.productsIncluded.sort();
         e.productsIncluded = e.productsIncluded.join(", ");
       }
@@ -107,12 +109,20 @@ const PolicyList = () => {
   useEffect(() => {
     const { policyList, uniqueProducts } = policyAdmin;
     setPolicyLists(policyList);
-    setProducts(uniqueProducts);
+    setProducts(
+      uniqueProducts.map((e) => {
+        if (e === null) {
+          return "Blank";
+        }
+        return e;
+      })
+    );
     setLoading(false);
   }, [policyAdmin.loading]);
 
   useEffect(() => {
     const uniquePolicies = createUniqueData(policyLists);
+    // console.log("unique", uniquePolicies);
     setTableRows(uniquePolicies);
   }, [policyLists]);
 
@@ -167,6 +177,14 @@ const PolicyList = () => {
         />
       </Tooltip>
     );
+  };
+
+  const ProductCell = ({ row, column: { accessor } }) => {
+    let rowValue = row[accessor];
+    if (rowValue === "Blank") {
+      rowValue = "";
+    }
+    return <span>{rowValue}</span>;
   };
 
   const handleMouseOver = (row, peekData) => {
@@ -277,6 +295,7 @@ const PolicyList = () => {
     {
       header: "Products Included",
       accessor: "productsIncluded",
+      customCell: ProductCell,
       sortFunction: compareStrings,
       filterFunction: createStringArrayIncludedFilter("productsIncluded"),
       filterComponent: createSelectFilterComponent(products, {
