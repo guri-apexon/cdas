@@ -289,6 +289,7 @@ const AddNewUserModal = ({
       protocol,
       loginId: userInfo.user_id,
       data,
+      insrt_tm: new Date().toISOString(),
     });
     setDisableSave(false);
     handleClose();
