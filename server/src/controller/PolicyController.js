@@ -325,10 +325,9 @@ exports.getPolicyList = async (req, res) => {
     // where pp.act_flg =1`;
 
     const query = `select distinct p.plcy_nm as "policyName", p.plcy_desc as "policyDescription", p.plcy_id as "policyId", p2.prod_nm as "productName", p.plcy_stat as "policyStatus" from ${schemaName}."policy" p
-    inner join ${schemaName}.policy_product_permission ppp on (p.plcy_id=ppp.plcy_id)
-    inner JOIN ${schemaName}.product_permission pp ON ppp.prod_permsn_id = pp.prod_permsn_id
-    inner JOIN ${schemaName}.product p2 ON p2.prod_id = pp.prod_id
-    where ppp.act_flg =1`;
+    left join ${schemaName}.policy_product_permission ppp on (p.plcy_id=ppp.plcy_id)
+    left JOIN ${schemaName}.product_permission pp ON ppp.prod_permsn_id = pp.prod_permsn_id
+    left JOIN ${schemaName}.product p2 ON p2.prod_id = pp.prod_id`;
 
     const $q1 = await DB.executeQuery(query);
 
