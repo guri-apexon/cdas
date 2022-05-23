@@ -509,13 +509,15 @@ exports.updateStudyAssign = async (req, res) => {
     //     return apiResponse.ErrorResponse(res, err);
     //   });
 
-    const roleUpdateQuery = `UPDATE ${schemaName}.study_user_role SET act_flg =0,updated_by=$4,
+    const roleUpdateQuery = `UPDATE ${schemaName}.study_user_role SET act_flg=0, updated_by=$4,
                         updated_on=$5 WHERE prot_id =$1 and usr_id = $2 and role_id <> ALL ($3);`;
 
     const roleGetQuery = `SELECT * FROM ${schemaName}.study_user_role  WHERE prot_id =$1 and usr_id = $2 and role_id = $3`;
 
     const insertRoleQuery = `INSERT INTO ${schemaName}.study_user_role (role_id,prot_id,usr_id,act_flg,created_by,created_on)
                             VALUES($1,$2,$3,$4,$5,$6)`;
+
+    const updateExistingRole = `UPDATE ${schemaName}.study_user_role SET act_flg=1, updated_by=$1, updated_on=$2 WHERE prot_usr_role_id =$3`;
 
     Logger.info({ message: "updateStudyAssign" });
 
@@ -547,6 +549,18 @@ exports.updateStudyAssign = async (req, res) => {
                 loginId,
                 curDate,
               ]);
+            } else {
+              roleGet.rows.forEach(async (exRecord) => {
+                try {
+                  await DB.executeQuery(updateExistingRole, [
+                    loginId,
+                    curDate,
+                    exRecord?.prot_usr_role_id,
+                  ]);
+                } catch (error) {
+                  console.log(error);
+                }
+              });
             }
           } catch (e) {
             console.log(e);
@@ -556,6 +570,7 @@ exports.updateStudyAssign = async (req, res) => {
         console.log(err);
       }
     });
+
     await DB.executeQuery(
       `UPDATE ${schemaName}.study set updt_tm=$1 WHERE prot_id=$2;`,
       [curDate, protocol]
