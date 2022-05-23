@@ -540,7 +540,6 @@ exports.updateStudyAssign = async (req, res) => {
               rollID,
             ]);
 
-            console.log("asdfas", roleGet.rows);
             if (roleGet.rows.length == 0) {
               await DB.executeQuery(insertRoleQuery, [
                 rollID,
