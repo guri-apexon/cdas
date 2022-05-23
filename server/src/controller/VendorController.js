@@ -159,7 +159,7 @@ exports.createVendor = async (req, res) => {
       return apiResponse.validationErrorWithData(
         res,
         "Operation failed",
-        "vendor name and external system name combination already exists."
+        "Vendor name and external system name combination already exists."
       );
     }
     return apiResponse.ErrorResponse(res, err);
@@ -206,7 +206,7 @@ exports.activeStatusUpdate = async (req, res) => {
       return apiResponse.validationErrorWithData(
         res,
         "Operation failed",
-        "Vendor cannot be updated until removed from other dataflows using this Vendor."
+        "Vendor cannot be updated until removed from other dataflows using this vendor."
       );
     } else {
       const details = await DB.executeQuery($query, [
@@ -273,7 +273,7 @@ exports.updateVendor = async (req, res) => {
       return apiResponse.validationErrorWithData(
         res,
         "Operation failed",
-        "Vendor cannot be updated until removed from other dataflows using this Vendor."
+        "Vendor cannot be updated until removed from other dataflows using this vendor."
       );
     } else {
       const { vend_nm, vend_nm_stnd, active, extrnl_sys_nm, description } =
@@ -389,7 +389,7 @@ exports.updateVendor = async (req, res) => {
       return apiResponse.validationErrorWithData(
         res,
         "Operation failed",
-        "vendor name and external system name combination already exists."
+        "Vendor name and external system name combination already exists."
       );
     }
     return apiResponse.ErrorResponse(res, err);
