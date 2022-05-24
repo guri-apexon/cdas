@@ -33,7 +33,7 @@ const ConfirmModal = React.memo(({ open, cancel, closeModal, loading }) => {
       className="save-confirm"
       variant="warning"
       title="Lose your work?"
-      message="Your unsaved changes will be lost. Are you sure you want to leave this page?"
+      message="All unsaved changes will be lost."
       buttonProps={[
         { label: "Keep editing", onClick: closeModal, disabled: loading },
         { label: "Leave without saving", onClick: cancel, disabled: loading },
@@ -127,7 +127,6 @@ const CreatePolicy = () => {
         unblockRouter();
         history.push("/policy-management");
         setLoading(false);
-
       })
       .catch((err) => {
         messageContext.showErrorMessage(err.message || "Something went wrong");
