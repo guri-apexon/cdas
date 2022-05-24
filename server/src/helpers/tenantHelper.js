@@ -1,5 +1,6 @@
 const DB = require("../config/db");
 const Logger = require("../config/logger");
+const schemaName = process.env.SCHEMA;
 
 exports.isTenantExists = async (tenant_nm) => {
   const query = `SELECT tenant_id FROM ${schemaName}.tenant WHERE tenant_nm = '${tenant_nm}' LIMIT 1`;
@@ -12,7 +13,7 @@ exports.isTenantExists = async (tenant_nm) => {
   }
 };
 exports.insertTenantUser = async (usr_id, tenant_id) => {
-  const queryCheckIfExists = `SELECT tenant_id FROM ${schemaname}.user_tenant where tenant_id = '${tenant_id} AND usr_id = '${usr_id}'`;
+  const queryCheckIfExists = `SELECT tenant_id FROM ${schemaName}.user_tenant where tenant_id = '${tenant_id} AND usr_id = '${usr_id}'`;
   const queryInsertUserTenant = `INSERT INTO ${schemaName}.user_tenant(tenant_id, usr_ID) VALUES('${tenant_id}', '${usr_id}')`;
   try {
     const result1 = await DB.executeQuery(queryCheckIfExists);

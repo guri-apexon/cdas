@@ -25,11 +25,13 @@ exports.deProvisionUser = async (data) => {
 exports.isUserAlreadyProvisioned = async (email) => {
   try {
     const response = await axios.get(SDA_Endpoint_get_users);
-    if (
-      data &&
-      data.find((row) => row.email.toUpperCase() === email.toUpperCase())
-    )
-      return true;
+    const user =
+      response.data &&
+      response.data.find(
+        (row) => row.email.toUpperCase() === email.toUpperCase()
+      );
+    console.log(">>", user, !user, !!user);
+    if (user) return true;
     return false;
   } catch (error) {
     return false;
@@ -39,14 +41,14 @@ exports.isUserAlreadyProvisioned = async (email) => {
 exports.provisionInternalUser = async (data) => {
   const { uid: networkId, updatedBy } = data;
   const userType = "internal";
-  const roleType = "Admin";
+  const roleType = "Reader";
   const url = `${SDA_Endpoint}&roleType=${roleType}&userType=${userType}&networkId=${networkId}&updatedBy=${updatedBy}`;
 
   try {
     const response = await axios.post(url);
-    return response;
+    return response.status === 200 ? networkId : false;
   } catch {
-    return null;
+    return false;
   }
 };
 
@@ -84,27 +86,19 @@ exports.provisionExternalUser = async (data) => {
   }
 };
 
-exports.isUserExists = async (uid, email, status) => {
-  const filter = [];
-  if (uid && uid.trim()) filter.push(`usr_id = '${uid}'`);
-  if (email && email.trim()) filter.push(`usr_mail_id = '${email}'`);
-  if (status && status.trim()) filter.push(`status = '${status}'`);
-  if (filter.length === 0) return null;
-
-  const query = `SELECT usr_id FROM ${schemaName}.user WHERE ${filter.join(
-    " AND "
-  )};`;
+exports.isUserExists = async (email) => {
+  const query = `SELECT usr_id, UPPER(usr_stat) as usr_stat FROM ${schemaName}.user WHERE UPPER(usr_mail_id) = '${email.toUpperCase()}';`;
 
   try {
     var response = await DB.executeQuery(query);
-    if (response.rowCount > 0) return response.rows[0].usr_id;
-    return null;
+    if (response.rowCount > 0) return response.rows[0];
+    return false;
   } catch (error) {
-    return null;
+    return false;
   }
 };
 
-exports.validateCreateUserData = (data) => {
+exports.validateCreateUserData = async (data) => {
   const { tenant, userType, firstName, lastName, email, uid, employeeId } =
     data;
 
@@ -139,19 +133,24 @@ exports.validateCreateUserData = (data) => {
   // if (!protocols.every((p) => p.roles && p.roles.length > 0))
   //   return { success: false, message: "Each Protocol must have one role" };
 
-  if (this.isUserAlreadyProvisioned(email))
-    return { success: false, message: "User already Provisioned" };
+  try {
+    const isUserAlreadyProvisioned = await this.isUserAlreadyProvisioned(email);
+    if (isUserAlreadyProvisioned) {
+      return { success: false, message: "User already Provisioned" };
+    }
+  } catch (error) {}
 
   return { success: true, message: "validation success" };
 };
 
-exports.makeUserActive = async (uid) => {
-  const query = `UPDATE ${schemaName}.user SET usr_state='active' WHERE usr_id = '${uid}'`;
+exports.makeUserActive = async (uid, externalId) => {
+  const query = `UPDATE ${schemaName}.user SET usr_stat='Active', extrnl_emp_id='${externalId}' WHERE usr_id = '${uid}'`;
   try {
     const result = await DB.executeQuery(query);
-    if (result.rowCount > 0) return true;
+    if (result.rowCount > 0) return uid;
     return false;
   } catch (error) {
+    console.log(">>>> error", error);
     return false;
   }
 };
@@ -164,14 +163,15 @@ exports.insertUserInDb = (userDetails) => {
       lastName: usr_lst_nm,
       email: usr_mail_id,
       status: usr_stat,
-      invt_sent_tm,
       externalId: extrnl_emp_id,
+      invt_sent_tm,
       insrt_tm,
       updt_tm,
+      userType: usr_typ,
     } = userDetails;
 
-    const query = `INSERT INTO ${schemaName}.user(usr_id, usr_fst_nm, usr_lst_nm, usr_mail_id, insrt_tm, updt_tm, usr_stat, extrnl_emp_id) VALUES(
-      '${usr_id}', '${usr_fst_nm}', '${usr_lst_nm}', '${usr_mail_id}', '${insrt_tm}', '${updt_tm}', '${usr_stat}', '${extrnl_emp_id}') RETURNING usr_id`;
+    const query = `INSERT INTO ${schemaName}.user(usr_id, usr_typ, usr_fst_nm, usr_lst_nm, usr_mail_id, insrt_tm, updt_tm, usr_stat, extrnl_emp_id) VALUES(
+      '${usr_id}', '${usr_typ}', '${usr_fst_nm}', '${usr_lst_nm}', '${usr_mail_id}', '${insrt_tm}', '${updt_tm}', '${usr_stat}', '${extrnl_emp_id}') RETURNING usr_id`;
 
     return DB.executeQuery(query).then((response) => {
       return response.rowCount;

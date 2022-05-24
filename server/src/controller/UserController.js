@@ -73,50 +73,64 @@ exports.addLoginActivity = async (loginDetails) => {
   }
 };
 
-exports.createNewUser = (req, res) => {
+exports.createNewUser = async (req, res) => {
   const data = req.body;
   Logger.info({ message: "create user - begin" });
 
   // validate data
-  const validate = userHelper.validateCreateUserData(data);
+  const validate = await userHelper.validateCreateUserData(data);
   if (validate.success === false)
     return apiResponse.ErrorResponse(res, validate.message);
 
   // validate tenant
-  const tenant_id = tenantHelper.isTenantExists(data.tenant);
-  if (!tenant_id)
-    return apiResponse.ErrorResponse(res, "Tenant not present in the records");
+  const tenant_id = await tenantHelper.isTenantExists(data.tenant);
+  if (!tenant_id) return apiResponse.ErrorResponse(res, "Tenant not present");
 
   // provision into SDA and save
+  const user = await userHelper.isUserExists(data.email);
+
+  if (user && (user.usr_stat == "ACTIVE" || user.usr_stat == "INVITED"))
+    return apiResponse.ErrorResponse(res, "User already exists");
+
   if (data.userType === "internal") {
-    const provision_response = userHelper.provisionInternalUser(data);
+    const provision_response = await userHelper.provisionInternalUser(data);
     if (provision_response) {
-      const db_uid = this.isUserExists(uid, email, "");
-      db_uid
-        ? userHelper.makeUserActive(uid)
-        : this.insertUserInDb({
-            ...data,
-            status: "Active",
-            externalId: data.uid,
-          });
+      if (user && user.usr_stat == "INACTIVE")
+        user.usr_id = await userHelper.makeUserActive(user.usr_id, user.usr_id);
+      else
+        user.usr_id = await userHelper.insertUserInDb({
+          ...data,
+          invt_sent_tm: null,
+          insrt_tm: getCurrentTime(),
+          updt_tm: getCurrentTime(),
+          status: "Active",
+          externalId: data.uid,
+        });
     }
   } else {
-    const provision_response = userHelper.provisionExternalUser(data);
+    const provision_response = await userHelper.provisionExternalUser(data);
     if (provision_response) {
-      const db_uid = this.isUserExists(uid, email, "");
-      db_uid
-        ? userHelper.makeUserActive(uid)
-        : this.insertUserInDb({
-            ...data,
-            status: "invited",
-            uid: "",
-            externalId: response.data,
-          });
+      if (user && user.usr_stat == "INACTIVE")
+        user.usr_id = await userHelper.makeUserActive(
+          user.usr_id,
+          provision_response.data
+        );
+      else
+        user.usr_id = await userHelper.insertUserInDb({
+          ...data,
+          invt_sent_tm: null,
+          insrt_tm: getCurrentTime(),
+          updt_tm: getCurrentTime(),
+          status: "Invited",
+          uid: "",
+          externalId: provision_response.data,
+        });
     }
   }
 
   // save tenant user relationship
-  tenantHelper.insertTenantUser(db_uid, tenant_id);
+  if (user.usr_stat != "INACTIVE")
+    tenantHelper.insertTenantUser(user.usr_id, tenant_id);
 
   return apiResponse.successResponseWithData(res, "User successfully created");
 };
