@@ -37,6 +37,14 @@ import "./PolicyList.scss";
 
 const statusList = ["Active", "Inactive"];
 
+const ProductCell = ({ row, column: { accessor } }) => {
+  let rowValue = row[accessor];
+  if (rowValue === "Blank") {
+    rowValue = "";
+  }
+  return <span>{rowValue}</span>;
+};
+
 const PolicyList = () => {
   const history = useHistory();
   const appContext = useContext(AppContext);
@@ -77,27 +85,39 @@ const PolicyList = () => {
   const createUniqueData = (arrayList) => {
     const uniquePolicies = Array.from(
       arrayList
-        .reduce((acc, { productName, policyId, ...r }) => {
+        .reduce((acc, { productName, productStatus, policyId, ...r }) => {
           const current = acc.get(policyId) || {
             ...r,
             policyId,
-            productsIncluded: [],
+            products: [],
           };
           return acc.set(policyId, {
             ...current,
-            productsIncluded: [...current.productsIncluded, productName],
+            products: [
+              ...current.products,
+              { name: productName, status: productStatus },
+            ],
           });
         }, new Map())
         .values()
     );
-    const Sorted = uniquePolicies.map((e) => {
-      if (e.productsIncluded.length === 1 && !e.productsIncluded[0]) {
-        e.productsIncluded = "Blank";
-      } else {
-        e.productsIncluded = _.uniq(e.productsIncluded).sort().join(", ");
-      }
-      return e;
-    });
+    const Sorted = uniquePolicies
+      .map((e) => {
+        return {
+          ...e,
+          productsIncluded: e.products
+            .filter((d) => d.status)
+            .map((d) => d.name),
+        };
+      })
+      .map((e) => {
+        if (e.productsIncluded.length === 1 && !e.productsIncluded[0]) {
+          e.productsIncluded = "Blank";
+        } else {
+          e.productsIncluded = _.uniq(e.productsIncluded).sort().join(", ");
+        }
+        return e;
+      });
     return Sorted;
   };
 
@@ -190,14 +210,6 @@ const PolicyList = () => {
         />
       </Tooltip>
     );
-  };
-
-  const ProductCell = ({ row, column: { accessor } }) => {
-    let rowValue = row[accessor];
-    if (rowValue === "Blank") {
-      rowValue = "";
-    }
-    return <span>{rowValue}</span>;
   };
 
   const handleMouseOver = (row, peekData) => {
