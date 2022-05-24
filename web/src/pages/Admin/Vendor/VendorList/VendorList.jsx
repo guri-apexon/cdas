@@ -248,36 +248,28 @@ const VendorList = () => {
   const getTableData = React.useMemo(
     () => (
       <>
-        {loading ? (
-          <Progress />
-        ) : (
-          <>
-            <Table
-              isLoading={loading}
-              title="Vendors"
-              subtitle={`${tableRows.length} vendors`}
-              columns={columns}
-              rows={tableRows}
-              rowId="vId"
-              hasScroll={true}
-              maxHeight="calc(100vh - 162px)"
-              initialSortedColumn="vName"
-              initialSortOrder="asc"
-              rowsPerPageOptions={[10, 50, 100, "All"]}
-              tablePaginationProps={{
-                labelDisplayedRows: ({ from, to, count }) =>
-                  `${
-                    count === 1 ? "Item " : "Items"
-                  } ${from}-${to} of ${count}`,
-                truncate: true,
-              }}
-              showFilterIcon
-              CustomHeader={(props) => (
-                <CustomButtonHeader {...props} addVendor={handleAddVendor} />
-              )}
-            />
-          </>
-        )}
+        <Table
+          isLoading={loading}
+          title="Vendors"
+          subtitle={`${tableRows.length} vendors`}
+          columns={columns}
+          rows={tableRows}
+          rowId="vId"
+          hasScroll={true}
+          maxHeight="calc(100vh - 162px)"
+          initialSortedColumn="vName"
+          initialSortOrder="asc"
+          rowsPerPageOptions={[10, 50, 100, "All"]}
+          tablePaginationProps={{
+            labelDisplayedRows: ({ from, to, count }) =>
+              `${count === 1 ? "Item " : "Items"} ${from}-${to} of ${count}`,
+            truncate: true,
+          }}
+          showFilterIcon
+          CustomHeader={(props) => (
+            <CustomButtonHeader {...props} addVendor={handleAddVendor} />
+          )}
+        />
       </>
     ),
     [tableRows, loading, ensList]

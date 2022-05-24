@@ -76,6 +76,7 @@ const ImportWithUsers = () => {
   const toast = useContext(MessageContext);
   const [tableUsers, setTableUsers] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [load, setLoad] = useState(false);
   const [confirmObj, setConfirmObj] = useState(null);
   const [userList, setUserList] = useState([]);
   const [roleLists, setroleLists] = useState([]);
@@ -408,6 +409,11 @@ const ImportWithUsers = () => {
 
   useEffect(() => {
     console.log("tableUsers", tableUsers);
+    if (tableUsers.length === 0) {
+      setLoad(false);
+    } else {
+      setLoad(true);
+    }
   }, [tableUsers]);
   useEffect(() => {
     const {
@@ -459,11 +465,11 @@ const ImportWithUsers = () => {
       history.push(targetRoute);
     }
   };
-
   const getTable = React.useMemo(
     () => (
       <>
         <Table
+          isLoading={!load}
           title="User Assignments"
           columns={columns}
           rows={tableUsers.map((row) => ({
@@ -477,7 +483,7 @@ const ImportWithUsers = () => {
         />
       </>
     ),
-    [tableUsers]
+    [tableUsers, load]
   );
 
   return (
