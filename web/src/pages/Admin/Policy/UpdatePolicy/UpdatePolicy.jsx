@@ -122,7 +122,7 @@ const UpdatePolicy = () => {
       });
       if (!atleastOneSelected) {
         messageContext.showErrorMessage(
-          "Please complete all mandatory information and then click save"
+          "Please complete all mandatory information and then click Save"
         );
         return false;
       }
