@@ -177,7 +177,7 @@ const TableEditableAll = ({ updateData, deleteAContact, disabled }) => {
   const [editedRows, setEditedRows] = useState(initialRows);
   const vendor = useSelector((state) => state.vendor);
   const [currentVcid, setCurrentVcid] = useState(-1);
-  const { isEditPage, isCreatePage, selectedContacts } = vendor;
+  const { isEditPage, isCreatePage, loading, selectedContacts } = vendor;
 
   const addAContact = () => {
     setEditedRows((rw) => [
@@ -285,6 +285,7 @@ const TableEditableAll = ({ updateData, deleteAContact, disabled }) => {
         </div>
       ) : (
         <Table
+          isLoading={loading}
           title="Vendor Contacts"
           subtitle="CDAS Admin"
           columns={columns}

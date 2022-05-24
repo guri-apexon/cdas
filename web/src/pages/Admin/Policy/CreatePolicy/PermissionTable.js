@@ -30,6 +30,7 @@ const CustomHeader = ({ setSearchText, searchTxt }) => {
 
 const PermissionTable = ({ title, data, updateData, messageContext }) => {
   const [tableRows, settableRows] = useState(data);
+  const [loading, setLoading] = useState(true);
   const [filteredData, setFilteredData] = useState(data);
   const [searchTxt, setSearchText] = useState("");
   const FeatureCell = ({ row, column: { accessor } }) => {
@@ -174,6 +175,11 @@ const PermissionTable = ({ title, data, updateData, messageContext }) => {
   }, [searchTxt]);
   useEffect(() => {
     settableRows(data);
+    if (!data.length) {
+      setLoading(true);
+    } else {
+      setLoading(false);
+    }
     if (filteredData.length === 0) setFilteredData(data);
   }, [data]);
   return (
@@ -182,6 +188,7 @@ const PermissionTable = ({ title, data, updateData, messageContext }) => {
         <CustomHeader searchTxt={searchTxt} setSearchText={setSearchText} />
       </div>
       <Table
+        isLoading={loading}
         title="Permissions"
         subtitle={title === "Admin" ? "CDAS Admin" : title}
         columns={columns}
