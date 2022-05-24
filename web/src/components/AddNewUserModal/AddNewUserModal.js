@@ -165,20 +165,12 @@ const AddNewUserModal = ({
           onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
           matchFrom="any"
           error={
-            row.alreadyExist ||
-            (row.user === null && row.roles.length >= 1) ||
-            (!initialRender &&
-              !row[key] &&
-              row.index !== tableUsers[tableUsers.length - 1].index)
+            row.alreadyExist || (row.user === null && row.roles.length >= 1)
           }
           helperText={
             row.alreadyExist
               ? "This user already has assignments. Please select a different user to continue"
-              : ((row.user === null && row.roles.length >= 1) ||
-                  (!initialRender &&
-                    !row[key] &&
-                    row.index !== tableUsers[tableUsers.length - 1].index)) &&
-                "Select a User"
+              : row.user === null && row.roles.length >= 1 && "Select a User"
           }
         />
       </div>
