@@ -162,7 +162,8 @@ const PolicyList = () => {
     try {
       const selectedPolicy = tableRows.find((d) => d.policyId === policyId);
       if (
-        selectedPolicy.productsIncluded === "Blank" &&
+        (selectedPolicy.productsIncluded === "Blank" ||
+          selectedPolicy.productsIncluded === "") &&
         status === "Inactive"
       ) {
         messageContext.showErrorMessage(
