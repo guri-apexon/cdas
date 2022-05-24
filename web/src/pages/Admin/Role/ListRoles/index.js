@@ -40,7 +40,7 @@ const statusList = ["Active", "Inactive"];
 
 const ListRoles = () => {
   const history = useHistory();
-  const [loading, setLoading] = useState(true);
+  const [load, setLoad] = useState(true);
   const [products, setProducts] = useState([]);
   const [tableRows, setTableRows] = useState([]);
   const [roleLists, setroleLists] = useState([]);
@@ -82,10 +82,10 @@ const ListRoles = () => {
   }, []);
 
   useEffect(() => {
-    const { roles, uniqueProducts } = Roles;
+    const { roles, loading, uniqueProducts } = Roles;
     setTableRows(roles);
     setProducts(uniqueProducts);
-    setLoading(false);
+    setLoad(loading);
   }, [Roles]);
 
   const goToRole = (e, id) => {
@@ -287,32 +287,28 @@ const ListRoles = () => {
   const renderTable = useMemo(
     () => (
       <>
-        {loading ? (
-          <Progress />
-        ) : (
-          <Table
-            isLoading={loading}
-            title="Roles"
-            columns={columns}
-            rows={tableRows}
-            rowId="role_id"
-            hasScroll={true}
-            maxHeight="calc(100vh - 162px)"
-            initialSortedColumn="role_nm"
-            initialSortOrder="asc"
-            rowsPerPageOptions={[10, 50, 100, "All"]}
-            tablePaginationProps={{
-              labelDisplayedRows: ({ from, to, count }) =>
-                `${count === 1 ? "Item " : "Items"} ${from}-${to} of ${count}`,
-              truncate: true,
-            }}
-            showFilterIcon
-            CustomHeader={(props) => <CustomButtonHeader {...props} />}
-          />
-        )}
+        <Table
+          isLoading={load}
+          title="Roles"
+          columns={columns}
+          rows={tableRows}
+          rowId="role_id"
+          hasScroll={true}
+          maxHeight="calc(100vh - 162px)"
+          initialSortedColumn="role_nm"
+          initialSortOrder="asc"
+          rowsPerPageOptions={[10, 50, 100, "All"]}
+          tablePaginationProps={{
+            labelDisplayedRows: ({ from, to, count }) =>
+              `${count === 1 ? "Item " : "Items"} ${from}-${to} of ${count}`,
+            truncate: true,
+          }}
+          showFilterIcon
+          CustomHeader={(props) => <CustomButtonHeader {...props} />}
+        />
       </>
     ),
-    [tableRows, loading]
+    [tableRows, load]
   );
 
   return (

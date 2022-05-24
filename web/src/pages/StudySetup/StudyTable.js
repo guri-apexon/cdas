@@ -278,16 +278,16 @@ export default function StudyTable({ studyData, studyboardData, refreshData }) {
   const [exportTableRows, setExportTableRows] = useState([...studyboardData]);
   const [tableColumns, setTableColumns] = useState([...moreColumns]);
 
-  useEffect(() => {
-    if (!studyData.loading || studyData.studyboardFetchSuccess) {
-      setLoading(false);
-      setTableRows([...studyboardData]);
-      setExportTableRows([...studyboardData]);
-      setTableColumns([...moreColumns]);
-    } else {
-      setLoading(true);
-    }
-  }, [studyData.loading, studyboardData, studyData.studyboardFetchSuccess]);
+  // useEffect(() => {
+  //   if (!studyData.loading || studyData.studyboardFetchSuccess) {
+  //     setLoading(false);
+  //     setTableRows([...studyboardData]);
+  //     setExportTableRows([...studyboardData]);
+  //     setTableColumns([...moreColumns]);
+  //   } else {
+  //     setLoading(true);
+  //   }
+  // }, [studyData.loading, studyboardData, studyData.studyboardFetchSuccess]);
 
   // const exportToCSV = (exportData, headers, fileName) => {
   //   const wb = XLSX.utils.book_new();
@@ -373,7 +373,7 @@ export default function StudyTable({ studyData, studyboardData, refreshData }) {
     setTableColumns([...moreColumns]);
     setExportTableRows([...studyboardData]);
     setTableRows([...studyboardData]);
-  }, []);
+  }, [studyboardData, studyData]);
 
   // const getTableData = React.useMemo(
   //   () => <></>,
@@ -391,57 +391,54 @@ export default function StudyTable({ studyData, studyboardData, refreshData }) {
 
   return (
     <div key={componentKey} className="study-table">
-      {loading && <Progress />}
-      {!loading && (
-        <Table
-          isLoading={loading}
-          title="Studies"
-          subtitle={
-            // eslint-disable-next-line react/jsx-wrap-multilines
-            <IconButton color="primary" onClick={refreshData}>
-              <RefreshIcon />
-            </IconButton>
-          }
-          columns={tableColumns}
-          rows={tableRows}
-          rowId="studyIndex"
-          hasScroll={true}
-          maxHeight="610px"
-          initialSortedColumn="dateadded"
-          initialSortOrder="desc"
-          // sortedColumn={sortedColumnValue}
-          // sortOrder={sortOrderValue}
-          rowsPerPageOptions={[10, 50, 100, "All"]}
-          tablePaginationProps={{
-            labelDisplayedRows: ({ from, to, count }) =>
-              `${count === 1 ? "Item " : "Items"} ${from}-${to} of ${count}`,
-            truncate: true,
-          }}
-          // page={pageNo}
-          // rowsPerPage={rowsPerPageRecord}
-          // onChange={(rpp, sc, so, filts, page) => {
-          //   setRowPerPageRecord(rpp);
-          //   setSortedColumnValue(sc);
-          //   setSortOrderValue(so);
-          //   setInlineFilters(filts);
-          //   setPageNo(page);
-          // }}
-          columnSettings={{
-            enabled: true,
-            defaultColumns: moreColumns,
-            onChange: (changeColumns) => {
-              setTableColumns(changeColumns);
-            },
-          }}
-          CustomHeader={(props) => (
-            <CustomButtonHeader
-              // downloadFile={downloadFile}
-              rows={tableRows}
-              {...props}
-            />
-          )}
-        />
-      )}
+      <Table
+        isLoading={studyData.loading}
+        title="Studies"
+        subtitle={
+          // eslint-disable-next-line react/jsx-wrap-multilines
+          <IconButton color="primary" onClick={refreshData}>
+            <RefreshIcon />
+          </IconButton>
+        }
+        columns={tableColumns}
+        rows={tableRows}
+        rowId="protocolnumber"
+        hasScroll={true}
+        maxHeight="610px"
+        initialSortedColumn="dateadded"
+        initialSortOrder="desc"
+        // sortedColumn={sortedColumnValue}
+        // sortOrder={sortOrderValue}
+        rowsPerPageOptions={[10, 50, 100, "All"]}
+        tablePaginationProps={{
+          labelDisplayedRows: ({ from, to, count }) =>
+            `${count === 1 ? "Item " : "Items"} ${from}-${to} of ${count}`,
+          truncate: true,
+        }}
+        // page={pageNo}
+        // rowsPerPage={rowsPerPageRecord}
+        // onChange={(rpp, sc, so, filts, page) => {
+        //   setRowPerPageRecord(rpp);
+        //   setSortedColumnValue(sc);
+        //   setSortOrderValue(so);
+        //   setInlineFilters(filts);
+        //   setPageNo(page);
+        // }}
+        columnSettings={{
+          enabled: true,
+          defaultColumns: moreColumns,
+          onChange: (changeColumns) => {
+            setTableColumns(changeColumns);
+          },
+        }}
+        CustomHeader={(props) => (
+          <CustomButtonHeader
+            // downloadFile={downloadFile}
+            rows={tableRows}
+            {...props}
+          />
+        )}
+      />
     </div>
   );
 }
