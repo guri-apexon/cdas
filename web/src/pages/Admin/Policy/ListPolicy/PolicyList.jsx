@@ -94,8 +94,7 @@ const PolicyList = () => {
       if (e.productsIncluded.length === 1 && !e.productsIncluded[0]) {
         e.productsIncluded = "Blank";
       } else {
-        e.productsIncluded.sort();
-        e.productsIncluded = _.uniq(e.productsIncluded).join(", ");
+        e.productsIncluded = _.uniq(e.productsIncluded).sort().join(", ");
       }
       return e;
     });
