@@ -115,7 +115,7 @@ const UpdatePolicy = () => {
       updated_on: new Date().toISOString(),
     };
     if (policyName === "") {
-      messageContext.showErrorMessage("Policy Name shouldn't be empty");
+      messageContext.showErrorMessage("Policy name shouldn't be empty");
       return false;
     }
     let atleastOneSelected = false;
@@ -142,7 +142,7 @@ const UpdatePolicy = () => {
     updatePolicyService(reqBody)
       .then((res) => {
         messageContext.showSuccessMessage(
-          res.message || "Successfully Updated"
+          res.message || "Successfully updated"
         );
         unblockRouter();
         history.push("/policy-management");

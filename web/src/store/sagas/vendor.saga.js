@@ -34,7 +34,7 @@ export function* fetchENSList() {
       axios.get,
       `${baseURL}/${VENDOR_BASE}/vens-list`
     );
-    console.log("data", fetchData);
+    // console.log("data", fetchData);
     yield put({
       type: VENS_LIST_SUCCESS,
       ensList: fetchData.data.data,

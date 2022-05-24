@@ -12,6 +12,7 @@ import {
   VENDOR_DETAILS_FAILURE,
   VENDOR_DETAILS_SUCCESS,
   CREATE_VENDOR,
+  UPDATE_VENDOR_STATUS,
 } from "../../constants";
 
 export const initialState = {
@@ -46,6 +47,20 @@ const VendorReducer = (state = initialState, action) =>
         newState.isCreatePage = true;
         newState.selectedContacts = [];
         newState.selectedVendor = {};
+        break;
+
+      case UPDATE_VENDOR_STATUS:
+        // console.log("action", action);
+        // eslint-disable-next-line no-case-declarations
+        const newList = state.vendorList.map((v) => {
+          if (v.vId === action?.payload?.vId) {
+            const newObj = { ...v };
+            newObj.vStatus = action?.payload?.newStatus;
+            return newObj;
+          }
+          return v;
+        });
+        newState.vendorList = newList;
         break;
 
       case VENS_LIST:

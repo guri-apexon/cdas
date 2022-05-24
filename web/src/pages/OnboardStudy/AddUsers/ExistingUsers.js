@@ -204,6 +204,7 @@ const ExistingUsers = () => {
           blurOnSelect={false}
           clearOnBlur={false}
           disableCloseOnSelect
+          enableVirtualization
         />
       );
     }
@@ -247,6 +248,7 @@ const ExistingUsers = () => {
       protocol,
       loginId: userInfo.user_id,
       users: [selected.userId],
+      updt_tm: new Date().toISOString(),
     });
     setLoading(false);
     if (response.status === "BAD_REQUEST") {
@@ -282,6 +284,7 @@ const ExistingUsers = () => {
           role_id: updateData.roles.map((e) => e.value).flat(),
         },
       ],
+      updt_tm: new Date().toISOString(),
     });
     if (response.status === "BAD_REQUEST") {
       toast.showErrorMessage(response.message, 0);
