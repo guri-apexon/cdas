@@ -8,7 +8,6 @@ import Table, {
   compareStrings,
 } from "apollo-react/components/Table";
 import Button from "apollo-react/components/Button";
-import _ from "lodash";
 import PlusIcon from "apollo-react-icons/Plus";
 import Peek from "apollo-react/components/Peek";
 import FilterIcon from "apollo-react-icons/Filter";
@@ -19,7 +18,6 @@ import Switch from "apollo-react/components/Switch";
 import Typography from "apollo-react/components/Typography";
 import Progress from "../../../../components/Progress";
 import { AppContext } from "../../../../components/Providers/AppProvider";
-import { MessageContext } from "../../../../components/Providers/MessageProvider";
 import {
   getPolicyList,
   updateStatus,
@@ -40,7 +38,6 @@ const statusList = ["Active", "Inactive"];
 const PolicyList = () => {
   const history = useHistory();
   const appContext = useContext(AppContext);
-  const messageContext = useContext(MessageContext);
   const { permissions } = appContext.user;
   const [createPermission, setCreatePermission] = useState(false);
   const [readPermission, setReadPermission] = useState(false);
@@ -94,7 +91,8 @@ const PolicyList = () => {
       if (e.productsIncluded.length === 1 && !e.productsIncluded[0]) {
         e.productsIncluded = "Blank";
       } else {
-        e.productsIncluded = _.uniq(e.productsIncluded).sort().join(", ");
+        e.productsIncluded.sort();
+        e.productsIncluded = e.productsIncluded.join(", ");
       }
       return e;
     });
@@ -112,14 +110,12 @@ const PolicyList = () => {
     const { policyList, uniqueProducts } = policyAdmin;
     setPolicyLists(policyList);
     setProducts(
-      uniqueProducts
-        .map((e) => {
-          if (e === null) {
-            return "Blank";
-          }
-          return e;
-        })
-        .sort()
+      uniqueProducts.map((e) => {
+        if (e === null) {
+          return "Blank";
+        }
+        return e;
+      })
     );
     setLoading(false);
   }, [policyAdmin.loading]);
@@ -130,6 +126,8 @@ const PolicyList = () => {
     setTableRows(uniquePolicies);
   }, [policyLists]);
 
+  // const messageContext = useContext(MessageContext);
+
   const goToPolicy = (e, id) => {
     if (readPermission) {
       e.preventDefault();
@@ -137,27 +135,16 @@ const PolicyList = () => {
     }
   };
 
-  const handleStatusUpdate = async (e, policyId, status) => {
+  const handleStatusUpdate = async (e, id, status) => {
     e.preventDefault();
     try {
-      const selectedPolicy = tableRows.find((d) => d.policyId === policyId);
-      if (
-        selectedPolicy.productsIncluded === "Blank" &&
-        status === "Inactive"
-      ) {
-        messageContext.showErrorMessage(
-          "For activate a policy atleast one feature need to be in selected state"
-        );
-      } else {
-        const updatePolicyStatus = status === "Active" ? "Inactive" : "Active";
-        const payload = {
-          policyId,
-          policyStatus: updatePolicyStatus,
-          userId: userInfo.user_id,
-        };
-
-        await dispatch(updateStatus(payload));
-      }
+      const updatePolicyStatus = status === "Active" ? "Inactive" : "Active";
+      const payload = {
+        policyId: id,
+        policyStatus: updatePolicyStatus,
+        userId: userInfo.user_id,
+      };
+      await dispatch(updateStatus(payload));
     } catch (error) {
       console.log("error", error);
     }
@@ -175,7 +162,7 @@ const PolicyList = () => {
 
   const StatusCell = ({ row, column: { accessor } }) => {
     const data = row[accessor];
-    const { policyId } = row;
+    const id = row.policyId;
     return (
       <Tooltip
         title={data === "Active" ? "Active" : "Inactive"}
@@ -184,7 +171,7 @@ const PolicyList = () => {
         <Switch
           checked={data === "Active" ? true : false}
           className="table-checkbox"
-          onChange={(e) => handleStatusUpdate(e, policyId, data)}
+          onChange={(e) => handleStatusUpdate(e, id, data)}
           size="small"
           disabled={!updatePermission}
         />
