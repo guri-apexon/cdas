@@ -189,7 +189,7 @@ const CreateRole = () => {
       updated_on: new Date().toISOString(),
     };
     if (roleName === "") {
-      messageContext.showErrorMessage("Role Name shouldn't be empty");
+      messageContext.showErrorMessage("Role name shouldn't be empty");
       return false;
     }
     if (roleName.length > 255) {
@@ -209,7 +209,7 @@ const CreateRole = () => {
     addRoleService(reqBody)
       .then((res) => {
         messageContext.showSuccessMessage(
-          res.message || "Successfully Created"
+          res.message || "Successfully created"
         );
         unblockRouter(); // should be above history push
         history.push("/role-management");

@@ -299,6 +299,7 @@ export const createAutocompleteFilter =
           showCheckboxes
           limitChips={1}
           filterSelectedOptions={false}
+          enableVirtualization
           blurOnSelect={false}
           clearOnBlur={false}
           disableCloseOnSelect
@@ -378,7 +379,7 @@ export const createStringArrayIncludedFilter = (accessor) => {
     !Array.isArray(filters[accessor]) ||
     filters[accessor].length === 0 ||
     filters[accessor].some((value) =>
-      row[accessor]?.toUpperCase().includes(value.toUpperCase())
+      row[accessor]?.toUpperCase().includes(value?.toUpperCase())
     );
 };
 

@@ -24,6 +24,7 @@ import {
   selectVendor,
   createVendor,
   getENSList,
+  updateVendorStatus,
 } from "../../../../store/actions/VendorAction";
 import {
   TextFieldFilter,
@@ -80,12 +81,14 @@ const VendorList = () => {
         if (update.status === 0) {
           messageContext.showErrorMessage(update.data, 56);
         }
-        getData();
+        // getData();
+        dispatch(updateVendorStatus({ vId: id, newStatus: "InActive" }));
       }
     } else {
       const update = await statusUpdate(id, 1);
       if (update) {
-        getData();
+        // getData();
+        dispatch(updateVendorStatus({ vId: id, newStatus: "Active" }));
       }
     }
   };

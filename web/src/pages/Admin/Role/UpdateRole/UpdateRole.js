@@ -226,7 +226,7 @@ const UpdateRole = () => {
   // eslint-disable-next-line consistent-return
   const submitRole = () => {
     if (roleName === "") {
-      messageContext.showErrorMessage("Role Name shouldn't be empty");
+      messageContext.showErrorMessage("Role name shouldn't be empty");
       return false;
     }
     if (!policies.filter((x) => x.selected).length && active) {
@@ -253,7 +253,7 @@ const UpdateRole = () => {
     updateRoleService(reqBody)
       .then((res) => {
         messageContext.showSuccessMessage(
-          res.message || "Successfully Updated"
+          res.message || "Successfully updated"
         );
         unblockRouter(); // should be above history push
         history.push("/role-management");

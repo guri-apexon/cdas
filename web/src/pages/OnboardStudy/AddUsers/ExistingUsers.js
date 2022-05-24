@@ -204,6 +204,7 @@ const ExistingUsers = () => {
           blurOnSelect={false}
           clearOnBlur={false}
           disableCloseOnSelect
+          enableVirtualization
         />
       );
     }

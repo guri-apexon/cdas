@@ -146,6 +146,7 @@ const AddNewUserModal = ({
           }
           disableCloseOnSelect
           alwaysLimitChips
+          enableVirtualization
         />
       </div>
     );
@@ -164,6 +165,7 @@ const AddNewUserModal = ({
           value={row[key]}
           onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
           matchFrom="any"
+          enableVirtualization
           error={
             row.alreadyExist || (row.user === null && row.roles.length >= 1)
           }

@@ -183,12 +183,12 @@ const CreateVendor = () => {
     };
     setInitialRender(false);
     if (vName === "") {
-      messageContext.showErrorMessage("Vendor Name shouldn't be empty");
+      messageContext.showErrorMessage("Vendor name shouldn't be empty");
       return false;
     }
     if (vESN === "") {
       messageContext.showErrorMessage(
-        "Vendor External System Name need to be selected"
+        "Vendor external system name need to be selected"
       );
       return false;
     }
@@ -199,8 +199,8 @@ const CreateVendor = () => {
       const { updt_tm, ...rest } = reqBody;
       addVendorService(rest)
         .then((res) => {
-          messageContext.showSuccessMessage(res.message || "Successfully Done");
-          unblockRouter(); // should be above history push
+          messageContext.showSuccessMessage(res.message || "Successfully done");
+          unblockRouter();
           history.push("/vendor/list");
           setLoading(false);
         })
@@ -208,7 +208,7 @@ const CreateVendor = () => {
           if (err.data) {
             messageContext.showErrorMessage(
               err.data ||
-                "vendor name and external system name combination already exists."
+                "Vendor name and external system name combination already exists."
             );
           } else {
             messageContext.showErrorMessage(
@@ -222,8 +222,8 @@ const CreateVendor = () => {
       const { insrt_tm, ...rest } = reqBody;
       updateVendorService(rest)
         .then((res) => {
-          messageContext.showSuccessMessage(res.message || "Successfully Done");
-          unblockRouter(); // should be above history push
+          messageContext.showSuccessMessage(res.message || "Successfully done");
+          unblockRouter();
           history.push("/vendor/list");
           setLoading(false);
         })
@@ -231,7 +231,7 @@ const CreateVendor = () => {
           if (err.data) {
             messageContext.showErrorMessage(
               err.data ||
-                "vendor name and external system name combination already exists."
+                "Vendor name and external system name combination already exists."
             );
           } else {
             messageContext.showErrorMessage(

@@ -193,8 +193,8 @@ exports.onboardStudy = async function (req, res) {
 exports.studyList = function (req, res) {
   try {
     const searchParam = req.params.query.toLowerCase();
-    const searchQuery = `SELECT ms.prot_nbr, ms.prot_nbr_stnd, ms.spnsr_nm, ms.spnsr_nm_stnd, ms.proj_cd, ms.phase, ms.prot_status, ms.thptc_area, s.ob_stat from ${constants.DB_SCHEMA_NAME}.mdm_study ms
-    FULL OUTER JOIN ${constants.DB_SCHEMA_NAME}.study s ON ms.prot_nbr = s.prot_nbr
+    const searchQuery = `SELECT ms.prot_nbr, ms.prot_nbr_stnd, ms.spnsr_nm, ms.spnsr_nm_stnd, ms.proj_cd, ms.phase, ms.prot_status, ms.thptc_area, s.ob_stat from ${schemaName}.mdm_study ms
+    FULL OUTER JOIN ${schemaName}.study s ON ms.prot_nbr = s.prot_nbr
     WHERE (LOWER(ms.prot_nbr) LIKE '%${searchParam}%' OR 
     LOWER(ms.spnsr_nm) LIKE '%${searchParam}%' OR 
     LOWER(ms.proj_cd) LIKE '%${searchParam}%')
@@ -275,7 +275,7 @@ exports.getStudyList = async (req, res) => {
     const $q4 = await DB.executeQuery(query4);
     const $q5 = await DB.executeQuery(query5);
     const $q6 = await DB.executeQuery(query6);
-    const formatDateValues = await $q1.rows.map((e) => {
+    const formatDateValues = await $q1.rows.map((e, i) => {
       let acc = $q2.rows.filter((d) => d.prot_id === e.prot_id);
       let newObj = acc[0] ? acc[0] : { count: "0" };
       let { count } = newObj;
@@ -290,8 +290,9 @@ exports.getStudyList = async (req, res) => {
       }
       return {
         ...e,
-        // dateadded: addT,
-        // dateedited: editT,
+        studyIndex: i + 1,
+        dateadded: addT,
+        dateedited: editT,
         assignmentcount: count,
       };
     });
@@ -472,7 +473,7 @@ exports.AddStudyAssign = async (req, res) => {
       );
       return apiResponse.successResponseWithData(
         res,
-        "New user Added successfully"
+        "New user added successfully"
       );
     }
   } catch (err) {
@@ -621,7 +622,7 @@ exports.deleteStudyAssign = async (req, res) => {
 
             return apiResponse.successResponse(
               res,
-              "User Deleted successfully"
+              "User deleted successfully"
             );
           } catch (err) {
             console.log(err);

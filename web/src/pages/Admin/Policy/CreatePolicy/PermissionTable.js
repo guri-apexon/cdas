@@ -59,7 +59,7 @@ const PermissionTable = ({ title, data, updateData, messageContext }) => {
       case "Read":
         if (!checked) {
           messageContext.showErrorMessage(
-            "Deselecting Read will automatically remove the options for all other options",
+            "Deselecting read will automatically remove the options for all other options",
             null,
             "info"
           );
@@ -166,8 +166,8 @@ const PermissionTable = ({ title, data, updateData, messageContext }) => {
   useEffect(() => {
     const newRows = tableRows.filter((row) => {
       return (
-        row.feat_nm.toLowerCase().includes(searchTxt) ||
-        row.ctgy_nm.toLowerCase().includes(searchTxt)
+        row.feat_nm?.toLowerCase().includes(searchTxt?.toLowerCase()) ||
+        row.ctgy_nm?.toLowerCase().includes(searchTxt?.toLowerCase())
       );
     });
     setFilteredData(newRows);
