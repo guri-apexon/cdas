@@ -1,8 +1,12 @@
 const DB = require("../config/db");
 const constants = require("../config/constants");
-const { getCurrentTime } = require("../helpers/customFunctions");
-const { DB_SCHEMA_NAME: schemaName } = constants;
-
+const { getCurrentTime, validateEmail } = require("../helpers/customFunctions");
+const Logger = require("../config/logger");
+const axios = require("axios");
+const userHelper = require("../helpers/userHelper");
+const tenantHelper = require("../helpers/tenantHelper");
+const apiResponse = require("../helpers/apiResponse");
+const schemaName = process.env.SCHEMA;
 exports.getUser = function (user_id) {
   try {
     const usrId = user_id;
@@ -38,7 +42,7 @@ exports.getLastLoginTime = function (user_id) {
       `SELECT login_tm from ${schemaName}.user_login_details where usr_id = '${usrId}' order by login_tm desc LIMIT 1;`
     ).then((response) => {
       const login = response.rows || [];
-      return (login?.length && login[0]?.login_tm) ? login[0]?.login_tm : false;
+      return login?.length && login[0]?.login_tm ? login[0]?.login_tm : false;
     });
   } catch (err) {
     //throw error in json response with status 500.
@@ -53,7 +57,7 @@ exports.addLoginActivity = async (loginDetails) => {
     const { rows } = await DB.executeQuery(
       `SELECT * from ${schemaName}.user_login_details WHERE usr_id='${usrId}'`
     );
-    let query = '';
+    let query = "";
     if (rows.length) {
       query = `UPDATE ${schemaName}.user_login_details set login_tm='${loginTime}', logout_tm='${logout_tm}' WHERE usr_id='${usrId}'`;
     } else {
@@ -67,4 +71,52 @@ exports.addLoginActivity = async (loginDetails) => {
     //throw error in json response with status 500.
     return err;
   }
+};
+
+exports.createNewUser = (req, res) => {
+  const data = req.body;
+  Logger.info({ message: "create user - begin" });
+
+  // validate data
+  const validate = userHelper.validateCreateUserData(data);
+  if (validate.success === false)
+    return apiResponse.ErrorResponse(res, validate.message);
+
+  // validate tenant
+  const tenant_id = tenantHelper.isTenantExists(data.tenant);
+  if (!tenant_id)
+    return apiResponse.ErrorResponse(res, "Tenant not present in the records");
+
+  // provision into SDA and save
+  if (data.userType === "internal") {
+    const provision_response = userHelper.provisionInternalUser(data);
+    if (provision_response) {
+      const db_uid = this.isUserExists(uid, email, "");
+      db_uid
+        ? userHelper.makeUserActive(uid)
+        : this.insertUserInDb({
+            ...data,
+            status: "Active",
+            externalId: data.uid,
+          });
+    }
+  } else {
+    const provision_response = userHelper.provisionExternalUser(data);
+    if (provision_response) {
+      const db_uid = this.isUserExists(uid, email, "");
+      db_uid
+        ? userHelper.makeUserActive(uid)
+        : this.insertUserInDb({
+            ...data,
+            status: "invited",
+            uid: "",
+            externalId: response.data,
+          });
+    }
+  }
+
+  // save tenant user relationship
+  tenantHelper.insertTenantUser(db_uid, tenant_id);
+
+  return apiResponse.successResponseWithData(res, "User successfully created");
 };
