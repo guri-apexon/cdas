@@ -281,8 +281,6 @@ exports.getStudyList = async (req, res) => {
       let acc = $q2.rows.filter((d) => d.prot_id === e.prot_id);
       let newObj = acc[0] ? acc[0] : { count: "0" };
       let { count } = newObj;
-      //let editT = moment(e.dateedited).format("MM/DD/YYYY");
-      //let addT = moment(e.dateadded).format("MM/DD/YYYY");
       // let newData = _.omit(e, ["prot_id"]);
       if (!e.protocolstatus) {
         e.protocolstatus = "Blank";
@@ -293,8 +291,6 @@ exports.getStudyList = async (req, res) => {
       return {
         ...e,
         studyIndex: i + 1,
-        dateadded: addT,
-        dateedited: editT,
         assignmentcount: count,
       };
     });
