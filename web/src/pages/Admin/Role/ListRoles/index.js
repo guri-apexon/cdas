@@ -115,6 +115,7 @@ const ListRoles = () => {
         role_id: id,
         role_stat: _status,
         userId: userInfo.user_id,
+        updated_on: new Date().toISOString(),
       };
       await dispatch(updateStatus(payload));
       await dispatch(fetchRoles());
