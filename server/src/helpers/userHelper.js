@@ -30,10 +30,11 @@ exports.isUserAlreadyProvisioned = async (email) => {
       response.data.find(
         (row) => row.email.toUpperCase() === email.toUpperCase()
       );
-    console.log(">>", user, !user, !!user);
+    console.log("success: isUserAlreadyProvisioned", user);
     if (user) return true;
     return false;
   } catch (error) {
+    console.log("error: isUserAlreadyProvisioned", email, error);
     return false;
   }
 };
@@ -46,42 +47,44 @@ exports.provisionInternalUser = async (data) => {
 
   try {
     const response = await axios.post(url);
+    console.log("success: provisionInternalUser", response);
     return response.status === 200 ? networkId : false;
-  } catch {
+  } catch (error) {
+    console.log("Internal user provision error", data, error);
     return false;
   }
 };
 
 exports.provisionExternalUser = async (data) => {
-  const { firstName, lastName, email, status, assuranceLevel, updatedBy } =
-    data;
-
+  const { firstName, lastName, email, status, updatedBy } = data;
   const userType = "external";
 
-  const url = `${SDA_Endpoint}&roleType=${roleType}&userType=${userType}`;
+  const url = `${SDA_Endpoint}&userType=${userType}`;
 
-  const body = JSON.stringify({
+  const body = {
     firstName: firstName,
     lastName: lastName,
     email: email,
-    status: status,
-    assuranceLevel: assuranceLevel,
+    status: "Active",
+    assuranceLevel: "High",
     updatedBy: updatedBy,
-  });
+  };
 
   var config = {
     method: "post",
     url: url,
     headers: {
-      "Content-Type": "application/json",
+      "Content-Type": "text/plain;charset=UTF-8",
     },
     data: body,
   };
 
   try {
-    const response = await axios(config);
+    const response = await axios.post(url, body);
+    console.log("success: provisionExternalUser", response);
     return response;
   } catch (error) {
+    console.log("error: provisionExternalUser", body, error);
     return null;
   }
 };
@@ -91,9 +94,11 @@ exports.isUserExists = async (email) => {
 
   try {
     var response = await DB.executeQuery(query);
+    console.log("success: isUserExists", response);
     if (response.rowCount > 0) return response.rows[0];
     return false;
   } catch (error) {
+    console.log("error: provisionExternalUser", email, error);
     return false;
   }
 };
@@ -148,14 +153,15 @@ exports.makeUserActive = async (uid, externalId) => {
   try {
     const result = await DB.executeQuery(query);
     if (result.rowCount > 0) return uid;
+    console.log("success: makeUserActive", result);
     return false;
   } catch (error) {
-    console.log(">>>> error", error);
+    console.log("error: makeUserActive", error);
     return false;
   }
 };
 
-exports.insertUserInDb = (userDetails) => {
+exports.insertUserInDb = async (userDetails) => {
   try {
     const {
       uid: usr_id,
@@ -173,11 +179,11 @@ exports.insertUserInDb = (userDetails) => {
     const query = `INSERT INTO ${schemaName}.user(usr_id, usr_typ, usr_fst_nm, usr_lst_nm, usr_mail_id, insrt_tm, updt_tm, usr_stat, extrnl_emp_id) VALUES(
       '${usr_id}', '${usr_typ}', '${usr_fst_nm}', '${usr_lst_nm}', '${usr_mail_id}', '${insrt_tm}', '${updt_tm}', '${usr_stat}', '${extrnl_emp_id}') RETURNING usr_id`;
 
-    return DB.executeQuery(query).then((response) => {
-      return response.rowCount;
-    });
+    const response = await DB.executeQuery(query);
+    console.log("success: insertUserInDb", query, response);
+    return response.rows[0].usr_id;
   } catch (err) {
-    //throw error in json response with status 500.
-    return err;
+    console.log("error: insertUserInDb", err);
+    return false;
   }
 };

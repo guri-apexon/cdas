@@ -84,21 +84,27 @@ exports.createNewUser = async (req, res) => {
 
   // validate tenant
   const tenant_id = await tenantHelper.isTenantExists(data.tenant);
-  if (!tenant_id) return apiResponse.ErrorResponse(res, "Tenant not present");
+  if (!tenant_id)
+    return apiResponse.ErrorResponse(res, "Tenant does not exists");
 
   // provision into SDA and save
   const user = await userHelper.isUserExists(data.email);
+  let usr_id = (user && user.usr_id) || "";
+  let usr_stat = (user && user.usr_stat) || "";
 
-  if (user && (user.usr_stat == "ACTIVE" || user.usr_stat == "INVITED"))
-    return apiResponse.ErrorResponse(res, "User already exists");
+  if (usr_stat == "ACTIVE" || usr_stat == "INVITED")
+    return apiResponse.ErrorResponse(
+      res,
+      "User already exists in the database"
+    );
 
   if (data.userType === "internal") {
     const provision_response = await userHelper.provisionInternalUser(data);
     if (provision_response) {
-      if (user && user.usr_stat == "INACTIVE")
-        user.usr_id = await userHelper.makeUserActive(user.usr_id, user.usr_id);
+      if (usr_stat == "INACTIVE")
+        usr_id = await userHelper.makeUserActive(usr_id, usr_id);
       else
-        user.usr_id = await userHelper.insertUserInDb({
+        usr_id = await userHelper.insertUserInDb({
           ...data,
           invt_sent_tm: null,
           insrt_tm: getCurrentTime(),
@@ -106,17 +112,23 @@ exports.createNewUser = async (req, res) => {
           status: "Active",
           externalId: data.uid,
         });
+    } else {
+      return apiResponse.ErrorResponse(
+        res,
+        "An error occured while provisioning internal user"
+      );
     }
+    console.log(">>>> provision", provision_response, usr_id, usr_stat);
   } else {
     const provision_response = await userHelper.provisionExternalUser(data);
     if (provision_response) {
-      if (user && user.usr_stat == "INACTIVE")
-        user.usr_id = await userHelper.makeUserActive(
-          user.usr_id,
+      if (usr_stat == "INACTIVE")
+        usr_id = await userHelper.makeUserActive(
+          usr_id,
           provision_response.data
         );
       else
-        user.usr_id = await userHelper.insertUserInDb({
+        usr_id = await userHelper.insertUserInDb({
           ...data,
           invt_sent_tm: null,
           insrt_tm: getCurrentTime(),
@@ -125,12 +137,24 @@ exports.createNewUser = async (req, res) => {
           uid: "",
           externalId: provision_response.data,
         });
+    } else {
+      return apiResponse.ErrorResponse(
+        res,
+        "An error occured while provisioning external user"
+      );
     }
+    console.log(">>>> provision", provision_response, usr_id, usr_stat);
   }
+  if (!usr_id)
+    apiResponse.ErrorResponse(res, "An error occured while inserting the user");
 
+  console.log(">>>> usr, tenant", usr_id, tenant_id);
   // save tenant user relationship
-  if (user.usr_stat != "INACTIVE")
-    tenantHelper.insertTenantUser(user.usr_id, tenant_id);
-
+  if (usr_id && tenant_id) tenantHelper.insertTenantUser(usr_id, tenant_id);
+  else
+    apiResponse.ErrorResponse(
+      res,
+      "An error occured while entering user and tenant detail"
+    );
   return apiResponse.successResponseWithData(res, "User successfully created");
 };
