@@ -339,6 +339,7 @@ const UpdateRole = () => {
       <Box className="top-content">
         {confirmObj && (
           <Modal
+            disableBackdropClick="true"
             open={confirmObj ? true : false}
             onClose={() => setConfirmObj(null)}
             className="save-confirm"
