@@ -118,7 +118,6 @@ exports.createNewUser = async (req, res) => {
         "An error occured while provisioning internal user"
       );
     }
-    console.log(">>>> provision", provision_response, usr_id, usr_stat);
   } else {
     const provision_response = await userHelper.provisionExternalUser(data);
     if (provision_response) {
@@ -143,13 +142,10 @@ exports.createNewUser = async (req, res) => {
         "An error occured while provisioning external user"
       );
     }
-    console.log(">>>> provision", provision_response, usr_id, usr_stat);
   }
   if (!usr_id)
     apiResponse.ErrorResponse(res, "An error occured while inserting the user");
 
-  console.log(">>>> usr, tenant", usr_id, tenant_id);
-  // save tenant user relationship
   if (usr_id && tenant_id) tenantHelper.insertTenantUser(usr_id, tenant_id);
   else
     apiResponse.ErrorResponse(
