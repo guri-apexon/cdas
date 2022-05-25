@@ -173,6 +173,7 @@ const AddStudyModal = ({ open, onClose }) => {
   return (
     <>
       <Modal
+        disableBackdropClick="true"
         open={openModal}
         onClose={handleClose}
         title="Add New Study"
