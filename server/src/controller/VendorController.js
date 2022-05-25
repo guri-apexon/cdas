@@ -97,75 +97,6 @@ exports.getENSList = async (req, res) => {
   }
 };
 
-exports.createVendor = async (req, res) => {
-  try {
-    const {
-      vName,
-      vNStd,
-      vDescription,
-      vStatus,
-      vESN,
-      vContacts,
-      userId,
-      userName,
-      Vendor_Name_Stnd__c,
-      Active_Flag__c,
-      External_System_Name__c,
-      Description,
-    } = req.body;
-
-    Logger.info({ message: "createVendor" });
-
-    const curDate = helpers.getCurrentTime();
-
-    const insertQuery = `INSERT INTO ${schemaName}.vendor
-    (vend_nm, vend_nm_stnd, description, active, extrnl_sys_nm, insrt_tm, updt_tm, created_by, updated_by)
-    VALUES($1, $2, $3, $4, $5, $7, $7, $6, $6)`;
-
-    const idQuery = `SELECT vend_id FROM cdascfg.vendor v ORDER BY insrt_tm DESC LIMIT 1`;
-
-    const inset = await DB.executeQuery(insertQuery, [
-      vName || Vendor_Name_Stnd__c,
-      vNStd || Vendor_Name_Stnd__c || vName,
-      vDescription || Description,
-      vStatus || helpers.stringToBoolean(Active_Flag__c) ? 1 : 0,
-      vESN || External_System_Name__c,
-      userId || null,
-      curDate,
-    ]);
-
-    const getId = await DB.executeQuery(idQuery);
-
-    const vId = getId.rows[0].vend_id;
-
-    if (vContacts?.length > 0) {
-      await vContacts.map((e) => {
-        DB.executeQuery(contactInsert, [
-          vId,
-          e.name,
-          e.email,
-          userName,
-          curDate,
-        ]);
-      });
-    }
-
-    return apiResponse.successResponse(res, "Vendor created successfully");
-  } catch (err) {
-    //throw error in json response with status 500.
-    Logger.error("catch :createVendor");
-    Logger.error(err);
-    if (err.code === "23505") {
-      return apiResponse.validationErrorWithData(
-        res,
-        "Operation failed",
-        "Vendor name and external system name combination already exists."
-      );
-    }
-    return apiResponse.ErrorResponse(res, err);
-  }
-};
-
 exports.deleteContact = async (req, res) => {
   try {
     const { vId, vCId, userName, userId } = req.body;
@@ -239,6 +170,75 @@ exports.activeStatusUpdate = async (req, res) => {
     Logger.error("catch :activeStatusUpdate");
     Logger.error(err);
 
+    return apiResponse.ErrorResponse(res, err);
+  }
+};
+
+exports.createVendor = async (req, res) => {
+  try {
+    const {
+      vName,
+      vNStd,
+      vDescription,
+      vStatus,
+      vESN,
+      vContacts,
+      userId,
+      userName,
+      Vendor_Name_Stnd__c,
+      Active_Flag__c,
+      External_System_Name__c,
+      Description,
+    } = req.body;
+
+    Logger.info({ message: "createVendor" });
+
+    const curDate = helpers.getCurrentTime();
+
+    const insertQuery = `INSERT INTO ${schemaName}.vendor
+    (vend_nm, vend_nm_stnd, description, active, extrnl_sys_nm, insrt_tm, updt_tm, created_by, updated_by)
+    VALUES($1, $2, $3, $4, $5, $7, $7, $6, $6)`;
+
+    const idQuery = `SELECT vend_id FROM cdascfg.vendor v ORDER BY insrt_tm DESC LIMIT 1`;
+
+    const inset = await DB.executeQuery(insertQuery, [
+      vName || Vendor_Name_Stnd__c,
+      vNStd || Vendor_Name_Stnd__c || vName,
+      vDescription || Description,
+      vStatus || helpers.stringToBoolean(Active_Flag__c) ? 1 : 0,
+      vESN || External_System_Name__c,
+      userId || null,
+      curDate,
+    ]);
+
+    const getId = await DB.executeQuery(idQuery);
+
+    const vId = getId.rows[0].vend_id;
+
+    if (vContacts?.length > 0) {
+      await vContacts.map((e) => {
+        DB.executeQuery(contactInsert, [
+          vId,
+          e.name,
+          e.email,
+          userName,
+          curDate,
+        ]);
+      });
+    }
+
+    return apiResponse.successResponse(res, "Vendor created successfully");
+  } catch (err) {
+    //throw error in json response with status 500.
+    Logger.error("catch :createVendor");
+    Logger.error(err);
+    if (err.code === "23505") {
+      return apiResponse.validationErrorWithData(
+        res,
+        "Operation failed",
+        "Vendor name and external system name combination already exists."
+      );
+    }
     return apiResponse.ErrorResponse(res, err);
   }
 };
