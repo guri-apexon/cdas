@@ -233,23 +233,18 @@ const AddStudyModal = ({ open, onClose }) => {
                 onChange={searchTrigger}
                 fullWidth
               />
-              {loading ? (
-                <Box display="flex" className="loader-container">
-                  <ApolloProgress />
-                </Box>
-              ) : (
-                <Table
-                  columns={columns}
-                  rows={studies}
-                  rowId="employeeId"
-                  hidePagination
-                  maxHeight="40vh"
-                  emptyProps={{
-                    text:
-                      searchTxt === "" && !loading ? "" : "No data to display",
-                  }}
-                />
-              )}
+              <Table
+                isLoading={loading}
+                columns={columns}
+                rows={studies}
+                rowId="employeeId"
+                hidePagination
+                maxHeight="40vh"
+                emptyProps={{
+                  text:
+                    searchTxt === "" && !loading ? "" : "No data to display",
+                }}
+              />
             </div>
           )}
         </div>
