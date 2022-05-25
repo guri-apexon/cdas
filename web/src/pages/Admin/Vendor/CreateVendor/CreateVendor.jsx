@@ -178,6 +178,8 @@ const CreateVendor = () => {
       userId: userInfo.user_id,
       userName: userInfo.firstName,
       vStatus: active ? 1 : 0,
+      insrt_tm: new Date().toISOString(),
+      updt_tm: new Date().toISOString(),
     };
     setInitialRender(false);
     if (vName === "") {
@@ -193,7 +195,9 @@ const CreateVendor = () => {
 
     setLoading(true);
     if (isCreatePage) {
-      addVendorService(reqBody)
+      // eslint-disable-next-line
+      const { updt_tm, ...rest } = reqBody;
+      addVendorService(rest)
         .then((res) => {
           messageContext.showSuccessMessage(res.message || "Successfully done");
           unblockRouter();
@@ -214,7 +218,9 @@ const CreateVendor = () => {
           setLoading(false);
         });
     } else if (isEditPage) {
-      updateVendorService(reqBody)
+      // eslint-disable-next-line
+      const { insrt_tm, ...rest } = reqBody;
+      updateVendorService(rest)
         .then((res) => {
           messageContext.showSuccessMessage(res.message || "Successfully done");
           unblockRouter();
@@ -312,6 +318,7 @@ const CreateVendor = () => {
         vCId,
         userName: userInfo.firstName,
         userId: userInfo.user_id,
+        updt_tm: new Date().toISOString(),
       });
     }
   };
