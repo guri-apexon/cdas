@@ -1,6 +1,7 @@
 const DB = require("../config/db");
 const Logger = require("../config/logger");
-const schemaName = process.env.SCHEMA;
+const constants = require("../config/constants");
+const { DB_SCHEMA_NAME: schemaName } = constants;
 
 exports.isTenantExists = async (tenant_nm) => {
   const query = `SELECT tenant_id FROM ${schemaName}.tenant WHERE tenant_nm = '${tenant_nm}' LIMIT 1`;

@@ -4,13 +4,13 @@ const DB = require("../config/db");
 const { data } = require("../config/logger");
 const { getCurrentTime, validateEmail } = require("./customFunctions");
 const Logger = require("../config/logger");
+const constants = require("../config/constants");
+const { DB_SCHEMA_NAME: schemaName } = constants;
 
 const SDA_BASE_API_URL = `${process.env.SDA_BASE_URL}/sda-rest-api/api/external/entitlement/V1/ApplicationUsers`;
 const SDA_Endpoint = `${SDA_BASE_API_URL}?appKey=${process.env.SDA_APP_KEY}`;
 const SDA_Endpoint_Deprovision = `${SDA_BASE_API_URL}/deprovisionUserFromApplication`;
 const SDA_Endpoint_get_users = `${SDA_BASE_API_URL}/getUsersForApplication?appKey=${process.env.SDA_APP_KEY}`;
-
-const schemaName = process.env.SCHEMA;
 
 exports.deProvisionUser = async (data) => {
   const { appKey, userType, roleType, email, updatedBy } = data;
