@@ -36,12 +36,6 @@ import {
 } from "../../../../services/ApiServices";
 import PolicySnapshot from "./PolicySnapshot";
 import { AppContext } from "../../../../components/Providers/AppProvider";
-import {
-  formComponentActive,
-  hideAlert,
-  showAppSwitcher,
-} from "../../../../store/actions/AlertActions";
-import AlertBox from "../../../AlertBox/AlertBox";
 
 const UpdateRole = () => {
   const dispatch = useDispatch();
@@ -64,8 +58,6 @@ const UpdateRole = () => {
   const [RoleUpdatePermission, setUpdateRoleUpdatePermission] = useState(false);
   const userInfo = getUserInfo();
   const [targetRoute, setTargetRoute] = useState("");
-  const alertStore = useSelector((state) => state.Alert);
-  const [isShowAlertBox, setShowAlertBox] = useState(false);
 
   const unblockRouter = () => {
     if (routerHandle) {
@@ -321,28 +313,6 @@ const UpdateRole = () => {
     };
     setConfirmObj(confirm);
   };
-
-  const keepEditingBtn = () => {
-    dispatch(hideAlert());
-    setShowAlertBox(false);
-  };
-
-  const leavePageBtn = () => {
-    dispatch(hideAlert());
-    dispatch(showAppSwitcher());
-    setShowAlertBox(false);
-  };
-
-  useEffect(() => {
-    dispatch(formComponentActive());
-  }, []);
-
-  useEffect(() => {
-    if (alertStore?.showAlertBox) {
-      setShowAlertBox(true);
-    }
-  }, [alertStore]);
-
   useEffect(() => {
     routerHandle.current = history.block((tr) => {
       console.log(tr);
@@ -367,9 +337,6 @@ const UpdateRole = () => {
   return (
     <div className="create-role-wrapper">
       <Box className="top-content">
-        {isShowAlertBox && (
-          <AlertBox cancel={keepEditingBtn} submit={leavePageBtn} />
-        )}
         {confirmObj && (
           <Modal
             disableBackdropClick="true"
