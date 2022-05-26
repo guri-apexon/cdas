@@ -265,7 +265,7 @@ const AppHeader = ({ history, setLoggedIn }) => {
     ],
   };
   useEffect(() => {
-    console.log(alertStore);
+    // console.log(alertStore);
     if (alertStore?.showAppSwitcher) {
       setpanelOpen(true);
     }
