@@ -1,12 +1,13 @@
 const DB = require("../config/db");
-const constants = require("../config/constants");
 const { getCurrentTime, validateEmail } = require("../helpers/customFunctions");
 const Logger = require("../config/logger");
 const axios = require("axios");
 const userHelper = require("../helpers/userHelper");
 const tenantHelper = require("../helpers/tenantHelper");
 const apiResponse = require("../helpers/apiResponse");
-const schemaName = process.env.SCHEMA;
+const constants = require("../config/constants");
+const { DB_SCHEMA_NAME: schemaName } = constants;
+
 exports.getUser = function (user_id) {
   try {
     const usrId = user_id;
