@@ -1,6 +1,4 @@
-import React, { useContext, useEffect, useState, useRef } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { useHistory, useParams } from "react-router";
+import React from "react";
 import Modal from "apollo-react/components/Modal";
 
 const AlertBox = ({ cancel, submit }) => {

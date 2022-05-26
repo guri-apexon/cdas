@@ -5,6 +5,7 @@ import {
   FORM_COMPONENT_ACTIVE,
   SHOW_APP_SWITCHER,
   HIDE_APP_SWITCHER,
+  FORM_COMPONENT_IN_ACTIVE,
 } from "../../constants";
 
 export const initialState = {
@@ -26,6 +27,10 @@ const AlertReducer = (state = initialState, action) =>
 
       case FORM_COMPONENT_ACTIVE:
         newState.isFormComponentActive = true;
+        break;
+
+      case FORM_COMPONENT_IN_ACTIVE:
+        newState.isFormComponentActive = false;
         break;
 
       case SHOW_APP_SWITCHER:

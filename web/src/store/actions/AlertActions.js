@@ -4,6 +4,7 @@ import {
   FORM_COMPONENT_ACTIVE,
   SHOW_APP_SWITCHER,
   HIDE_APP_SWITCHER,
+  FORM_COMPONENT_IN_ACTIVE,
 } from "../../constants";
 
 export const showAlert = () => {
@@ -23,6 +24,14 @@ export const formComponentActive = () => {
     type: FORM_COMPONENT_ACTIVE,
   };
 };
+
+export const formComponentInActive = () => {
+  return {
+    type: FORM_COMPONENT_IN_ACTIVE,
+  };
+};
+
+
 
 export const showAppSwitcher = () => {
   return {
