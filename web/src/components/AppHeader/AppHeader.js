@@ -3,7 +3,6 @@
 /* eslint-disable react/jsx-one-expression-per-line */
 /* eslint-disable no-shadow */
 import React, { useContext, useState, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { useLocation, withRouter } from "react-router";
 import NavigationBar from "apollo-react/components/NavigationBar";
 import makeStyles from "@material-ui/core/styles/makeStyles";
@@ -26,11 +25,6 @@ import { getUserInfo } from "../../utils/index";
 import { userLogOut, getRolesPermissions } from "../../services/ApiServices";
 import { MessageContext } from "../Providers/MessageProvider";
 import { AppContext } from "../Providers/AppProvider";
-import {
-  hideAlert,
-  hideAppSwitcher,
-  showAlert,
-} from "../../store/actions/AlertActions";
 
 const styles = {
   haveAccess: {
@@ -105,8 +99,6 @@ const AppHeader = ({ history, setLoggedIn }) => {
   const [showVersionModal, setShowVersionModal] = useState(false);
   const { permissions } = appContext.user;
   const { pathname } = useLocation();
-  const dispatch = useDispatch();
-  const alertStore = useSelector((state) => state.Alert);
 
   const onPanelClose = () => {
     setpanelOpen(false);
@@ -264,22 +256,9 @@ const AppHeader = ({ history, setLoggedIn }) => {
       },
     ],
   };
-  useEffect(() => {
-    console.log(alertStore);
-    if (alertStore?.showAppSwitcher) {
-      setpanelOpen(true);
-    }
-  }, [alertStore]);
-
   const toggleMenu = () => {
-    if (alertStore.isFormComponentActive && panelOpen === false) {
-      dispatch(hideAppSwitcher());
-      dispatch(showAlert());
-    }
     // eslint-disable-next-line no-shadow
-    if (alertStore.isFormComponentActive === false || undefined) {
-      setpanelOpen((panelOpen) => !panelOpen);
-    }
+    setpanelOpen((panelOpen) => !panelOpen);
   };
 
   const ConfirmModal = React.memo(({ showVersionModal, closeModal }) => {
