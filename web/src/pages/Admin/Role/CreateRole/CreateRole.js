@@ -28,6 +28,12 @@ import {
 } from "../../../../utils";
 import { addRoleService } from "../../../../services/ApiServices";
 import PolicySnapshot from "./PolicySnapshot";
+import {
+  formComponentActive,
+  hideAlert,
+  showAppSwitcher,
+} from "../../../../store/actions/AlertActions";
+import AlertBox from "../../../AlertBox/AlertBox";
 
 const CreateRole = () => {
   const dispatch = useDispatch();
@@ -47,6 +53,8 @@ const CreateRole = () => {
   const policyStore = useSelector((state) => state.policy);
   const routerHandle = useRef();
   const [targetRoute, setTargetRoute] = useState("");
+  const alertStore = useSelector((state) => state.Alert);
+  const [isShowAlertBox, setShowAlertBox] = useState(false);
 
   const unblockRouter = () => {
     if (routerHandle) {
@@ -275,6 +283,27 @@ const CreateRole = () => {
     setConfirmObj(confirm);
   };
 
+  const keepEditingBtn = () => {
+    dispatch(hideAlert());
+    setShowAlertBox(false);
+  };
+
+  const leavePageBtn = () => {
+    dispatch(hideAlert());
+    dispatch(showAppSwitcher());
+    setShowAlertBox(false);
+  };
+
+  useEffect(() => {
+    dispatch(formComponentActive());
+  }, []);
+
+  useEffect(() => {
+    if (alertStore?.showAlertBox) {
+      setShowAlertBox(true);
+    }
+  }, [alertStore]);
+
   useEffect(() => {
     routerHandle.current = history.block((tr) => {
       setTargetRoute(tr?.pathname);
@@ -297,6 +326,9 @@ const CreateRole = () => {
   };
   return (
     <div className="create-role-wrapper">
+      {isShowAlertBox && (
+        <AlertBox cancel={keepEditingBtn} submit={leavePageBtn} />
+      )}
       <Box className="top-content">
         {confirmObj && (
           <Modal
