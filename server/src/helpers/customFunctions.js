@@ -58,3 +58,17 @@ const stringToBoolean = (exports.stringToBoolean = (string) => {
       return false;
   }
 });
+
+exports.getdiffKeys = (newObj, oldObj) => {
+  if (
+    typeof newObj === "object" &&
+    !Array.isArray(newObj) &&
+    newObj !== null &&
+    typeof oldObj === "object" &&
+    !Array.isArray(oldObj) &&
+    oldObj !== null
+  ) {
+    return _.pickBy(newObj, (v, k) => !_.isEqual(oldObj[k], v));
+  }
+  return {};
+};

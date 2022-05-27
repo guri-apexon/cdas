@@ -31,6 +31,15 @@ exports.notFoundResponse = function (res, msg) {
   return res.status(404).json(data);
 };
 
+exports.successResponseWithMoreData = function (res, data) {
+  var resData = {
+    success: true,
+    error: [],
+    ...data,
+  };
+  return res.status(200).json(resData);
+};
+
 exports.validationErrorWithData = function (res, msg, data) {
   var resData = {
     status: 0,

@@ -10,14 +10,6 @@ const { DB_SCHEMA_NAME: schemaName } = constants;
 const contactInsert = `INSERT INTO ${schemaName}.vendor_contact (vend_id, contact_nm, emailid, created_by, created_on, updated_by, updated_on, act_flg) VALUES($1, $2, $3, $4, $5, $4, $5, 1)`;
 const logQuery = `INSERT INTO ${schemaName}.audit_log (tbl_nm,id,attribute,old_val,new_val,rsn_for_chg,updated_by,updated_on) values ($1, $2, $3, $4, $5, $6, $7, $8)`;
 
-async function getCurrentVendor(vId) {
-  const { rows } = await DB.executeQuery(
-    `SELECT * FROM ${schemaName}.vendor where vend_id = $1`,
-    [vId]
-  );
-  return rows[0];
-}
-
 exports.getVendorsList = async (req, res) => {
   try {
     Logger.info({ message: "vendorList" });
@@ -129,7 +121,7 @@ exports.activeStatusUpdate = async (req, res) => {
     const oldValue = vStatus === 1 ? 0 : 1;
     Logger.info({ message: "activeStatusUpdate" });
     const $q1 = `select distinct vend_id from ${schemaName}.dataflow d`;
-    const $query = `UPDATE ${schemaName}.vendor SET active=$1, updt_tm=$2, updated_by=$3 WHERE vend_id=$4`;
+    const $query = `UPDATE ${schemaName}.vendor SET active=$1, updt_tm=$2, updated_by=$3 WHERE vend_id=$4 RETURNING *`;
 
     const q1 = await DB.executeQuery($q1);
     const existingInDF = q1.rows.map((e) => parseInt(e.vend_id));
@@ -161,7 +153,7 @@ exports.activeStatusUpdate = async (req, res) => {
       return apiResponse.successResponseWithData(
         res,
         "Operation success",
-        details.row || null
+        details.rows || null
       );
     }
   } catch (err) {
@@ -174,60 +166,189 @@ exports.activeStatusUpdate = async (req, res) => {
   }
 };
 
+const mandatoryMissing = `Please check payload mandatory fields are missing`;
+const vSaveSuccess = `Vendor was saved successfully`;
+const vUpdateSuccess = `Vendor was updated successfully`;
+const vendorExist = `Vendor name and external system name combination already exists`;
+
 exports.createVendor = async (req, res) => {
   try {
+    Logger.info({ message: "createVendor" });
+    const curDate = helpers.getCurrentTime();
+
     const {
+      ExternalId,
+      systemName,
+      vId: ID,
       vName,
       vNStd,
       vDescription,
       vStatus,
-      vESN,
+      vESName,
       vContacts,
       userId,
-      userName,
-      Vendor_Name_Stnd__c,
-      Active_Flag__c,
-      External_System_Name__c,
-      Description,
     } = req.body;
 
-    Logger.info({ message: "createVendor" });
+    const insertQuery = `INSERT INTO ${schemaName}.vendor (vend_nm, vend_nm_stnd, description, active, extrnl_sys_nm, insrt_tm, created_by, extrnl_id) VALUES($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`;
+    const dfVendorList = `select distinct vend_id from ${schemaName}.dataflow d`;
+    const updateQuery = `UPDATE ${schemaName}.vendor SET vend_nm=$1, vend_nm_stnd=$2, description=$3, active=$4, extrnl_sys_nm=$5, updt_tm=$6, updated_by=$7 WHERE vend_id=$8 RETURNING *`;
+    const contactUpdate = `UPDATE ${schemaName}.vendor_contact SET contact_nm=$2, emailid=$3, updated_by=$4, updated_on=$5, act_flg=$6 WHERE vend_contact_id=$1 RETURNING *`;
+    const selectVendor = `SELECT * FROM ${schemaName}.vendor where vend_id = $1`;
+    const selectExVendor = `SELECT * FROM ${schemaName}.vendor where extrnl_id = $1`;
 
-    const curDate = helpers.getCurrentTime();
-
-    const insertQuery = `INSERT INTO ${schemaName}.vendor
-    (vend_nm, vend_nm_stnd, description, active, extrnl_sys_nm, insrt_tm, updt_tm, created_by, updated_by)
-    VALUES($1, $2, $3, $4, $5, $7, $7, $6, $6)`;
-
-    const idQuery = `SELECT vend_id FROM cdascfg.vendor v ORDER BY insrt_tm DESC LIMIT 1`;
-
-    const inset = await DB.executeQuery(insertQuery, [
-      vName || Vendor_Name_Stnd__c,
-      vNStd || Vendor_Name_Stnd__c || vName,
-      vDescription || Description,
-      vStatus || helpers.stringToBoolean(Active_Flag__c) ? 1 : 0,
-      vESN || External_System_Name__c,
-      userId || null,
-      curDate,
-    ]);
-
-    const getId = await DB.executeQuery(idQuery);
-
-    const vId = getId.rows[0].vend_id;
-
-    if (vContacts?.length > 0) {
-      await vContacts.map((e) => {
-        DB.executeQuery(contactInsert, [
-          vId,
-          e.name,
-          e.email,
-          userName,
-          curDate,
-        ]);
-      });
+    if (!vName || !vESName || !userId || typeof vStatus !== "number") {
+      return apiResponse.validationErrorWithData(
+        res,
+        "Operation failed",
+        mandatoryMissing
+      );
     }
 
-    return apiResponse.successResponse(res, "Vendor created successfully");
+    let existingVendor = "";
+
+    if (ExternalId) {
+      existingVendor = await DB.executeQuery(selectExVendor, [ExternalId]);
+    }
+
+    if (ID) {
+      existingVendor = await DB.executeQuery(selectVendor, [ID]);
+    }
+
+    const payload = [
+      vName,
+      vNStd || vName,
+      vDescription,
+      vStatus,
+      vESName,
+      curDate,
+      userId,
+    ];
+
+    let updatedID = existingVendor?.rows[0]?.vend_id;
+
+    if (!existingVendor?.rowCount) {
+      const inset = await DB.executeQuery(insertQuery, payload);
+      const vId = inset?.rows[0].vend_id;
+      if (vContacts?.length > 0) {
+        await vContacts.map((e) => {
+          DB.executeQuery(contactInsert, [
+            vId,
+            e.name,
+            e.email,
+            userId,
+            curDate,
+          ]);
+        });
+      }
+      if (systemName === "CDI") {
+        return apiResponse.successResponse(res, vSaveSuccess);
+      } else {
+        return apiResponse.successResponseWithMoreData(res, {
+          ExternalId,
+          id: inset?.rows[0].vend_id,
+        });
+      }
+    } else {
+      if (!updatedID) {
+        return apiResponse.validationErrorWithData(
+          res,
+          "Operation failed",
+          commonError
+        );
+      }
+
+      const q1 = await DB.executeQuery(dfVendorList, [updatedID]);
+      const existingInDF = q1.rows.map((e) => e.vend_id.toString());
+      if (existingInDF.includes(updatedID.toString())) {
+        return apiResponse.validationErrorWithData(
+          res,
+          "Operation failed",
+          "Vendor cannot be updated until removed from other dataflows using this vendor."
+        );
+      } else {
+        const updatedVendor = await DB.executeQuery(updateQuery, [
+          vName,
+          vNStd,
+          vDescription,
+          vStatus,
+          vESN,
+          curDate,
+          userId,
+          vId,
+        ]);
+
+        if (vContacts.length > 0) {
+          vContacts.map((e) => {
+            if (e.isNew) {
+              DB.executeQuery(contactInsert, [
+                vId,
+                e.name,
+                e.email,
+                userName,
+                curDate,
+              ]);
+            } else {
+              DB.executeQuery(contactUpdate, [
+                e.vCId,
+                e.name,
+                e.email,
+                userName,
+                curDate,
+                1,
+              ]);
+            }
+          });
+        }
+
+        const vendorObj = updatedVendor.rows[0];
+        const existingObj = existingVendor.rows[0];
+
+        const comparisionObj1 = {
+          vend_nm: vendorObj.vend_nm,
+          description: vendorObj.description,
+          vend_nm_stnd: vendorObj.vend_nm_stnd,
+          extrnl_sys_nm: vendorObj.extrnl_sys_nm,
+          active: vendorObj.active,
+        };
+
+        const comparisionObj2 = {
+          vend_nm: existingObj.vend_nm,
+          description: existingObj.description,
+          vend_nm_stnd: existingObj.vend_nm_stnd,
+          extrnl_sys_nm: existingObj.extrnl_sys_nm,
+          active: existingObj.active,
+        };
+
+        const diffObj = helper.getdiffKeys(comparisionObj1, comparisionObj2);
+
+        const anditLogsQueries = [];
+        Object.keys(diffObj).map((key) => {
+          anditLogsQueries.push(
+            DB.executeQuery(logQuery, [
+              "vendor",
+              updatedID,
+              key,
+              existDf[key],
+              diffObj[key],
+              "User Requested",
+              userId,
+              curDate,
+            ])
+          );
+        });
+
+        Promise.all(anditLogsQueries).then((values) => {
+          if (systemName === "CDI") {
+            return apiResponse.successResponse(res, vUpdateSuccess);
+          } else {
+            return apiResponse.successResponseWithMoreData(res, {
+              ExternalId,
+              id: inset?.rows[0].vend_id,
+            });
+          }
+        });
+      }
+    }
   } catch (err) {
     //throw error in json response with status 500.
     Logger.error("catch :createVendor");
@@ -236,162 +357,239 @@ exports.createVendor = async (req, res) => {
       return apiResponse.validationErrorWithData(
         res,
         "Operation failed",
-        "Vendor name and external system name combination already exists."
+        vendorExist
       );
     }
     return apiResponse.ErrorResponse(res, err);
   }
 };
 
-exports.updateVendor = async (req, res) => {
-  try {
-    const {
-      vId,
-      vName,
-      vNStd,
-      vDescription,
-      vStatus,
-      vESN,
-      vContacts,
-      userId,
-      userName,
-    } = req.body;
+// exports.createVendor = async (req, res) => {
+//   try {
+//     const {
+//       vName,
+//       vNStd,
+//       vDescription,
+//       vStatus,
+//       vESN,
+//       vContacts,
+//       userId,
+//       userName,
+//       Vendor_Name_Stnd__c,
+//       Active_Flag__c,
+//       External_System_Name__c,
+//       Description,
+//     } = req.body;
 
-    Logger.info({ message: "updateVendor" });
+//     Logger.info({ message: "createVendor" });
 
-    const curDate = helpers.getCurrentTime();
-    const $q1 = `select distinct vend_id from ${schemaName}.dataflow d`;
-    const updateQuery = `UPDATE ${schemaName}.vendor SET vend_nm=$1, vend_nm_stnd=$2, description=$3, active=$4, extrnl_sys_nm=$5, updt_tm=$6, updated_by=$7 WHERE vend_id=$8`;
-    const contactUpdate = `UPDATE ${schemaName}.vendor_contact SET contact_nm=$2, emailid=$3, updated_by=$4, updated_on=$5, act_flg=$6 WHERE vend_contact_id=$1`;
+//     const curDate = helpers.getCurrentTime();
 
-    // const deleteQuery = `delete from ${schemaName}.vendor_contact vc where vend_id=$1 and act_flg <> 0`;
-    const curVendor = await getCurrentVendor(vId);
+//     const insertQuery = `INSERT INTO ${schemaName}.vendor
+//     (vend_nm, vend_nm_stnd, description, active, extrnl_sys_nm, insrt_tm, updt_tm, created_by, updated_by)
+//     VALUES($1, $2, $3, $4, $5, $7, $7, $6, $6)`;
 
-    const q1 = await DB.executeQuery($q1);
-    const existingInDF = q1.rows.map((e) => parseInt(e.vend_id));
-    if (existingInDF.includes(parseInt(vId))) {
-      return apiResponse.validationErrorWithData(
-        res,
-        "Operation failed",
-        "Vendor cannot be updated until removed from other dataflows using this vendor."
-      );
-    } else {
-      const { vend_nm, vend_nm_stnd, active, extrnl_sys_nm, description } =
-        curVendor;
+//     const idQuery = `SELECT vend_id FROM cdascfg.vendor v ORDER BY insrt_tm DESC LIMIT 1`;
 
-      await DB.executeQuery(updateQuery, [
-        vName,
-        vNStd,
-        vDescription,
-        vStatus,
-        vESN,
-        curDate,
-        userId,
-        vId,
-      ]);
+//     const inset = await DB.executeQuery(insertQuery, [
+//       vName || Vendor_Name_Stnd__c,
+//       vNStd || Vendor_Name_Stnd__c || vName,
+//       vDescription || Description,
+//       vStatus || helpers.stringToBoolean(Active_Flag__c) ? 1 : 0,
+//       vESN || External_System_Name__c,
+//       userId || null,
+//       curDate,
+//     ]);
 
-      // await DB.executeQuery(deleteQuery, [vId]);
+//     const getId = await DB.executeQuery(idQuery);
 
-      if (vContacts.length > 0) {
-        vContacts.map((e) => {
-          if (e.isNew) {
-            DB.executeQuery(contactInsert, [
-              vId,
-              e.name,
-              e.email,
-              userName,
-              curDate,
-            ]);
-          } else {
-            DB.executeQuery(contactUpdate, [
-              e.vCId,
-              e.name,
-              e.email,
-              userName,
-              curDate,
-              1,
-            ]);
-          }
-        });
-      }
+//     const vId = getId.rows[0].vend_id;
 
-      if (vend_nm != vName) {
-        await DB.executeQuery(logQuery, [
-          "vendor",
-          vId,
-          "vend_nm",
-          vend_nm,
-          vName,
-          "User Requested",
-          userId,
-          curDate,
-        ]);
-      }
-      if (vend_nm_stnd != vNStd) {
-        await DB.executeQuery(logQuery, [
-          "vendor",
-          vId,
-          "vend_nm_stnd",
-          vend_nm_stnd,
-          vNStd,
-          "User Requested",
-          userId,
-          curDate,
-        ]);
-      }
-      if (extrnl_sys_nm != vESN) {
-        await DB.executeQuery(logQuery, [
-          "vendor",
-          vId,
-          "extrnl_sys_nm",
-          extrnl_sys_nm,
-          vESN,
-          "User Requested",
-          userId,
-          curDate,
-        ]);
-      }
-      if (description != vDescription) {
-        await DB.executeQuery(logQuery, [
-          "vendor",
-          vId,
-          "description",
-          description,
-          vDescription,
-          "User Requested",
-          userId,
-          curDate,
-        ]);
-      }
-      if (active != vStatus) {
-        await DB.executeQuery(logQuery, [
-          "vendor",
-          vId,
-          "active",
-          active,
-          vStatus,
-          "User Requested",
-          userId,
-          curDate,
-        ]);
-      }
+//     if (vContacts?.length > 0) {
+//       await vContacts.map((e) => {
+//         DB.executeQuery(contactInsert, [
+//           vId,
+//           e.name,
+//           e.email,
+//           userName,
+//           curDate,
+//         ]);
+//       });
+//     }
 
-      return apiResponse.successResponse(
-        res,
-        "Vendor details updated successfully"
-      );
-    }
-  } catch (err) {
-    //throw error in json response with status 500.
-    Logger.error("catch :updateVendor");
-    Logger.error(err);
-    if (err.code === "23505") {
-      return apiResponse.validationErrorWithData(
-        res,
-        "Operation failed",
-        "Vendor name and external system name combination already exists."
-      );
-    }
-    return apiResponse.ErrorResponse(res, err);
-  }
-};
+//     return apiResponse.successResponse(res, "Vendor created successfully");
+//   } catch (err) {
+//     //throw error in json response with status 500.
+//     Logger.error("catch :createVendor");
+//     Logger.error(err);
+//     if (err.code === "23505") {
+//       return apiResponse.validationErrorWithData(
+//         res,
+//         "Operation failed",
+//         "Vendor name and external system name combination already exists."
+//       );
+//     }
+//     return apiResponse.ErrorResponse(res, err);
+//   }
+// };
+
+// async function getCurrentVendor(vId) {
+//   const { rows } = await DB.executeQuery(
+//     `SELECT * FROM ${schemaName}.vendor where vend_id = $1`,
+//     [vId]
+//   );
+//   return rows[0];
+// }
+
+// exports.updateVendor = async (req, res) => {
+//   try {
+//     const {
+//       vId,
+//       vName,
+//       vNStd,
+//       vDescription,
+//       vStatus,
+//       vESN,
+//       vContacts,
+//       userId,
+//       userName,
+//     } = req.body;
+
+//     Logger.info({ message: "updateVendor" });
+
+//     const curDate = helpers.getCurrentTime();
+//     const $q1 = `select distinct vend_id from ${schemaName}.dataflow d`;
+//     const updateQuery = `UPDATE ${schemaName}.vendor SET vend_nm=$1, vend_nm_stnd=$2, description=$3, active=$4, extrnl_sys_nm=$5, updt_tm=$6, updated_by=$7 WHERE vend_id=$8`;
+//     const contactUpdate = `UPDATE ${schemaName}.vendor_contact SET contact_nm=$2, emailid=$3, updated_by=$4, updated_on=$5, act_flg=$6 WHERE vend_contact_id=$1`;
+
+//     // const deleteQuery = `delete from ${schemaName}.vendor_contact vc where vend_id=$1 and act_flg <> 0`;
+//     const curVendor = await getCurrentVendor(vId);
+
+//     const q1 = await DB.executeQuery($q1);
+//     const existingInDF = q1.rows.map((e) => parseInt(e.vend_id));
+//     if (existingInDF.includes(parseInt(vId))) {
+//       return apiResponse.validationErrorWithData(
+//         res,
+//         "Operation failed",
+//         "Vendor cannot be updated until removed from other dataflows using this vendor."
+//       );
+//     } else {
+//       const { vend_nm, vend_nm_stnd, active, extrnl_sys_nm, description } =
+//         curVendor;
+
+//       await DB.executeQuery(updateQuery, [
+//         vName,
+//         vNStd,
+//         vDescription,
+//         vStatus,
+//         vESN,
+//         curDate,
+//         userId,
+//         vId,
+//       ]);
+
+//       // await DB.executeQuery(deleteQuery, [vId]);
+
+//       if (vContacts.length > 0) {
+//         vContacts.map((e) => {
+//           if (e.isNew) {
+//             DB.executeQuery(contactInsert, [
+//               vId,
+//               e.name,
+//               e.email,
+//               userName,
+//               curDate,
+//             ]);
+//           } else {
+//             DB.executeQuery(contactUpdate, [
+//               e.vCId,
+//               e.name,
+//               e.email,
+//               userName,
+//               curDate,
+//               1,
+//             ]);
+//           }
+//         });
+//       }
+
+//       if (vend_nm != vName) {
+//         await DB.executeQuery(logQuery, [
+//           "vendor",
+//           vId,
+//           "vend_nm",
+//           vend_nm,
+//           vName,
+//           "User Requested",
+//           userId,
+//           curDate,
+//         ]);
+//       }
+//       if (vend_nm_stnd != vNStd) {
+//         await DB.executeQuery(logQuery, [
+//           "vendor",
+//           vId,
+//           "vend_nm_stnd",
+//           vend_nm_stnd,
+//           vNStd,
+//           "User Requested",
+//           userId,
+//           curDate,
+//         ]);
+//       }
+//       if (extrnl_sys_nm != vESN) {
+//         await DB.executeQuery(logQuery, [
+//           "vendor",
+//           vId,
+//           "extrnl_sys_nm",
+//           extrnl_sys_nm,
+//           vESN,
+//           "User Requested",
+//           userId,
+//           curDate,
+//         ]);
+//       }
+//       if (description != vDescription) {
+//         await DB.executeQuery(logQuery, [
+//           "vendor",
+//           vId,
+//           "description",
+//           description,
+//           vDescription,
+//           "User Requested",
+//           userId,
+//           curDate,
+//         ]);
+//       }
+//       if (active != vStatus) {
+//         await DB.executeQuery(logQuery, [
+//           "vendor",
+//           vId,
+//           "active",
+//           active,
+//           vStatus,
+//           "User Requested",
+//           userId,
+//           curDate,
+//         ]);
+//       }
+
+//       return apiResponse.successResponse(
+//         res,
+//         "Vendor details updated successfully"
+//       );
+//     }
+//   } catch (err) {
+//     //throw error in json response with status 500.
+//     Logger.error("catch :updateVendor");
+//     Logger.error(err);
+//     if (err.code === "23505") {
+//       return apiResponse.validationErrorWithData(
+//         res,
+//         "Operation failed",
+//         "Vendor name and external system name combination already exists."
+//       );
+//     }
+//     return apiResponse.ErrorResponse(res, err);
+//   }
+// };
