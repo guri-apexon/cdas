@@ -31,8 +31,6 @@ export const formComponentInActive = () => {
   };
 };
 
-
-
 export const showAppSwitcher = () => {
   return {
     type: SHOW_APP_SWITCHER,

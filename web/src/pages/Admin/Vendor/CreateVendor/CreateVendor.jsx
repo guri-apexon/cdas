@@ -39,6 +39,8 @@ import {
   formComponentActive,
   hideAlert,
   showAppSwitcher,
+  formComponentInActive,
+  hideAppSwitcher,
 } from "../../../../store/actions/AlertActions";
 import AlertBox from "../../../AlertBox/AlertBox";
 
@@ -119,6 +121,9 @@ const CreateVendor = () => {
 
   const routerHandle = useRef();
   const unblockRouter = () => {
+    dispatch(formComponentInActive());
+    dispatch(hideAlert());
+    dispatch(hideAppSwitcher());
     if (routerHandle) {
       routerHandle.current();
     }
