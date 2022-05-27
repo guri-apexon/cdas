@@ -193,8 +193,8 @@ exports.createVendor = async (req, res) => {
     const dfVendorList = `select distinct vend_id from ${schemaName}.dataflow d`;
     const updateQuery = `UPDATE ${schemaName}.vendor SET vend_nm=$1, vend_nm_stnd=$2, description=$3, active=$4, extrnl_sys_nm=$5, updt_tm=$6, updated_by=$7 WHERE vend_id=$8 RETURNING *`;
     const contactUpdate = `UPDATE ${schemaName}.vendor_contact SET contact_nm=$2, emailid=$3, updated_by=$4, updated_on=$5, act_flg=$6 WHERE vend_contact_id=$1 RETURNING *`;
-    const selectVendor = `SELECT * FROM ${schemaName}.vendor where vend_id = $1`;
-    const selectExVendor = `SELECT * FROM ${schemaName}.vendor where extrnl_id = $1`;
+    const selectVendor = `SELECT vend_nm, vend_nm_stnd, description, active, extrnl_sys_nm, vend_id FROM ${schemaName}.vendor where vend_id = $1`;
+    const selectExVendor = `SELECT vend_nm, vend_nm_stnd, description, active, extrnl_sys_nm, vend_id FROM ${schemaName}.vendor where extrnl_id = $1`;
 
     if (!vName || !vESName || !userId || typeof vStatus !== "number") {
       return apiResponse.validationErrorWithData(
@@ -267,14 +267,8 @@ exports.createVendor = async (req, res) => {
         );
       } else {
         const updatedVendor = await DB.executeQuery(updateQuery, [
-          vName,
-          vNStd,
-          vDescription,
-          vStatus,
-          vESN,
-          curDate,
-          userId,
-          vId,
+          ...payload,
+          updatedID,
         ]);
 
         if (vContacts.length > 0) {
@@ -303,23 +297,16 @@ exports.createVendor = async (req, res) => {
         const vendorObj = updatedVendor.rows[0];
         const existingObj = existingVendor.rows[0];
 
-        const comparisionObj1 = {
+        const comparisionObj = {
           vend_nm: vendorObj.vend_nm,
           description: vendorObj.description,
           vend_nm_stnd: vendorObj.vend_nm_stnd,
           extrnl_sys_nm: vendorObj.extrnl_sys_nm,
           active: vendorObj.active,
+          vend_id: vendorObj.vend_id,
         };
 
-        const comparisionObj2 = {
-          vend_nm: existingObj.vend_nm,
-          description: existingObj.description,
-          vend_nm_stnd: existingObj.vend_nm_stnd,
-          extrnl_sys_nm: existingObj.extrnl_sys_nm,
-          active: existingObj.active,
-        };
-
-        const diffObj = helper.getdiffKeys(comparisionObj1, comparisionObj2);
+        const diffObj = helpers.getdiffKeys(comparisionObj, existingObj);
 
         const anditLogsQueries = [];
         Object.keys(diffObj).map((key) => {
