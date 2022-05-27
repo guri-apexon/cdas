@@ -28,6 +28,8 @@ import {
   formComponentActive,
   hideAlert,
   showAppSwitcher,
+  formComponentInActive,
+  hideAppSwitcher,
 } from "../../../../store/actions/AlertActions";
 import AlertBox from "../../../AlertBox/AlertBox";
 
@@ -68,6 +70,9 @@ const CreatePolicy = () => {
   const [isShowAlertBox, setShowAlertBox] = useState(false);
 
   const unblockRouter = () => {
+    dispatch(formComponentInActive());
+    dispatch(hideAlert());
+    dispatch(hideAppSwitcher());
     if (routerHandle) {
       routerHandle.current();
     }
