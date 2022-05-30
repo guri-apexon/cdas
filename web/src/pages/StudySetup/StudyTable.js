@@ -42,7 +42,6 @@ import usePermission, {
 const DateCell = ({ row, column: { accessor } }) => {
   const rowValue = row[accessor];
   // const date = rowValue ? moment(rowValue).format("DD-MMM-YYYY") : "";
-  
   const date = rowValue && moment(rowValue).format("DD-MMMM-YYYY h:mm:ss A");
   return <span>{date}</span>;
 };
