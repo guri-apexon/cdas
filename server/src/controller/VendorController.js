@@ -259,6 +259,14 @@ exports.createVendor = async (req, res) => {
           "Vendor cannot be updated until removed from other dataflows using this vendor."
         );
       } else {
+        if (!updatedID) {
+          return apiResponse.validationErrorWithData(
+            res,
+            "Operation failed",
+            mandatoryMissing
+          );
+        }
+
         const updatedVendor = await DB.executeQuery(updateQuery, [
           ...payload,
           updatedID,
