@@ -252,7 +252,7 @@ exports.createVendor = async (req, res) => {
     } else {
       const q1 = await DB.executeQuery(dfVendorList);
       const existingInDF = q1.rows.map((e) => e.vend_id);
-      if (existingInDF.includes(updatedID)) {
+      if (existingInDF.includes(updatedID.toString())) {
         return apiResponse.validationErrorWithData(
           res,
           "Operation failed",
@@ -264,11 +264,11 @@ exports.createVendor = async (req, res) => {
           updatedID,
         ]);
 
-        if (vContacts.length > 0) {
+        if (vContacts?.length > 0) {
           vContacts.map((e) => {
             if (e.isNew) {
               DB.executeQuery(contactInsert, [
-                vId,
+                updatedID,
                 e.name,
                 e.email,
                 userName,
@@ -287,8 +287,8 @@ exports.createVendor = async (req, res) => {
           });
         }
 
-        const vendorObj = updatedVendor.rows[0];
-        const existingObj = existingVendor.rows[0];
+        const vendorObj = updatedVendor?.rows[0];
+        const existingObj = existingVendor?.rows[0];
 
         const comparisionObj = {
           vend_nm: vendorObj.vend_nm,
@@ -301,32 +301,27 @@ exports.createVendor = async (req, res) => {
 
         const diffObj = helpers.getdiffKeys(comparisionObj, existingObj);
 
-        const anditLogsQueries = [];
-        Object.keys(diffObj).map((key) => {
-          anditLogsQueries.push(
-            DB.executeQuery(logQuery, [
-              "vendor",
-              updatedID,
-              key,
-              existDf[key],
-              diffObj[key],
-              "User Requested",
-              userId,
-              curDate,
-            ])
-          );
+        Object.keys(diffObj).map(async (key) => {
+          await DB.executeQuery(logQuery, [
+            "vendor",
+            updatedID,
+            key,
+            existDf[key],
+            diffObj[key],
+            "User Requested",
+            userId,
+            curDate,
+          ]);
         });
 
-        Promise.all(anditLogsQueries).then((values) => {
-          if (systemName === "CDI") {
-            return apiResponse.successResponse(res, vUpdateSuccess);
-          } else {
-            return apiResponse.successResponseWithMoreData(res, {
-              ExternalId,
-              id: inset?.rows[0].vend_id,
-            });
-          }
-        });
+        if (systemName === "CDI") {
+          return apiResponse.successResponse(res, vUpdateSuccess);
+        } else {
+          return apiResponse.successResponseWithMoreData(res, {
+            ExternalId,
+            id: updatedID,
+          });
+        }
       }
     }
   } catch (err) {
