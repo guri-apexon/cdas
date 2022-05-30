@@ -279,7 +279,7 @@ exports.createVendor = async (req, res) => {
                 updatedID,
                 e.name,
                 e.email,
-                userName,
+                userId,
                 curDate,
               ]);
             } else {
@@ -287,12 +287,16 @@ exports.createVendor = async (req, res) => {
                 e.vCId,
                 e.name,
                 e.email,
-                userName,
+                userId,
                 curDate,
                 1,
               ]);
             }
           });
+        }
+
+        if (!updatedVendor?.rowCount || !existingVendor?.rowCount) {
+          return apiResponse.ErrorResponse(res, commonError);
         }
 
         const vendorObj = updatedVendor?.rows[0];
