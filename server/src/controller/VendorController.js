@@ -189,7 +189,7 @@ exports.createVendor = async (req, res) => {
     const insertQuery = `INSERT INTO ${schemaName}.vendor (vend_nm, vend_nm_stnd, description, active, extrnl_sys_nm, insrt_tm, created_by, extrnl_id) VALUES($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`;
     const dfVendorList = `select distinct vend_id from ${schemaName}.dataflow d`;
     const updateQuery = `UPDATE ${schemaName}.vendor SET vend_nm=$1, vend_nm_stnd=$2, description=$3, active=$4, extrnl_sys_nm=$5, updt_tm=$6, updated_by=$7 WHERE vend_id=$8 RETURNING *`;
-    const contactUpdate = `UPDATE ${schemaName}.vendor_contact SET contact_nm=$2, emailid=$3, updated_by=$4, updated_on=$5, act_flg=$6 WHERE vend_contact_id=$1 RETURNING *`;
+    const contactUpdate = `UPDATE ${schemaName}.vendor_contact SET contact_nm=$1, emailid=$2, updated_by=$3, updated_on=$4, act_flg=$5 WHERE vend_contact_id=$6 RETURNING *`;
     const selectVendor = `SELECT vend_nm, vend_nm_stnd, description, active, extrnl_sys_nm, vend_id FROM ${schemaName}.vendor where vend_id = $1`;
     const selectExVendor = `SELECT vend_nm, vend_nm_stnd, description, active, extrnl_sys_nm, vend_id FROM ${schemaName}.vendor where extrnl_id = $1`;
 
@@ -272,10 +272,12 @@ exports.createVendor = async (req, res) => {
           updatedID,
         ]);
 
+        let updatedContacts = "";
+
         if (vContacts?.length > 0) {
-          vContacts.map((e) => {
+          vContacts.map(async (e) => {
             if (e.isNew) {
-              DB.executeQuery(contactInsert, [
+              updatedContacts = await DB.executeQuery(contactInsert, [
                 updatedID,
                 e.name,
                 e.email,
@@ -283,16 +285,17 @@ exports.createVendor = async (req, res) => {
                 curDate,
               ]);
             } else {
-              DB.executeQuery(contactUpdate, [
-                e.vCId,
+              updatedContacts = await DB.executeQuery(contactUpdate, [
                 e.name,
                 e.email,
                 userId,
                 curDate,
                 1,
+                e.vCId,
               ]);
             }
           });
+          console.log(vContacts, updatedContacts.rows);
         }
 
         if (!updatedVendor?.rowCount || !existingVendor?.rowCount) {
