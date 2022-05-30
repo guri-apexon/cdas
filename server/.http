@@ -88,32 +88,26 @@ content-type: application/json
 
 
 ### Vendor details
-GET http://localhost:443/v1/api/vendor/details/3   HTTP/1.1
+GET http://localhost:443/v1/api/vendor/details/VD00000000000847   HTTP/1.1
 content-type: application/json
 
 ###Response
 # "data": {
-#     "vendor": [
-#       {
-#         "vId": "1",
-#         "vName": "Invicro",
-#         "vNStd": "Invicro",
-#         "vDescription": "InvicroGDMPM-DAS Vendor",
-#         "vStatus": 0,
-#         "vESN": "GDMPM-DAS"
-#       }
-#     ],
+#     "vendor": {
+#         "vId": "VD00000000000847",
+#         "vName": "aaaannnn",
+#         "vDescription": "descrp",
+#         "vStatus": 1,
+#         "vESName": "SDTM Designer"
+#     },
 #     "contacts": [
-#       {
-#         "name": "contac name 1",
-#         "email": "contact@test.com"
-#       },
-#       {
-#         "name": "contac name 2",
-#         "email": "contact2@test.com"
-#       }
+#         {
+#             "name": "ssss",
+#             "email": "ssss@gmail.com",
+#             "vCId": 1202
+#         }
 #     ]
-#   }
+# }
 
 
 
@@ -123,15 +117,16 @@ content-type: application/json
 
 {
     "systemName": "CDI",
-    "vId": "",
+    "vId": "VD00000000000847",
     "vName": "aaaannnn",
-    "vDescription": "desssss",
+    "vDescription": "descrp",
     "vESName": "SDTM Designer",
     "vContacts": [
         {
             "name": "ssss",
             "email": "ssss@gmail.com",
-            "isNew": true,
+            "vCId": 1202,
+            "isNew": false,
             "status": 1
         }
     ],

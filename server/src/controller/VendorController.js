@@ -41,12 +41,10 @@ exports.getVendorsList = async (req, res) => {
 
 exports.getVendorById = async (req, res) => {
   try {
-    const id = parseInt(req.params.vendor_id);
-    Logger.info({
-      message: "getVendorById",
-    });
+    const id = req.params.vendor_id;
+    Logger.info({ message: "getVendorById" });
 
-    const query = `SELECT v.vend_id as "vId", vend_nm as "vName", description as "vDescription", active as "vStatus", extrnl_sys_nm as "vESN" FROM ${schemaName}.vendor v WHERE v.vend_id = $1`;
+    const query = `SELECT v.vend_id as "vId", vend_nm as "vName", description as "vDescription", active as "vStatus", extrnl_sys_nm as "vESName" FROM ${schemaName}.vendor v WHERE v.vend_id = $1`;
     const query2 = `SELECT vc.contact_nm as "name", vc.emailid as "email", vc.vend_contact_id as "vCId" FROM ${schemaName}.vendor_contact vc where vc.vend_id = $1 AND vc.act_flg=1`;
 
     const vendor = await DB.executeQuery(query, [id]);
