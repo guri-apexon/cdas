@@ -221,8 +221,6 @@ exports.createVendor = async (req, res) => {
       userId,
     ];
 
-    // console.log(existingVendor?.rows[0], [...payload, null]);
-
     let updatedID = "";
 
     if (existingVendor?.rows) {
@@ -252,17 +250,9 @@ exports.createVendor = async (req, res) => {
         });
       }
     } else {
-      if (!updatedID) {
-        return apiResponse.validationErrorWithData(
-          res,
-          "Operation failed",
-          commonError
-        );
-      }
-
       const q1 = await DB.executeQuery(dfVendorList);
       const existingInDF = q1.rows.map((e) => e.vend_id);
-      if (existingInDF.includes(updatedID.toString())) {
+      if (existingInDF.includes(updatedID)) {
         return apiResponse.validationErrorWithData(
           res,
           "Operation failed",
