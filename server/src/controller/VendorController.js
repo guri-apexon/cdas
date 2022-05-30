@@ -181,7 +181,6 @@ exports.createVendor = async (req, res) => {
       systemName,
       vId: ID,
       vName,
-      vNStd,
       vDescription,
       vStatus,
       vESName,
@@ -216,7 +215,7 @@ exports.createVendor = async (req, res) => {
 
     const payload = [
       vName,
-      vNStd || vName,
+      vName,
       vDescription,
       vStatus,
       vESName,
@@ -224,10 +223,16 @@ exports.createVendor = async (req, res) => {
       userId,
     ];
 
-    let updatedID = existingVendor?.rows[0]?.vend_id;
+    // console.log(existingVendor?.rows[0], [...payload, null]);
 
-    if (!existingVendor?.rowCount) {
-      const inset = await DB.executeQuery(insertQuery, payload);
+    let updatedID = "";
+
+    if (existingVendor?.rows) {
+      updatedID = existingVendor?.rows[0]?.vend_id;
+    }
+
+    if (!updatedID) {
+      const inset = await DB.executeQuery(insertQuery, [...payload, null]);
       const vId = inset?.rows[0].vend_id;
       if (vContacts?.length > 0) {
         await vContacts.map((e) => {
@@ -257,8 +262,8 @@ exports.createVendor = async (req, res) => {
         );
       }
 
-      const q1 = await DB.executeQuery(dfVendorList, [updatedID]);
-      const existingInDF = q1.rows.map((e) => e.vend_id.toString());
+      const q1 = await DB.executeQuery(dfVendorList);
+      const existingInDF = q1.rows.map((e) => e.vend_id);
       if (existingInDF.includes(updatedID.toString())) {
         return apiResponse.validationErrorWithData(
           res,

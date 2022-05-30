@@ -132,13 +132,13 @@ const CreateVendor = () => {
   // eslint-disable-next-line consistent-return
   const submitVendor = async () => {
     const reqBody = {
+      systemName: "CDI",
       vId,
       vName,
       vDescription,
       vESName,
       vContacts,
       userId: userInfo.user_id,
-      userName: userInfo.firstName,
       vStatus: active ? 1 : 0,
     };
     setInitialRender(false);
