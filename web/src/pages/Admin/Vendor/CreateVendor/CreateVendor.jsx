@@ -35,6 +35,14 @@ import usePermission, {
   Categories,
   Features,
 } from "../../../../components/Common/usePermission";
+import {
+  formComponentActive,
+  hideAlert,
+  showAppSwitcher,
+  formComponentInActive,
+  hideAppSwitcher,
+} from "../../../../store/actions/AlertActions";
+import AlertBox from "../../../AlertBox/AlertBox";
 
 const Box = ({ children }) => {
   return (
@@ -108,8 +116,14 @@ const CreateVendor = () => {
     Features.VENDOR_MANAGEMENT
   );
 
+  const alertStore = useSelector((state) => state.Alert);
+  const [isShowAlertBox, setShowAlertBox] = useState(false);
+
   const routerHandle = useRef();
   const unblockRouter = () => {
+    dispatch(formComponentInActive());
+    dispatch(hideAlert());
+    dispatch(hideAppSwitcher());
     if (routerHandle) {
       routerHandle.current();
     }
@@ -323,6 +337,27 @@ const CreateVendor = () => {
     }
   };
 
+  const keepEditingBtn = () => {
+    dispatch(hideAlert());
+    setShowAlertBox(false);
+  };
+
+  const leavePageBtn = () => {
+    dispatch(hideAlert());
+    dispatch(showAppSwitcher());
+    setShowAlertBox(false);
+  };
+
+  useEffect(() => {
+    dispatch(formComponentActive());
+  }, []);
+
+  useEffect(() => {
+    if (alertStore?.showAlertBox) {
+      setShowAlertBox(true);
+    }
+  }, [alertStore]);
+
   useEffect(() => {
     routerHandle.current = history.block((tr) => {
       setTargetRoute(tr?.pathname);
@@ -340,6 +375,9 @@ const CreateVendor = () => {
 
   return (
     <div className="create-vendor-wrapper">
+      {isShowAlertBox && (
+        <AlertBox cancel={keepEditingBtn} submit={leavePageBtn} />
+      )}
       {isAnyUpdate && (
         <ConfirmModal
           open={confirm}
