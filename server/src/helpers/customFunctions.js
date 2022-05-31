@@ -1,6 +1,7 @@
 const uuid = require("uuid");
 const crypto = require("crypto");
 const moment = require("moment");
+const _ = require("lodash");
 
 const getAlphaNumeric = () => {
   const characters = "abcdefghijklmnopqrstuvwxyz0123456789";

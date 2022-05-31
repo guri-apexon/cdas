@@ -8,7 +8,7 @@ const helpers = require("../helpers/customFunctions");
 const { DB_SCHEMA_NAME: schemaName } = constants;
 
 const contactInsert = `INSERT INTO ${schemaName}.vendor_contact (vend_id, contact_nm, emailid, created_by, created_on, updated_by, updated_on, act_flg) VALUES($1, $2, $3, $4, $5, $4, $5, 1)`;
-const logQuery = `INSERT INTO ${schemaName}.audit_log (tbl_nm,id,attribute,old_val,new_val,rsn_for_chg,updated_by,updated_on) values ($1, $2, $3, $4, $5, $6, $7, $8)`;
+const logQuery = `INSERT INTO ${schemaName}.audit_log (tbl_nm, id, "attribute", old_val, new_val, rsn_for_chg, updated_by, updated_on) VALUES($1, $2, $3, $4, $5, $6, $7, $8)`;
 
 exports.getVendorsList = async (req, res) => {
   try {
@@ -189,7 +189,7 @@ exports.createVendor = async (req, res) => {
     const insertQuery = `INSERT INTO ${schemaName}.vendor (vend_nm, vend_nm_stnd, description, active, extrnl_sys_nm, insrt_tm, created_by, extrnl_id) VALUES($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`;
     const dfVendorList = `select distinct vend_id from ${schemaName}.dataflow d`;
     const updateQuery = `UPDATE ${schemaName}.vendor SET vend_nm=$1, vend_nm_stnd=$2, description=$3, active=$4, extrnl_sys_nm=$5, updt_tm=$6, updated_by=$7 WHERE vend_id=$8 RETURNING *`;
-    const contactUpdate = `UPDATE ${schemaName}.vendor_contact SET contact_nm=$1, emailid=$2, updated_by=$3, updated_on=$4, act_flg=$5 WHERE vend_contact_id=$6 RETURNING *`;
+    const contactUpdate = `UPDATE ${schemaName}.vendor_contact SET contact_nm=$1, emailid=$2, updated_by=$3, updated_on=$4, act_flg=1 WHERE vend_contact_id=$5 AND vend_id=$6 RETURNING *`;
     const selectVendor = `SELECT vend_nm, vend_nm_stnd, description, active, extrnl_sys_nm, vend_id FROM ${schemaName}.vendor where vend_id = $1`;
     const selectExVendor = `SELECT vend_nm, vend_nm_stnd, description, active, extrnl_sys_nm, vend_id FROM ${schemaName}.vendor where extrnl_id = $1`;
 
@@ -267,16 +267,17 @@ exports.createVendor = async (req, res) => {
           );
         }
 
+        let updatedContacts = "";
+
         const updatedVendor = await DB.executeQuery(updateQuery, [
           ...payload,
           updatedID,
         ]);
 
-        let updatedContacts = "";
-
-        if (vContacts?.length > 0) {
-          vContacts.map(async (e) => {
+        if (vContacts?.length) {
+          for (let e of vContacts) {
             if (e.isNew) {
+              console.log("new", e);
               updatedContacts = await DB.executeQuery(contactInsert, [
                 updatedID,
                 e.name,
@@ -290,15 +291,18 @@ exports.createVendor = async (req, res) => {
                 e.email,
                 userId,
                 curDate,
-                1,
-                e.vCId,
+                e.vCId.toString(),
+                updatedID,
               ]);
             }
-          });
-          console.log(vContacts, updatedContacts.rows);
+          }
         }
 
-        if (!updatedVendor?.rowCount || !existingVendor?.rowCount) {
+        if (
+          !updatedVendor?.rowCount ||
+          !existingVendor?.rowCount ||
+          !updatedContacts?.rowCount
+        ) {
           return apiResponse.ErrorResponse(res, commonError);
         }
 
@@ -307,10 +311,10 @@ exports.createVendor = async (req, res) => {
 
         const comparisionObj = {
           vend_nm: vendorObj.vend_nm,
-          description: vendorObj.description,
           vend_nm_stnd: vendorObj.vend_nm_stnd,
-          extrnl_sys_nm: vendorObj.extrnl_sys_nm,
+          description: vendorObj.description,
           active: vendorObj.active,
+          extrnl_sys_nm: vendorObj.extrnl_sys_nm,
           vend_id: vendorObj.vend_id,
         };
 
