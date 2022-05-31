@@ -111,12 +111,35 @@ content-type: application/json
 
 
 
-### Create / Update vendor
+### Create / Update vendor for CDI
 POST http://localhost:443/v1/api/vendor/create HTTP/1.1
 content-type: application/json
 
 {
     "systemName": "CDI",
+    "vId": "VD00000000000847",
+    "vName": "aaaannnn",
+    "vDescription": "descrp",
+    "vESName": "SDTM Designer",
+    "vContacts": [
+        {
+            "name": "ssss",
+            "email": "ssssnmmn@gmail.com",
+            "vCId": 1202,
+            "isNew": false,
+            "status": 1
+        }
+    ],
+    "userId": "u1105372",
+    "vStatus": 1
+}
+
+### Create / Update vendor for External System
+POST http://localhost:443/v1/api/vendor/create HTTP/1.1
+content-type: application/json
+
+{
+    "ExternalId": "VE000045",
     "vId": "VD00000000000847",
     "vName": "aaaannnn",
     "vDescription": "descrp",
