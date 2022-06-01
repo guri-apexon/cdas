@@ -43,7 +43,9 @@ const DateCell = ({ row, column: { accessor } }) => {
   const rowValue = row[accessor];
   // const date = rowValue ? moment(rowValue).format("DD-MMM-YYYY") : "";
 
-  const date = rowValue && moment(rowValue).format("DD-MMMM-YYYY h:mm:ss A");
+  const date =
+    rowValue &&
+    moment(rowValue).format("DD-MMMM-YYYY\xa0\xa0\xa0\xa0h:mm:ss A");
   return <span>{date}</span>;
 };
 
