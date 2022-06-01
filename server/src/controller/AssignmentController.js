@@ -88,7 +88,7 @@ exports.assignmentCreate = async (req, res) => {
     if (protocol.skipGrant) continue;
     try {
       const result = await studyHelper.studyGrant(
-        protocol.id,
+        protocol.protocolname,
         user.usr_id,
         createdBy,
         createdOn

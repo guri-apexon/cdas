@@ -36,7 +36,7 @@ exports.studyGrant = async (studyId, userIds, createdBy, createdOn) => {
       }
     );
 
-    if (result?.data?.code === 202) return true;
+    if (result?.data?.code === 200) return true;
   } catch (error) {
     console.log("Error: studygrant", error);
   }
