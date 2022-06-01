@@ -4,7 +4,7 @@
 /* eslint-disable consistent-return */
 /* eslint-disable no-script-url */
 /* eslint-disable react/button-has-type */
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useHistory, Link, useLocation } from "react-router-dom";
 import FilterIcon from "apollo-react-icons/Filter";
@@ -14,6 +14,7 @@ import Table, {
   compareStrings,
 } from "apollo-react/components/Table";
 import PlusIcon from "apollo-react-icons/Plus";
+import Modal from "apollo-react/components/Modal";
 import Button from "apollo-react/components/Button";
 import BreadcrumbsUI from "apollo-react/components/Breadcrumbs";
 import Box from "apollo-react/components/Box";
@@ -42,6 +43,14 @@ import {
 } from "../../../utils";
 import AddNewUserModal from "../../../components/AddNewUserModal/AddNewUserModal";
 import "./ExistingUsers.scss";
+import {
+  formComponentActive,
+  hideAlert,
+  showAppSwitcher,
+  formComponentInActive,
+  hideAppSwitcher,
+} from "../../../store/actions/AlertActions";
+import AlertBox from "../../AlertBox/AlertBox";
 
 const ActionCell = ({ row }) => {
   const { uniqueId, onRowEdit, onRowSave, editMode, onCancel, onRowDelete } =
@@ -68,7 +77,33 @@ const ActionCell = ({ row }) => {
   );
 };
 
+const ConfirmModal = React.memo(({ confirmObj, cancel, cstmCancelBtn }) => {
+  return (
+    <Modal
+      open={confirmObj}
+      onClose={cancel}
+      disableBackdropClick="true"
+      className="save-confirm"
+      variant="warning"
+      title="Lose your work?"
+      message="All unsaved changes will be lost."
+      buttonProps={[
+        {
+          label: "Keep editing",
+          onClick: cancel,
+        },
+        {
+          label: "Leave without saving",
+          onClick: cstmCancelBtn,
+        },
+      ]}
+      id="neutral"
+    />
+  );
+});
+
 const ExistingUsers = () => {
+  const dispatch = useDispatch();
   const history = useHistory();
   const userInfo = getUserInfo();
   const toast = useContext(MessageContext);
@@ -85,6 +120,20 @@ const ExistingUsers = () => {
   const [peekData, setPeekData] = useState(null);
   const { selectedStudy } = studyData;
   const { prot_id: protocol, prot_nbr_stnd: studyId } = selectedStudy;
+  const [targetRoute, setTargetRoute] = useState("");
+  const [confirmObj, setConfirmObj] = useState(false);
+  const routerHandle = useRef();
+  const alertStore = useSelector((state) => state.Alert);
+  const [isShowAlertBox, setShowAlertBox] = useState(false);
+
+  const unblockRouter = () => {
+    dispatch(formComponentInActive());
+    dispatch(hideAlert());
+    dispatch(hideAppSwitcher());
+    if (routerHandle) {
+      routerHandle.current();
+    }
+  };
 
   const getData = async (id) => {
     setLoading(true);
@@ -375,6 +424,54 @@ const ExistingUsers = () => {
     history.push("/study-setup");
   };
 
+  const closeConfirm = () => {
+    setConfirmObj(false);
+  };
+
+  const cancelButton = () => {
+    unblockRouter();
+    if (targetRoute === "") {
+      setConfirmObj(false);
+    } else {
+      history.push(targetRoute);
+    }
+  };
+
+  const keepEditingBtn = () => {
+    dispatch(hideAlert());
+    setShowAlertBox(false);
+  };
+
+  const leavePageBtn = () => {
+    dispatch(hideAlert());
+    dispatch(showAppSwitcher());
+    setShowAlertBox(false);
+  };
+
+  useEffect(() => {
+    dispatch(formComponentActive());
+  }, []);
+
+  useEffect(() => {
+    if (alertStore?.showAlertBox) {
+      setShowAlertBox(true);
+    }
+  }, [alertStore]);
+
+  useEffect(() => {
+    routerHandle.current = history.block((tr) => {
+      setConfirmObj(true);
+      setTargetRoute(tr?.pathname);
+      return false;
+    });
+
+    return function () {
+      /* eslint-disable */
+      routerHandle.current = history.block(() => {});
+      routerHandle.current.current && routerHandle.current.current();
+    };
+  });
+
   return (
     <>
       <div className="container">
@@ -384,6 +481,16 @@ const ExistingUsers = () => {
           style={{ height: 64, zIndex: 10 }}
         />
       </div>
+      {isShowAlertBox && (
+        <AlertBox cancel={keepEditingBtn} submit={leavePageBtn} />
+      )}
+      {confirmObj && (
+        <ConfirmModal
+          confirmObj={confirmObj}
+          cancel={closeConfirm}
+          cstmCancelBtn={cancelButton}
+        ></ConfirmModal>
+      )}
       <AddNewUserModal
         open={addStudyOpen}
         onClose={() => setAddStudyOpen(false)}
