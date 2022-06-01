@@ -17,7 +17,6 @@ import Modal from "apollo-react/components/Modal";
 import _ from "lodash";
 import {
   addVendorService,
-  updateVendorService,
   deleteVendorContact,
 } from "../../../../services/ApiServices";
 import {
@@ -98,7 +97,7 @@ const CreateVendor = () => {
   const [loading, setLoading] = useState(false);
   const [vName, setVName] = useState("");
   const [vDescription, setVDescription] = useState("");
-  const [vESN, setVESN] = useState("");
+  const [vESName, setVESN] = useState("");
   const [vId, setVId] = useState("");
   const [vContacts, setVContacts] = useState([]);
   const [contacts, setContacts] = useState([]);
@@ -161,7 +160,7 @@ const CreateVendor = () => {
       setActive(true);
     } else if (isEditPage) {
       setVId(selectedVendor.vId);
-      setVESN(selectedVendor.vESN ? selectedVendor.vESN : "");
+      setVESN(selectedVendor.vESName ? selectedVendor.vESName : "");
       setVName(selectedVendor.vName);
       setVDescription(
         selectedVendor.vDescription ? selectedVendor.vDescription : ""
@@ -184,13 +183,13 @@ const CreateVendor = () => {
   // eslint-disable-next-line consistent-return
   const submitVendor = async () => {
     const reqBody = {
+      systemName: "CDI",
       vId,
       vName,
       vDescription,
-      vESN,
+      vESName,
       vContacts,
       userId: userInfo.user_id,
-      userName: userInfo.firstName,
       vStatus: active ? 1 : 0,
       insrt_tm: new Date().toISOString(),
       updt_tm: new Date().toISOString(),
@@ -200,7 +199,7 @@ const CreateVendor = () => {
       messageContext.showErrorMessage("Vendor name shouldn't be empty");
       return false;
     }
-    if (vESN === "") {
+    if (vESName === "") {
       messageContext.showErrorMessage(
         "Vendor external system name need to be selected"
       );
@@ -208,33 +207,10 @@ const CreateVendor = () => {
     }
 
     setLoading(true);
-    if (isCreatePage) {
+    if (isCreatePage || isEditPage) {
       // eslint-disable-next-line
       const { updt_tm, ...rest } = reqBody;
-      addVendorService(rest)
-        .then((res) => {
-          messageContext.showSuccessMessage(res.message || "Successfully done");
-          unblockRouter();
-          history.push("/vendor/list");
-          setLoading(false);
-        })
-        .catch((err) => {
-          if (err.data) {
-            messageContext.showErrorMessage(
-              err.data ||
-                "Vendor name and external system name combination already exists."
-            );
-          } else {
-            messageContext.showErrorMessage(
-              err.message || "Something went wrong"
-            );
-          }
-          setLoading(false);
-        });
-    } else if (isEditPage) {
-      // eslint-disable-next-line
-      const { insrt_tm, ...rest } = reqBody;
-      updateVendorService(rest)
+      addVendorService(reqBody)
         .then((res) => {
           messageContext.showSuccessMessage(res.message || "Successfully done");
           unblockRouter();
