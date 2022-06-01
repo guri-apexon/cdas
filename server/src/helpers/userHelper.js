@@ -22,6 +22,11 @@ exports.deProvisionUser = async (data) => {
   }
 };
 
+/**
+ * Verifies the email with SDA whether it is provisioned or not
+ * @param {*} email
+ * @returns true on success, false otherwise
+ */
 exports.isUserAlreadyProvisioned = async (email) => {
   try {
     const response = await axios.get(SDA_Endpoint_get_users);
@@ -38,6 +43,11 @@ exports.isUserAlreadyProvisioned = async (email) => {
   }
 };
 
+/**
+ * Provisions internal user with the SDA
+ * @param {object} uid, updatedBy
+ * @returns uid on success false otherwise
+ */
 exports.provisionInternalUser = async (data) => {
   const { uid: networkId, updatedBy } = data;
   const userType = "internal";
@@ -53,6 +63,11 @@ exports.provisionInternalUser = async (data) => {
   }
 };
 
+/**
+ * Provisions external user with the SDA
+ * @param {object} data = { firstName, lastName, email, status, updatedBy }
+ * @returns uid on success false otherwise
+ */
 exports.provisionExternalUser = async (data) => {
   const { firstName, lastName, email, status, updatedBy } = data;
   const userType = "external";
@@ -86,8 +101,13 @@ exports.provisionExternalUser = async (data) => {
   }
 };
 
+/**
+ * Checks that if a user exists or not
+ * @param {string} email
+ * @returns on success user usr_id and usr_stat (in upper case) , on error reurns false
+ */
 exports.isUserExists = async (email) => {
-  const query = `SELECT usr_id, UPPER(usr_stat) as usr_stat FROM ${schemaName}.user WHERE UPPER(usr_mail_id) = '${email.toUpperCase()}';`;
+  const query = `SELECT usr_id, UPPER(usr_stat) as usr_stat, usr_typ FROM ${schemaName}.user WHERE UPPER(usr_mail_id) = '${email.toUpperCase()}';`;
 
   try {
     var response = await DB.executeQuery(query);
@@ -99,6 +119,11 @@ exports.isUserExists = async (email) => {
   }
 };
 
+/**
+ * validates data for create user api
+ * @param {object} data = { tenant, userType, firstName, lastName, email, uid, employeeId }
+ * @returns {success: boolean , message: string} success as true on success false other wise
+ */
 exports.validateCreateUserData = async (data) => {
   const { tenant, userType, firstName, lastName, email, uid, employeeId } =
     data;
@@ -110,13 +135,10 @@ exports.validateCreateUserData = async (data) => {
   if (!(tenant && tenant.trim()))
     return { success: false, message: "Tenant is required field" };
 
-  if (
-    !(
-      userType &&
-      userType.trim() &&
-      (userType === "internal" || userType === "external")
-    )
-  )
+  if (!(userType && userType.trim()))
+    return { success: false, message: "Usertype is required field" };
+
+  if (!(userType === "internal" || userType === "external"))
     return { success: false, message: "invalid user type" };
 
   if (!(firstName && firstName.trim()))
@@ -125,14 +147,11 @@ exports.validateCreateUserData = async (data) => {
   if (!(lastName && lastName.trim()))
     return { success: false, message: "Last Name is required field" };
 
-  if (!(email && email.trim() && validateEmail(email)))
-    return { success: false, message: "Email id blank or invalid" };
+  if (!(email && email.trim()))
+    return { success: false, message: "Email id is required field" };
 
-  // if (!(protocols && Array.isArray(protocols) && protocols.length > 0))
-  //   return { success: false, message: "Protocol required" };
-
-  // if (!protocols.every((p) => p.roles && p.roles.length > 0))
-  //   return { success: false, message: "Each Protocol must have one role" };
+  if (!validateEmail(email))
+    return { success: false, message: "Email id invalid" };
 
   try {
     const isUserAlreadyProvisioned = await this.isUserAlreadyProvisioned(email);
