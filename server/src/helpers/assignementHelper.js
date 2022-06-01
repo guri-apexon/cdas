@@ -21,14 +21,20 @@ exports.validateAssignment = async (data) => {
   if (!(tenant && tenant.trim()))
     return { success: false, message: "Tenant is required field" };
 
-  if (!(email && email.trim() && validateEmail(email)))
-    return { success: false, message: "Email id blank or invalid" };
+  if (!(email && email.trim()))
+    return { success: false, message: "Email id is required field" };
+
+  if (!validateEmail(email))
+    return { success: false, message: "Email id invalid" };
 
   if (!(protocols && Array.isArray(protocols) && protocols.length > 0))
-    return { success: false, message: "Protocol required" };
+    return { success: false, message: "Protocols is a required field" };
 
   if (!protocols.every((p) => p.roles && p.roles.length > 0))
-    return { success: false, message: "Each Protocol must have one role" };
+    return {
+      success: false,
+      message: "Each Protocol must have atleast one role",
+    };
 
   return { success: true, message: "validation success" };
 };

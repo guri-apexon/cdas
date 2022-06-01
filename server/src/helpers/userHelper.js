@@ -135,13 +135,10 @@ exports.validateCreateUserData = async (data) => {
   if (!(tenant && tenant.trim()))
     return { success: false, message: "Tenant is required field" };
 
-  if (
-    !(
-      userType &&
-      userType.trim() &&
-      (userType === "internal" || userType === "external")
-    )
-  )
+  if (!(userType && userType.trim()))
+    return { success: false, message: "Usertype is required field" };
+
+  if (!(userType === "internal" || userType === "external"))
     return { success: false, message: "invalid user type" };
 
   if (!(firstName && firstName.trim()))
@@ -150,8 +147,11 @@ exports.validateCreateUserData = async (data) => {
   if (!(lastName && lastName.trim()))
     return { success: false, message: "Last Name is required field" };
 
-  if (!(email && email.trim() && validateEmail(email)))
-    return { success: false, message: "Email id blank or invalid" };
+  if (!(email && email.trim()))
+    return { success: false, message: "Email id is required field" };
+
+  if (!validateEmail(email))
+    return { success: false, message: "Email id invalid" };
 
   try {
     const isUserAlreadyProvisioned = await this.isUserAlreadyProvisioned(email);
