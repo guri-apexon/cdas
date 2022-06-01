@@ -108,8 +108,8 @@ exports.createNewUser = async (req, res) => {
         usr_id = await userHelper.insertUserInDb({
           ...data,
           invt_sent_tm: null,
-          insrt_tm: getCurrentTime(),
-          updt_tm: getCurrentTime(),
+          insrt_tm: data.insrt_tm || getCurrentTime(),
+          updt_tm: data.updt_tm || getCurrentTime(),
           status: "Active",
           externalId: data.uid,
         });
@@ -130,9 +130,9 @@ exports.createNewUser = async (req, res) => {
       else
         usr_id = await userHelper.insertUserInDb({
           ...data,
-          invt_sent_tm: null,
-          insrt_tm: getCurrentTime(),
-          updt_tm: getCurrentTime(),
+          invt_sent_tm: data.invt_sent_tm || getCurrentTime(),
+          insrt_tm: data.insrt_tm || getCurrentTime(),
+          updt_tm: data.updt_tm || getCurrentTime(),
           status: "Invited",
           uid: "",
           externalId: provision_response.data,

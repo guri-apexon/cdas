@@ -119,7 +119,7 @@ exports.createVendor = async (req, res) => {
 
     const insertQuery = `INSERT INTO ${schemaName}.vendor
     (vend_nm, vend_nm_stnd, description, active, extrnl_sys_nm, insrt_tm, updt_tm, created_by, updated_by)
-    VALUES($1, $2, $3, $4, $5, $7, $7, $6, $6)`;
+    VALUES($1, $2, $3, $4, $5, $7, $7, $6, $6) `;
 
     const idQuery = `SELECT vend_id FROM cdascfg.vendor v ORDER BY insrt_tm DESC LIMIT 1`;
 
