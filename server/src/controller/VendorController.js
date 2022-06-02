@@ -87,77 +87,74 @@ exports.getENSList = async (req, res) => {
   }
 };
 
-<<<<<<< HEAD
-exports.createVendor = async (req, res) => {
-  try {
-    const {
-      vName,
-      vNStd,
-      vDescription,
-      vStatus,
-      vESN,
-      vContacts,
-      userId,
-      userName,
-      Vendor_Name_Stnd__c,
-      Active_Flag__c,
-      External_System_Name__c,
-      Description,
-      insrt_tm,
-    } = req.body;
+// exports.createVendor = async (req, res) => {
+//   try {
+//     const {
+//       vName,
+//       vNStd,
+//       vDescription,
+//       vStatus,
+//       vESN,
+//       vContacts,
+//       userId,
+//       userName,
+//       Vendor_Name_Stnd__c,
+//       Active_Flag__c,
+//       External_System_Name__c,
+//       Description,
+//       insrt_tm,
+//     } = req.body;
 
-    Logger.info({ message: "createVendor" });
+//     Logger.info({ message: "createVendor" });
 
-    const insertQuery = `INSERT INTO ${schemaName}.vendor
-    (vend_nm, vend_nm_stnd, description, active, extrnl_sys_nm, insrt_tm, updt_tm, created_by, updated_by)
-    VALUES($1, $2, $3, $4, $5, $7, $7, $6, $6) `;
+//     const insertQuery = `INSERT INTO ${schemaName}.vendor
+//     (vend_nm, vend_nm_stnd, description, active, extrnl_sys_nm, insrt_tm, updt_tm, created_by, updated_by)
+//     VALUES($1, $2, $3, $4, $5, $7, $7, $6, $6) `;
 
-    const idQuery = `SELECT vend_id FROM cdascfg.vendor v ORDER BY insrt_tm DESC LIMIT 1`;
+//     const idQuery = `SELECT vend_id FROM cdascfg.vendor v ORDER BY insrt_tm DESC LIMIT 1`;
 
-    const inset = await DB.executeQuery(insertQuery, [
-      vName || Vendor_Name_Stnd__c,
-      vNStd || Vendor_Name_Stnd__c || vName,
-      vDescription || Description,
-      vStatus || helpers.stringToBoolean(Active_Flag__c) ? 1 : 0,
-      vESN || External_System_Name__c,
-      userId || null,
-      insrt_tm,
-    ]);
+//     const inset = await DB.executeQuery(insertQuery, [
+//       vName || Vendor_Name_Stnd__c,
+//       vNStd || Vendor_Name_Stnd__c || vName,
+//       vDescription || Description,
+//       vStatus || helpers.stringToBoolean(Active_Flag__c) ? 1 : 0,
+//       vESN || External_System_Name__c,
+//       userId || null,
+//       insrt_tm,
+//     ]);
 
-    const getId = await DB.executeQuery(idQuery);
+//     const getId = await DB.executeQuery(idQuery);
 
-    const vId = getId.rows[0].vend_id;
+//     const vId = getId.rows[0].vend_id;
 
-    if (vContacts?.length > 0) {
-      await vContacts.map((e) => {
-        DB.executeQuery(contactInsert, [
-          vId,
-          e.name,
-          e.email,
-          userName,
-          insrt_tm,
-        ]);
-      });
-    }
+//     if (vContacts?.length > 0) {
+//       await vContacts.map((e) => {
+//         DB.executeQuery(contactInsert, [
+//           vId,
+//           e.name,
+//           e.email,
+//           userName,
+//           insrt_tm,
+//         ]);
+//       });
+//     }
 
-    return apiResponse.successResponse(res, "Vendor created successfully");
-  } catch (err) {
-    //throw error in json response with status 500.
-    Logger.error("catch :createVendor");
-    Logger.error(err);
-    if (err.code === "23505") {
-      return apiResponse.validationErrorWithData(
-        res,
-        "Operation failed",
-        "vendor name and external system name combination already exists."
-      );
-    }
-    return apiResponse.ErrorResponse(res, err);
-  }
-};
+//     return apiResponse.successResponse(res, "Vendor created successfully");
+//   } catch (err) {
+//     //throw error in json response with status 500.
+//     Logger.error("catch :createVendor");
+//     Logger.error(err);
+//     if (err.code === "23505") {
+//       return apiResponse.validationErrorWithData(
+//         res,
+//         "Operation failed",
+//         "vendor name and external system name combination already exists."
+//       );
+//     }
+//     return apiResponse.ErrorResponse(res, err);
+//   }
+// };
 
-=======
->>>>>>> 6193bf9d75c70e982ac4f7569f9abc6ea58bf622
 exports.deleteContact = async (req, res) => {
   try {
     const { vId, vCId, userName, userId, updt_tm } = req.body;
@@ -241,7 +238,7 @@ const vendorExist = `Vendor name and external system name combination already ex
 exports.createVendor = async (req, res) => {
   try {
     Logger.info({ message: "createVendor" });
-    const curDate = helpers.getCurrentTime();
+
 
     const {
       ExternalId,
@@ -253,9 +250,10 @@ exports.createVendor = async (req, res) => {
       vESName,
       vContacts,
       userId,
+      insrt_tm
     } = req.body;
 
-    const insertQuery = `INSERT INTO ${schemaName}.vendor (vend_nm, vend_nm_stnd, description, active, extrnl_sys_nm, insrt_tm, created_by, extrnl_id) VALUES($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`;
+    const insertQuery = `INSERT INTO ${schemaName}.vendor (vend_nm, vend_nm_stnd, description, active, extrnl_sys_nm, insrt_tm, updt_tm ,  created_by, updated_by , extrnl_id) VALUES($1, $2, $3, $4, $5, $6, $6, $7, $7, $8) RETURNING *`;
     const dfVendorList = `select distinct vend_id from ${schemaName}.dataflow d`;
     const updateQuery = `UPDATE ${schemaName}.vendor SET vend_nm=$1, vend_nm_stnd=$2, description=$3, active=$4, extrnl_sys_nm=$5, updt_tm=$6, updated_by=$7 WHERE vend_id=$8 RETURNING *`;
     const contactUpdate = `UPDATE ${schemaName}.vendor_contact SET contact_nm=$1, emailid=$2, updated_by=$3, updated_on=$4, act_flg=1 WHERE vend_contact_id=$5 AND vend_id=$6 RETURNING *`;
@@ -286,7 +284,7 @@ exports.createVendor = async (req, res) => {
       vDescription,
       vStatus,
       vESName,
-      curDate,
+      insrt_tm,
       userId,
     ];
 
@@ -306,7 +304,7 @@ exports.createVendor = async (req, res) => {
             e.name,
             e.email,
             userId,
-            curDate,
+            insrt_tm,
           ]);
         });
       }
@@ -336,13 +334,13 @@ exports.createVendor = async (req, res) => {
           );
         }
 
-        let updatedContacts = "";
+        let updatedContacts = {} ;
 
         const updatedVendor = await DB.executeQuery(updateQuery, [
           ...payload,
           updatedID,
         ]);
-
+        console.log(vContacts)
         if (vContacts?.length) {
           for (let e of vContacts) {
             if (e.isNew) {
@@ -352,27 +350,29 @@ exports.createVendor = async (req, res) => {
                 e.name,
                 e.email,
                 userId,
-                curDate,
+                insrt_tm,
               ]);
             } else {
               updatedContacts = await DB.executeQuery(contactUpdate, [
                 e.name,
                 e.email,
                 userId,
-                curDate,
+                insrt_tm,
                 e.vCId.toString(),
                 updatedID,
               ]);
             }
           }
         }
-
+        console.log('updatedVendor ' , updatedVendor)
+        console.log('existingVendor ' , existingVendor)
+        console.log('updatedContacts ' , updatedContacts)
         if (
           !updatedVendor?.rowCount ||
           !existingVendor?.rowCount ||
           !updatedContacts?.rowCount
         ) {
-          return apiResponse.ErrorResponse(res, commonError);
+          return apiResponse.ErrorResponse(res, commonError );
         }
 
         const vendorObj = updatedVendor?.rows[0];
@@ -398,7 +398,7 @@ exports.createVendor = async (req, res) => {
             diffObj[key],
             "User Requested",
             userId,
-            curDate,
+            insrt_tm,
           ]);
         });
 
@@ -413,6 +413,7 @@ exports.createVendor = async (req, res) => {
       }
     }
   } catch (err) {
+    console.log('errrrrr' ,  err )
     //throw error in json response with status 500.
     Logger.error("catch :createVendor");
     Logger.error(err);
