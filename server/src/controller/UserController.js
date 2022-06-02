@@ -155,3 +155,19 @@ exports.createNewUser = async (req, res) => {
     );
   return apiResponse.successResponseWithData(res, "User successfully created");
 };
+
+exports.deleteNewUser = async (req, res) => {
+  try {
+    const { tenant_id, user_type, email_id, user_id } = req.body;
+    console.log(req.body);
+    return apiResponse.successResponseWithData(
+      "hello",
+      "User successfully created"
+    );
+  } catch (err) {
+    console.log(err, "unable to delete user");
+    //throw error in json response with status 500.
+    return err;
+  }
+};
+
