@@ -159,11 +159,32 @@ exports.createNewUser = async (req, res) => {
 exports.deleteNewUser = async (req, res) => {
   try {
     const { tenant_id, user_type, email_id, user_id } = req.body;
-    console.log(req.body);
-    return apiResponse.successResponseWithData(
-      "hello",
-      "User successfully created"
-    );
+
+    const query = `SELECT * from ${schemaName}.user WHERE usr_id='${user_id}' AND  usr_mail_id='${email_id}' AND usr_typ='${user_type}' `;
+    const inActiveUserQuery = ` UPDATE ${schemaName}.user set usr_stat=$1 WHERE usr_id='${user_id}' AND  usr_mail_id='${email_id}' AND usr_typ='${user_type}'`;
+
+    const userExists = await DB.executeQuery(query);
+    let updateUserStatus = {};
+
+    if (userExists) {
+      console.log(userExists);
+      return DB.executeQuery(inActiveUserQuery, ["InActive"]).then(
+        (response) => {
+          return apiResponse.successResponse(res, "User Deleted Successfully");
+        }
+      );
+    } else {
+      return apiResponse.ErrorResponse(res, "Invalid Data");
+    }
+
+    // DB.executeQuery(query).then((response) => {
+
+    // });
+    // console.log(req.body);
+    // return apiResponse.successResponseWithData(
+    //   "hello",
+    //   "User successfully created"
+    // );
   } catch (err) {
     console.log(err, "unable to delete user");
     //throw error in json response with status 500.
