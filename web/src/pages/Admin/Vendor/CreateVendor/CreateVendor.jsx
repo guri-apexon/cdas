@@ -192,7 +192,6 @@ const CreateVendor = () => {
       userId: userInfo.user_id,
       vStatus: active ? 1 : 0,
       insrt_tm: new Date().toISOString(),
-      updt_tm: new Date().toISOString(),
     };
     setInitialRender(false);
     if (vName === "") {
@@ -209,7 +208,6 @@ const CreateVendor = () => {
     setLoading(true);
     if (isCreatePage || isEditPage) {
       // eslint-disable-next-line
-      const { updt_tm, ...rest } = reqBody;
       addVendorService(reqBody)
         .then((res) => {
           messageContext.showSuccessMessage(res.message || "Successfully done");
@@ -218,14 +216,14 @@ const CreateVendor = () => {
           setLoading(false);
         })
         .catch((err) => {
-          if (err.data) {
+          if (err?.data) {
             messageContext.showErrorMessage(
-              err.data ||
+              err?.data ||
                 "Vendor name and external system name combination already exists."
             );
           } else {
             messageContext.showErrorMessage(
-              err.message || "Something went wrong"
+              err?.message || "Something went wrong"
             );
           }
           setLoading(false);
@@ -429,7 +427,7 @@ const CreateVendor = () => {
                     <Value>{vName}</Value>
                     <br />
                     <Label>External System Name</Label>
-                    <Value>{vESN || ""}</Value>
+                    <Value>{vESName || ""}</Value>
                     <br />
                     <Label>Description</Label>
                     <Value>{vDescription}</Value>
@@ -452,10 +450,10 @@ const CreateVendor = () => {
                     fullWidth
                     label="External System Name"
                     placeholder="Select system name"
-                    value={vESN || ""}
+                    value={vESName || ""}
                     canDeselect={false}
                     onChange={(e) => handleSelection(e)}
-                    error={initialRender === false && !vESN ? true : false}
+                    error={initialRender === false && !vESName ? true : false}
                     disabled={readOnly}
                   >
                     {vENSOptions.map((option) => (
