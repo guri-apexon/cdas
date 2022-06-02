@@ -364,15 +364,15 @@ exports.createVendor = async (req, res) => {
             }
           }
         }
-        console.log('updatedVendor ' , updatedVendor)
-        console.log('existingVendor ' , existingVendor)
-        console.log('updatedContacts ' , updatedContacts)
+        // console.log('updatedVendor ' , updatedVendor)
+        // console.log('existingVendor ' , existingVendor)
+        // console.log('updatedContacts ' , updatedContacts)
         if (
           !updatedVendor?.rowCount ||
           !existingVendor?.rowCount ||
           !updatedContacts?.rowCount
         ) {
-          return apiResponse.ErrorResponse(res, commonError );
+          return apiResponse.ErrorResponse(res, "Something went wrong" );
         }
 
         const vendorObj = updatedVendor?.rows[0];
