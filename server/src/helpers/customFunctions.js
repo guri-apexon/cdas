@@ -1,6 +1,7 @@
 const uuid = require("uuid");
 const crypto = require("crypto");
 const moment = require("moment");
+const _ = require("lodash");
 
 const getAlphaNumeric = () => {
   const characters = "abcdefghijklmnopqrstuvwxyz0123456789";
@@ -61,3 +62,17 @@ const stringToBoolean = (exports.stringToBoolean = (string) => {
 
 exports.validateEmail = (email) =>
   /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email);
+  
+exports.getdiffKeys = (newObj, oldObj) => {
+  if (
+    typeof newObj === "object" &&
+    !Array.isArray(newObj) &&
+    newObj !== null &&
+    typeof oldObj === "object" &&
+    !Array.isArray(oldObj) &&
+    oldObj !== null
+  ) {
+    return _.pickBy(newObj, (v, k) => !_.isEqual(oldObj[k], v));
+  }
+  return {};
+};
