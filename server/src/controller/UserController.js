@@ -6,7 +6,7 @@ const userHelper = require("../helpers/userHelper");
 const tenantHelper = require("../helpers/tenantHelper");
 const apiResponse = require("../helpers/apiResponse");
 const constants = require("../config/constants");
-const { DB_SCHEMA_NAME: schemaName } = constants;
+const { DB_SCHEMA_NAME: schemaName, SDA_APP_KEY, SDA_BASE_URL } = constants;
 
 exports.getUser = function (user_id) {
   try {
@@ -159,20 +159,64 @@ exports.createNewUser = async (req, res) => {
 exports.deleteNewUser = async (req, res) => {
   try {
     const { tenant_id, user_type, email_id, user_id } = req.body;
+    if (tenant_id && user_type && email_id && user_id) {
+      const query = `SELECT * from ${schemaName}.user WHERE usr_mail_id='${email_id}' AND usr_stat='Active' `;
+      const inActiveUserQuery = ` UPDATE ${schemaName}.user set usr_stat=$1 WHERE usr_mail_id='${email_id}'`;
 
-    const query = `SELECT * from ${schemaName}.user WHERE usr_id='${user_id}' AND  usr_mail_id='${email_id}' AND usr_typ='${user_type}' `;
-    const inActiveUserQuery = ` UPDATE ${schemaName}.user set usr_stat=$1 WHERE usr_id='${user_id}' AND  usr_mail_id='${email_id}' AND usr_typ='${user_type}'`;
+      const userExists = await DB.executeQuery(query);
 
-    const userExists = await DB.executeQuery(query);
-    let updateUserStatus = {};
+      if (userExists.rowCount) {
+        const inActiveStatus = await DB.executeQuery(inActiveUserQuery, [
+          "InActive",
+        ]);
 
-    if (userExists) {
-      console.log(userExists);
-      return DB.executeQuery(inActiveUserQuery, ["InActive"]).then(
-        (response) => {
-          return apiResponse.successResponse(res, "User Deleted Successfully");
+        if (inActiveStatus.rowCount) {
+          const deprovisionURL = `${SDA_BASE_URL}/sda-rest-api/api/external/entitlement/V1/ApplicationUsers/deprovisionUserFromApplication`;
+          const userDetails = await userHelper.getSDAuserDataById(user_id);
+          console.log(userDetails[0]);
+          const requestBody = JSON.stringify({
+            appKey: SDA_APP_KEY,
+            userType: user_type,
+            roleType: userDetails?.roleType,
+            // email: userExists.rows[0]?.usr_mail_id,
+            networkId: user_id,
+            updatedBy: "Admin",
+          });
+          // console.log(requestBody);
+
+          let sda_status = {};
+          if (user_type == "internal") {
+            console.log("Internal -----------------------------");
+            // sda_status = await
+
+            axios
+              .delete(deprovisionURL, requestBody, {
+                headers: {
+                  "Content-Type": "application/json",
+                },
+              })
+              .then((respppp) => respppp);
+            console.log(
+              sda_status.status === 200 ||
+                (sda_status.status === 204 && "user deleted")
+            );
+            // console.log(sda_status);
+            //  .then((resp) => {
+            //     console.log("internal", resp);
+            //   });
+          } else if (user_type == "external") {
+            console.log("external -----------------------------");
+            const { networkId, ...rest } = requestBody;
+            sda_status = await axios.delete(deprovisionURL, rest);
+          } else {
+            // return apiResponse.ErrorResponse(res, "Invalid User Type");
+          }
         }
-      );
+
+        return apiResponse.successResponse(res, "User Deleted Successfully");
+      } else {
+        return apiResponse.ErrorResponse(res, "Invalid Data");
+      }
     } else {
       return apiResponse.ErrorResponse(res, "Invalid Data");
     }

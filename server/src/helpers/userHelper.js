@@ -5,7 +5,7 @@ const { data } = require("../config/logger");
 const { getCurrentTime, validateEmail } = require("./customFunctions");
 const Logger = require("../config/logger");
 const constants = require("../config/constants");
-const { DB_SCHEMA_NAME: schemaName } = constants;
+const { DB_SCHEMA_NAME: schemaName, SDA_BASE_URL } = constants;
 
 const SDA_BASE_API_URL = `${process.env.SDA_BASE_URL}/sda-rest-api/api/external/entitlement/V1/ApplicationUsers`;
 const SDA_Endpoint = `${SDA_BASE_API_URL}?appKey=${process.env.SDA_APP_KEY}`;
@@ -202,5 +202,16 @@ exports.insertUserInDb = async (userDetails) => {
   } catch (err) {
     console.log("error: insertUserInDb", err);
     return false;
+  }
+};
+
+exports.getSDAuserDataById = async (uid) => {
+  const getusersURL = `${SDA_BASE_URL}/sda-rest-api/api/external/entitlement/V1/ApplicationUsers/getUsersForApplication?appKey=${process.env.SDA_APP_KEY}`;
+  console.log(getusersURL);
+  try {
+    const response = await axios.get(getusersURL);
+    return response?.data.find((e) => e?.userId == uid);
+  } catch (error) {
+    console.log("Internal user provision error", data, error);
   }
 };
