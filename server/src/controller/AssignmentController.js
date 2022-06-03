@@ -28,10 +28,10 @@ exports.assignmentCreate = async (req, res) => {
   if (!tenant_id)
     return apiResponse.ErrorResponse(res, "Tenant does not exists");
 
-  const user = await userHelper.isUserExists(email);
+  const user = await userHelper.findByEmail(email);
   if (!user) return apiResponse.ErrorResponse(res, "User does not exists");
 
-  if (user.usr_stat === "INACTIVE")
+  if (user.isInactive)
     return apiResponse.ErrorResponse(res, "No active or invited user found");
 
   let roleNotPresent = [];
@@ -47,10 +47,7 @@ exports.assignmentCreate = async (req, res) => {
     } else {
       protocol.id = study.prot_id;
       protocol.roleIds = [];
-      protocol.skipGrant =
-        study.prot_nbr_stnd === "ALLSTUDY" ||
-        study.prot_nbr_stnd === "NOSTUDY" ||
-        user.usr_typ == "external";
+      protocol.skipGrant = user.usr_typ === userHelper.CONSTANTS.EXTERNAL;
       for (let j = 0; j < protocol.roles.length; j++) {
         const role_name = protocol.roles[j];
         const role = await roleHelper.isRoleExists(role_name);
