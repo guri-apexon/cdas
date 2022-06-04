@@ -86,7 +86,7 @@ const AddStudyModal = ({ open, onClose }) => {
       size: "small",
       variant: "secondary",
       onClick: importStudy,
-      disabled: loading || !canCreate,
+      disabled: loading,
     },
     {
       label: "Import and assign users",
