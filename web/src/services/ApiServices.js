@@ -393,3 +393,24 @@ export const deleteAssignUser = async (reqBody) => {
     return console.log("Error", err);
   }
 };
+
+export const getUsers = () => {
+  try {
+    return new Promise((resolve, reject) => {
+      axios
+        .get(`${API_URL}/users/list`)
+        .then((res) => {
+          resolve(res.data?.data || res.data);
+        })
+        .catch((err) => {
+          if (err.response?.data) {
+            resolve(err.response?.data);
+          } else {
+            resolve({ message: "Something went wrong" });
+          }
+        });
+    });
+  } catch (err) {
+    return console.log("Error", err);
+  }
+};

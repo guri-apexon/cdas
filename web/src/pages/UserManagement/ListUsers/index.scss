@@ -1,0 +1,29 @@
+@import "../../../styles/customscroll.scss";
+.role-header {
+  // padding: 3%;
+  padding: 0 3% 0 30px;
+  height: 76px;
+  display: flex;
+  align-items: center;
+  h3{
+    font-size: 24px;
+  }
+}
+.roles-table {
+  background-color: #f8f9fb;
+  min-height: calc(100vh - 316px);
+  margin: 1.5% 2%;
+
+  div[class*=" Table-scrollRoot-"] {
+    @extend .customscroll;
+  }
+
+  .table {
+    margin: 30px;
+    background-color: #ffffff;
+
+    div[class^="MuiSwitch-sizeSmall-"] {
+      top: -8px;
+    }
+  }
+}

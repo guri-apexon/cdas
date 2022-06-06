@@ -1,4 +1,5 @@
 const DB = require("../config/db");
+const apiResponse = require("../helpers/apiResponse");
 const constants = require("../config/constants");
 const { getCurrentTime } = require("../helpers/customFunctions");
 const { DB_SCHEMA_NAME: schemaName } = constants;
@@ -38,7 +39,7 @@ exports.getLastLoginTime = function (user_id) {
       `SELECT login_tm from ${schemaName}.user_login_details where usr_id = '${usrId}' order by login_tm desc LIMIT 1;`
     ).then((response) => {
       const login = response.rows || [];
-      return (login?.length && login[0]?.login_tm) ? login[0]?.login_tm : false;
+      return login?.length && login[0]?.login_tm ? login[0]?.login_tm : false;
     });
   } catch (err) {
     //throw error in json response with status 500.
@@ -53,7 +54,7 @@ exports.addLoginActivity = async (loginDetails) => {
     const { rows } = await DB.executeQuery(
       `SELECT * from ${schemaName}.user_login_details WHERE usr_id='${usrId}'`
     );
-    let query = '';
+    let query = "";
     if (rows.length) {
       query = `UPDATE ${schemaName}.user_login_details set login_tm='${loginTime}', logout_tm='${logout_tm}' WHERE usr_id='${usrId}'`;
     } else {
@@ -66,5 +67,28 @@ exports.addLoginActivity = async (loginDetails) => {
     console.log(err, "inser terr");
     //throw error in json response with status 500.
     return err;
+  }
+};
+
+exports.listUsers = async function (req, res) {
+  try {
+    console.log("listUsers called");
+    return await DB.executeQuery(`SELECT *, CONCAT(usr_fst_nm,' ',usr_lst_nm) AS usr_full_nm from ${schemaName}.user`)
+      .then((response) => {
+        return apiResponse.successResponseWithData(
+          res,
+          "User retrieved successfully",
+          response
+        );
+      })
+      .catch((err) => {
+        console.log({ err });
+        return apiResponse.ErrorResponse(
+          response,
+          err.detail || "Something went wrong"
+        );
+      });
+  } catch (err) {
+    return false;
   }
 };
