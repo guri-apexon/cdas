@@ -1,6 +1,13 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
+import _debounce from "lodash/debounce";
 import { Typography } from "@material-ui/core";
-import React, { useMemo, useState, useEffect, useContext } from "react";
+import React, {
+  useMemo,
+  useState,
+  useEffect,
+  useContext,
+  useCallback,
+} from "react";
 import Paper from "apollo-react/components/Paper";
 import { useHistory } from "react-router-dom";
 import Table, {
@@ -40,13 +47,14 @@ const ListUsers = () => {
   const [initialTableRows, setInitialTableRows] = useState([]);
   const [open, setOpen] = useState(false);
   const [peekContent, setPeekContent] = useState("");
-  const [searchStr, setSearchStr] = useState("");
+  const [initialSearchStr, setInitialSearchStr] = useState("");
   const [curRow, setCurRow] = useState({});
   const appContext = useContext(AppContext);
   const { permissions } = appContext.user;
   const [createRolePermission, setCreateRolePermission] = useState(false);
   const [readRolePermission, setReadRolePermission] = useState(false);
   const [updateRolePermission, setUpdateRolePermission] = useState(false);
+
   const filterMethod = (rolePermissions) => {
     const filterrolePermissions = rolePermissions.filter(
       (item) => item.featureName === "User Management"
@@ -90,21 +98,6 @@ const ListUsers = () => {
     setCurRow(row);
   };
 
-  const handleSearchChange = (e) => {
-    setSearchStr(e.target.value);
-    if (e.target.value) {
-      const prevTableRows = tableRows.filter(
-        (row) =>
-          row.usr_full_nm.includes(e.target.value) ||
-          row.usr_id.includes(e.target.value) ||
-          row.usr_mail_id.includes(e.target.value)
-      );
-      setTableRows([...prevTableRows]);
-    } else {
-      setTableRows([...initialTableRows]);
-    }
-  };
-
   const StatusCell = ({ row, column: { accessor } }) => {
     const data = row[accessor];
     // const id = row.usr_id;
@@ -115,17 +108,19 @@ const ListUsers = () => {
     };
     return (
       <div>
-        <Tag
-          label={row.trimed_usr_stat}
-          variant={btnVariant[row.trimed_usr_stat]}
-        />
+        {row.trimed_usr_stat && (
+          <Tag
+            label={row.trimed_usr_stat}
+            variant={btnVariant[row.trimed_usr_stat]}
+          />
+        )}
       </div>
     );
   };
 
   const LinkCell = ({ row, column: { accessor, width } }) => {
     const rowValue = row[accessor];
-    const id = row.role_id;
+    const id = row.usr_id;
     if (!rowValue) return null;
     const charLimit = getOverflowLimit(width, 100);
     if (rowValue.length < charLimit) {
@@ -167,35 +162,61 @@ const ListUsers = () => {
     );
   };
 
-  const CustomButtonHeader = ({ toggleFilters }) => (
-    <div>
-      <Search
-        placeholder="Search by name, email, or user ID"
-        value={searchStr}
-        onChange={(e) => handleSearchChange(e)}
-        style={{ minWidth: "400px", marginTop: -7 }}
-      />
-      {createRolePermission && (
+  const debounceFn = useCallback(
+    _debounce((str) => {
+      const formattedStr = str.trim().toLowerCase();
+      if (formattedStr) {
+        const prevTableRows = initialTableRows.filter(
+          (row) =>
+            row.usr_full_nm.toLowerCase().includes(formattedStr) ||
+            row.usr_id.toLowerCase().includes(formattedStr) ||
+            row.usr_mail_id.toLowerCase().includes(formattedStr)
+        );
+        setTableRows([...prevTableRows]);
+      } else {
+        setTableRows([...initialTableRows]);
+      }
+      setInitialSearchStr(str);
+    }, 1000),
+    [initialTableRows]
+  );
+
+  const CustomButtonHeader = ({ toggleFilters }) => {
+    const [searchStr, setSearchStr] = useState(initialSearchStr);
+    const handleSearchChange = (e) => {
+      setSearchStr(e.target.value);
+      debounceFn(e.target.value);
+    };
+    return (
+      <div>
+        <Search
+          placeholder="Search by name, email, or user ID"
+          value={searchStr}
+          onChange={(e) => handleSearchChange(e)}
+          style={{ minWidth: "400px", marginTop: -7 }}
+        />
+        {createRolePermission && (
+          <Button
+            size="small"
+            variant="secondary"
+            icon={PlusIcon}
+            onClick={() => history.push("/create-user")}
+            style={{ marginRight: "8px", border: "none", boxShadow: "none" }}
+          >
+            Add new user
+          </Button>
+        )}
         <Button
           size="small"
           variant="secondary"
-          icon={PlusIcon}
-          onClick={() => history.push("/create-user")}
-          style={{ marginRight: "8px", border: "none", boxShadow: "none" }}
+          icon={FilterIcon}
+          onClick={toggleFilters}
         >
-          Add new user
+          Filter
         </Button>
-      )}
-      <Button
-        size="small"
-        variant="secondary"
-        icon={FilterIcon}
-        onClick={toggleFilters}
-      >
-        Filter
-      </Button>
-    </div>
-  );
+      </div>
+    );
+  };
 
   const columns = [
     {
@@ -282,7 +303,7 @@ const ListUsers = () => {
         )}
       </>
     ),
-    [tableRows, loading]
+    [tableRows, loading, initialSearchStr]
   );
 
   return (
