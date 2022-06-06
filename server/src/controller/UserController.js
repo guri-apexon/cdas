@@ -8,6 +8,8 @@ const apiResponse = require("../helpers/apiResponse");
 const constants = require("../config/constants");
 const { DB_SCHEMA_NAME: schemaName, SDA_APP_KEY, SDA_BASE_URL } = constants;
 
+const logQuery = `INSERT INTO ${schemaName}.audit_log (tbl_nm,id,attribute,old_val,new_val,rsn_for_chg,updated_by,updated_on) values ($1, $2, $3, $4, $5, $6, $7, $8)`;
+
 exports.getUser = function (user_id) {
   try {
     const usrId = user_id;
@@ -158,23 +160,23 @@ exports.createNewUser = async (req, res) => {
 
 exports.deleteNewUser = async (req, res) => {
   try {
-    const { tenant_id, user_type, email_id, user_id } = req.body;
+    const { tenant_id, user_type, email_id, user_id, updt_tm } = req.body;
     if (tenant_id && user_type && email_id && user_id) {
       const query = `SELECT * from ${schemaName}.user WHERE usr_mail_id='${email_id}' AND usr_stat='Active' `;
-      const inActiveUserQuery = ` UPDATE ${schemaName}.user set usr_stat=$1 WHERE usr_mail_id='${email_id}'`;
-      const studyStatusUpdateQuery = `UPDATE ${schemaName}.study_user set act_flg=0 WHERE usr_id='${user_id}'`;
+      const inActiveUserQuery = ` UPDATE ${schemaName}.user set usr_stat=$1 , updt_tm=$2 WHERE usr_mail_id='${email_id}'`;
+      const studyStatusUpdateQuery = `UPDATE ${schemaName}.study_user set act_flg=0 , updt_tm='${updt_tm}' WHERE usr_id='${user_id}'`;
 
       const userExists = await DB.executeQuery(query);
 
       if (userExists.rowCount) {
         const inActiveStatus = await DB.executeQuery(inActiveUserQuery, [
           "InActive",
+          updt_tm,
         ]);
 
         if (inActiveStatus.rowCount) {
           const deprovisionURL = `${SDA_BASE_URL}/sda-rest-api/api/external/entitlement/V1/ApplicationUsers/deprovisionUserFromApplication`;
           const userDetails = await userHelper.getSDAuserDataById(user_id);
-          const 
 
           const requestBody = {
             appKey: SDA_APP_KEY,
@@ -202,18 +204,33 @@ exports.deleteNewUser = async (req, res) => {
 
           if (sda_status.status) {
             studyStatusUpdate = await DB.executeQuery(studyStatusUpdateQuery);
-          }else{
-            return apiResponse.ErrorResponse(res, "Status Status Update failed");
+          } else {
+            return apiResponse.ErrorResponse(
+              res,
+              "Status Status Update failed"
+            );
           }
 
-          if(studyStatusUpdate.rowCount){
-            axios
-            .post(`${FSR_API_URI}/study/revoke`, {} ,  {
-              headers: FSR_HEADERS,
-            })
+          // tbl_nm,id,attribute,old_val,new_val,rsn_for_chg,updated_by,updated_on
 
-          }
-          
+          const audit_log = await DB.executeQuery(logQuery, [
+            "user",
+            user_id,
+            "usr_stat",
+            "Active",
+            "InActive",
+            "User Requested",
+            user_id,
+            updt_tm,
+          ]);
+
+          // if(studyStatusUpdate.rowCount){
+          //   axios
+          //   .post(`${FSR_API_URI}/study/revoke`, {} ,  {
+          //     headers: FSR_HEADERS,
+          //   })
+
+          // }
         }
 
         return apiResponse.successResponse(res, "User Deleted Successfully");
