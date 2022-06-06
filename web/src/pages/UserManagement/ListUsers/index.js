@@ -34,7 +34,7 @@ const ProductsCell = ({ row, column: { accessor } }) => {
 
 const statusList = ["Active", "Inactive"];
 
-const ListRoles = () => {
+const ListUsers = () => {
   const history = useHistory();
   const [loading, setLoading] = useState(true);
   const [tableRows, setTableRows] = useState([]);
@@ -85,10 +85,10 @@ const ListRoles = () => {
     }
   };
 
-  const goToRole = (e, id) => {
+  const goToUser = (e, id) => {
     if (readRolePermission) {
       e.preventDefault();
-      history.push(`/role-management/${id}`);
+      history.push(`/user-management/${id}`);
     }
   };
 
@@ -130,7 +130,7 @@ const ListRoles = () => {
     const charLimit = getOverflowLimit(width, 100);
     if (rowValue.length < charLimit) {
       return (
-        <Link disabled={!readRolePermission} onClick={(e) => goToRole(e, id)}>
+        <Link disabled={!readRolePermission} onClick={(e) => goToUser(e, id)}>
           {rowValue}
         </Link>
       );
@@ -140,7 +140,7 @@ const ListRoles = () => {
         onMouseOver={() => handleMouseOver(row, "roleName")}
         onMouseOut={handleMouseOut}
         disabled={!readRolePermission}
-        onClick={(e) => goToRole(e, id)}
+        onClick={(e) => goToUser(e, id)}
       >
         {`${rowValue.slice(0, charLimit - 10)} [...]`}
       </Link>
@@ -174,10 +174,10 @@ const ListRoles = () => {
           size="small"
           variant="secondary"
           icon={PlusIcon}
-          onClick={() => history.push("/create-role")}
+          onClick={() => history.push("/create-user")}
           style={{ marginRight: "8px", border: "none", boxShadow: "none" }}
         >
-          Create new role
+          Add new user
         </Button>
       )}
       <Button
@@ -307,4 +307,4 @@ const ListRoles = () => {
   );
 };
 
-export default ListRoles;
+export default ListUsers;
