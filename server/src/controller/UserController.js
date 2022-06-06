@@ -162,6 +162,7 @@ exports.deleteNewUser = async (req, res) => {
     if (tenant_id && user_type && email_id && user_id) {
       const query = `SELECT * from ${schemaName}.user WHERE usr_mail_id='${email_id}' AND usr_stat='Active' `;
       const inActiveUserQuery = ` UPDATE ${schemaName}.user set usr_stat=$1 WHERE usr_mail_id='${email_id}'`;
+      const studyStatusUpdateQuery = `UPDATE ${schemaName}.study_user set act_flg=0 WHERE usr_id='${user_id}'`;
 
       const userExists = await DB.executeQuery(query);
 
@@ -173,37 +174,22 @@ exports.deleteNewUser = async (req, res) => {
         if (inActiveStatus.rowCount) {
           const deprovisionURL = `${SDA_BASE_URL}/sda-rest-api/api/external/entitlement/V1/ApplicationUsers/deprovisionUserFromApplication`;
           const userDetails = await userHelper.getSDAuserDataById(user_id);
-          console.log(userDetails[0]);
-          const requestBody = JSON.stringify({
+          const 
+
+          const requestBody = {
             appKey: SDA_APP_KEY,
             userType: user_type,
             roleType: userDetails?.roleType,
-            // email: userExists.rows[0]?.usr_mail_id,
             networkId: user_id,
             updatedBy: "Admin",
-          });
-          // console.log(requestBody);
+          };
 
           let sda_status = {};
           if (user_type == "internal") {
             console.log("Internal -----------------------------");
-            // sda_status = await
-
-            axios
-              .delete(deprovisionURL, requestBody, {
-                headers: {
-                  "Content-Type": "application/json",
-                },
-              })
-              .then((respppp) => respppp);
-            console.log(
-              sda_status.status === 200 ||
-                (sda_status.status === 204 && "user deleted")
-            );
-            // console.log(sda_status);
-            //  .then((resp) => {
-            //     console.log("internal", resp);
-            //   });
+            sda_status = await axios.delete(deprovisionURL, {
+              data: requestBody,
+            });
           } else if (user_type == "external") {
             console.log("external -----------------------------");
             const { networkId, ...rest } = requestBody;
@@ -211,6 +197,23 @@ exports.deleteNewUser = async (req, res) => {
           } else {
             // return apiResponse.ErrorResponse(res, "Invalid User Type");
           }
+
+          let studyStatusUpdate = {};
+
+          if (sda_status.status) {
+            studyStatusUpdate = await DB.executeQuery(studyStatusUpdateQuery);
+          }else{
+            return apiResponse.ErrorResponse(res, "Status Status Update failed");
+          }
+
+          if(studyStatusUpdate.rowCount){
+            axios
+            .post(`${FSR_API_URI}/study/revoke`, {} ,  {
+              headers: FSR_HEADERS,
+            })
+
+          }
+          
         }
 
         return apiResponse.successResponse(res, "User Deleted Successfully");
