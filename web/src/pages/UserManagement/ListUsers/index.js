@@ -32,7 +32,7 @@ const ProductsCell = ({ row, column: { accessor } }) => {
   return <>{rowValue}</>;
 };
 
-const statusList = ["Active", "Inactive"];
+const statusList = ["Active", "In Active", "Invited"];
 
 const ListUsers = () => {
   const history = useHistory();
@@ -70,21 +70,6 @@ const ListUsers = () => {
     });
   }, []);
 
-  const handleStatus = async (e, userId) => {
-    try {
-      const prevUsers = tableRows;
-      const selectedUserIndex = prevUsers.findIndex(
-        (user) => user.usr_id === userId
-      );
-      prevUsers[selectedUserIndex].usr_stat = e.target.checked
-        ? "Active"
-        : "Inactive";
-      setTableRows([...prevUsers]);
-    } catch (error) {
-      console.log("error", error);
-    }
-  };
-
   const goToUser = (e, id) => {
     if (readRolePermission) {
       e.preventDefault();
@@ -105,21 +90,32 @@ const ListUsers = () => {
 
   const StatusCell = ({ row, column: { accessor } }) => {
     const data = row[accessor];
-    const id = row.usr_id;
-    const stat = row.usr_stat === "Active" ? true : false;
+    // const id = row.usr_id;
+    const btnVariant = {
+      Active: "primary",
+      "In Active": "primary",
+      Invited: "primary",
+    };
+    const btnBgColor = {
+      Active: "#00C221",
+      "In Active": "#999999",
+      Invited: "#9E54B0",
+    };
     return (
-      <Tooltip
-        title={data === "Active" ? "Active" : "Inactive"}
-        disableFocusListener
-      >
-        <Switch
-          className="table-checkbox"
-          checked={stat}
-          onChange={(e) => handleStatus(e, id)}
+      <div>
+        <Button
           size="small"
-          disabled={!updateRolePermission}
-        />
-      </Tooltip>
+          variant={btnVariant[row.trimed_usr_stat]}
+          onClick={() => history.push("/create-user")}
+          style={{
+            marginRight: "8px",
+            boxShadow: "none",
+            backgroundColor: btnBgColor[row.trimed_usr_stat],
+          }}
+        >
+          {row.trimed_usr_stat}
+        </Button>
+      </div>
     );
   };
 
@@ -220,19 +216,16 @@ const ListUsers = () => {
       accessor: "usr_id",
       customCell: ProductsCell,
       sortFunction: compareStrings,
-      filterFunction: createStringArrayIncludedFilter("usr_id"),
-      filterComponent: createSelectFilterComponent([], {
-        size: "small",
-        multiple: true,
-      }),
+      filterFunction: createStringSearchFilter("usr_id"),
+      filterComponent: TextFieldFilter,
       width: "30%",
     },
     {
       header: "Status",
-      accessor: "usr_stat",
+      accessor: "trimed_usr_stat",
       customCell: StatusCell,
       sortFunction: compareStrings,
-      filterFunction: createStringArraySearchFilter("usr_stat"),
+      filterFunction: createStringArraySearchFilter("trimed_usr_stat"),
       filterComponent: createSelectFilterComponent(statusList, {
         size: "small",
         multiple: true,

@@ -73,7 +73,7 @@ exports.addLoginActivity = async (loginDetails) => {
 exports.listUsers = async function (req, res) {
   try {
     console.log("listUsers called");
-    return await DB.executeQuery(`SELECT *, CONCAT(usr_fst_nm,' ',usr_lst_nm) AS usr_full_nm from ${schemaName}.user`)
+    return await DB.executeQuery(`SELECT *, TRIM(usr_stat) AS trimed_usr_stat,  CONCAT(usr_fst_nm,' ',usr_lst_nm) AS usr_full_nm from ${schemaName}.user`)
       .then((response) => {
         return apiResponse.successResponseWithData(
           res,
