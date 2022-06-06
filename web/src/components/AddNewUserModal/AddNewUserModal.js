@@ -79,6 +79,7 @@ const AddNewUserModal = ({
     }
     let alreadyExist;
     let disableRole;
+    let blurred;
     if (key === "user" && value) {
       alreadyExist = tableUsers.find((x) => x.user?.email === value.email)
         ? true
@@ -88,6 +89,9 @@ const AddNewUserModal = ({
       }
       disableRole = false;
     }
+    if (key === "roles" && value.length === 0) {
+      blurred = true;
+    }
     const tableIndex = tableUsers.findIndex((el) => el.index === index);
     setTableUsers((rows) => {
       const newRows = rows.map((row) => {
@@ -95,7 +99,7 @@ const AddNewUserModal = ({
           if (key === "user") {
             return { ...row, [key]: value, alreadyExist, disableRole };
           }
-          return { ...row, [key]: value };
+          return { ...row, [key]: value, blurred };
         }
         return row;
       });
@@ -122,6 +126,17 @@ const AddNewUserModal = ({
     });
   };
 
+  const onblur = (index) => {
+    setTableUsers((rows) => {
+      const newRows = rows.map((row) => {
+        if (row.index === index) {
+          return { ...row, blurred: true };
+        }
+        return { ...row };
+      });
+      return newRows;
+    });
+  };
   const EditableRoles = ({ row, column: { accessor: key } }) => {
     return (
       <div className="role">
@@ -139,7 +154,15 @@ const AddNewUserModal = ({
           onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
           filterSelectedOptions={false}
           blurOnSelect={false}
+          onBlur={() => onblur(row.index)}
           clearOnBlur={false}
+          error={row.blurred && row.roles.length === 0 && row.user !== null}
+          helperText={
+            row.blurred &&
+            row.roles.length === 0 &&
+            row.user !== null &&
+            "Select a role"
+          }
           disableCloseOnSelect
           alwaysLimitChips
           enableVirtualization
@@ -152,6 +175,7 @@ const AddNewUserModal = ({
     return (
       <div className="user">
         <AutocompleteV2
+          // open={(!row.user || (row.index === 1 && !row.user)) && true}
           size="small"
           fullWidth
           forcePopupIcon
@@ -162,18 +186,12 @@ const AddNewUserModal = ({
           matchFrom="any"
           enableVirtualization
           error={
-            row.alreadyExist ||
-            (!initialRender &&
-              !row[key] &&
-              row.index !== tableUsers[tableUsers.length - 1].index)
+            row.alreadyExist || (row.user === null && row.roles.length >= 1)
           }
           helperText={
             row.alreadyExist
               ? "This user already has assignments. Please select a different user to continue"
-              : !initialRender &&
-                !row[key] &&
-                row.index !== tableUsers[tableUsers.length - 1].index &&
-                "Required"
+              : row.user === null && row.roles.length >= 1 && "Select a user"
           }
         />
       </div>
@@ -284,6 +302,7 @@ const AddNewUserModal = ({
       protocol,
       loginId: userInfo.user_id,
       data,
+      insrt_tm: new Date().toISOString(),
     });
     setDisableSave(false);
     handleClose();

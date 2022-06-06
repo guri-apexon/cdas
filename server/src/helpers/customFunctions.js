@@ -60,6 +60,9 @@ const stringToBoolean = (exports.stringToBoolean = (string) => {
   }
 });
 
+exports.validateEmail = (email) =>
+  /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email);
+  
 exports.getdiffKeys = (newObj, oldObj) => {
   if (
     typeof newObj === "object" &&
