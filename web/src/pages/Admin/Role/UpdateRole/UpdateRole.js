@@ -1,6 +1,6 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import Box from "apollo-react/components/Box";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import BreadcrumbsUI from "apollo-react/components/Breadcrumbs";
 import Switch from "apollo-react/components/Switch";
@@ -36,6 +36,14 @@ import {
 } from "../../../../services/ApiServices";
 import PolicySnapshot from "./PolicySnapshot";
 import { AppContext } from "../../../../components/Providers/AppProvider";
+import {
+  formComponentActive,
+  hideAlert,
+  showAppSwitcher,
+  formComponentInActive,
+  hideAppSwitcher,
+} from "../../../../store/actions/AlertActions";
+import AlertBox from "../../../AlertBox/AlertBox";
 
 const UpdateRole = () => {
   const dispatch = useDispatch();
@@ -52,10 +60,33 @@ const UpdateRole = () => {
   const [roleDesc, setRoleDesc] = useState("");
   const [policies, setPolicies] = useState([]);
   const [products, setProducts] = useState([]);
+  const routerHandle = useRef();
   const appContext = useContext(AppContext);
   const { permissions } = appContext.user;
   const [RoleUpdatePermission, setUpdateRoleUpdatePermission] = useState(false);
   const userInfo = getUserInfo();
+  const [targetRoute, setTargetRoute] = useState("");
+  const alertStore = useSelector((state) => state.Alert);
+  const [isShowAlertBox, setShowAlertBox] = useState(false);
+
+  const unblockRouter = () => {
+    dispatch(formComponentInActive());
+    dispatch(hideAlert());
+    dispatch(hideAppSwitcher());
+    if (routerHandle) {
+      routerHandle.current();
+    }
+  };
+
+  const cancelModalObj = {
+    subtitle: "All unsaved changes will be lost.",
+    cancelLabel: "Leave without saving",
+    cancelAction: () => {
+      unblockRouter(); // should be above history push
+      history.push("/role-management");
+    },
+    submitLabel: "Keep editing",
+  };
   const filterMethod = (rolePermissions) => {
     const filterrolePermissions = rolePermissions.filter(
       (item) => item.featureName === "Role management"
@@ -229,6 +260,7 @@ const UpdateRole = () => {
       status: active ? "1" : "0",
       userId: userInfo.user_id,
       roleId: params.id,
+      updated_on: new Date().toISOString(),
     };
     setLoading(true);
     updateRoleService(reqBody)
@@ -236,6 +268,7 @@ const UpdateRole = () => {
         messageContext.showSuccessMessage(
           res.message || "Successfully updated"
         );
+        unblockRouter(); // should be above history push
         history.push("/role-management");
         setLoading(false);
       })
@@ -273,15 +306,7 @@ const UpdateRole = () => {
   }, [policies]);
 
   const setConfirmCancel = () => {
-    const confirm = {
-      subtitle: "You has started the new role. Do you still want to cancel?",
-      cancelLabel: "Yes, cancel it",
-      cancelAction: () => {
-        history.push("/role-management");
-      },
-      submitLabel: "No, let's finish",
-    };
-    setConfirmObj(confirm);
+    setConfirmObj(cancelModalObj);
   };
   // eslint-disable-next-line consistent-return
   const setConfirmViewPolicy = (param) => {
@@ -290,36 +315,84 @@ const UpdateRole = () => {
       return false;
     }
     const confirm = {
-      subtitle: "Unsaved changes will be lost. Are you sure you want to leave?",
+      subtitle: "All unsaved changes will be lost.",
       cancelLabel: "Leave without saving",
       cancelAction: () => {
+        unblockRouter();
         setSelectedPolicy(null);
         history.push(`/policy-management/${selectedPolicy.policyId}`);
       },
-      submitLabel: "Stay on this page",
+      submitLabel: "Keep editing",
     };
     setConfirmObj(confirm);
+  };
+
+  const keepEditingBtn = () => {
+    dispatch(hideAlert());
+    setShowAlertBox(false);
+  };
+
+  const leavePageBtn = () => {
+    dispatch(hideAlert());
+    dispatch(showAppSwitcher());
+    setShowAlertBox(false);
+  };
+
+  useEffect(() => {
+    dispatch(formComponentActive());
+  }, []);
+
+  useEffect(() => {
+    if (alertStore?.showAlertBox) {
+      setShowAlertBox(true);
+    }
+  }, [alertStore]);
+
+  useEffect(() => {
+    routerHandle.current = history.block((tr) => {
+      console.log(tr);
+      setTargetRoute(tr?.pathname);
+      setConfirmObj(cancelModalObj);
+      return false;
+    });
+
+    return function () {
+      /* eslint-disable */
+      routerHandle.current.current && routerHandle.current.current();
+    };
+  });
+  const cancelButton = () => {
+    unblockRouter();
+    if (targetRoute === "") {
+      confirmObj.cancelAction();
+    } else {
+      history.push(targetRoute);
+    }
   };
   return (
     <div className="create-role-wrapper">
       <Box className="top-content">
+        {isShowAlertBox && (
+          <AlertBox cancel={keepEditingBtn} submit={leavePageBtn} />
+        )}
         {confirmObj && (
           <Modal
+            disableBackdropClick="true"
             open={confirmObj ? true : false}
             onClose={() => setConfirmObj(null)}
             className="save-confirm"
             variant="warning"
-            title="Save before exiting?"
+            title="Lose your work?"
             message={confirmObj.subtitle}
             buttonProps={[
               {
-                label: confirmObj.cancelLabel,
-                onClick: () => confirmObj.cancelAction(),
+                label: confirmObj.submitLabel,
+                onClick: () => setConfirmObj(null),
                 disabled: loading,
               },
               {
-                label: confirmObj.submitLabel,
-                onClick: () => setConfirmObj(null),
+                label: confirmObj.cancelLabel,
+                onClick: () => cancelButton(),
                 disabled: loading,
               },
             ]}

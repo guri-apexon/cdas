@@ -16,3 +16,17 @@
     display: none;
   }
 }
+
+#tableVendorContacts table > thead,
+#tableVendorContacts table > tbody > tr > td {
+  background-color: #fff !important;
+  vertical-align: middle;
+}
+
+#tableVendorContacts table > thead > tr {
+  background-color: #f6f7fb !important;
+  vertical-align: middle;
+}
+#tableVendorContacts table > tbody > tr {
+  border: 0 !important;
+}

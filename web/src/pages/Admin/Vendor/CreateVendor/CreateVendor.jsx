@@ -1,8 +1,7 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 /* eslint-disable react/button-has-type */
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import Box from "apollo-react/components/Box";
 import { useHistory, useParams } from "react-router";
 import BreadcrumbsUI from "apollo-react/components/Breadcrumbs";
 import Switch from "apollo-react/components/Switch";
@@ -18,7 +17,6 @@ import Modal from "apollo-react/components/Modal";
 import _ from "lodash";
 import {
   addVendorService,
-  updateVendorService,
   deleteVendorContact,
 } from "../../../../services/ApiServices";
 import {
@@ -32,6 +30,45 @@ import {
   getUserInfo,
   inputAlphaNumericWithUnderScore,
 } from "../../../../utils";
+import usePermission, {
+  Categories,
+  Features,
+} from "../../../../components/Common/usePermission";
+import {
+  formComponentActive,
+  hideAlert,
+  showAppSwitcher,
+  formComponentInActive,
+  hideAppSwitcher,
+} from "../../../../store/actions/AlertActions";
+import AlertBox from "../../../AlertBox/AlertBox";
+
+const Box = ({ children }) => {
+  return (
+    <span className="label" variant="body2">
+      {children}
+    </span>
+  );
+};
+
+const Label = ({ children }) => {
+  return (
+    <span className="label" style={{ color: "gray" }}>
+      {children}
+    </span>
+  );
+};
+const Value = ({ children }) => {
+  return (
+    <div
+      className="value"
+      variant="body2"
+      style={{ "word-wrap": "break-word", fontWeight: "bold" }}
+    >
+      {children}
+    </div>
+  );
+};
 
 const ConfirmModal = React.memo(({ open, cancel, stayHere, loading }) => {
   return (
@@ -42,14 +79,10 @@ const ConfirmModal = React.memo(({ open, cancel, stayHere, loading }) => {
       disableBackdropClick="true"
       variant="warning"
       title="Lose your work?"
-      message="Your unsaved changes will be lost. Are you sure you want to leave this page?"
+      message="All unsaved changes will be lost."
       buttonProps={[
+        { label: "Keep editing", disabled: loading },
         { label: "Leave without saving", onClick: cancel, disabled: loading },
-        {
-          label: "Stay on this page",
-          onClick: stayHere,
-          disabled: loading,
-        },
       ]}
       id="neutral"
     />
@@ -64,7 +97,7 @@ const CreateVendor = () => {
   const [loading, setLoading] = useState(false);
   const [vName, setVName] = useState("");
   const [vDescription, setVDescription] = useState("");
-  const [vESN, setVESN] = useState("");
+  const [vESName, setVESN] = useState("");
   const [vId, setVId] = useState("");
   const [vContacts, setVContacts] = useState([]);
   const [contacts, setContacts] = useState([]);
@@ -75,8 +108,25 @@ const CreateVendor = () => {
   const params = useParams();
   const dispatch = useDispatch();
   const vendor = useSelector((state) => state.vendor);
+  const [targetRoute, setTargetRoute] = useState("");
   const { isEditPage, isCreatePage, selectedVendor, ensList } = vendor;
+  const { canRead, canCreate, canUpdate, readOnly } = usePermission(
+    Categories.SYS_ADMIN,
+    Features.VENDOR_MANAGEMENT
+  );
 
+  const alertStore = useSelector((state) => state.Alert);
+  const [isShowAlertBox, setShowAlertBox] = useState(false);
+
+  const routerHandle = useRef();
+  const unblockRouter = () => {
+    dispatch(formComponentInActive());
+    dispatch(hideAlert());
+    dispatch(hideAppSwitcher());
+    if (routerHandle) {
+      routerHandle.current();
+    }
+  };
   useEffect(() => {});
 
   useEffect(() => {
@@ -91,10 +141,10 @@ const CreateVendor = () => {
   }, []);
 
   const breadcrumpItems = [
-    { href: "/" },
+    { href: "", onClick: () => history.push("/launchpad") },
     {
       title: "Vendors",
-      href: "/vendor/list",
+      onClick: () => history.push("/vendor/list"),
     },
     {
       title: isEditPage ? vName : "Create New Vendor",
@@ -110,7 +160,7 @@ const CreateVendor = () => {
       setActive(true);
     } else if (isEditPage) {
       setVId(selectedVendor.vId);
-      setVESN(selectedVendor.vESN ? selectedVendor.vESN : "");
+      setVESN(selectedVendor.vESName ? selectedVendor.vESName : "");
       setVName(selectedVendor.vName);
       setVDescription(
         selectedVendor.vDescription ? selectedVendor.vDescription : ""
@@ -133,21 +183,22 @@ const CreateVendor = () => {
   // eslint-disable-next-line consistent-return
   const submitVendor = async () => {
     const reqBody = {
+      systemName: "CDI",
       vId,
       vName,
       vDescription,
-      vESN,
+      vESName,
       vContacts,
       userId: userInfo.user_id,
-      userName: userInfo.firstName,
       vStatus: active ? 1 : 0,
+      insrt_tm: new Date().toISOString(),
     };
     setInitialRender(false);
     if (vName === "") {
       messageContext.showErrorMessage("Vendor name shouldn't be empty");
       return false;
     }
-    if (vESN === "") {
+    if (vESName === "") {
       messageContext.showErrorMessage(
         "Vendor external system name need to be selected"
       );
@@ -155,42 +206,24 @@ const CreateVendor = () => {
     }
 
     setLoading(true);
-    if (isCreatePage) {
+    if (isCreatePage || isEditPage) {
+      // eslint-disable-next-line
       addVendorService(reqBody)
         .then((res) => {
           messageContext.showSuccessMessage(res.message || "Successfully done");
+          unblockRouter();
           history.push("/vendor/list");
           setLoading(false);
         })
         .catch((err) => {
-          if (err.data) {
+          if (err?.data) {
             messageContext.showErrorMessage(
-              err.data ||
+              err?.data ||
                 "Vendor name and external system name combination already exists."
             );
           } else {
             messageContext.showErrorMessage(
-              err.message || "Something went wrong"
-            );
-          }
-          setLoading(false);
-        });
-    } else if (isEditPage) {
-      updateVendorService(reqBody)
-        .then((res) => {
-          messageContext.showSuccessMessage(res.message || "Successfully done");
-          history.push("/vendor/list");
-          setLoading(false);
-        })
-        .catch((err) => {
-          if (err.data) {
-            messageContext.showErrorMessage(
-              err.data ||
-                "Vendor name and external system name combination already exists."
-            );
-          } else {
-            messageContext.showErrorMessage(
-              err.message || "Something went wrong"
+              err?.message || "Something went wrong"
             );
           }
           setLoading(false);
@@ -244,8 +277,13 @@ const CreateVendor = () => {
   };
 
   const cancelEdit = () => {
+    unblockRouter();
     setConfirm(false);
-    history.goBack();
+    if (targetRoute === "") {
+      history.push("/vendor/list");
+    } else {
+      history.push(targetRoute);
+    }
   };
 
   const stayHere = () => {
@@ -253,6 +291,7 @@ const CreateVendor = () => {
   };
 
   const handleCancel = () => {
+    unblockRouter();
     if (isAnyUpdate) {
       setConfirm(true);
     } else {
@@ -267,12 +306,52 @@ const CreateVendor = () => {
         vCId,
         userName: userInfo.firstName,
         userId: userInfo.user_id,
+        updt_tm: new Date().toISOString(),
       });
     }
   };
 
+  const keepEditingBtn = () => {
+    dispatch(hideAlert());
+    setShowAlertBox(false);
+  };
+
+  const leavePageBtn = () => {
+    dispatch(hideAlert());
+    dispatch(showAppSwitcher());
+    setShowAlertBox(false);
+  };
+
+  useEffect(() => {
+    dispatch(formComponentActive());
+  }, []);
+
+  useEffect(() => {
+    if (alertStore?.showAlertBox) {
+      setShowAlertBox(true);
+    }
+  }, [alertStore]);
+
+  useEffect(() => {
+    routerHandle.current = history.block((tr) => {
+      setTargetRoute(tr?.pathname);
+      setIsAnyUpdate(true);
+      setConfirm(true);
+
+      return false;
+    });
+
+    return function () {
+      /* eslint-disable */
+      routerHandle.current.current && routerHandle.current.current();
+    };
+  });
+
   return (
     <div className="create-vendor-wrapper">
+      {isShowAlertBox && (
+        <AlertBox cancel={keepEditingBtn} submit={leavePageBtn} />
+      )}
       {isAnyUpdate && (
         <ConfirmModal
           open={confirm}
@@ -292,28 +371,42 @@ const CreateVendor = () => {
             </span>
           </div>
           <div className="flex top-actions">
-            <Switch
-              label="Active"
-              className="inline-checkbox"
-              checked={active}
-              onChange={handleActive}
-              size="small"
-            />
+            {!readOnly && (
+              <Switch
+                label="Active"
+                className="inline-checkbox"
+                checked={active}
+                onChange={handleActive}
+                size="small"
+              />
+            )}
             <ButtonGroup
               alignItems="right"
-              buttonProps={[
-                {
-                  label: "Cancel",
-                  size: "small",
-                  onClick: handleCancel,
-                },
-                {
-                  label: "Save",
-                  size: "small",
-                  disabled: loading || disableSave,
-                  onClick: submitVendor,
-                },
-              ]}
+              buttonProps={
+                readOnly
+                  ? [
+                      {
+                        label: "Cancel",
+                        size: "small",
+                        onClick: handleCancel,
+                        hidden: true,
+                      },
+                    ]
+                  : [
+                      {
+                        label: "Cancel",
+                        size: "small",
+                        onClick: handleCancel,
+                        hidden: true,
+                      },
+                      {
+                        label: "Save",
+                        size: "small",
+                        disabled: loading || disableSave,
+                        onClick: submitVendor,
+                      },
+                    ]
+              }
             />
           </div>
         </div>
@@ -326,44 +419,64 @@ const CreateVendor = () => {
               <Typography variant="title1" className="b-font title">
                 {isEditPage ? vName : "New Vendor"}
               </Typography>
-              {/* <br /> */}
-              <TextField
-                id="vName"
-                size="small"
-                value={vName}
-                label="Vendor Name"
-                placeholder="Name your vendor"
-                onChange={handleChange}
-                error={initialRender === false && !vName ? true : false}
-              />
-              <Select
-                size="small"
-                fullWidth
-                label="External System Name"
-                placeholder="Select system name"
-                value={vESN || ""}
-                canDeselect={false}
-                onChange={(e) => handleSelection(e)}
-                error={initialRender === false && !vESN ? true : false}
-              >
-                {vENSOptions.map((option) => (
-                  <MenuItem key={option} value={option}>
-                    {option}
-                  </MenuItem>
-                ))}
-              </Select>
-              <TextField
-                id="vDescription"
-                size="small"
-                label="Vendor Description"
-                placeholder="Describe your vendor"
-                rows="18"
-                value={vDescription}
-                multiline={true}
-                minHeight={150}
-                sizeAdjustable
-                onChange={handleChange}
-              />
+              <br />
+              {readOnly ? (
+                <>
+                  <Typography>
+                    <Label>Vendor Name</Label>
+                    <Value>{vName}</Value>
+                    <br />
+                    <Label>External System Name</Label>
+                    <Value>{vESName || ""}</Value>
+                    <br />
+                    <Label>Description</Label>
+                    <Value>{vDescription}</Value>
+                  </Typography>
+                </>
+              ) : (
+                <>
+                  <TextField
+                    id="vName"
+                    size="small"
+                    value={vName}
+                    label="Vendor Name"
+                    placeholder="Name your vendor"
+                    onChange={handleChange}
+                    error={initialRender === false && !vName ? true : false}
+                    disabled={readOnly}
+                  />
+                  <Select
+                    size="small"
+                    fullWidth
+                    label="External System Name"
+                    placeholder="Select system name"
+                    value={vESName || ""}
+                    canDeselect={false}
+                    onChange={(e) => handleSelection(e)}
+                    error={initialRender === false && !vESName ? true : false}
+                    disabled={readOnly}
+                  >
+                    {vENSOptions.map((option) => (
+                      <MenuItem key={option} value={option}>
+                        {option}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  <TextField
+                    id="vDescription"
+                    size="small"
+                    label="Vendor Description"
+                    placeholder="Describe your vendor"
+                    rows="18"
+                    value={vDescription}
+                    multiline={true}
+                    minHeight={150}
+                    sizeAdjustable
+                    onChange={handleChange}
+                    disabled={readOnly}
+                  />
+                </>
+              )}
             </div>
           </Box>
         </Grid>
@@ -374,6 +487,7 @@ const CreateVendor = () => {
             <TableEditableAll
               deleteAContact={deleteAContact}
               updateData={updateData}
+              disabled={readOnly}
             />
           </div>
         </Grid>

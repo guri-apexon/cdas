@@ -15,6 +15,7 @@ import { MessageContext } from "../Providers/MessageProvider";
 import { searchStudy, onboardStudy } from "../../services/ApiServices";
 import Highlighted from "../Common/Highlighted";
 import { debounceFunction, getUserInfo } from "../../utils";
+import usePermission, { Categories, Features } from "../Common/usePermission";
 
 const Label = ({ children }) => {
   return (
@@ -40,6 +41,11 @@ const AddStudyModal = ({ open, onClose }) => {
   const btnArr = [{ label: "Cancel", size: "small", className: "cancel-btn" }];
   const userInfo = getUserInfo();
   const history = useHistory();
+  const { canCreate } = usePermission(
+    Categories.STUDIES,
+    Features.STUDY_ASSIGNMENTS
+  );
+
   const handleClose = () => {
     setOpenModal(false);
     onClose();
@@ -51,6 +57,8 @@ const AddStudyModal = ({ open, onClose }) => {
       sponsorNameStnd,
       protNbrStnd,
       userId: userInfo.user_id,
+      insrt_tm: new Date().toISOString(),
+      updt_tm: new Date().toISOString(),
     };
     setLoading(true);
     const response = await onboardStudy(reqBody);
@@ -85,6 +93,7 @@ const AddStudyModal = ({ open, onClose }) => {
       size: "small",
       className: "asign-user-btn",
       onClick: importWithUser,
+      disabled: !canCreate,
     },
   ];
 
@@ -164,6 +173,7 @@ const AddStudyModal = ({ open, onClose }) => {
   return (
     <>
       <Modal
+        disableBackdropClick="true"
         open={openModal}
         onClose={handleClose}
         title="Add New Study"
@@ -223,23 +233,18 @@ const AddStudyModal = ({ open, onClose }) => {
                 onChange={searchTrigger}
                 fullWidth
               />
-              {loading ? (
-                <Box display="flex" className="loader-container">
-                  <ApolloProgress />
-                </Box>
-              ) : (
-                <Table
-                  columns={columns}
-                  rows={studies}
-                  rowId="employeeId"
-                  hidePagination
-                  maxHeight="40vh"
-                  emptyProps={{
-                    text:
-                      searchTxt === "" && !loading ? "" : "No data to display",
-                  }}
-                />
-              )}
+              <Table
+                isLoading={loading}
+                columns={columns}
+                rows={studies}
+                rowId="employeeId"
+                hidePagination
+                maxHeight="40vh"
+                emptyProps={{
+                  text:
+                    searchTxt === "" && !loading ? "" : "No data to display",
+                }}
+              />
             </div>
           )}
         </div>
