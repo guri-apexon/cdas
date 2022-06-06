@@ -107,24 +107,6 @@ export const addVendorService = async (reqBody) => {
   }
 };
 
-export const updateVendorService = async (reqBody) => {
-  // console.log("edit", reqBody);
-  try {
-    return new Promise((resolve, reject) => {
-      axios
-        .post(`${baseURL}/${VENDOR_BASE}/update`, reqBody)
-        .then((res) => {
-          resolve(res.data);
-        })
-        .catch((err) => {
-          reject(err.response.data);
-        });
-    });
-  } catch (err) {
-    return console.log("Error", err);
-  }
-};
-
 export const deleteVendorContact = async (reqBody) => {
   try {
     return new Promise((resolve, reject) => {

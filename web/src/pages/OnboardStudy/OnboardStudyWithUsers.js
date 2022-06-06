@@ -25,6 +25,14 @@ import {
 } from "../../services/ApiServices";
 import { getUserInfo } from "../../utils";
 import "./OnboardStudyWithUsers.scss";
+import {
+  formComponentActive,
+  hideAlert,
+  showAppSwitcher,
+  formComponentInActive,
+  hideAppSwitcher,
+} from "../../store/actions/AlertActions";
+import AlertBox from "../AlertBox/AlertBox";
 
 const Label = ({ children }) => {
   return (
@@ -71,6 +79,7 @@ const ConfirmModal = React.memo(
 );
 
 const ImportWithUsers = () => {
+  const dispatch = useDispatch();
   const history = useHistory();
   const userInfo = getUserInfo();
   const toast = useContext(MessageContext);
@@ -84,6 +93,8 @@ const ImportWithUsers = () => {
   const [initialRender, setInitialRender] = useState(true);
   const routerHandle = useRef();
   const [targetRoute, setTargetRoute] = useState("");
+  const alertStore = useSelector((state) => state.Alert);
+  const [isShowAlertBox, setShowAlertBox] = useState(false);
   const breadcrumpItems = [
     { href: "javascript:void(0)", onClick: () => history.push("/launchpad") },
     {
@@ -96,6 +107,9 @@ const ImportWithUsers = () => {
     },
   ];
   const unblockRouter = () => {
+    dispatch(formComponentInActive());
+    dispatch(hideAlert());
+    dispatch(hideAppSwitcher());
     if (routerHandle) {
       routerHandle.current();
     }
@@ -439,6 +453,27 @@ const ImportWithUsers = () => {
     }
   }, []);
 
+  const keepEditingBtn = () => {
+    dispatch(hideAlert());
+    setShowAlertBox(false);
+  };
+
+  const leavePageBtn = () => {
+    dispatch(hideAlert());
+    dispatch(showAppSwitcher());
+    setShowAlertBox(false);
+  };
+
+  useEffect(() => {
+    dispatch(formComponentActive());
+  }, []);
+
+  useEffect(() => {
+    if (alertStore?.showAlertBox) {
+      setShowAlertBox(true);
+    }
+  }, [alertStore]);
+
   useEffect(() => {
     routerHandle.current = history.block((tr) => {
       setTargetRoute(tr?.pathname);
@@ -488,6 +523,9 @@ const ImportWithUsers = () => {
 
   return (
     <div className="import-with-users-wrapper">
+      {isShowAlertBox && (
+        <AlertBox cancel={keepEditingBtn} submit={leavePageBtn} />
+      )}
       <Box className="onboard-header">
         <BreadcrumbsUI className="breadcrump" items={breadcrumpItems} />
         <Typography variant="title1">Import and Assign Users</Typography>

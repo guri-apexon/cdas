@@ -1,6 +1,7 @@
 /* eslint-disable no-script-url */
 /* eslint-disable react/button-has-type */
 import React, { useContext, useEffect, useState, useRef } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import Box from "apollo-react/components/Box";
 import { useHistory, useParams } from "react-router";
 import BreadcrumbsUI from "apollo-react/components/Breadcrumbs";
@@ -24,6 +25,14 @@ import {
 import { MessageContext } from "../../../../components/Providers/MessageProvider";
 import PermissionTable from "./PermissionTable";
 import { getUserInfo, inputAlphaNumeric } from "../../../../utils";
+import {
+  formComponentActive,
+  hideAlert,
+  showAppSwitcher,
+  formComponentInActive,
+  hideAppSwitcher,
+} from "../../../../store/actions/AlertActions";
+import AlertBox from "../../../AlertBox/AlertBox";
 
 const ConfirmModal = React.memo(({ open, cancel, closeModal, loading }) => {
   return (
@@ -49,6 +58,7 @@ const ConfirmModal = React.memo(({ open, cancel, closeModal, loading }) => {
 });
 
 const UpdatePolicy = () => {
+  const dispatch = useDispatch();
   const params = useParams();
   const [loading, setLoading] = useState(false);
   const [confirm, setConfirm] = useState(false);
@@ -67,8 +77,13 @@ const UpdatePolicy = () => {
   const history = useHistory();
   const routerHandle = useRef();
   const [targetRoute, setTargetRoute] = useState("");
+  const alertStore = useSelector((state) => state.Alert);
+  const [isShowAlertBox, setShowAlertBox] = useState(false);
 
   const unblockRouter = () => {
+    dispatch(formComponentInActive());
+    dispatch(hideAlert());
+    dispatch(hideAppSwitcher());
     if (routerHandle) {
       routerHandle.current();
     }
@@ -248,6 +263,27 @@ const UpdatePolicy = () => {
   }, []);
   const closeModal = () => setConfirm(false);
 
+  const keepEditingBtn = () => {
+    dispatch(hideAlert());
+    setShowAlertBox(false);
+  };
+
+  const leavePageBtn = () => {
+    dispatch(hideAlert());
+    dispatch(showAppSwitcher());
+    setShowAlertBox(false);
+  };
+
+  useEffect(() => {
+    dispatch(formComponentActive());
+  }, []);
+
+  useEffect(() => {
+    if (alertStore?.showAlertBox) {
+      setShowAlertBox(true);
+    }
+  }, [alertStore]);
+
   useEffect(() => {
     routerHandle.current = history.block((tr) => {
       setTargetRoute(tr?.pathname);
@@ -263,6 +299,9 @@ const UpdatePolicy = () => {
 
   return (
     <div className="update-policy-wrapper">
+      {isShowAlertBox && (
+        <AlertBox cancel={keepEditingBtn} submit={leavePageBtn} />
+      )}
       <ConfirmModal
         open={confirm}
         cancel={cancelEdit}

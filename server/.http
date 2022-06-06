@@ -86,159 +86,75 @@ content-type: application/json
 #     },
 # ]
 
-# POST http://localhost:443/v1/api/vendor/vesn/list HTTP/1.1
-# content-type: application/json
 
-# {
-# }
-
-###Response
-#  "data": [
-#     {
-#       "label": "GDMPM-DASS",
-#       "value": "GDMPM-DASS"
-#     },
-#     {
-#       "label": "GDMPM-DASAx",
-#       "value": "GDMPM-DASAx"
-#     },
-#     {
-#       "label": "GDMPM-DASAxaq",
-#       "value": "GDMPM-DASAxaq"
-#     },
-#     {
-#       "label": "GDMPM-DASAC",
-#       "value": "GDMPM-DASAC"
-#     },
-#     {
-#       "label": "GDMPM-DASAD",
-#       "value": "GDMPM-DASAD"
-#     },
-#     {
-#       "label": "GDMPM-DAS",
-#       "value": "GDMPM-DAS"
-#     },
-#     {
-#       "label": "GDMPM-DASAxa",
-#       "value": "GDMPM-DASAxa"
-#     },
-#     {
-#       "label": "Veeva EDC",
-#       "value": "Veeva EDC"
-#     },
-#     {
-#       "label": "IQB",
-#       "value": "IQB"
-#     },
-#     {
-#       "label": "CDR",
-#       "value": "CDR"
-#     },
-#     {
-#       "label": "GDMPM-DASAxas",
-#       "value": "GDMPM-DASAxas"
-#     }
-#   ]
-
-GET http://localhost:443/v1/api/vendor/details/3   HTTP/1.1
+### Vendor details
+GET http://localhost:443/v1/api/vendor/details/VD00000000000847   HTTP/1.1
 content-type: application/json
 
 ###Response
 # "data": {
-#     "vendor": [
-#       {
-#         "vId": "1",
-#         "vName": "Invicro",
-#         "vNStd": "Invicro",
-#         "vDescription": "InvicroGDMPM-DAS Vendor",
-#         "vStatus": 0,
-#         "vESN": "GDMPM-DAS"
-#       }
-#     ],
+#     "vendor": {
+#         "vId": "VD00000000000847",
+#         "vName": "aaaannnn",
+#         "vDescription": "descrp",
+#         "vStatus": 1,
+#         "vESName": "SDTM Designer"
+#     },
 #     "contacts": [
-#       {
-#         "name": "contac name 1",
-#         "email": "contact@test.com"
-#       },
-#       {
-#         "name": "contac name 2",
-#         "email": "contact2@test.com"
-#       }
+#         {
+#             "name": "ssss",
+#             "email": "ssss@gmail.com",
+#             "vCId": 1202
+#         }
 #     ]
-#   }
+# }
 
 
+
+### Create / Update vendor for CDI
 POST http://localhost:443/v1/api/vendor/create HTTP/1.1
 content-type: application/json
 
 {
-      "vName": "test",
-      "vNStd": "test",
-      "vDescription" : "description",
-      "vStatus": 1,
-      "vESN": "GDMPM-DAS",
-      "vContacts": [
+    "systemName": "CDI",
+    "vId": "VD00000000000847",
+    "vName": "aaaannnn",
+    "vDescription": "descrp",
+    "vESName": "SDTM Designer",
+    "vContacts": [
         {
-          "name": "contac name 1",
-          "email": "contact@test.com"
-        },
-        {
-          "name": "contac name 2",
-          "email": "contact2@test.com"
+            "name": "ssss",
+            "email": "ssssnmmn@gmail.com",
+            "vCId": 1202,
+            "isNew": false,
+            "status": 1
         }
-      ],
-      "userId": "u1105372",
-      "userName": "Vaitheeswaran"
+    ],
+    "userId": "u1105372",
+    "vStatus": 1
 }
 
-###Response
-# [
-#     {
-#       "vId": "1",
-#       "vName": "Invicro",
-#       "vNStd": "Invicro",
-#       "vDescription": "InvicroGDMPM-DAS Vendor",
-#       "vStatus": 1,
-#       "vESN": "GDMPM-DAS",
-#       "vContactName": "bob"
-#     },
-#     {
-#       "vId": "1",
-#       "vName": "Invicro",
-#       "vNStd": "Invicro",
-#       "vDescription": "InvicroGDMPM-DAS Vendor",
-#       "vStatus": 1,
-#       "vESN": "GDMPM-DAS",
-#       "vContactName": "max"
-#     },
-# ]
-
-POST http://localhost:443/v1/api/vendor/update HTTP/1.1
+### Create / Update vendor for External System
+POST http://localhost:443/v1/api/vendor/create HTTP/1.1
 content-type: application/json
 
 {
-      "vId": 1112,
-      "vName": "test",
-      "vNStd": "test",
-      "vDescription" : "description",
-      "vStatus": 1,
-      "vESN": "GDMPM-DASS",
-      "vContacts": [
+    "ExternalId": "VE000045",
+    "vId": "VD00000000000847",
+    "vName": "aaaannnn",
+    "vDescription": "descrp",
+    "vESName": "SDTM Designer",
+    "vContacts": [
         {
-          "contactName": "contac name 1",
-          "vCId": 1,
-          "emailId": "contact@test.com",
-          "status": 0
-        },
-        {
-          "contactName": "contac name 2",
-          "vCId": 2,
-          "emailId": "contact2@test.com",
-          "status": 0
+            "name": "ssss",
+            "email": "ssssnmmn@gmail.com",
+            "vCId": 1202,
+            "isNew": false,
+            "status": 1
         }
-      ],
-      "userId": "u1105372",
-      "userName": "Vaitheeswaran"
+    ],
+    "userId": "u1105372",
+    "vStatus": 1
 }
 
 ###Response
