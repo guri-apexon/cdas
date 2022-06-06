@@ -73,3 +73,18 @@ exports.getdiffKeys = (newObj, oldObj) => {
   }
   return {};
 };
+
+exports.formattedObj = (obj) => {
+  let newObj;
+  Object.keys(obj).forEach((key) => {
+    if (obj.act_flg === null) {
+      newObj = {
+        ...obj,
+        act_flg: 0,
+      };
+    } else {
+      newObj = { ...obj };
+    }
+  });
+  return newObj;
+};

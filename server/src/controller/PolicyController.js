@@ -4,6 +4,8 @@ const Logger = require("../config/logger");
 const moment = require("moment");
 const constants = require("../config/constants");
 const { DB_SCHEMA_NAME: schemaName } = constants;
+const helpers = require("../helpers/customFunctions");
+const commonFun = require("../controller/CommonController");
 
 exports.createPolicy = async function (req, res) {
   try {
@@ -83,11 +85,15 @@ exports.updatePolicy = async function (req, res) {
   try {
     const { policyName, policyDesc, permissions, userId, status, policyId } =
       req.body;
-    console.log(policyId);
+    // console.log(policyId);
     const { rows } = await DB.executeQuery(
       `SELECT plcy_nm FROM  ${schemaName}.policy where plcy_id!=${policyId} And UPPER(plcy_nm) = UPPER('${policyName}')`
     );
-    console.log(rows);
+    const { rows: existRows } = await DB.executeQuery(
+      `SELECT plcy_nm, plcy_desc, plcy_stat FROM  ${schemaName}.policy where plcy_id=${policyId} `
+    );
+    const existPolicy = existRows[0];
+
     if (rows && rows.length > 0) {
       return apiResponse.ErrorResponse(
         res,
@@ -108,9 +114,10 @@ exports.updatePolicy = async function (req, res) {
       `UPDATE ${schemaName}.policy set plcy_nm=$1, plcy_desc=$2, plcy_stat=$3, updated_by=$4, updated_on=$5 WHERE plcy_id=$6 RETURNING *`,
       policyValues
     )
-      .then((response) => {
+      .then(async (response) => {
         const policy = response.rows[0];
         let permissionQuery = "";
+        let permissionIds = [];
         productsArr.forEach((product, i) => {
           const productPermission = permissions[product];
           if (productPermission.length) {
@@ -120,7 +127,8 @@ exports.updatePolicy = async function (req, res) {
                   if (permission.id) {
                     permissionQuery += `UPDATE ${schemaName}.policy_product_permission set act_flg=${
                       permission.value ? "1" : "null"
-                    } WHERE plcy_prod_permsn_id=${permission.id};`;
+                    } WHERE plcy_prod_permsn_id=${permission.id} RETURNING *;`;
+                    permissionIds.push(permission.id);
                   } else {
                     if (permission.value) {
                       permissionQuery += `INSERT into ${schemaName}.policy_product_permission(plcy_id, prod_permsn_id, act_flg, created_by, created_on, updated_by, updated_on)
@@ -129,7 +137,7 @@ exports.updatePolicy = async function (req, res) {
                     left join ${schemaName}.category c on (c.ctgy_id=pp.ctgy_id)
                     left join ${schemaName}.feature f on (f.feat_id=pp.feat_id)
                     left join ${schemaName}."permission" p on (p.permsn_id=pp.permsn_id)
-                    where p2.prod_nm ='${product}' and c.ctgy_nm ='${category.ctgy_nm}' and f.feat_nm ='${category.feat_nm}' and p.permsn_nm ='${permission.name}';`;
+                    where p2.prod_nm ='${product}' and c.ctgy_nm ='${category.ctgy_nm}' and f.feat_nm ='${category.feat_nm}' and p.permsn_nm ='${permission.name}' RETURNING *;`;
                     }
                   }
                 }
@@ -137,8 +145,107 @@ exports.updatePolicy = async function (req, res) {
             });
           }
         });
+
+        const defObj = helpers.getdiffKeys(existPolicy, policy);
+        const policyAudit = commonFun.auditEntry(
+          "policy",
+          policyId,
+          defObj,
+          policy,
+          userId
+        );
+
+        let permissionRows = [];
+        if (permissionIds.length) {
+          const { rows: permissionData } = await DB.executeQuery(
+            `SELECT plcy_prod_permsn_id,act_flg FROM  ${schemaName}.policy_product_permission where plcy_prod_permsn_id in
+            (${permissionIds.join(",")});`
+          );
+
+          permissionRows = [...permissionData];
+        }
+
         DB.executeQuery(permissionQuery)
           .then((response) => {
+            if (Array.isArray(response)) {
+              response.forEach(async (res, index) => {
+                const selectObj = permissionRows.find(
+                  (x) =>
+                    x.plcy_prod_permsn_id === res.rows[0].plcy_prod_permsn_id
+                );
+                if (selectObj) {
+                  const oldObj = helpers.formattedObj(selectObj);
+                  const newObj = helpers.formattedObj(res.rows[0]);
+
+                  const defObj = helpers.getdiffKeys(oldObj, newObj);
+
+                  const PerAudit = commonFun.auditEntry(
+                    "policy_product_permission",
+                    res.rows[0].prod_permsn_id,
+                    defObj,
+                    newObj,
+                    userId
+                  );
+                } else {
+                  // insert data audit log
+                  obj = { act_flg: null };
+                  const newObj = helpers.formattedObj(res.rows[0]);
+                  const PerAudit = commonFun.auditEntry(
+                    "policy_product_permission",
+                    res.rows[0].prod_permsn_id,
+                    obj,
+                    newObj,
+                    userId
+                  );
+                  // console.log("multiple insert data audit log");
+                }
+              });
+            } else {
+              if (typeof response.rows[0] != "undefined") {
+                // console.log("first else");
+                const selectObj = permissionRows.find(
+                  (x) =>
+                    x.plcy_prod_permsn_id ===
+                    response.rows[0].plcy_prod_permsn_id
+                );
+                if (selectObj) {
+                  const oldObj = helpers.formattedObj(selectObj);
+                  const newObj = helpers.formattedObj(response.rows[0]);
+
+                  const defObj = helpers.getdiffKeys(oldObj, newObj);
+
+                  // obj = { act_flg: null };
+                  // console.log(obj.act_flg);
+                  // for (let key11 of Object.keys(obj)) {
+                  //   let oldData = obj[key11];
+                  //   console.log("1nd", oldData);
+                  //   if (obj[key11] === null) {
+                  //     oldData = "New Entry";
+                  //   }
+                  //   console.log("2nd", oldData);
+                  // }
+
+                  const PerAudit = commonFun.auditEntry(
+                    "policy_product_permission",
+                    response.rows[0].prod_permsn_id,
+                    defObj,
+                    newObj,
+                    userId
+                  );
+                } else {
+                  // insert data audit log
+                  obj = { act_flg: null };
+                  const newObj = helpers.formattedObj(response.rows[0]);
+                  const PerAudit = commonFun.auditEntry(
+                    "policy_product_permission",
+                    response.rows[0].prod_permsn_id,
+                    obj,
+                    newObj,
+                    userId
+                  );
+                }
+              }
+            }
             return apiResponse.successResponseWithData(
               res,
               "Updated successfully",
@@ -146,6 +253,7 @@ exports.updatePolicy = async function (req, res) {
             );
           })
           .catch((err) => {
+            console.log(err);
             return apiResponse.ErrorResponse(res, err.detail);
           });
       })
