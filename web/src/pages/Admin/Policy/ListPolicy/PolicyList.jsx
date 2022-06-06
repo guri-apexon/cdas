@@ -58,7 +58,7 @@ const PolicyList = () => {
       setCreatePermission(true);
     }
   };
-  const [loading, setLoading] = useState(true);
+  const [load, setLoad] = useState(true);
   const [products, setProducts] = useState([]);
   const [tableRows, setTableRows] = useState([]);
   const [policyLists, setPolicyLists] = useState([]);
@@ -107,7 +107,7 @@ const PolicyList = () => {
   }, []);
 
   useEffect(() => {
-    const { policyList, uniqueProducts } = policyAdmin;
+    const { policyList, loading, uniqueProducts } = policyAdmin;
     setPolicyLists(policyList);
     setProducts(
       uniqueProducts.map((e) => {
@@ -117,7 +117,7 @@ const PolicyList = () => {
         return e;
       })
     );
-    setLoading(false);
+    setLoad(loading);
   }, [policyAdmin.loading]);
 
   useEffect(() => {
@@ -143,6 +143,7 @@ const PolicyList = () => {
         policyId: id,
         policyStatus: updatePolicyStatus,
         userId: userInfo.user_id,
+        updated_on: new Date().toISOString(),
       };
       await dispatch(updateStatus(payload));
     } catch (error) {
@@ -321,36 +322,28 @@ const PolicyList = () => {
   const getTableData = React.useMemo(
     () => (
       <>
-        {loading ? (
-          <Progress />
-        ) : (
-          <>
-            <Table
-              isLoading={loading}
-              title="Policies"
-              columns={columns}
-              rows={tableRows}
-              rowId="policyId"
-              hasScroll={true}
-              maxHeight="calc(100vh - 162px)"
-              initialSortedColumn="policyName"
-              initialSortOrder="asc"
-              rowsPerPageOptions={[10, 50, 100, "All"]}
-              tablePaginationProps={{
-                labelDisplayedRows: ({ from, to, count }) =>
-                  `${
-                    count === 1 ? "Item " : "Items"
-                  } ${from}-${to} of ${count}`,
-                truncate: true,
-              }}
-              showFilterIcon
-              CustomHeader={(props) => <CustomButtonHeader {...props} />}
-            />
-          </>
-        )}
+        <Table
+          isLoading={load}
+          title="Policies"
+          columns={columns}
+          rows={tableRows}
+          rowId="policyId"
+          hasScroll={true}
+          maxHeight="calc(100vh - 162px)"
+          initialSortedColumn="policyName"
+          initialSortOrder="asc"
+          rowsPerPageOptions={[10, 50, 100, "All"]}
+          tablePaginationProps={{
+            labelDisplayedRows: ({ from, to, count }) =>
+              `${count === 1 ? "Item " : "Items"} ${from}-${to} of ${count}`,
+            truncate: true,
+          }}
+          showFilterIcon
+          CustomHeader={(props) => <CustomButtonHeader {...props} />}
+        />
       </>
     ),
-    [tableRows, loading]
+    [tableRows, load]
   );
 
   return (

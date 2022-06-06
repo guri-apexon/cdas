@@ -1,4 +1,4 @@
-const { Pool, Client } = require("pg");
+const { Pool, Client, types } = require("pg");
 const config = require("./constants");
 
 const pool = new Pool({
@@ -21,6 +21,10 @@ pool.connect((err) => {
     process.exit(1);
   }
   console.log("Connected to db...");
+});
+
+types.setTypeParser(1114, function (stringValue) {
+  return new Date(stringValue + "+0000");
 });
 
 const executeQuery = (query, arrayParams) => {
