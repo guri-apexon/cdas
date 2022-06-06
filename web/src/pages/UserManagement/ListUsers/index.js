@@ -13,13 +13,11 @@ import PlusIcon from "apollo-react-icons/Plus";
 import Peek from "apollo-react/components/Peek";
 import FilterIcon from "apollo-react-icons/Filter";
 import Link from "apollo-react/components/Link";
-import Switch from "apollo-react/components/Switch";
-import Tooltip from "apollo-react/components/Tooltip";
+import TextField from "apollo-react/components/TextField";
 import Progress from "../../../components/Progress";
 import {
   TextFieldFilter,
   createStringArraySearchFilter,
-  createStringArrayIncludedFilter,
   getOverflowLimit,
 } from "../../../utils/index";
 import "./index.scss";
@@ -38,8 +36,10 @@ const ListUsers = () => {
   const history = useHistory();
   const [loading, setLoading] = useState(true);
   const [tableRows, setTableRows] = useState([]);
+  const [initialTableRows, setInitialTableRows] = useState([]);
   const [open, setOpen] = useState(false);
   const [peekContent, setPeekContent] = useState("");
+  const [searchStr, setSearchStr] = useState("");
   const [curRow, setCurRow] = useState({});
   const appContext = useContext(AppContext);
   const { permissions } = appContext.user;
@@ -66,6 +66,7 @@ const ListUsers = () => {
     }
     getUsers().then((u) => {
       setTableRows(u.rows);
+      setInitialTableRows(u.rows);
       setLoading(false);
     });
   }, []);
@@ -86,6 +87,22 @@ const ListUsers = () => {
     setOpen(!open);
     setPeekContent(peekData);
     setCurRow(row);
+  };
+
+  const handleSearchChange = (e) => {
+    console.log({ e: e.target.value });
+    setSearchStr(e.target.value);
+    if (e.target.value) {
+      const prevTableRows = tableRows.filter(
+        (row) =>
+          row.usr_full_nm.includes(e.target.value) ||
+          row.usr_id.includes(e.target.value) ||
+          row.usr_mail_id.includes(e.target.value)
+      );
+      setTableRows([...prevTableRows]);
+    } else {
+      setTableRows([...initialTableRows]);
+    }
   };
 
   const StatusCell = ({ row, column: { accessor } }) => {
@@ -165,6 +182,13 @@ const ListUsers = () => {
 
   const CustomButtonHeader = ({ toggleFilters }) => (
     <div>
+      <TextField
+        placeholder="Search by name, email, or user ID"
+        size="small"
+        value={searchStr}
+        onChange={(e) => handleSearchChange(e)}
+        style={{ minWidth: "400px", marginTop: -7 }}
+      />
       {createRolePermission && (
         <Button
           size="small"
@@ -280,7 +304,7 @@ const ListUsers = () => {
       <Header />
       <div className="roles-table">
         {loading && <Progress />}
-        {tableRows.length > 0 ? renderTable : null}
+        {renderTable}
       </div>
       <Peek
         open={open}
