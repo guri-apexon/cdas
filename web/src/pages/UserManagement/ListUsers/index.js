@@ -13,7 +13,8 @@ import PlusIcon from "apollo-react-icons/Plus";
 import Peek from "apollo-react/components/Peek";
 import FilterIcon from "apollo-react-icons/Filter";
 import Link from "apollo-react/components/Link";
-import TextField from "apollo-react/components/TextField";
+import Tag from "apollo-react/components/Tag";
+import Search from "apollo-react/components/Search";
 import Progress from "../../../components/Progress";
 import {
   TextFieldFilter,
@@ -90,7 +91,6 @@ const ListUsers = () => {
   };
 
   const handleSearchChange = (e) => {
-    console.log({ e: e.target.value });
     setSearchStr(e.target.value);
     if (e.target.value) {
       const prevTableRows = tableRows.filter(
@@ -109,29 +109,16 @@ const ListUsers = () => {
     const data = row[accessor];
     // const id = row.usr_id;
     const btnVariant = {
-      Active: "primary",
-      "In Active": "primary",
-      Invited: "primary",
-    };
-    const btnBgColor = {
-      Active: "#00C221",
-      "In Active": "#999999",
-      Invited: "#9E54B0",
+      Active: "green",
+      "In Active": "grey",
+      Invited: "purple",
     };
     return (
       <div>
-        <Button
-          size="small"
+        <Tag
+          label={row.trimed_usr_stat}
           variant={btnVariant[row.trimed_usr_stat]}
-          onClick={() => history.push("/create-user")}
-          style={{
-            marginRight: "8px",
-            boxShadow: "none",
-            backgroundColor: btnBgColor[row.trimed_usr_stat],
-          }}
-        >
-          {row.trimed_usr_stat}
-        </Button>
+        />
       </div>
     );
   };
@@ -182,9 +169,8 @@ const ListUsers = () => {
 
   const CustomButtonHeader = ({ toggleFilters }) => (
     <div>
-      <TextField
+      <Search
         placeholder="Search by name, email, or user ID"
-        size="small"
         value={searchStr}
         onChange={(e) => handleSearchChange(e)}
         style={{ minWidth: "400px", marginTop: -7 }}
