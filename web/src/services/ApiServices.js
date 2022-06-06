@@ -132,6 +132,7 @@ export const statusUpdate = async (vId, vStatus) => {
           vId,
           vStatus,
           userId,
+          updt_tm: new Date().toISOString(),
         })
         .then((res) => {
           resolve(res.data);

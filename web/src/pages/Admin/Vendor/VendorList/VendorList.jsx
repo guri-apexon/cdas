@@ -26,11 +26,16 @@ import {
   getENSList,
   updateVendorStatus,
 } from "../../../../store/actions/VendorAction";
+
 import {
   TextFieldFilter,
   createStringArraySearchFilter,
 } from "../../../../utils/index";
 import "./VendorList.scss";
+import usePermission, {
+  Categories,
+  Features,
+} from "../../../../components/Common/usePermission";
 
 const statusList = ["Active", "Inactive"];
 
@@ -43,6 +48,10 @@ const VendorList = () => {
   const dispatch = useDispatch();
   const vendor = useSelector((state) => state.vendor);
   const { vendorList, loading, ensList } = vendor;
+  const { canRead, canCreate, canUpdate } = usePermission(
+    Categories.SYS_ADMIN,
+    Features.VENDOR_MANAGEMENT
+  );
 
   const getData = () => {
     dispatch(getVendorList());
@@ -98,6 +107,7 @@ const VendorList = () => {
           checked={data === "Active" ? true : false}
           onChange={(e) => handleChangeStatus(e, id, data)}
           size="small"
+          disabled={!canUpdate}
         />
       </Tooltip>
     );
@@ -157,15 +167,17 @@ const VendorList = () => {
 
   const CustomButtonHeader = ({ toggleFilters, addVendor }) => (
     <div>
-      <Button
-        size="small"
-        variant="secondary"
-        icon={PlusIcon}
-        onClick={addVendor}
-        style={{ marginRight: "8px", border: "none", boxShadow: "none" }}
-      >
-        Add vendor
-      </Button>
+      {canCreate && (
+        <Button
+          size="small"
+          variant="secondary"
+          icon={PlusIcon}
+          onClick={addVendor}
+          style={{ marginRight: "8px", border: "none", boxShadow: "none" }}
+        >
+          Add vendor
+        </Button>
+      )}
       <Button
         size="small"
         variant="secondary"
@@ -186,7 +198,7 @@ const VendorList = () => {
     {
       header: "Vendor Name",
       accessor: "vName",
-      customCell: LinkCell,
+      customCell: (canUpdate || canRead) && LinkCell,
       sortFunction: compareStrings,
       filterFunction: createStringSearchFilter("vName"),
       filterComponent: TextFieldFilter,
@@ -237,36 +249,28 @@ const VendorList = () => {
   const getTableData = React.useMemo(
     () => (
       <>
-        {loading ? (
-          <Progress />
-        ) : (
-          <>
-            <Table
-              isLoading={loading}
-              title="Vendors"
-              subtitle={`${tableRows.length} vendors`}
-              columns={columns}
-              rows={tableRows}
-              rowId="vId"
-              hasScroll={true}
-              maxHeight="calc(100vh - 162px)"
-              initialSortedColumn="vName"
-              initialSortOrder="asc"
-              rowsPerPageOptions={[10, 50, 100, "All"]}
-              tablePaginationProps={{
-                labelDisplayedRows: ({ from, to, count }) =>
-                  `${
-                    count === 1 ? "Item " : "Items"
-                  } ${from}-${to} of ${count}`,
-                truncate: true,
-              }}
-              showFilterIcon
-              CustomHeader={(props) => (
-                <CustomButtonHeader {...props} addVendor={handleAddVendor} />
-              )}
-            />
-          </>
-        )}
+        <Table
+          isLoading={loading}
+          title="Vendors"
+          subtitle={`${tableRows.length} vendors`}
+          columns={columns}
+          rows={tableRows}
+          rowId="vId"
+          hasScroll={true}
+          maxHeight="calc(100vh - 162px)"
+          initialSortedColumn="vName"
+          initialSortOrder="asc"
+          rowsPerPageOptions={[10, 50, 100, "All"]}
+          tablePaginationProps={{
+            labelDisplayedRows: ({ from, to, count }) =>
+              `${count === 1 ? "Item " : "Items"} ${from}-${to} of ${count}`,
+            truncate: true,
+          }}
+          showFilterIcon
+          CustomHeader={(props) => (
+            <CustomButtonHeader {...props} addVendor={handleAddVendor} />
+          )}
+        />
       </>
     ),
     [tableRows, loading, ensList]

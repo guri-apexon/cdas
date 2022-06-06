@@ -1,6 +1,7 @@
 /* eslint-disable no-script-url */
 /* eslint-disable react/button-has-type */
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useRef } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import Box from "apollo-react/components/Box";
 import { useHistory } from "react-router";
 import BreadcrumbsUI from "apollo-react/components/Breadcrumbs";
@@ -14,6 +15,7 @@ import Tab from "apollo-react/components/Tab";
 import Tabs from "apollo-react/components/Tabs";
 import Modal from "apollo-react/components/Modal";
 import Badge from "apollo-react/components/Badge";
+import moment from "moment";
 import {
   addPolicyService,
   fetchProducts,
@@ -22,6 +24,14 @@ import {
 import { MessageContext } from "../../../../components/Providers/MessageProvider";
 import PermissionTable from "./PermissionTable";
 import { getUserInfo, inputAlphaNumeric } from "../../../../utils";
+import {
+  formComponentActive,
+  hideAlert,
+  showAppSwitcher,
+  formComponentInActive,
+  hideAppSwitcher,
+} from "../../../../store/actions/AlertActions";
+import AlertBox from "../../../AlertBox/AlertBox";
 
 const ConfirmModal = React.memo(({ open, cancel, closeModal, loading }) => {
   return (
@@ -32,16 +42,17 @@ const ConfirmModal = React.memo(({ open, cancel, closeModal, loading }) => {
       className="save-confirm"
       variant="warning"
       title="Lose your work?"
-      message="Your unsaved changes will be lost. Are you sure you want to leave this page?"
+      message="All unsaved changes will be lost."
       buttonProps={[
+        { label: "Keep editing", onClick: closeModal, disabled: loading },
         { label: "Leave without saving", onClick: cancel, disabled: loading },
-        { label: "Stay on this page", onClick: closeModal, disabled: loading },
       ]}
       id="neutral"
     />
   );
 });
 const CreatePolicy = () => {
+  const dispatch = useDispatch();
   const [active, setActive] = useState(false);
   const [loading, setLoading] = useState(false);
   const [confirm, setConfirm] = useState(false);
@@ -53,6 +64,19 @@ const CreatePolicy = () => {
   const messageContext = useContext(MessageContext);
   const userInfo = getUserInfo();
   const history = useHistory();
+  const routerHandle = useRef();
+  const [targetRoute, setTargetRoute] = useState("");
+  const alertStore = useSelector((state) => state.Alert);
+  const [isShowAlertBox, setShowAlertBox] = useState(false);
+
+  const unblockRouter = () => {
+    dispatch(formComponentInActive());
+    dispatch(hideAlert());
+    dispatch(hideAppSwitcher());
+    if (routerHandle) {
+      routerHandle.current();
+    }
+  };
   const handleActive = (e, checked) => {
     setActive(checked);
   };
@@ -78,6 +102,8 @@ const CreatePolicy = () => {
       permissions,
       userId: userInfo.user_id,
       status: active ? "Active" : "Inactive",
+      created_on: new Date().toISOString(),
+      updated_on: new Date().toISOString(),
     };
     if (policyName === "") {
       messageContext.showErrorMessage("Policy name shouldn't be empty");
@@ -113,6 +139,7 @@ const CreatePolicy = () => {
     addPolicyService(reqBody)
       .then((res) => {
         messageContext.showSuccessMessage(res.message || "Successfully done");
+        unblockRouter();
         history.push("/policy-management");
         setLoading(false);
       })
@@ -131,9 +158,13 @@ const CreatePolicy = () => {
       setPolicyDesc(val);
     }
   };
-
   const cancelCreate = () => {
-    history.push("/policy-management");
+    unblockRouter();
+    if (targetRoute === "") {
+      history.push("/policy-management");
+    } else {
+      history.push(targetRoute);
+    }
   };
   const filterPermission = (arr) => {
     if (!arr) return [];
@@ -189,8 +220,45 @@ const CreatePolicy = () => {
   useEffect(() => {
     getProducts();
   }, []);
+
+  const keepEditingBtn = () => {
+    dispatch(hideAlert());
+    setShowAlertBox(false);
+  };
+
+  const leavePageBtn = () => {
+    dispatch(hideAlert());
+    dispatch(showAppSwitcher());
+    setShowAlertBox(false);
+  };
+
+  useEffect(() => {
+    dispatch(formComponentActive());
+  }, []);
+
+  useEffect(() => {
+    if (alertStore?.showAlertBox) {
+      setShowAlertBox(true);
+    }
+  }, [alertStore]);
+
+  useEffect(() => {
+    routerHandle.current = history.block((tr) => {
+      setTargetRoute(tr?.pathname);
+      setConfirm(true);
+      return false;
+    });
+
+    return function () {
+      /* eslint-disable */
+      routerHandle.current.current && routerHandle.current.current();
+    };
+  });
   return (
     <div className="create-policy-wrapper">
+      {isShowAlertBox && (
+        <AlertBox cancel={keepEditingBtn} submit={leavePageBtn} />
+      )}
       <ConfirmModal
         open={confirm}
         cancel={cancelCreate}

@@ -1,6 +1,6 @@
 /* eslint-disable consistent-return */
 /* eslint-disable no-script-url */
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useHistory } from "react-router-dom";
 import Typography from "apollo-react/components/Typography";
@@ -25,6 +25,14 @@ import {
 } from "../../services/ApiServices";
 import { getUserInfo } from "../../utils";
 import "./OnboardStudyWithUsers.scss";
+import {
+  formComponentActive,
+  hideAlert,
+  showAppSwitcher,
+  formComponentInActive,
+  hideAppSwitcher,
+} from "../../store/actions/AlertActions";
+import AlertBox from "../AlertBox/AlertBox";
 
 const Label = ({ children }) => {
   return (
@@ -41,17 +49,52 @@ const Value = ({ children }) => {
   );
 };
 
+const ConfirmModal = React.memo(
+  ({ confirmObj, cancel, loading, cstmCancelBtn }) => {
+    return (
+      <Modal
+        open={confirmObj ? true : false}
+        onClose={cancel}
+        disableBackdropClick="true"
+        className="save-confirm"
+        variant="warning"
+        title={confirmObj.title}
+        message={confirmObj.subtitle}
+        buttonProps={[
+          {
+            label: confirmObj.submitLabel,
+            onClick: confirmObj.submitAction,
+            disabled: loading,
+          },
+          {
+            label: confirmObj.cancelLabel,
+            onClick: cstmCancelBtn,
+            disabled: loading,
+          },
+        ]}
+        id="neutral"
+      />
+    );
+  }
+);
+
 const ImportWithUsers = () => {
+  const dispatch = useDispatch();
   const history = useHistory();
   const userInfo = getUserInfo();
   const toast = useContext(MessageContext);
   const [tableUsers, setTableUsers] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [load, setLoad] = useState(false);
   const [confirmObj, setConfirmObj] = useState(null);
   const [userList, setUserList] = useState([]);
   const [roleLists, setroleLists] = useState([]);
   const [selectedStudy, setSelectedStudy] = useState({});
   const [initialRender, setInitialRender] = useState(true);
+  const routerHandle = useRef();
+  const [targetRoute, setTargetRoute] = useState("");
+  const alertStore = useSelector((state) => state.Alert);
+  const [isShowAlertBox, setShowAlertBox] = useState(false);
   const breadcrumpItems = [
     { href: "javascript:void(0)", onClick: () => history.push("/launchpad") },
     {
@@ -63,6 +106,27 @@ const ImportWithUsers = () => {
       title: "Assign Users",
     },
   ];
+  const unblockRouter = () => {
+    dispatch(formComponentInActive());
+    dispatch(hideAlert());
+    dispatch(hideAppSwitcher());
+    if (routerHandle) {
+      routerHandle.current();
+    }
+  };
+  const cancelModalObj = {
+    title: "Lose your work?",
+    subtitle: "All unsaved changes will be lost.",
+    cancelLabel: "Leave without saving",
+    cancelAction: () => {
+      unblockRouter();
+      history.push("/study-setup");
+    },
+    submitAction: () => {
+      setConfirmObj(null);
+    },
+    submitLabel: "Keep editing",
+  };
   const getUserObj = () => {
     return {
       index: Math.max(...tableUsers.map((o) => o.index), 0) + 1,
@@ -211,6 +275,8 @@ const ImportWithUsers = () => {
       sponsorNameStnd,
       protNbrStnd,
       userId: userInfo.user_id,
+      insrt_tm: new Date().toISOString(),
+      updt_tm: new Date().toISOString(),
     };
     if (assign) {
       reqBody.users = usersRows;
@@ -220,6 +286,7 @@ const ImportWithUsers = () => {
     setLoading(false);
     if (response.status === "OK") {
       toast.showSuccessMessage(response.message, 0);
+      unblockRouter();
       history.push("/study-setup");
     } else {
       toast.showErrorMessage(response.message, 0);
@@ -229,19 +296,7 @@ const ImportWithUsers = () => {
     importStudy(true);
   };
   const setConfirmCancel = () => {
-    const confirm = {
-      title: "Cancel Import?",
-      subtitle: "This study has not been onboarded.",
-      cancelLabel: "Cancel import",
-      cancelAction: () => {
-        history.push("/study-setup");
-      },
-      submitAction: () => {
-        setConfirmObj(null);
-      },
-      submitLabel: "Return to assignments",
-    };
-    setConfirmObj(confirm);
+    setConfirmObj(cancelModalObj);
   };
   const setConfirmWithoutUser = () => {
     const confirm = {
@@ -365,8 +420,14 @@ const ImportWithUsers = () => {
     setUserList(filtered);
     getRoles();
   };
+
   useEffect(() => {
     console.log("tableUsers", tableUsers);
+    if (tableUsers.length === 0) {
+      setLoad(false);
+    } else {
+      setLoad(true);
+    }
   }, [tableUsers]);
   useEffect(() => {
     const {
@@ -384,16 +445,66 @@ const ImportWithUsers = () => {
     //   ob_stat: null,
     // };
     if (!study) {
+      // unblockRouter();
       history.push("/study-setup");
     } else {
       setSelectedStudy(study);
       getUserList();
     }
   }, []);
+
+  const keepEditingBtn = () => {
+    dispatch(hideAlert());
+    setShowAlertBox(false);
+  };
+
+  const leavePageBtn = () => {
+    dispatch(hideAlert());
+    dispatch(showAppSwitcher());
+    setShowAlertBox(false);
+  };
+
+  useEffect(() => {
+    dispatch(formComponentActive());
+  }, []);
+
+  useEffect(() => {
+    if (alertStore?.showAlertBox) {
+      setShowAlertBox(true);
+    }
+  }, [alertStore]);
+
+  useEffect(() => {
+    routerHandle.current = history.block((tr) => {
+      setTargetRoute(tr?.pathname);
+      setConfirmObj(cancelModalObj);
+      return false;
+    });
+
+    return function () {
+      /* eslint-disable */
+      routerHandle.current = history.block(() => {});
+      routerHandle.current.current && routerHandle.current.current();
+    };
+  });
+
+  const closeConfirm = () => {
+    setConfirmObj(null);
+  };
+
+  const cancelButton = () => {
+    unblockRouter();
+    if (targetRoute === "") {
+      confirmObj.cancelAction();
+    } else {
+      history.push(targetRoute);
+    }
+  };
   const getTable = React.useMemo(
     () => (
       <>
         <Table
+          isLoading={!load}
           title="User Assignments"
           columns={columns}
           rows={tableUsers.map((row) => ({
@@ -407,10 +518,14 @@ const ImportWithUsers = () => {
         />
       </>
     ),
-    [tableUsers]
+    [tableUsers, load]
   );
+
   return (
     <div className="import-with-users-wrapper">
+      {isShowAlertBox && (
+        <AlertBox cancel={keepEditingBtn} submit={leavePageBtn} />
+      )}
       <Box className="onboard-header">
         <BreadcrumbsUI className="breadcrump" items={breadcrumpItems} />
         <Typography variant="title1">Import and Assign Users</Typography>
@@ -461,28 +576,12 @@ const ImportWithUsers = () => {
         </Grid>
       </Box>
       {confirmObj && (
-        <Modal
-          open={confirmObj ? true : false}
-          onClose={() => setConfirmObj(null)}
-          disableBackdropClick="true"
-          className="save-confirm"
-          variant="warning"
-          title={confirmObj.title}
-          message={confirmObj.subtitle}
-          buttonProps={[
-            {
-              label: confirmObj.cancelLabel,
-              onClick: confirmObj.cancelAction,
-              disabled: loading,
-            },
-            {
-              label: confirmObj.submitLabel,
-              onClick: confirmObj.submitAction,
-              disabled: loading,
-            },
-          ]}
-          id="neutral"
-        />
+        <ConfirmModal
+          confirmObj={confirmObj}
+          loading={loading}
+          cancel={closeConfirm}
+          cstmCancelBtn={cancelButton}
+        ></ConfirmModal>
       )}
     </div>
   );
