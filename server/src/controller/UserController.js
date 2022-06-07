@@ -74,6 +74,28 @@ exports.addLoginActivity = async (loginDetails) => {
   }
 };
 
+exports.listUsers = async function (req, res) {
+  try {
+    return await DB.executeQuery(`SELECT *, TRIM(usr_stat) AS trimed_usr_stat,  CONCAT(usr_fst_nm,' ',usr_lst_nm) AS usr_full_nm from ${schemaName}.user`)
+      .then((response) => {
+        return apiResponse.successResponseWithData(
+          res,
+          "User retrieved successfully",
+          response
+        );
+      })
+      .catch((err) => {
+        console.log({ err });
+        return apiResponse.ErrorResponse(
+          response,
+          err.detail || "Something went wrong"
+        );
+      });
+  } catch (err) {
+    return false;
+  }
+}
+
 exports.createNewUser = async (req, res) => {
   const data = req.body;
   Logger.info({ message: "create user - begin" });
