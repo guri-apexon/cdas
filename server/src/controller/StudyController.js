@@ -8,6 +8,7 @@ const request = require("request");
 const constants = require("../config/constants");
 const helper = require("../helpers/customFunctions");
 const CommonController = require("./CommonController");
+const { filter } = require("lodash");
 const { DB_SCHEMA_NAME: schemaName, FSR_HEADERS, FSR_API_URI } = constants;
 
 const updateStatus = async (studyId, status = "Success") => {
@@ -155,6 +156,13 @@ exports.onboardStudy = async function (req, res) {
             });
             DB.executeQuery(insertQuery)
               .then((resp) => {
+                // Study audit table audit log entry
+                // const studyAudit = CommonController.studyAudit(
+                //   insertedStudy.prot_id,
+                //   "New Entry",
+                //   userId
+                // );
+
                 return apiResponse.successResponseWithData(
                   res,
                   "Operation success",
@@ -168,6 +176,13 @@ exports.onboardStudy = async function (req, res) {
                 );
               });
           } else {
+            // // Study audit table audit log entry
+            // const studyAudit = CommonController.studyAudit(
+            //   insertedStudy.prot_id,
+            //   "New Entry",
+            //   userId
+            // );
+
             return apiResponse.successResponseWithData(
               res,
               "Onboarding successfull",
@@ -429,7 +444,7 @@ exports.AddStudyAssign = async (req, res) => {
                               VALUES($1,$2,$3,$4,$4)`;
     const insertRoleQuery = `INSERT INTO ${schemaName}.study_user_role 
                               (role_id,prot_id,usr_id,act_flg,created_by,created_on,updated_on,updated_by)
-                              VALUES($1,$2,$3,$4,$5,$6,$6,$5)`;
+                              VALUES($1,$2,$3,$4,$5,$6,$6,$5) RETURNING *;`;
 
     Logger.info({ message: "AddStudyAssign" });
 
@@ -446,7 +461,9 @@ exports.AddStudyAssign = async (req, res) => {
 
           element.role_id.forEach(async (roleId) => {
             try {
-              await DB.executeQuery(insertRoleQuery, [
+              const {
+                rows: [protUsrRoleId],
+              } = await DB.executeQuery(insertRoleQuery, [
                 roleId,
                 protocol,
                 studyUserId,
@@ -454,12 +471,23 @@ exports.AddStudyAssign = async (req, res) => {
                 loginId,
                 insrt_tm,
               ]);
+
+              // console.log("protUsrRoleId", protUsrRoleId.prot_usr_role_id);
+
+              // // Study roll user audit table audit log entry
+              const studyUserAudit = CommonController.studyUserAudit(
+                protUsrRoleId.prot_usr_role_id,
+                "New Entry",
+                null,
+                null,
+                loginId
+              );
             } catch (e) {
               console.log(e);
             }
           });
-        } catch (err) {
-          console.log(err);
+        } catch (er) {
+          console.log(er);
         }
       });
 
@@ -467,12 +495,22 @@ exports.AddStudyAssign = async (req, res) => {
         `UPDATE ${schemaName}.study set updt_tm=$1 WHERE prot_id=$2;`,
         [insrt_tm, protocol]
       );
+      // Study audit table audit log entry
+      const studyAudit = CommonController.studyAudit(
+        protocol,
+        "New Entry",
+        null,
+        null,
+        loginId
+      );
+
       return apiResponse.successResponseWithData(
         res,
         "New user added successfully"
       );
     }
   } catch (err) {
+    console.log(err);
     //throw error in json response with status 500.
     Logger.error("catch :AddStudyAssign");
     Logger.error(err);
@@ -486,6 +524,8 @@ exports.updateStudyAssign = async (req, res) => {
     if (!data || !data.length) {
       return apiResponse.ErrorResponse(res, "Something went wrong");
     }
+
+    const curDate = moment().format("YYYY-MM-DD HH:mm:ss");
     // We are not use roles in FRS API so commented
 
     // const roUsers = data.map((e) => e.user_id).join(", ");
@@ -514,25 +554,40 @@ exports.updateStudyAssign = async (req, res) => {
     const roleUpdateQuery = `UPDATE ${schemaName}.study_user_role SET act_flg=0, updated_by=$4,
                         updated_on=$5 WHERE prot_id =$1 and usr_id = $2 and role_id <> ALL ($3);`;
 
-    const roleGetQuery = `SELECT * FROM ${schemaName}.study_user_role  WHERE prot_id =$1 and usr_id = $2 and role_id = $3`;
+    const roleGetQuery = `SELECT act_flg,prot_usr_role_id FROM ${schemaName}.study_user_role  WHERE prot_id =$1 and usr_id = $2 and role_id = $3`;
 
     const insertRoleQuery = `INSERT INTO ${schemaName}.study_user_role (role_id,prot_id,usr_id,act_flg,created_by,created_on,updated_on,updated_by)
-                            VALUES($1,$2,$3,$4,$5,$6,$6,$5)`;
+                            VALUES($1,$2,$3,$4,$5,$6,$6,$5) RETURNING *;`;
 
-    const updateExistingRole = `UPDATE ${schemaName}.study_user_role SET act_flg=1, updated_by=$1, updated_on=$2 WHERE prot_usr_role_id =$3`;
+    const updateExistingRole = `UPDATE ${schemaName}.study_user_role SET act_flg=1, updated_by=$1, updated_on=$2 WHERE prot_usr_role_id =$3 RETURNING *;`;
+
+    const oldDataQuery = `SELECT act_flg,prot_usr_role_id,role_id FROM ${schemaName}.study_user_role  WHERE prot_id =$1 and usr_id = $2 and act_flg=1`;
 
     Logger.info({ message: "updateStudyAssign" });
+
+    let roleDetails = [];
 
     data.forEach(async (element) => {
       try {
         const studyUserId = element.user_id?.toLowerCase() || null;
-        await DB.executeQuery(roleUpdateQuery, [
+        const { rows: selectData } = await DB.executeQuery(oldDataQuery, [
           protocol,
           studyUserId,
-          element.role_id,
-          loginId,
-          updt_tm,
         ]);
+
+        const deletedRoles = selectData.filter(
+          (x) => !element.role_id.includes(x.role_id)
+        );
+
+        deletedRoles.forEach((obj) => {
+          const studyUserAudit1 = CommonController.studyUserAudit(
+            obj.prot_usr_role_id,
+            "act_flg",
+            1,
+            0,
+            loginId
+          );
+        });
 
         element.role_id.forEach(async (rollID) => {
           try {
@@ -543,7 +598,9 @@ exports.updateStudyAssign = async (req, res) => {
             ]);
 
             if (roleGet.rows.length == 0) {
-              await DB.executeQuery(insertRoleQuery, [
+              const {
+                rows: [newProtUsrRoleId],
+              } = await DB.executeQuery(insertRoleQuery, [
                 rollID,
                 protocol,
                 studyUserId,
@@ -551,27 +608,57 @@ exports.updateStudyAssign = async (req, res) => {
                 loginId,
                 updt_tm,
               ]);
+
+              // // Study roll user audit table audit log entry
+              const studyUserAudit1 = CommonController.studyUserAudit(
+                newProtUsrRoleId.prot_usr_role_id,
+                "New Entry",
+                null,
+                null,
+                loginId
+              );
             } else {
               roleGet.rows.forEach(async (exRecord) => {
                 try {
-                  await DB.executeQuery(updateExistingRole, [
-                    loginId,
-                    curDate,
-                    exRecord?.prot_usr_role_id,
-                  ]);
+                  if (exRecord.act_flg != 1) {
+                    const studyUserAudit1 = CommonController.studyUserAudit(
+                      exRecord?.prot_usr_role_id,
+                      "act_flg",
+                      0,
+                      1,
+                      loginId
+                    );
+                  }
+
+                  const { rows: updateData } = await DB.executeQuery(
+                    updateExistingRole,
+                    [loginId, curDate, exRecord?.prot_usr_role_id]
+                  );
                 } catch (error) {
                   console.log(error);
                 }
+
+                // const idArry = selectData.map((x) => x.prot_usr_role_id);
               });
             }
           } catch (e) {
             console.log(e);
           }
         });
+
+        await DB.executeQuery(roleUpdateQuery, [
+          protocol,
+          studyUserId,
+          element.role_id,
+          loginId,
+          updt_tm,
+        ]);
       } catch (err) {
         console.log(err);
       }
     });
+
+    // console.log("roleData", roleDetails);
 
     await DB.executeQuery(
       `UPDATE ${schemaName}.study set updt_tm=$1 WHERE prot_id=$2;`,
@@ -589,13 +676,12 @@ exports.deleteStudyAssign = async (req, res) => {
   try {
     const { studyId, protocol, loginId, users, updt_tm } = req.body;
 
-
     if (!users || !users.length) {
       return apiResponse.ErrorResponse(res, "Something went wrong");
     }
 
     const userDeleteQuery = `UPDATE ${schemaName}.study_user SET act_flg =0,updt_tm=$3 WHERE prot_id =$1 and usr_id = $2`;
-    const roleDeleteQuery = `UPDATE ${schemaName}.study_user_role SET act_flg =0,updated_by=$3,updated_on=$4 WHERE prot_id =$1 and usr_id =$2`;
+    const roleDeleteQuery = `UPDATE ${schemaName}.study_user_role SET act_flg =0,updated_by=$3,updated_on=$4 WHERE prot_id =$1 and usr_id =$2 RETURNING *;`;
     Logger.info({ message: "deleteStudyAssign" });
 
     axios
@@ -624,12 +710,32 @@ exports.deleteStudyAssign = async (req, res) => {
               updt_tm,
             ]);
 
-            await DB.executeQuery(roleDeleteQuery, [
+            // Study audit table audit log entry
+            const studyAudit = CommonController.studyAudit(
+              protocol,
+              "act_flg",
+              1,
+              0,
+              loginId
+            );
+
+            const {
+              rows: [protUsrRoleId],
+            } = await DB.executeQuery(roleDeleteQuery, [
               protocol,
               studyUserId,
               loginId,
               updt_tm,
             ]);
+
+            // // Study roll user audit table audit log entry
+            const studyUserAudit = CommonController.studyUserAudit(
+              protUsrRoleId.prot_usr_role_id,
+              "act_flg",
+              1,
+              0,
+              loginId
+            );
 
             return apiResponse.successResponse(
               res,
