@@ -208,7 +208,6 @@ exports.insertUserInDb = async (userDetails) => {
 
 exports.getSDAuserDataById = async (uid) => {
   const getusersURL = `${SDA_BASE_URL}/sda-rest-api/api/external/entitlement/V1/ApplicationUsers/getUsersForApplication?appKey=${process.env.SDA_APP_KEY}`;
-  console.log(getusersURL);
   try {
     const response = await axios.get(getusersURL);
     return response?.data.find((e) => e?.userId == uid);
