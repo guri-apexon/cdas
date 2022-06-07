@@ -34,21 +34,50 @@ exports.assignmentCreate = async (req, res) => {
 
   protocols.forEach((p) => (p.isValid = false));
   const vpr = await assignmentHelper.validateProtocolsRoles(user, protocols);
-  if (!vpr.success) apiResponse.ErrorResponse(res, vpr.message);
+  if (!vpr.success) return apiResponse.ErrorResponse(res, vpr.message);
 
   if (protocols.every((p) => !p.isValid))
-    apiResponse.ErrorResponse(res, "No valid protocols found to be processed");
+    return apiResponse.ErrorResponse(
+      res,
+      "No valid protocols found to be processed"
+    );
 
-  if (!user.isExternal)
-    await assignmentHelper.protocolsStudyGrant(
+  if (!user.isExternal) {
+    const grantResult = await assignmentHelper.protocolsStudyGrant(
       protocols,
       user,
       createdBy,
       createdOn
     );
+    if (!grantResult)
+      return apiResponse.ErrorResponse(
+        res,
+        "An error occured while ganting study in the FSR"
+      );
+  }
 
   // save it to the database
-  await assignmentHelper.saveAssignments(protocols, user, createdBy, createdOn);
+  const saveResult = await assignmentHelper.saveAssignments(
+    protocols,
+    user,
+    createdBy,
+    createdOn
+  );
+
+  if (!saveResult.success)
+    return apiResponse.ErrorResponse(
+      res,
+      "An error occured while inserting records"
+    );
+
+  if (
+    saveResult.protocolsInserted === 0 &&
+    saveResult.studyRolesUserInserted === 0
+  )
+    return apiResponse.ErrorResponse(
+      res,
+      "All Protocols/Roles already existed"
+    );
 
   return apiResponse.successResponse(res, "Assignments created successfully");
 };
@@ -80,26 +109,40 @@ exports.assignmentRemove = async (req, res) => {
 
   protocols.forEach((p) => (p.isValid = false));
   const vpr = await assignmentHelper.validateProtocolsRoles(user, protocols);
-  if (!vpr.success) apiResponse.ErrorResponse(res, vpr.message);
+  if (!vpr.success) return apiResponse.ErrorResponse(res, vpr.message);
 
   if (protocols.every((p) => !p.isValid))
-    apiResponse.ErrorResponse(res, "No valid protocols found to be processed");
+    return apiResponse.ErrorResponse(
+      res,
+      "No valid protocols found to be processed"
+    );
 
-  if (!user.isExternal)
-    await assignmentHelper.protocolsStudyRevoke(
+  if (!user.isExternal) {
+    let revokeResult = await assignmentHelper.protocolsStudyRevoke(
       protocols,
       user,
       createdBy,
       createdOn
     );
+    if (!revokeResult)
+      return apiResponse.ErrorResponse(
+        res,
+        "An error occured while revoking study from FSR"
+      );
+  }
 
   // update database and insert logs
-  await assignmentHelper.makeAssignmentsInactive(
+  const assignmentResult = await assignmentHelper.makeAssignmentsInactive(
     protocols,
     user,
     createdBy,
     createdOn
   );
+  if (!assignmentResult)
+    return apiResponse.ErrorResponse(
+      res,
+      "Assignment not found / already inactive"
+    );
 
   return apiResponse.successResponse(res, "Assignments removed successfully");
 };

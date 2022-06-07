@@ -97,6 +97,8 @@ exports.insertUserStudyRole = async (
 
   const updateQuery = ``;
   const auditQuery = ``;
+  let protocolsInserted = 0;
+  let studyRolesUserInserted = 0;
 
   let result1, result2;
   try {
@@ -109,6 +111,7 @@ exports.insertUserStudyRole = async (
         createdOn,
         createdOn,
       ]);
+      protocolsInserted++;
     }
 
     const q2 = await DB.executeQuery(checkStudyUserRoleQuery);
@@ -121,12 +124,13 @@ exports.insertUserStudyRole = async (
         createdBy,
         createdOn,
       ]);
+      studyRolesUserInserted++;
     }
-    return true;
+    return { success: true, studyRolesUserInserted, protocolsInserted };
   } catch (error) {
     console.log(">>>> error:insertUserStudyRole ", error);
   }
-  return false;
+  return { success: false, studyRolesUserInserted, protocolsInserted };
 };
 
 /**
@@ -147,11 +151,13 @@ exports.makeUserStudyRoleInactive = async (
 ) => {
   const checkStudyUserRoleQuery = `
     SELECT * FROM ${schemaName}.study_user_role 
-    WHERE usr_id='${usr_id}' AND prot_id='${prot_id}' AND role_id='${role_id}' 
+    WHERE usr_id='${usr_id}' AND prot_id='${prot_id}' AND role_id='${role_id}' AND act_flg = 1
     LIMIT 1`;
 
   const updateQuery = `
-    UPDATE ${schemaName}.study_user_role SET act_flg = 0  RETURNING prot_usr_role_id`;
+    UPDATE ${schemaName}.study_user_role SET act_flg = 0 
+    WHERE usr_id='${usr_id}' AND prot_id='${prot_id}' AND role_id='${role_id}' 
+    RETURNING prot_usr_role_id`;
 
   const auditQuery = ``;
 
@@ -226,11 +232,14 @@ exports.protocolsStudyGrant = async (protocols, user, createdBy, createdOn) => {
       );
       if (!result) {
         Logger.error("assignmentCreate > studyGrant > " + protocol.name);
+        return false;
       }
     } catch (error) {
       Logger.error("assignmentCreate > studyGrant > " + protocol.name);
+      return false;
     }
   }
+  return true;
 };
 
 exports.protocolsStudyRevoke = async (
@@ -251,14 +260,20 @@ exports.protocolsStudyRevoke = async (
       );
       if (!result) {
         Logger.error("assignmentCreate > studyRevoke > " + protocol.name);
+        return false;
       }
     } catch (error) {
       Logger.error("assignmentCreate > studyRevoke > " + protocol.name);
+      return false;
     }
   }
+  return true;
 };
 
 exports.saveAssignments = async (protocols, user, createdBy, createdOn) => {
+  let protocolsInserted = 0;
+  let studyRolesUserInserted = 0;
+  let success = true;
   for (let i = 0; i < protocols.length; i++) {
     const protocol = protocols[i];
     if (!protocol.roleIds || !protocol.isValid) continue;
@@ -272,10 +287,16 @@ exports.saveAssignments = async (protocols, user, createdBy, createdOn) => {
         createdOn || getCurrentTime()
       );
 
-      if (!result)
+      if (result.success) {
+        protocolsInserted += result.protocolsInserted;
+        studyRolesUserInserted += result.studyRolesUserInserted;
+      } else {
         Logger.error("assignmentCreate > saveToDb > " + protocol.name);
+        success = false;
+      }
     }
   }
+  return { success, protocolsInserted, studyRolesUserInserted };
 };
 
 exports.makeAssignmentsInactive = async (
@@ -298,10 +319,11 @@ exports.makeAssignmentsInactive = async (
       );
       if (result) {
         await insertAuditLog(result, "act_flg", 1, 0, createdBy, createdOn);
-      }
-
-      if (!result)
+      } else {
         Logger.error("assignmentCreate > saveToDb > " + protocol.name);
+        return false;
+      }
     }
   }
+  return true;
 };
