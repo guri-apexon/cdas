@@ -32,6 +32,7 @@ exports.assignmentCreate = async (req, res) => {
   if (createdBy && !createdById)
     return apiResponse.ErrorResponse(res, "Created by Id does not exists");
 
+  protocols.forEach((p) => (p.isValid = false));
   const vpr = await assignmentHelper.validateProtocolsRoles(user, protocols);
   if (!vpr.success) apiResponse.ErrorResponse(res, vpr.message);
 
@@ -77,6 +78,7 @@ exports.assignmentRemove = async (req, res) => {
   if (createdBy && !createdById)
     return apiResponse.ErrorResponse(res, "Created by Id does not exists");
 
+  protocols.forEach((p) => (p.isValid = false));
   const vpr = await assignmentHelper.validateProtocolsRoles(user, protocols);
   if (!vpr.success) apiResponse.ErrorResponse(res, vpr.message);
 
@@ -99,5 +101,5 @@ exports.assignmentRemove = async (req, res) => {
     createdOn
   );
 
-  return apiResponse.successResponse(res, "Assignments created successfully");
+  return apiResponse.successResponse(res, "Assignments removed successfully");
 };

@@ -264,7 +264,7 @@ exports.saveAssignments = async (protocols, user, createdBy, createdOn) => {
     if (!protocol.roleIds || !protocol.isValid) continue;
     for (let j = 0; j < protocol.roleIds.length; j++) {
       const roleId = protocol.roleIds[j];
-      const result = await this.makeUserStudyRoleInactive(
+      const result = await this.insertUserStudyRole(
         user.usr_id,
         protocol.id,
         roleId,
