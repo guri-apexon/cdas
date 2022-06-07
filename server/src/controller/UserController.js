@@ -241,7 +241,6 @@ exports.deleteNewUser = async (req, res) => {
               updated_by,
               updt_tm,
             ]);
-            console.log();
             if (audit_log.rowCount > 0) {
               return apiResponse.successResponse(
                 res,
@@ -257,7 +256,7 @@ exports.deleteNewUser = async (req, res) => {
             );
           }
         } else {
-          return apiResponse.ErrorResponse(res, "Invalid Data");
+          return apiResponse.ErrorResponse(res, "SDA API getting failed");
         }
       } else {
         return apiResponse.ErrorResponse(res, "Invalid Data");
