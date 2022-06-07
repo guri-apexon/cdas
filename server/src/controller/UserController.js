@@ -88,7 +88,7 @@ exports.createNewUser = async (req, res) => {
     return apiResponse.ErrorResponse(res, "Tenant does not exists");
 
   // provision into SDA and save
-  const user = await userHelper.isUserExists(data.email);
+  const user = await userHelper.findByEmail(data.email);
   let usr_id = (user && user.usr_id) || "";
   let usr_stat = (user && user.usr_stat) || "";
 

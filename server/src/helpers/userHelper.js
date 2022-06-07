@@ -117,19 +117,19 @@ exports.findUser = async (filter) => {
       const row = response.rows[0];
       console.log("user", {
         ...row,
-        isActive: row.userState && row.userState === this.CONSTANTS.ACTIVE,
-        isInvited: row.userState && row.userState === this.CONSTANTS.INVITED,
-        isInactive: row.userState && row.userState === this.CONSTANTS.INACTIVE,
-        isExternal: row.userType && row.userType === this.CONSTANTS.EXTERNAL,
-        isInternal: row.userType && row.userType === this.CONSTANTS.INTERNAL,
+        isActive: row.userstate && row.userstate === this.CONSTANTS.ACTIVE,
+        isInvited: row.userstate && row.userstate === this.CONSTANTS.INVITED,
+        isInactive: row.userstate && row.userstate === this.CONSTANTS.INACTIVE,
+        isExternal: row.usertype && row.usertype === this.CONSTANTS.EXTERNAL,
+        isInternal: row.usertype && row.usertype === this.CONSTANTS.INTERNAL,
       });
       return {
         ...row,
-        isActive: row.userState && row.userState === this.CONSTANTS.ACTIVE,
-        isInvited: row.userState && row.userState === this.CONSTANTS.INVITED,
-        isInactive: row.userState && row.userState === this.CONSTANTS.INACTIVE,
-        isExternal: row.userType && row.userType === this.CONSTANTS.EXTERNAL,
-        isInternal: row.userType && row.userType === this.CONSTANTS.INTERNAL,
+        isActive: row.userstate && row.userstate === this.CONSTANTS.ACTIVE,
+        isInvited: row.userstate && row.userstate === this.CONSTANTS.INVITED,
+        isInactive: row.userstate && row.userstate === this.CONSTANTS.INACTIVE,
+        isExternal: row.usertype && row.usertype === this.CONSTANTS.EXTERNAL,
+        isInternal: row.usertype && row.usertype === this.CONSTANTS.INTERNAL,
       };
     }
   } catch (error) {
