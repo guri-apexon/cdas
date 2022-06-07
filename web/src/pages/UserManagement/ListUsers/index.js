@@ -102,16 +102,19 @@ const ListUsers = () => {
     const data = row[accessor];
     // const id = row.usr_id;
     const btnVariant = {
-      Active: "green",
-      "In Active": "grey",
-      Invited: "purple",
+      active: "green",
+      "in active": "grey",
+      inactive: "grey",
+      invited: "purple",
     };
+    const variantKey = row?.trimed_usr_stat?.toLowerCase();
     return (
       <div>
         {row.trimed_usr_stat && (
           <Tag
-            label={row.trimed_usr_stat}
-            variant={btnVariant[row.trimed_usr_stat]}
+            className="user-tag-capitalized"
+            label={variantKey}
+            variant={btnVariant[variantKey]}
           />
         )}
       </div>
