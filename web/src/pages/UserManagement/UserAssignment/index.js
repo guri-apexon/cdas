@@ -110,13 +110,25 @@ const ListUsers = () => {
     setInputValue(event);
   };
   const handleChangeStudy = (event) => {
-    console.log({ event });
-    setUserStudies([...userStudies, event.target.value]);
+    const newStudy = {
+      name: event.target.value,
+      roles: [],
+    };
+    const tempUserStudies = userStudies;
+    tempUserStudies.push(newStudy);
+    setUserStudies([...tempUserStudies]);
   };
   const handleChangeRoles = (event, index) => {
-    const tempUserRoles = userRoles;
-    tempUserRoles[index] = event.target.value;
-    setUserRoles([...tempUserRoles]);
+    const tempUserStudies = userStudies;
+    console.log(tempUserStudies[index]);
+    tempUserStudies[index].roles = event.target.value;
+    setUserStudies([...tempUserStudies]);
+  };
+  const removeStudy = (index) => {
+    console.log({ index });
+    const tempUserStudies = userStudies;
+    tempUserStudies.splice(index, 1);
+    setUserStudies([...tempUserStudies]);
   };
 
   const Header = () => {
@@ -202,63 +214,49 @@ const ListUsers = () => {
                     icon={PlusIcon}
                     onClick={() => addUserAssignment()}
                   >
-                    Add new user
+                    Add user assignment
                   </Button>
                 </div>
                 <Grid container spacing={2}>
                   <Grid item xs={3}>
-                    <div>
-                      Protocol Number
-                      <div>
-                        {userStudies.map((userStudy) => (
-                          <Select
-                            key={userStudy}
-                            value={userStudy}
-                            onChange={(e) => handleChangeStudy(e)}
-                            placeholder="Add new study and role"
-                            fullWidth
-                          >
-                            {studies
-                              .filter(
-                                (e) =>
-                                  userStudies.indexOf(e) === -1 ||
-                                  e === userStudy
-                              )
-                              .map((study) => (
-                                <MenuItem key={study} value={study}>
-                                  {study}
-                                </MenuItem>
-                              ))}
-                          </Select>
-                        ))}
-                        <Select
-                          value=""
-                          onChange={(e) => handleChangeStudy(e)}
-                          placeholder="Add new study and role"
-                          fullWidth
-                        >
-                          {studies
-                            .filter((e) => userStudies.indexOf(e) === -1)
-                            .map((study) => (
-                              <MenuItem key={study} value={study}>
-                                {study}
-                              </MenuItem>
-                            ))}
-                        </Select>
-                      </div>
-                    </div>
+                    Protocol Number
                   </Grid>
-                  <Grid item xs={8}>
+                  <Grid item xs={9}>
                     Role
-                    {userStudies.map((userStudy, index) => (
+                  </Grid>
+                </Grid>
+                {userStudies.map((userStudy, userStudyIndex) => (
+                  <Grid container spacing={2}>
+                    <Grid item xs={3}>
                       <Select
-                        key={`userRole_${index + 1}`}
-                        value={userRoles[index] || []}
-                        onChange={(e) => handleChangeRoles(e, index)}
+                        key={userStudy.name}
+                        value={userStudy.name}
+                        onChange={(e) => handleChangeStudy(e)}
+                        placeholder="Add new study and role"
+                        fullWidth
+                      >
+                        {studies
+                          .filter(
+                            (e) =>
+                              userStudies.map((u) => u.name).indexOf(e) ===
+                                -1 || e === userStudy.name
+                          )
+                          .map((study) => (
+                            <MenuItem key={study} value={study}>
+                              {study}
+                            </MenuItem>
+                          ))}
+                      </Select>
+                    </Grid>
+                    <Grid item xs={8}>
+                      <Select
+                        key={`userRole_${userStudyIndex + 1}`}
+                        value={userStudy.roles || []}
+                        onChange={(e) => handleChangeRoles(e, userStudyIndex)}
                         placeholder="Choose one or more roles"
                         fullWidth
                         multiple
-                        showcheckboxes
+                        showcheckboxes={true}
                       >
                         {roles.map((role) => (
                           <MenuItem key={role} value={role}>
@@ -266,15 +264,35 @@ const ListUsers = () => {
                           </MenuItem>
                         ))}
                       </Select>
-                    ))}
+                    </Grid>
+                    <Grid item xs={1}>
+                      <Trash
+                        key={`userTrash_${userStudyIndex + 1}`}
+                        onClick={(e) => removeStudy(userStudyIndex)}
+                        className="user-assignment-trash"
+                      />
+                    </Grid>
                   </Grid>
-                  <Grid item xs={1}>
-                    <div className="user-assignment-blank-header"> </div>
-                    {userStudies.map((userStudy, index) => (
-                      <div>
-                        <Trash className="user-assignment-trash" />
-                      </div>
-                    ))}
+                ))}
+                <Grid container spacing={2}>
+                  <Grid item xs={3}>
+                    <Select
+                      value=""
+                      onChange={(e) => handleChangeStudy(e)}
+                      placeholder="Add new study and role"
+                      fullWidth
+                    >
+                      {studies
+                        .filter(
+                          (e) =>
+                            userStudies.map((u) => u.name).indexOf(e) === -1
+                        )
+                        .map((study) => (
+                          <MenuItem key={study} value={study}>
+                            {study}
+                          </MenuItem>
+                        ))}
+                    </Select>
                   </Grid>
                 </Grid>
               </Grid>
