@@ -5,6 +5,7 @@ const { data } = require("../config/logger");
 const { getCurrentTime, validateEmail } = require("./customFunctions");
 const Logger = require("../config/logger");
 const constants = require("../config/constants");
+const { FSR_API_URI, FSR_HEADERS } = require("../config/constants");
 const { DB_SCHEMA_NAME: schemaName, SDA_BASE_URL } = constants;
 
 const SDA_BASE_API_URL = `${process.env.SDA_BASE_URL}/sda-rest-api/api/external/entitlement/V1/ApplicationUsers`;
@@ -214,4 +215,25 @@ exports.getSDAuserDataById = async (uid) => {
   } catch (error) {
     console.log("Internal user provision error", data, error);
   }
+};
+
+exports.revokeStudy = async (requestBody, studyList) => {
+  const FSR_Revoke = `${FSR_API_URI}/study/revoke`;
+  let apiStatus = "";
+  for (const element of studyList) {
+    axios
+      .post(
+        FSR_Revoke,
+        { ...requestBody, studyId: element?.prot_nbr_stnd },
+        {
+          headers: FSR_HEADERS,
+        }
+      )
+      .then((res) => {})
+      .catch((err) => {
+        apiStatus = false;
+      });
+  }
+
+  return apiStatus === "" ? true : false;
 };

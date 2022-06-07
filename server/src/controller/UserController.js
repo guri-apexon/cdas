@@ -160,11 +160,13 @@ exports.createNewUser = async (req, res) => {
 
 exports.deleteNewUser = async (req, res) => {
   try {
-    const { tenant_id, user_type, email_id, user_id, updt_tm } = req.body;
+    const { tenant_id, user_type, email_id, user_id, updt_tm, updated_by } =
+      req.body;
     if (tenant_id && user_type && email_id && user_id) {
       const query = `SELECT * from ${schemaName}.user WHERE usr_mail_id='${email_id}' AND usr_stat='Active' `;
       const inActiveUserQuery = ` UPDATE ${schemaName}.user set usr_stat=$1 , updt_tm=$2 WHERE usr_mail_id='${email_id}'`;
       const studyStatusUpdateQuery = `UPDATE ${schemaName}.study_user set act_flg=0 , updt_tm='${updt_tm}' WHERE usr_id='${user_id}'`;
+      const getStudiesQuery = `SELECT * from ${schemaName}.study WHERE usr_id='${user_id}'`;
 
       const userExists = await DB.executeQuery(query);
 
@@ -187,68 +189,80 @@ exports.deleteNewUser = async (req, res) => {
           };
 
           let sda_status = {};
+
           if (user_type == "internal") {
-            console.log("Internal -----------------------------");
             sda_status = await axios.delete(deprovisionURL, {
               data: requestBody,
             });
           } else if (user_type == "external") {
-            console.log("external -----------------------------");
             const { networkId, ...rest } = requestBody;
             sda_status = await axios.delete(deprovisionURL, rest);
           } else {
-            // return apiResponse.ErrorResponse(res, "Invalid User Type");
+            return apiResponse.ErrorResponse(res, "Invalid User Type");
           }
 
           let studyStatusUpdate = {};
+          let fsr_status = {};
 
-          if (sda_status.status) {
+          if (sda_status.status === 204 || sda_status.status === 200) {
             studyStatusUpdate = await DB.executeQuery(studyStatusUpdateQuery);
+
+            if (user_type == "internal") {
+              const studyData = await DB.executeQuery(getStudiesQuery);
+              const fsr_requestBody = {
+                userId: user_id,
+                roUsers: user_id,
+                rwUsers: user_id,
+              };
+              fsr_status = await userHelper.revokeStudy(
+                fsr_requestBody,
+                studyData?.rows
+              );
+              if (fsr_status === false) {
+                return apiResponse.ErrorResponse(res, "FSR Revoke API Failed");
+              }
+            }
+          } else {
+            return apiResponse.ErrorResponse(res, "Study Status Update failed");
+          }
+
+          if (
+            (sda_status.status === 204 || sda_status.status === 200) &&
+            studyStatusUpdate.rowCount > 0 &&
+            fsr_status !== false
+          ) {
+            const audit_log = await DB.executeQuery(logQuery, [
+              "user",
+              user_id,
+              "usr_stat",
+              "Active",
+              "InActive",
+              "User Requested",
+              updated_by,
+              updt_tm,
+            ]);
+            console.log();
+            if (audit_log.rowCount > 0) {
+              return apiResponse.successResponse(
+                res,
+                "User Deleted Successfully"
+              );
+            } else {
+              return apiResponse.ErrorResponse(res, "Audit tracking failed");
+            }
           } else {
             return apiResponse.ErrorResponse(
               res,
-              "Status Status Update failed"
+              "Unable to update Audit track"
             );
           }
-
-          // tbl_nm,id,attribute,old_val,new_val,rsn_for_chg,updated_by,updated_on
-
-          const audit_log = await DB.executeQuery(logQuery, [
-            "user",
-            user_id,
-            "usr_stat",
-            "Active",
-            "InActive",
-            "User Requested",
-            user_id,
-            updt_tm,
-          ]);
-
-          // if(studyStatusUpdate.rowCount){
-          //   axios
-          //   .post(`${FSR_API_URI}/study/revoke`, {} ,  {
-          //     headers: FSR_HEADERS,
-          //   })
-
-          // }
+        } else {
+          return apiResponse.ErrorResponse(res, "Invalid Data");
         }
-
-        return apiResponse.successResponse(res, "User Deleted Successfully");
       } else {
         return apiResponse.ErrorResponse(res, "Invalid Data");
       }
-    } else {
-      return apiResponse.ErrorResponse(res, "Invalid Data");
     }
-
-    // DB.executeQuery(query).then((response) => {
-
-    // });
-    // console.log(req.body);
-    // return apiResponse.successResponseWithData(
-    //   "hello",
-    //   "User successfully created"
-    // );
   } catch (err) {
     console.log(err, "unable to delete user");
     //throw error in json response with status 500.
