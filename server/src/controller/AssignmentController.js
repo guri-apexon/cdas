@@ -1,22 +1,15 @@
-const DB = require("../config/db");
 const apiResponse = require("../helpers/apiResponse");
 const assignmentHelper = require("../helpers/assignementHelper");
-const studyHelper = require("../helpers/studyHelper");
-const roleHelper = require("../helpers/roleHelper");
 const userHelper = require("../helpers/userHelper");
 const tenantHelper = require("../helpers/tenantHelper");
 const Logger = require("../config/logger");
 const moment = require("moment");
 const constants = require("../config/constants");
 const { create } = require("lodash");
-const { getCurrentTime } = require("../helpers/customFunctions");
-const { DB_SCHEMA_NAME: schemaName } = constants;
 
 exports.assignmentCreate = async (req, res) => {
   const data = req.body;
   const { email, protocols, createdBy, createdOn, tenant } = data;
-
-  Logger.info({ message: "create user - begin" });
 
   // validate data
   const validate = await assignmentHelper.validateAssignment(data);
@@ -24,107 +17,87 @@ exports.assignmentCreate = async (req, res) => {
     return apiResponse.ErrorResponse(res, validate.message);
 
   // validate tenant
-  const tenant_id = await tenantHelper.isTenantExists(tenant);
+  const tenant_id = await tenantHelper.findByName(tenant);
   if (!tenant_id)
     return apiResponse.ErrorResponse(res, "Tenant does not exists");
 
+  // validate user
   const user = await userHelper.findByEmail(email);
   if (!user) return apiResponse.ErrorResponse(res, "User does not exists");
-
   if (user.isInactive)
     return apiResponse.ErrorResponse(res, "No active or invited user found");
 
-  let roleNotPresent = [];
-  let roleNotActive = [];
-  let protocolNotPresent = [];
+  // validate createdby
+  const createdById = await userHelper.findByUserId(createdBy);
+  if (createdBy && !createdById)
+    return apiResponse.ErrorResponse(res, "Created by Id does not exists");
 
-  //  await protocols.forEach(async (protocol) => {
-  for (let i = 0; i < protocols.length; i++) {
-    let protocol = protocols[i];
-    const study = await studyHelper.isProtocolExists(protocol.protocolname);
-    if (!study) {
-      protocolNotPresent.push(protocol.protocolname);
-    } else {
-      protocol.id = study.prot_id;
-      protocol.roleIds = [];
-      protocol.skipGrant = user.usr_typ === userHelper.CONSTANTS.EXTERNAL;
-      for (let j = 0; j < protocol.roles.length; j++) {
-        const role_name = protocol.roles[j];
-        const role = await roleHelper.isRoleExists(role_name);
-        if (!role) {
-          roleNotPresent.push(role_name);
-        } else if (role.role_stat != 1) {
-          roleNotActive.push(role_name);
-        } else {
-          protocol.roleIds.push(role.role_id);
-        }
-      }
-    }
-  }
+  const vpr = await assignmentHelper.validateProtocolsRoles(user, protocols);
+  if (!vpr.success) apiResponse.ErrorResponse(res, vpr.message);
 
-  // create an error message
-  let message = "";
-  if (protocolNotPresent.length > 0)
-    message += `Protocol(s) [${protocolNotPresent
-      .map((a) => `'${a}'`)
-      .join(", ")}] not found. `;
-  if (roleNotPresent.length > 0)
-    message += `Role(s) [${roleNotPresent
-      .map((a) => `'${a}'`)
-      .join(", ")}] not found. `;
-  if (roleNotActive.length > 0)
-    message += `Role(s) [${roleNotActive
-      .map((a) => `'${a}'`)
-      .join(", ")}] found inactive. `;
+  if (protocols.each((p) => !p.isValid))
+    apiResponse.ErrorResponse(res, "No valid protocols found to be processed");
 
-  if (message !== "") return apiResponse.ErrorResponse(res, message);
-
-  // run study grant to each protocol
-  for (let i = 0; i < protocols.length; i++) {
-    const protocol = protocols[i];
-    if (protocol.skipGrant) continue;
-    try {
-      const result = await studyHelper.studyGrant(
-        protocol.protocolname,
-        user.usr_id,
-        createdBy,
-        createdOn
-      );
-      if (!result) {
-        return apiResponse.ErrorResponse(
-          res,
-          "An error occured while granting study in FSR"
-        );
-      }
-    } catch (error) {
-      return apiResponse.ErrorResponse(
-        res,
-        "An error occured while granting study in FSR"
-      );
-    }
-  }
+  if (!user.isExternal)
+    await assignmentHelper.protocolsStudyGrant(
+      protocols,
+      user,
+      createdBy,
+      createdOn
+    );
 
   // save it to the database
-  for (let i = 0; i < protocols.length; i++) {
-    const protocol = protocols[i];
-    if (!protocol.roleIds) continue;
-    for (let j = 0; j < protocol.roleIds.length; j++) {
-      const roleId = protocol.roleIds[j];
-      const result = await assignmentHelper.insertUserStudyRole(
-        user.usr_id,
-        protocol.id,
-        roleId,
-        createdBy || "",
-        createdOn || getCurrentTime()
-      );
+  await assignmentHelper.saveAssignments(protocols, user, createdBy, createdOn);
 
-      if (!result) {
-        return apiResponse.successResponse(
-          res,
-          "An unknown error encountered while saving."
-        );
-      }
-    }
-  }
+  return apiResponse.successResponse(res, "Assignments created successfully");
+};
+
+exports.assignmentRemove = async (req, res) => {
+  const data = req.body;
+  const { email, protocols, createdBy, createdOn, tenant } = data;
+
+  // validate data
+  const validate = await assignmentHelper.validateAssignment(data);
+  if (validate.success === false)
+    return apiResponse.ErrorResponse(res, validate.message);
+
+  // validate tenant
+  const tenant_id = await tenantHelper.findByName(tenant);
+  if (!tenant_id)
+    return apiResponse.ErrorResponse(res, "Tenant does not exists");
+
+  // validate user
+  const user = await userHelper.findByEmail(email);
+  if (!user) return apiResponse.ErrorResponse(res, "User does not exists");
+  if (user.isInactive)
+    return apiResponse.ErrorResponse(res, "No active or invited user found");
+
+  // validate createdby
+  const createdById = await userHelper.findByUserId(createdBy);
+  if (createdBy && !createdById)
+    return apiResponse.ErrorResponse(res, "Created by Id does not exists");
+
+  const vpr = await assignmentHelper.validateProtocolsRoles(user, protocols);
+  if (!vpr.success) apiResponse.ErrorResponse(res, vpr.message);
+
+  if (protocols.each((p) => !p.isValid))
+    apiResponse.ErrorResponse(res, "No valid protocols found to be processed");
+
+  if (!user.isExternal)
+    await assignmentHelper.protocolsStudyRevoke(
+      protocols,
+      user,
+      createdBy,
+      createdOn
+    );
+
+  // update database and insert logs
+  await assignmentHelper.makeAssignmentsInactive(
+    protocols,
+    user,
+    createdBy,
+    createdOn
+  );
+
   return apiResponse.successResponse(res, "Assignments created successfully");
 };

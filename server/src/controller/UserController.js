@@ -83,7 +83,7 @@ exports.createNewUser = async (req, res) => {
     return apiResponse.ErrorResponse(res, validate.message);
 
   // validate tenant
-  const tenant_id = await tenantHelper.isTenantExists(data.tenant);
+  const tenant_id = await tenantHelper.findByName(data.tenant);
   if (!tenant_id)
     return apiResponse.ErrorResponse(res, "Tenant does not exists");
 
