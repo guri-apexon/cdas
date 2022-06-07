@@ -1,16 +1,16 @@
 @import "../../../styles/customscroll.scss";
-.role-header {
+.user-list-header {
   // padding: 3%;
   padding: 0 3% 0 30px;
   height: 76px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  h3{
+  h3 {
     font-size: 24px;
   }
 }
-.roles-table {
+.user-list-table {
   background-color: #f8f9fb;
   min-height: calc(100vh - 316px);
   margin: 1.5% 2%;
@@ -27,4 +27,9 @@
       top: -8px;
     }
   }
+}
+.user-list-search-textbox {
+  min-width: 400px;
+  margin-top: -5px;
+  margin-right: 8px;
 }

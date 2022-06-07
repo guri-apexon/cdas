@@ -194,7 +194,7 @@ const ListUsers = () => {
           value={searchStr}
           onChange={(e) => handleSearchChange(e)}
           size="small"
-          style={{ minWidth: "400px", marginTop: -5, marginRight: 8 }}
+          className="user-list-search-textbox"
         />
         <Button
           size="small"
@@ -258,7 +258,7 @@ const ListUsers = () => {
   const Header = () => {
     return (
       <Paper>
-        <div className="role-header">
+        <div className="user-list-header">
           <Typography variant="h3">User Management</Typography>
           {createRolePermission && (
             <Button
@@ -308,9 +308,9 @@ const ListUsers = () => {
   );
 
   return (
-    <div className="role-container-wrapper">
+    <div className="user-list-container-wrapper">
       <Header />
-      <div className="roles-table">
+      <div className="user-list-table">
         {loading && <Progress />}
         {renderTable}
       </div>
