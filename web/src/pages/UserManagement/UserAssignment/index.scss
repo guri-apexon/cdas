@@ -1,0 +1,11 @@
+@import "../../../styles/customscroll.scss";
+.role-header {
+  // padding: 3%;
+  padding: 0 3% 0 30px;
+  height: 76px;
+  display: flex;
+  align-items: center;
+  h3{
+    font-size: 24px;
+  }
+}
