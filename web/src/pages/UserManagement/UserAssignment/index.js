@@ -21,7 +21,7 @@ import Autocomplete from "apollo-react/components/Autocomplete";
 import AutocompleteV2 from "apollo-react/components/AutocompleteV2";
 import Trash from "apollo-react-icons/Trash";
 import Progress from "../../../components/Progress";
-import { getUsers } from "../../../services/ApiServices";
+import { getUsers, getStudies, getRoles } from "../../../services/ApiServices";
 
 import "./index.scss";
 
@@ -33,6 +33,8 @@ const ListUsers = () => {
   const [active, setActive] = useState(true);
   const [initialTableRows, setInitialTableRows] = useState([]);
   const [userList, setUserList] = useState([]);
+  const [studyList, setStudyList] = useState([]);
+  const [roleList, setRoleList] = useState([]);
   const [initialSearchStr, setInitialSearchStr] = useState("");
   const [searchStr, setSearchStr] = useState("");
   const [matchFrom, setMatchFrom] = React.useState("any");
@@ -59,6 +61,7 @@ const ListUsers = () => {
       setCreateRolePermission(true);
     }
   };
+
   useEffect(() => {
     if (permissions.length > 0) {
       filterMethod(permissions);
@@ -67,15 +70,19 @@ const ListUsers = () => {
       const users = u.rows.map((e) => ({
         label: `${e.usr_fst_nm} ${e.usr_lst_nm} (${e.usr_mail_id})`,
       }));
-      console.log({ users });
       setUserList([...users]);
-      console.log(userList);
       setLoading(false);
     });
-  }, []);
+    getStudies().then((s) => {
+      const study = s?.data?.studyData.map((e) => e.protocolnumber);
+      setStudyList(study);
+    });
 
-  const studies = ["Study A", "Study B", "Study C"];
-  const roles = ["Role 1", "Role 2", "Role 3"];
+    getRoles().then((s) => {
+      const roles = s?.data?.roles.map((e) => e.role_nm);
+      setRoleList(roles);
+    });
+  }, []);
 
   const breadcrumpItems = [
     { href: "", onClick: () => history.push("/launchpad") },
@@ -242,7 +249,7 @@ const ListUsers = () => {
                         placeholder="Add new study and role"
                         fullWidth
                       >
-                        {studies
+                        {studyList
                           .filter(
                             (e) =>
                               userStudies.map((u) => u.name).indexOf(e) ===
@@ -265,7 +272,7 @@ const ListUsers = () => {
                         multiple
                         showcheckboxes={true}
                       >
-                        {roles.map((role) => (
+                        {roleList.map((role) => (
                           <MenuItem key={role} value={role}>
                             {role}
                           </MenuItem>
@@ -289,7 +296,7 @@ const ListUsers = () => {
                       placeholder="Add new study and role"
                       fullWidth
                     >
-                      {studies
+                      {studyList
                         .filter(
                           (e) =>
                             userStudies.map((u) => u.name).indexOf(e) === -1
@@ -308,7 +315,7 @@ const ListUsers = () => {
         )}
       </>
     ),
-    [loading, initialSearchStr, inputValue, userStudies, userRoles, userList]
+    [loading, initialSearchStr, inputValue, userStudies, roleList, userList]
   );
 
   return (
