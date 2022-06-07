@@ -193,19 +193,9 @@ const ListUsers = () => {
           placeholder="Search by name, email, or user ID"
           value={searchStr}
           onChange={(e) => handleSearchChange(e)}
-          style={{ minWidth: "400px", marginTop: -7 }}
+          size="small"
+          className="user-list-search-textbox"
         />
-        {createRolePermission && (
-          <Button
-            size="small"
-            variant="secondary"
-            icon={PlusIcon}
-            onClick={() => history.push("/create-user")}
-            style={{ marginRight: "8px", border: "none", boxShadow: "none" }}
-          >
-            Add new user
-          </Button>
-        )}
         <Button
           size="small"
           variant="secondary"
@@ -268,8 +258,19 @@ const ListUsers = () => {
   const Header = () => {
     return (
       <Paper>
-        <div className="role-header">
+        <div className="user-list-header">
           <Typography variant="h3">User Management</Typography>
+          {createRolePermission && (
+            <Button
+              size="small"
+              variant="primary"
+              icon={PlusIcon}
+              onClick={() => history.push("/user-assignment")}
+              style={{ boxShadow: "none" }}
+            >
+              Add new user
+            </Button>
+          )}
         </div>
       </Paper>
     );
@@ -307,9 +308,9 @@ const ListUsers = () => {
   );
 
   return (
-    <div className="role-container-wrapper">
+    <div className="user-list-container-wrapper">
       <Header />
-      <div className="roles-table">
+      <div className="user-list-table">
         {loading && <Progress />}
         {renderTable}
       </div>
