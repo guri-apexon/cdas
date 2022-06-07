@@ -21,6 +21,7 @@ import Autocomplete from "apollo-react/components/Autocomplete";
 import AutocompleteV2 from "apollo-react/components/AutocompleteV2";
 import Trash from "apollo-react-icons/Trash";
 import Progress from "../../../components/Progress";
+import { getUsers } from "../../../services/ApiServices";
 
 import "./index.scss";
 
@@ -31,6 +32,7 @@ const ListUsers = () => {
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState(true);
   const [initialTableRows, setInitialTableRows] = useState([]);
+  const [userList, setUserList] = useState([]);
   const [initialSearchStr, setInitialSearchStr] = useState("");
   const [searchStr, setSearchStr] = useState("");
   const [matchFrom, setMatchFrom] = React.useState("any");
@@ -61,13 +63,16 @@ const ListUsers = () => {
     if (permissions.length > 0) {
       filterMethod(permissions);
     }
-    setLoading(false);
+    getUsers().then((u) => {
+      const users = u.rows.map((e) => ({
+        label: `${e.usr_fst_nm} ${e.usr_lst_nm} (${e.usr_mail_id})`,
+      }));
+      console.log({ users });
+      setUserList([...users]);
+      console.log(userList);
+      setLoading(false);
+    });
   }, []);
-
-  const users = [
-    { label: "Niklesh Raut Niklesh Raut (niklesh.raut@iqvia.com)" },
-    { label: "Vinit Maniyar Vinit Maniyar (vinit.maniyar@iqvia.com)" },
-  ];
 
   const studies = ["Study A", "Study B", "Study C"];
   const roles = ["Role 1", "Role 2", "Role 3"];
@@ -106,8 +111,8 @@ const ListUsers = () => {
       setInputValue(newValue);
     }
   };
-  const handleChange = (event) => {
-    setInputValue(event);
+  const handleChange = (value) => {
+    setInputValue(value);
   };
   const handleChangeStudy = (event) => {
     const newStudy = {
@@ -182,9 +187,9 @@ const ListUsers = () => {
                       label="Name"
                       placeholder="Search by name or email"
                       fullWidth
-                      source={users}
+                      source={userList}
                       value={inputValue}
-                      onChange={handleChange}
+                      onChange={(e, v) => handleChange(v)}
                       chipColor="white"
                       size="small"
                       forcePopupIcon
@@ -193,6 +198,8 @@ const ListUsers = () => {
                       disableCloseOnSelect
                       matchFrom={matchFrom}
                       popupIcon={<SearchIcon fontSize="extraSmall" />}
+                      limitChips={1}
+                      alwaysLimitChips
                     />
                   </div>
                   <div>
@@ -301,7 +308,7 @@ const ListUsers = () => {
         )}
       </>
     ),
-    [loading, initialSearchStr, inputValue, userStudies, userRoles]
+    [loading, initialSearchStr, inputValue, userStudies, userRoles, userList]
   );
 
   return (
