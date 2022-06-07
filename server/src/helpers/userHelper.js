@@ -109,6 +109,13 @@ exports.provisionExternalUser = async (data) => {
   }
 };
 
+const compareString = (val1, val2) => {
+  if (val1 && val2) {
+    val1 = val1.toUpperCase().trim().replace(" ", "");
+    val2 = val2.toUpperCase().trim().replace(" ", "");
+    return val1 === val2;
+  }
+};
 exports.findUser = async (filter) => {
   const query = `SELECT *, UPPER(usr_stat) as userState, UPPER(usr_typ) as userType  FROM ${schemaName}.user WHERE ${filter};`;
   try {
@@ -117,19 +124,19 @@ exports.findUser = async (filter) => {
       const row = response.rows[0];
       console.log("user", {
         ...row,
-        isActive: row.userstate && row.userstate === this.CONSTANTS.ACTIVE,
-        isInvited: row.userstate && row.userstate === this.CONSTANTS.INVITED,
-        isInactive: row.userstate && row.userstate === this.CONSTANTS.INACTIVE,
-        isExternal: row.usertype && row.usertype === this.CONSTANTS.EXTERNAL,
-        isInternal: row.usertype && row.usertype === this.CONSTANTS.INTERNAL,
+        isActive: compareString(row.userstate, this.CONSTANTS.ACTIVE),
+        isInvited: compareString(row.userstate, this.CONSTANTS.INVITED),
+        isInactive: compareString(row.userstate, this.CONSTANTS.INACTIVE),
+        isExternal: compareString(row.usertype, this.CONSTANTS.EXTERNAL),
+        isInternal: compareString(row.usertype, this.CONSTANTS.INTERNAL),
       });
       return {
         ...row,
-        isActive: row.userstate && row.userstate === this.CONSTANTS.ACTIVE,
-        isInvited: row.userstate && row.userstate === this.CONSTANTS.INVITED,
-        isInactive: row.userstate && row.userstate === this.CONSTANTS.INACTIVE,
-        isExternal: row.usertype && row.usertype === this.CONSTANTS.EXTERNAL,
-        isInternal: row.usertype && row.usertype === this.CONSTANTS.INTERNAL,
+        isActive: compareString(row.userstate, this.CONSTANTS.ACTIVE),
+        isInvited: compareString(row.userstate, this.CONSTANTS.INVITED),
+        isInactive: compareString(row.userstate, this.CONSTANTS.INACTIVE),
+        isExternal: compareString(row.usertype, this.CONSTANTS.EXTERNAL),
+        isInternal: compareString(row.usertype, this.CONSTANTS.INTERNAL),
       };
     }
   } catch (error) {

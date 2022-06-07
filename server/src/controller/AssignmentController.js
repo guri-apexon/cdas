@@ -35,7 +35,7 @@ exports.assignmentCreate = async (req, res) => {
   const vpr = await assignmentHelper.validateProtocolsRoles(user, protocols);
   if (!vpr.success) apiResponse.ErrorResponse(res, vpr.message);
 
-  if (protocols.each((p) => !p.isValid))
+  if (protocols.every((p) => !p.isValid))
     apiResponse.ErrorResponse(res, "No valid protocols found to be processed");
 
   if (!user.isExternal)
@@ -80,7 +80,7 @@ exports.assignmentRemove = async (req, res) => {
   const vpr = await assignmentHelper.validateProtocolsRoles(user, protocols);
   if (!vpr.success) apiResponse.ErrorResponse(res, vpr.message);
 
-  if (protocols.each((p) => !p.isValid))
+  if (protocols.every((p) => !p.isValid))
     apiResponse.ErrorResponse(res, "No valid protocols found to be processed");
 
   if (!user.isExternal)
