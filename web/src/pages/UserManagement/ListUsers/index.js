@@ -117,16 +117,19 @@ const ListUsers = () => {
     const data = row[accessor];
     // const id = row.usr_id;
     const btnVariant = {
-      Active: "green",
-      "In Active": "grey",
-      Invited: "purple",
+      active: "green",
+      "in active": "grey",
+      inactive: "grey",
+      invited: "purple",
     };
+    const variantKey = row?.trimed_usr_stat?.toLowerCase();
     return (
       <div>
         {row.trimed_usr_stat && (
           <Tag
-            label={row.trimed_usr_stat}
-            variant={btnVariant[row.trimed_usr_stat]}
+            className="user-tag-capitalized"
+            label={variantKey}
+            variant={btnVariant[variantKey]}
           />
         )}
       </div>
@@ -208,19 +211,9 @@ const ListUsers = () => {
           placeholder="Search by name, email, or user ID"
           value={searchStr}
           onChange={(e) => handleSearchChange(e)}
-          style={{ minWidth: "400px", marginTop: -7 }}
+          size="small"
+          className="user-list-search-textbox"
         />
-        {createRolePermission && (
-          <Button
-            size="small"
-            variant="secondary"
-            icon={PlusIcon}
-            onClick={() => history.push("/create-user")}
-            style={{ marginRight: "8px", border: "none", boxShadow: "none" }}
-          >
-            Add new user
-          </Button>
-        )}
         <Button
           size="small"
           variant="secondary"
@@ -282,20 +275,13 @@ const ListUsers = () => {
 
   const handleAddUser = () => {
     dispatch(createUser());
-    history.push("/user-management/create");
+    history.push("/user-management/add-user");
   };
 
   const Header = () => {
     return (
       <Paper>
-        <div
-          className="role-header"
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
+        <div className="user-list-header">
           <Typography variant="h3">User Management</Typography>
           {canCreate && (
             <Button
@@ -344,9 +330,9 @@ const ListUsers = () => {
   );
 
   return (
-    <div className="role-container-wrapper">
+    <div className="user-list-container-wrapper">
       <Header />
-      <div className="roles-table">
+      <div className="user-list-table">
         {loading && <Progress />}
         {renderTable}
       </div>
