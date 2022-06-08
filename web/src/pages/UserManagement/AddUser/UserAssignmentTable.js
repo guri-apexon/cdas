@@ -83,14 +83,14 @@ const UserAssignmentTable = ({
       data.map((study) => {
         return {
           ...study,
-          label: `${study.protocolnumber}`,
+          label: `${study.prot_nbr_stnd}`,
         };
       }) || [];
     filtered.sort(function (a, b) {
-      if (a.protocolnumber < b.protocolnumber) {
+      if (a.prot_nbr_stnd < b.prot_nbr_stnd) {
         return -1;
       }
-      if (a.protocolnumber > b.protocolnumber) {
+      if (a.prot_nbr_stnd > b.prot_nbr_stnd) {
         return 1;
       }
       return 0;

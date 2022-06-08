@@ -254,7 +254,7 @@ const AddUser = () => {
     }
     const formattedRows = studiesRows.map((e) => {
       return {
-        protocolname: e?.study?.protocolnumber || "NA",
+        protocolname: e?.study?.prot_nbr_stnd,
         roles: e.roles.map((r) => r.label),
       };
     });
@@ -263,7 +263,7 @@ const AddUser = () => {
       protocols: formattedRows,
       tenant: "t1",
     };
-    setLoading(true);
+    // setLoading(true);
     const response = await assingUserStudy(insertUserStudy);
     setLoading(false);
     if (response.data.status) {
