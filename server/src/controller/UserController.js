@@ -162,21 +162,20 @@ exports.deleteNewUser = async (req, res) => {
     const { tenant_id, user_type, email_id, user_id, updt_tm, updated_by } =
       req.body;
     if (tenant_id && user_type && email_id && user_id) {
-      const query = `SELECT * from ${schemaName}.user WHERE usr_mail_id='${email_id}' AND usr_stat='Active' `;
       const inActiveUserQuery = ` UPDATE ${schemaName}.user set usr_stat=$1 , updt_tm=$2 WHERE usr_mail_id='${email_id}'`;
       const studyStatusUpdateQuery = `UPDATE ${schemaName}.study_user set act_flg=0 , updt_tm='${updt_tm}' WHERE usr_id='${user_id}'`;
       const getStudiesQuery = `SELECT * from ${schemaName}.study WHERE usr_id='${user_id}'`;
 
-      const userExists = await DB.executeQuery(query);
+      const user = await userHelper.findByEmail(email_id);
+      console.log(user);
 
-      if (userExists.rowCount) {
+      if (user?.isActive) {
         const inActiveStatus = await DB.executeQuery(inActiveUserQuery, [
           "InActive",
           updt_tm,
         ]);
 
         if (inActiveStatus.rowCount) {
-          const deprovisionURL = `${SDA_BASE_URL}/sda-rest-api/api/external/entitlement/V1/ApplicationUsers/deprovisionUserFromApplication`;
           const userDetails = await userHelper.getSDAuserDataById(user_id);
 
           const requestBody = {
@@ -188,16 +187,13 @@ exports.deleteNewUser = async (req, res) => {
           };
 
           let sda_status = {};
+          sda_status = await userHelper.deProvisionUser(requestBody, user_type);
 
-          if (user_type == "internal") {
-            sda_status = await axios.delete(deprovisionURL, {
-              data: requestBody,
-            });
-          } else if (user_type == "external") {
-            const { networkId, ...rest } = requestBody;
-            sda_status = await axios.delete(deprovisionURL, rest);
-          } else {
-            return apiResponse.ErrorResponse(res, "Invalid User Type");
+          if (!sda_status) {
+            return apiResponse.ErrorResponse(
+              res,
+              "Unable to delete User in SDA API"
+            );
           }
 
           let studyStatusUpdate = {};
