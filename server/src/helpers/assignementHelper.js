@@ -209,8 +209,8 @@ exports.validateProtocolsRoles = async (user, protocols) => {
   }
   // create an error message
   let message =
-    makeArrayErrorMesage("Protocol(s)", "not found. ", protocolNotPresent) &&
-    makeArrayErrorMesage("Role(s)", "not found. ", roleNotPresent) &&
+    makeArrayErrorMesage("Protocol(s)", "not found. ", protocolNotPresent) +
+    makeArrayErrorMesage("Role(s)", "not found. ", roleNotPresent) +
     makeArrayErrorMesage("Protocol(s)", "found inactive. ", roleNotActive);
 
   if (message.trim() !== "")
