@@ -22,16 +22,27 @@ exports.CONSTANTS = {
   INTERNAL: "INTERNAL",
 };
 
-// exports.deProvisionUser = async (data) => {
-//   const { appKey, userType, roleType, email, updatedBy } = data;
-//   try {
-//     const response = await axios(SDA_Endpoint_Deprovision);
-//     return response;
-//   } catch (error) {
-//     return error;
-//   }
-// };
+/**
+ *
+ * @param {*appKey, userType, roleType, email, updatedBy  , networkId} data
+ * @param {*} user_type
+ * @returns
+ */
 
+ exports.deProvisionUser = async (data, user_type) => {
+  const { networkId, ...rest } = data;
+  let requestBody;
+  try {
+    if (user_type === "internal") {
+      requestBody = data;
+    } else {
+      requestBody = rest;
+    }
+    return await axios.delete(SDA_Endpoint_Deprovision, { data: requestBody });
+  } catch (error) {
+    return error;
+  }
+};
 /**
  * Verifies the email with SDA whether it is provisioned or not
  * @param {*} email
@@ -287,24 +298,4 @@ exports.revokeStudy = async (requestBody, studyList) => {
   return apiStatus === "" ? true : false;
 };
 
-/**
- *
- * @param {*appKey, userType, roleType, email, updatedBy  , networkId} data
- * @param {*} user_type
- * @returns
- */
 
-exports.deProvisionUser = async (data, user_type) => {
-  const { networkId, ...rest } = data;
-  let requestBody;
-  try {
-    if (user_type === "internal") {
-      requestBody = data;
-    } else {
-      requestBody = rest;
-    }
-    return await axios.delete(SDA_Endpoint_Deprovision, { data: requestBody });
-  } catch (error) {
-    return error;
-  }
-};
