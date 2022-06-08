@@ -5,7 +5,9 @@ const { data } = require("../config/logger");
 const { getCurrentTime, validateEmail } = require("./customFunctions");
 const Logger = require("../config/logger");
 const constants = require("../config/constants");
-const { DB_SCHEMA_NAME: schemaName } = constants;
+const { FSR_API_URI, FSR_HEADERS } = require("../config/constants");
+const e = require("express");
+const { DB_SCHEMA_NAME: schemaName, SDA_BASE_URL } = constants;
 
 const SDA_BASE_API_URL = `${process.env.SDA_BASE_URL}/sda-rest-api/api/external/entitlement/V1/ApplicationUsers`;
 const SDA_Endpoint = `${SDA_BASE_API_URL}?appKey=${process.env.SDA_APP_KEY}`;
@@ -20,16 +22,27 @@ exports.CONSTANTS = {
   INTERNAL: "INTERNAL",
 };
 
-exports.deProvisionUser = async (data) => {
-  const { appKey, userType, roleType, email, updatedBy } = data;
+/**
+ *
+ * @param {*appKey, userType, roleType, email, updatedBy  , networkId} data
+ * @param {*} user_type
+ * @returns
+ */
+
+ exports.deProvisionUser = async (data, user_type) => {
+  const { networkId, ...rest } = data;
+  let requestBody;
   try {
-    const response = await axios(SDA_Endpoint_Deprovision);
-    return response;
+    if (user_type === "internal") {
+      requestBody = data;
+    } else {
+      requestBody = rest;
+    }
+    return await axios.delete(SDA_Endpoint_Deprovision, { data: requestBody });
   } catch (error) {
     return error;
   }
 };
-
 /**
  * Verifies the email with SDA whether it is provisioned or not
  * @param {*} email
@@ -253,3 +266,36 @@ exports.insertUserInDb = async (userDetails) => {
     return false;
   }
 };
+
+exports.getSDAuserDataById = async (uid) => {
+  const getusersURL = `${SDA_BASE_URL}/sda-rest-api/api/external/entitlement/V1/ApplicationUsers/getUsersForApplication?appKey=${process.env.SDA_APP_KEY}`;
+  try {
+    const response = await axios.get(getusersURL);
+    return response?.data.find((e) => e?.userId == uid);
+  } catch (error) {
+    console.log("Internal user provision error", data, error);
+  }
+};
+
+exports.revokeStudy = async (requestBody, studyList) => {
+  const FSR_Revoke = `${FSR_API_URI}/study/revoke`;
+  let apiStatus = "";
+  for (const element of studyList) {
+    axios
+      .post(
+        FSR_Revoke,
+        { ...requestBody, studyId: element?.prot_nbr_stnd },
+        {
+          headers: FSR_HEADERS,
+        }
+      )
+      .then((res) => {})
+      .catch((err) => {
+        apiStatus = false;
+      });
+  }
+
+  return apiStatus === "" ? true : false;
+};
+
+

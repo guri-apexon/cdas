@@ -6,7 +6,9 @@ const userHelper = require("../helpers/userHelper");
 const tenantHelper = require("../helpers/tenantHelper");
 const apiResponse = require("../helpers/apiResponse");
 const constants = require("../config/constants");
-const { DB_SCHEMA_NAME: schemaName } = constants;
+const { DB_SCHEMA_NAME: schemaName, SDA_APP_KEY, SDA_BASE_URL } = constants;
+
+const logQuery = `INSERT INTO ${schemaName}.audit_log (tbl_nm,id,attribute,old_val,new_val,rsn_for_chg,updated_by,updated_on) values ($1, $2, $3, $4, $5, $6, $7, $8)`;
 
 exports.getUser = function (user_id) {
   try {
@@ -154,3 +156,111 @@ exports.createNewUser = async (req, res) => {
     );
   return apiResponse.successResponseWithData(res, "User successfully created");
 };
+
+exports.deleteNewUser = async (req, res) => {
+  try {
+    const { tenant_id, user_type, email_id, user_id, updt_tm, updated_by } =
+      req.body;
+    if (tenant_id && user_type && email_id && user_id) {
+      const inActiveUserQuery = ` UPDATE ${schemaName}.user set usr_stat=$1 , updt_tm=$2 WHERE usr_mail_id='${email_id}'`;
+      const studyStatusUpdateQuery = `UPDATE ${schemaName}.study_user set act_flg=0 , updt_tm='${updt_tm}' WHERE usr_id='${user_id}'`;
+      const getStudiesQuery = `SELECT * from ${schemaName}.study WHERE usr_id='${user_id}'`;
+
+      const user = await userHelper.findByEmail(email_id);
+      console.log(user);
+
+      if (user?.isActive) {
+        const inActiveStatus = await DB.executeQuery(inActiveUserQuery, [
+          "InActive",
+          updt_tm,
+        ]);
+
+        if (inActiveStatus.rowCount) {
+          const userDetails = await userHelper.getSDAuserDataById(user_id);
+
+          const requestBody = {
+            appKey: SDA_APP_KEY,
+            userType: user_type,
+            roleType: userDetails?.roleType,
+            networkId: user_id,
+            updatedBy: "Admin",
+          };
+
+          let sda_status = {};
+          sda_status = await userHelper.deProvisionUser(requestBody, user_type);
+
+          if (!sda_status) {
+            return apiResponse.ErrorResponse(
+              res,
+              "Unable to delete User in SDA API"
+            );
+          }
+
+          let studyStatusUpdate = {};
+          let fsr_status = {};
+
+          if (sda_status.status === 204 || sda_status.status === 200) {
+            studyStatusUpdate = await DB.executeQuery(studyStatusUpdateQuery);
+
+            if (user_type == "internal") {
+              const studyData = await DB.executeQuery(getStudiesQuery);
+              const fsr_requestBody = {
+                userId: user_id,
+                roUsers: user_id,
+                rwUsers: user_id,
+              };
+              fsr_status = await userHelper.revokeStudy(
+                fsr_requestBody,
+                studyData?.rows
+              );
+              if (fsr_status === false) {
+                return apiResponse.ErrorResponse(res, "FSR Revoke API Failed");
+              }
+            }
+          } else {
+            return apiResponse.ErrorResponse(res, "Study Status Update failed");
+          }
+
+          if (
+            (sda_status.status === 204 || sda_status.status === 200) &&
+            studyStatusUpdate.rowCount > 0 &&
+            fsr_status !== false
+          ) {
+            const audit_log = await DB.executeQuery(logQuery, [
+              "user",
+              user_id,
+              "usr_stat",
+              "Active",
+              "InActive",
+              "User Requested",
+              updated_by,
+              updt_tm,
+            ]);
+            if (audit_log.rowCount > 0) {
+              return apiResponse.successResponse(
+                res,
+                "User Deleted Successfully"
+              );
+            } else {
+              return apiResponse.ErrorResponse(res, "Audit tracking failed");
+            }
+          } else {
+            return apiResponse.ErrorResponse(
+              res,
+              "Unable to update Audit track"
+            );
+          }
+        } else {
+          return apiResponse.ErrorResponse(res, "SDA API getting failed");
+        }
+      } else {
+        return apiResponse.ErrorResponse(res, "Invalid Data");
+      }
+    }
+  } catch (err) {
+    console.log(err, "unable to delete user");
+    //throw error in json response with status 500.
+    return err;
+  }
+};
+
