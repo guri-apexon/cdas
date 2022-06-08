@@ -78,7 +78,6 @@ exports.addLoginActivity = async (loginDetails) => {
 
 exports.createNewUser = async (req, res) => {
   const data = req.body;
-  Logger.info({ message: "create user - begin" });
 
   // validate data
   const validate = await userHelper.validateCreateUserData(data);
@@ -86,16 +85,16 @@ exports.createNewUser = async (req, res) => {
     return apiResponse.ErrorResponse(res, validate.message);
 
   // validate tenant
-  const tenant_id = await tenantHelper.isTenantExists(data.tenant);
+  const tenant_id = await tenantHelper.findByName(data.tenant);
   if (!tenant_id)
     return apiResponse.ErrorResponse(res, "Tenant does not exists");
 
   // provision into SDA and save
-  const user = await userHelper.isUserExists(data.email);
+  const user = await userHelper.findByEmail(data.email);
   let usr_id = (user && user.usr_id) || "";
   let usr_stat = (user && user.usr_stat) || "";
 
-  if (usr_stat == "ACTIVE" || usr_stat == "INVITED")
+  if (user.isActive || user.isInvited)
     return apiResponse.ErrorResponse(
       res,
       "User already exists in the database"
@@ -104,7 +103,7 @@ exports.createNewUser = async (req, res) => {
   if (data.userType === "internal") {
     const provision_response = await userHelper.provisionInternalUser(data);
     if (provision_response) {
-      if (usr_stat == "INACTIVE")
+      if (usr_stat === userHelper.CONSTANTS.INACTIVE)
         usr_id = await userHelper.makeUserActive(usr_id, usr_id);
       else
         usr_id = await userHelper.insertUserInDb({
@@ -124,7 +123,7 @@ exports.createNewUser = async (req, res) => {
   } else {
     const provision_response = await userHelper.provisionExternalUser(data);
     if (provision_response) {
-      if (usr_stat == "INACTIVE")
+      if (usr_stat === userHelper.CONSTANTS.INACTIVE)
         usr_id = await userHelper.makeUserActive(
           usr_id,
           provision_response.data
