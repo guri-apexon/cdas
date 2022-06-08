@@ -1,0 +1,75 @@
+@import "../../../styles/customscroll.scss";
+.create-user-wrapper {
+  .paper {
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+    padding: 0 27px 20px;
+    border-bottom: 1px solid #eeeeef;
+  }
+  .study-table {
+    background-color: #fff;
+    tbody:before {
+      content: "-";
+      display: block;
+      line-height: 1em;
+      color: transparent;
+    }
+    tr {
+      vertical-align: top;
+    }
+  }
+  .mt-4 {
+    margin-top: 16px;
+  }
+  .padded {
+    padding: 0 28px;
+    margin-top: 16px;
+  }
+  min-height: calc(100vh - 152px);
+  .breadcrump {
+    margin-left: -8px;
+    margin-bottom: 0;
+    padding-left: 0;
+  }
+  .product-tabs {
+    .MuiTab-root {
+      overflow: visible;
+      margin-top: 4px;
+    }
+  }
+  .full-cover {
+    justify-content: space-between;
+    margin: 8px 0px;
+  }
+  .top-actions {
+    justify-content: end;
+    label {
+      margin-right: 40px;
+    }
+  }
+  .title {
+    font-size: 24px;
+    margin-bottom: 4px;
+  }
+  .create-sidebar {
+    // max-width: 75%;
+  }
+  .products-wrapper {
+    margin-top: 10px;
+    .contact-content {
+      margin-top: 32px;
+      div[class*=" Table-scrollRoot-"] {
+        @extend .customscroll;
+      }
+    }
+  }
+  .table-wrapper {
+    position: relative;
+    height: 80vh;
+
+    tfoot {
+      display: none;
+    }
+  }
+}
