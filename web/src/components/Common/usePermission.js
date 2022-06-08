@@ -14,6 +14,7 @@ const STUDY_ADD_NON_MDM_STUDY = "Study - Add non MDM study";
 const STUDY_SETUP = "Study Setup";
 const STUDY_ASSIGNMENTS = "Study assignments";
 const SYSTEM_MANAGEMENT = "System management";
+const USER_MANAGEMENT = "User Management";
 const VENDOR_MANAGEMENT = "Vendor Management";
 const ROLE_MANAGEMENT = "Role management";
 const POLICY_MANAGEMENT = "Policy management";
@@ -43,6 +44,7 @@ const Features = {
   STUDY_SETUP,
   STUDY_ASSIGNMENTS,
   SYSTEM_MANAGEMENT,
+  USER_MANAGEMENT,
   VENDOR_MANAGEMENT,
   ROLE_MANAGEMENT,
   POLICY_MANAGEMENT,

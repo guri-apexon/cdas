@@ -1,5 +1,6 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import _debounce from "lodash/debounce";
+import { useDispatch, useSelector } from "react-redux";
 import { Typography } from "@material-ui/core";
 import React, {
   useMemo,
@@ -33,6 +34,13 @@ import "./index.scss";
 import { AppContext } from "../../../components/Providers/AppProvider";
 import { getUsers } from "../../../services/ApiServices";
 
+import usePermission, {
+  Categories,
+  Features,
+} from "../../../components/Common/usePermission";
+
+import { createUser } from "../../../store/actions/UserActions";
+
 const ProductsCell = ({ row, column: { accessor } }) => {
   const rowValue = row[accessor];
   return <>{rowValue}</>;
@@ -50,10 +58,17 @@ const ListUsers = () => {
   const [initialSearchStr, setInitialSearchStr] = useState("");
   const [curRow, setCurRow] = useState({});
   const appContext = useContext(AppContext);
+  const dispatch = useDispatch();
+
   const { permissions } = appContext.user;
   const [createRolePermission, setCreateRolePermission] = useState(false);
   const [readRolePermission, setReadRolePermission] = useState(false);
   const [updateRolePermission, setUpdateRolePermission] = useState(false);
+
+  const { canCreate } = usePermission(
+    Categories.MENU,
+    Features.USER_MANAGEMENT
+  );
 
   const filterMethod = (rolePermissions) => {
     const filterrolePermissions = rolePermissions.filter(
@@ -265,11 +280,33 @@ const ListUsers = () => {
     },
   ];
 
+  const handleAddUser = () => {
+    dispatch(createUser());
+    history.push("/user-management/create");
+  };
+
   const Header = () => {
     return (
       <Paper>
-        <div className="role-header">
+        <div
+          className="role-header"
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
           <Typography variant="h3">User Management</Typography>
+          {canCreate && (
+            <Button
+              variant="primary"
+              icon={<PlusIcon />}
+              size="small"
+              onClick={handleAddUser}
+            >
+              Add new user
+            </Button>
+          )}
         </div>
       </Paper>
     );
