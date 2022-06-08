@@ -228,9 +228,7 @@ exports.revokeStudy = async (requestBody, studyList) => {
           headers: FSR_HEADERS,
         }
       )
-      .then((res) => {
-        console.log(res);
-      })
+      .then((res) => {})
       .catch((err) => {
         apiStatus = false;
       });
