@@ -236,34 +236,32 @@ const UserAssignmentTable = ({
     });
   };
 
-  const AssignUser = async (assign = true) => {
+  const AssignUser = async () => {
     const studiesRows = [...tableStudies].slice(0, -1);
-    if (assign) {
-      if (!selectedUser) {
-        toast.showErrorMessage("Select a user or create a new one");
-        return false;
-      }
-      if (!studiesRows.length) {
-        toast.showErrorMessage("Add some studies to proceed");
-        return false;
-      }
-      if (studiesRows.find((x) => x.study == null)) {
-        setInitialRender(!initialRender);
-        setTableStudies([...tableStudies]);
-        toast.showErrorMessage("Please fill study or remove blank rows");
-        return false;
-      }
-      if (studiesRows.find((x) => x.alreadyExist)) {
-        toast.showErrorMessage("Please remove duplicate values");
-        return false;
-      }
-      const emptyRoles = studiesRows.filter((x) => x.roles.length === 0);
-      if (emptyRoles.length) {
-        toast.showErrorMessage(
-          `This assignment is incomplete. Please select a study and a role to continue.`
-        );
-        return false;
-      }
+    if (!selectedUser) {
+      toast.showErrorMessage("Select a user or create a new one");
+      return false;
+    }
+    if (!studiesRows.length) {
+      toast.showErrorMessage("Add some studies to proceed");
+      return false;
+    }
+    if (studiesRows.find((x) => x.study == null)) {
+      setInitialRender(!initialRender);
+      setTableStudies([...tableStudies]);
+      toast.showErrorMessage("Please fill study or remove blank rows");
+      return false;
+    }
+    if (studiesRows.find((x) => x.alreadyExist)) {
+      toast.showErrorMessage("Please remove duplicate values");
+      return false;
+    }
+    const emptyRoles = studiesRows.filter((x) => x.roles.length === 0);
+    if (emptyRoles.length) {
+      toast.showErrorMessage(
+        `This assignment is incomplete. Please select a study and a role to continue.`
+      );
+      return false;
     }
 
     // const { spnsr_nm_stnd: sponsorNameStnd, prot_nbr_stnd: protNbrStnd } =
@@ -292,26 +290,14 @@ const UserAssignmentTable = ({
     return null;
   };
 
-  const AssignUserCopy = () => {
-    if (!selectedUser) {
-      toast.showErrorMessage("Select a user or create a new one");
-      return false;
-    }
-    return null;
-  };
-
   useEffect(() => {
     if (pingParent !== 0) {
-      AssignUserCopy();
+      AssignUser();
     }
   }, [pingParent]);
 
   useEffect(() => {
-    // TODO: Remove Below Comment to load studies data
-    // dispatch(getStudyboardData());
-
-    // TODO: Remove Below Line if above is uncommented
-    addNewStudy();
+    dispatch(getStudyboardData());
   }, []);
 
   const CustomHeader = ({ focusLastStudy }) => {
@@ -355,7 +341,7 @@ const UserAssignmentTable = ({
     () => (
       <>
         <Table
-          // isLoading={!load}
+          isLoading={!load}
           title="User Assignments"
           columns={columns}
           rows={tableStudies.map((row) => ({
