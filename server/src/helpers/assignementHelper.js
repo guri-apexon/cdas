@@ -5,7 +5,7 @@ const constants = require("../config/constants");
 const studyHelper = require("./studyHelper");
 const roleHelper = require("./roleHelper");
 const { result } = require("lodash");
-const { insertAuditLog } = require("./studyUserroleHelper");
+const { insertAuditLog } = require("./studyUserRoleHelper");
 const { DB_SCHEMA_NAME: schemaName } = constants;
 
 /**
