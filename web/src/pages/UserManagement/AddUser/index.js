@@ -263,7 +263,7 @@ const AddUser = () => {
       protocols: formattedRows,
       tenant: "t1",
     };
-    // setLoading(true);
+    setLoading(true);
     const response = await assingUserStudy(insertUserStudy);
     setLoading(false);
     if (response.data.status) {
