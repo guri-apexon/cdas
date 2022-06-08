@@ -26,6 +26,7 @@ import {
   addVendorService,
   deleteVendorContact,
   getUsers,
+  assingUserStudy,
 } from "../../../services/ApiServices";
 import { selectVendor, getENSList } from "../../../store/actions/VendorAction";
 import { MessageContext } from "../../../components/Providers/MessageProvider";
@@ -93,6 +94,7 @@ const ConfirmModal = React.memo(({ open, cancel, stayHere, loading }) => {
 });
 
 const AddUser = () => {
+  const toast = useContext(MessageContext);
   const dispatch = useDispatch();
   const history = useHistory();
   const user = useSelector((state) => state.user);
@@ -114,6 +116,7 @@ const AddUser = () => {
   const [userList, setUserList] = useState([]);
   const [isNewUser, setIsNewUser] = useState(false);
   const [pingParent, setPingParent] = useState(0);
+  const [tableStudies, setTableStudies] = useState([]);
 
   const breadcrumpItems = [
     { href: "", onClick: () => history.push("/launchpad") },
@@ -220,6 +223,57 @@ const AddUser = () => {
   const switchUserType = (newUser) => {
     setSelectedUser(null);
     setIsNewUser(newUser);
+  };
+
+  const updateUserAssign = async (selectedStudies) => {
+    const studiesRows = [...selectedStudies].slice(0, -1);
+    if (!selectedUser) {
+      toast.showErrorMessage("Select a user or create a new one");
+      return false;
+    }
+    if (!studiesRows.length) {
+      toast.showErrorMessage("Add some studies to proceed");
+      return false;
+    }
+    if (studiesRows.find((x) => x.study == null)) {
+      setInitialRender(!initialRender);
+      setTableStudies([...studiesRows]);
+      toast.showErrorMessage("Please fill study or remove blank rows");
+      return false;
+    }
+    if (studiesRows.find((x) => x.alreadyExist)) {
+      toast.showErrorMessage("Please remove duplicate values");
+      return false;
+    }
+    const emptyRoles = studiesRows.filter((x) => x.roles.length === 0);
+    if (emptyRoles.length) {
+      toast.showErrorMessage(
+        `This assignment is incomplete. Please select a study and a role to continue.`
+      );
+      return false;
+    }
+    const formattedRows = studiesRows.map((e) => {
+      return {
+        protocolname: e?.study?.protocolnumber || "NA",
+        roles: e.roles.map((r) => r.label),
+      };
+    });
+    const insertUserStudy = {
+      email: selectedUser.usr_mail_id,
+      protocols: formattedRows,
+      tenant: "t1",
+    };
+    setLoading(true);
+    const response = await assingUserStudy(insertUserStudy);
+    setLoading(false);
+    if (response.data.status) {
+      toast.showSuccessMessage(response.data.message, 0);
+      history.push("/user-management");
+    } else {
+      toast.showErrorMessage(response.data.message, 0);
+    }
+
+    return null;
   };
 
   return (
@@ -399,6 +453,7 @@ const AddUser = () => {
                 setLoading={setLoading}
                 updateChanges={updateChanges}
                 pingParent={pingParent}
+                updateUserAssign={(e) => updateUserAssign(e)}
               />
             </div>
           </Grid>

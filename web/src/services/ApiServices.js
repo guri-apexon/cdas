@@ -482,3 +482,21 @@ export const getUserStudy = (studyUserId) => {
     return console.log("Error", err);
   }
 };
+
+export const assingUserStudy = async (reqBody) => {
+  try {
+    reqBody.createdBy = userId;
+    return new Promise((resolve, reject) => {
+      axios
+        .post(`${API_URL}/assignment/create`, reqBody)
+        .then((res) => {
+          resolve(res);
+        })
+        .catch((err) => {
+          reject(err.response?.data);
+        });
+    });
+  } catch (err) {
+    return console.log("Error", err);
+  }
+};
