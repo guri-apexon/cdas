@@ -415,3 +415,88 @@ export const getUsers = () => {
     return console.log("Error", err);
   }
 };
+
+export const getStudies = () => {
+  try {
+    return new Promise((resolve, reject) => {
+      axios
+        .post(`${API_URL}/study/list`)
+        .then((res) => {
+          resolve(res?.data?.studyData || res.data);
+        })
+        .catch((err) => {
+          if (err.response?.data) {
+            resolve(err.response?.data);
+          } else {
+            resolve({ message: "Something went wrong" });
+          }
+        });
+    });
+  } catch (err) {
+    return console.log("Error", err);
+  }
+};
+
+export const getRoles = () => {
+  try {
+    return new Promise((resolve, reject) => {
+      axios
+        .get(`${API_URL}/role/`)
+        .then((res) => {
+          resolve(res?.data?.roles || res.data);
+        })
+        .catch((err) => {
+          if (err.response?.data) {
+            resolve(err.response?.data);
+          } else {
+            resolve({ message: "Something went wrong" });
+          }
+        });
+    });
+  } catch (err) {
+    return console.log("Error", err);
+  }
+};
+
+export const getUserStudy = (studyUserId) => {
+  try {
+    return new Promise((resolve, reject) => {
+      axios
+        .get(`${API_URL}/users/get-user-study`, {
+          params: {
+            studyUserId,
+          },
+        })
+        .then((res) => {
+          resolve(res?.data);
+        })
+        .catch((err) => {
+          if (err.response?.data) {
+            resolve(err.response?.data);
+          } else {
+            resolve({ message: "Something went wrong" });
+          }
+        });
+    });
+  } catch (err) {
+    return console.log("Error", err);
+  }
+};
+
+export const assingUserStudy = async (reqBody) => {
+  try {
+    reqBody.createdBy = userId;
+    return new Promise((resolve, reject) => {
+      axios
+        .post(`${API_URL}/assignment/create`, reqBody)
+        .then((res) => {
+          resolve(res);
+        })
+        .catch((err) => {
+          reject(err.response?.data);
+        });
+    });
+  } catch (err) {
+    return console.log("Error", err);
+  }
+};

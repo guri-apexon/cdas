@@ -1,11 +1,63 @@
 @import "../../../styles/customscroll.scss";
-.role-header {
-  // padding: 3%;
+.user-assignment-container-wrapper {
+  .breadcrump {
+    margin-bottom: 0px;
+  }
+  .invite-user-link {
+    margin-left: 5px;
+  }
+  .user-assignment-wrapper {
+    display: flex;
+    justify-content: space-between;
+  }
+  .user-assignment-blank-header {
+    height: 20px;
+  }
+  .user-assignment-trash {
+    height: 42px;
+    margin-top: 16px;
+    margin-bottom: 8px;
+    cursor: pointer;
+  }
+}
+.user-assignment-header {
   padding: 0 3% 0 30px;
-  height: 76px;
+  height: 40px;
   display: flex;
   align-items: center;
-  h3{
+  h3 {
     font-size: 24px;
+  }
+}
+.user-assignment-form-header {
+  padding: 0 3% 0 30px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: end;
+  .user-assignment-status-text {
+    margin-right: 8px;
+  }
+  .user-assignment-btn-no-border {
+    border: none;
+    margin-left: 8px;
+  }
+}
+.user-assignment-table {
+  background-color: #f8f9fb;
+  min-height: calc(100vh - 316px);
+  margin: 1.5% 2%;
+
+  div[class*=" Table-scrollRoot-"] {
+    @extend .customscroll;
+  }
+
+  .table {
+    margin: 30px;
+    background-color: #ffffff;
+
+    div[class^="MuiSwitch-sizeSmall-"] {
+      top: -8px;
+    }
   }
 }
