@@ -218,8 +218,14 @@ async function createNewUser(data, req, res) {
   return apiResponse.successResponseWithData(res, "User successfully created");
 }
 
-exports.addNewUser = async (req, res) => {
+exports.inviteExternalUser = async (req, res) => {
   // { , , firstName, lastName, email, uid, employeeId }
+
+  // firstName,
+  // lastName,
+  // email,
+  // uid: employeeId,
+  // updatedBy:currentUser,
   const data = req.body;
   data["userType"] = "external";
   data["updatedBy"] = data.uid;

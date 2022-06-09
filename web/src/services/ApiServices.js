@@ -475,7 +475,7 @@ export const getRoles = () => {
   }
 };
 
-export const createNewUser = (
+export const inviteExternalUser = (
   firstName,
   lastName,
   email,
@@ -485,12 +485,12 @@ export const createNewUser = (
   try {
     return new Promise((resolve, reject) => {
       axios
-        .post(`${API_URL}/users/add`, {
+        .post(`${API_URL}/users/invite-external-user`, {
           firstName,
           lastName,
           email,
-          uid: currentUser,
-          employeeId,
+          uid: employeeId,
+          updatedBy: currentUser,
         })
         .then((res) => {
           resolve(res.data);
