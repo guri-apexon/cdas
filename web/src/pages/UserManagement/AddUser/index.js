@@ -21,7 +21,7 @@ import Paper from "apollo-react/components/Paper";
 import {
   getUsers,
   validateEmail,
-  createNewUser,
+  inviteExternalUser,
   assingUserStudy,
 } from "../../../services/ApiServices";
 import { getUserId } from "../../../utils";
@@ -275,7 +275,7 @@ const AddUser = () => {
       } = selectedUser;
       const currentUserId = getUserId();
 
-      const response = await createNewUser(
+      const response = await inviteExternalUser(
         firstName,
         lastName,
         email,
