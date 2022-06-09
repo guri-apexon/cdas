@@ -454,7 +454,11 @@ export const createNewUser = (
           resolve(res.data);
         })
         .catch((err) => {
-          reject(err.response);
+          if (err.response?.data) {
+            resolve(err.response?.data);
+          } else {
+            resolve({ message: "Something went wrong" });
+          }
         });
     });
   } catch (err) {

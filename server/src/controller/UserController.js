@@ -210,7 +210,7 @@ exports.addNewUser = async (req, res) => {
       return apiResponse.ErrorResponse(res, "Tenant does not exists");
     }
   } catch (error) {
-    return apiResponse.ErrorResponse(res, "Unable to fethc tenet");
+    return apiResponse.ErrorResponse(res, "Unable to fetch tenet");
   }
 
   const response = await createNewUser(data, req, res);

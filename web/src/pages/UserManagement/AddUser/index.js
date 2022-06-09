@@ -1,7 +1,7 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 /* eslint-disable no-useless-escape */
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useHistory } from "react-router";
 
@@ -28,6 +28,7 @@ import usePermission, {
   Categories,
   Features,
 } from "../../../components/Common/usePermission";
+import { MessageContext } from "../../../components/Providers/MessageProvider";
 import {
   formComponentActive,
   hideAlert,
@@ -90,6 +91,8 @@ const ConfirmModal = React.memo(({ open, cancel, stayHere, loading }) => {
 const AddUser = () => {
   const dispatch = useDispatch();
   const history = useHistory();
+  const toast = useContext(MessageContext);
+
   const user = useSelector((state) => state.user);
   const alertStore = useSelector((state) => state.Alert);
   const { canRead, canCreate, canUpdate, readOnly } = usePermission(
@@ -252,15 +255,16 @@ const AddUser = () => {
     });
   };
 
+  const validNewUserDataCondition = () =>
+    selectedUser?.usr_fst_nm?.length &&
+    selectedUser?.usr_lst_nm?.length &&
+    selectedUser?.usr_mail_id?.length &&
+    !selectedUserError?.usr_fst_nm &&
+    !selectedUserError?.usr_lst_nm &&
+    !selectedUserError?.usr_mail_id;
+
   const handleCreateUser = async () => {
-    if (
-      selectedUser?.usr_fst_nm?.length &&
-      selectedUser?.usr_lst_nm?.length &&
-      selectedUser?.usr_mail_id?.length &&
-      !selectedUserError?.usr_fst_nm &&
-      !selectedUserError?.usr_lst_nm &&
-      !selectedUserError?.usr_mail_id
-    ) {
+    if (validNewUserDataCondition()) {
       const {
         usr_fst_nm: firstName,
         usr_lst_nm: lastName,
@@ -268,6 +272,7 @@ const AddUser = () => {
         extrnl_emp_id: employeeId,
       } = selectedUser;
       const currentUserId = getUserId();
+
       const response = await createNewUser(
         firstName,
         lastName,
@@ -275,10 +280,18 @@ const AddUser = () => {
         currentUserId,
         employeeId
       );
-    } else {
-      const fields = ["usr_fst_nm", "usr_lst_nm", "usr_mail_id"];
-      validateField(undefined, fields);
+      if (response.status === 1) {
+        const msg = response.message || "Success";
+        toast.showSuccessMessage(msg);
+      } else {
+        const msg = response.message || "Error Occured";
+        toast.showErrorMessage(msg);
+      }
+      return response;
     }
+    const fields = ["usr_fst_nm", "usr_lst_nm", "usr_mail_id"];
+    validateField(undefined, fields);
+    return false;
   };
 
   const handleSave = async () => {
