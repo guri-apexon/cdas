@@ -120,6 +120,37 @@ exports.isUserExists = async (email) => {
 };
 
 /**
+ * validates data for add user api
+ * @param {object} data = {  firstName, lastName, email, uid, employeeId }
+ * @returns {success: boolean , message: string} success as true on success false other wise
+ */
+exports.validateAddUserData = async (data) => {
+  const { firstName, lastName, email, uid, employeeId } = data;
+  if (!data) {
+    return { success: false, message: "data not provided" };
+  }
+  if (!(firstName && firstName.trim()))
+    return { success: false, message: "First Name is required field" };
+
+  if (!(lastName && lastName.trim()))
+    return { success: false, message: "Last Name is required field" };
+
+  if (!(email && email.trim()))
+    return { success: false, message: "Email id is required field" };
+
+  if (!validateEmail(email))
+    return { success: false, message: "Email id invalid" };
+
+  try {
+    const isUserAlreadyProvisioned = await this.isUserAlreadyProvisioned(email);
+    if (isUserAlreadyProvisioned) {
+      return { success: false, message: "User already Provisioned" };
+    }
+  } catch (error) {}
+
+  return { success: true, message: "validation success" };
+};
+/**
  * validates data for create user api
  * @param {object} data = { tenant, userType, firstName, lastName, email, uid, employeeId }
  * @returns {success: boolean , message: string} success as true on success false other wise

@@ -10,24 +10,14 @@ import Trash from "apollo-react-icons/Trash";
 import Button from "apollo-react/components/Button";
 import PlusIcon from "apollo-react-icons/Plus";
 
-import {
-  fetchRoles,
-  getOnboardUsers,
-  onboardStudy,
-} from "../../../services/ApiServices";
+import { fetchRoles } from "../../../services/ApiServices";
 import { MessageContext } from "../../../components/Providers/MessageProvider";
-import {
-  getStudyboardData,
-  getNotOnBordedStatus,
-} from "../../../store/actions/StudyBoardAction";
+import { getStudyboardData } from "../../../store/actions/StudyBoardAction";
+import MultiSelect from "../../../components/MultiSelect";
 
 const UserAssignmentTable = ({
-  loading,
-  setLoading,
-  selectedUser,
   updateChanges,
   pingParent,
-  isNewUser,
   updateUserAssign,
 }) => {
   const toast = useContext(MessageContext);
@@ -80,12 +70,16 @@ const UserAssignmentTable = ({
   const getStudyList = async () => {
     const data = [...studyData?.studyboardData];
     const filtered =
-      data.map((study) => {
-        return {
-          ...study,
-          label: `${study.prot_nbr_stnd}`,
-        };
-      }) || [];
+      data
+        .filter((study) => {
+          return study?.onboardingprogress?.toLowerCase() === "success";
+        })
+        .map((study) => {
+          return {
+            ...study,
+            label: `${study.prot_nbr_stnd}`,
+          };
+        }) || [];
     filtered.sort(function (a, b) {
       if (a.prot_nbr_stnd < b.prot_nbr_stnd) {
         return -1;
@@ -187,26 +181,14 @@ const UserAssignmentTable = ({
       return false;
     return (
       <div className="role">
-        <AutocompleteV2
-          placeholder="Choose one or more roles"
-          size="small"
-          fullWidth
-          multiple
-          forcePopupIcon
-          showCheckboxes
-          chipColor="white"
-          source={roleLists}
-          limitChips={2}
-          value={row[key]}
-          onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
-          error={!row[key]}
-          helperText={!row[key] && "Required"}
-          filterSelectedOptions={false}
-          blurOnSelect={false}
-          clearOnBlur={false}
-          disableCloseOnSelect
-          alwaysLimitChips
-          enableVirtualization
+        <MultiSelect
+          roleLists={roleLists}
+          row={row}
+          rowKey={key}
+          tableStudies={tableStudies}
+          editRow={(e, v, r, rowIndex, rowKey) =>
+            editRow(e, v, r, rowIndex, rowKey)
+          }
         />
       </div>
     );
@@ -263,7 +245,7 @@ const UserAssignmentTable = ({
             .focus();
         }}
       >
-        Add new user assignment
+        Add user assignment
       </Button>
     );
   };

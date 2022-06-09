@@ -1,51 +1,47 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
-import React, { useContext, useEffect, useState, useRef } from "react";
+/* eslint-disable no-useless-escape */
+
+import React, { useEffect, useState, useContext } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useHistory, useParams } from "react-router";
+import { useHistory } from "react-router";
 
 import BreadcrumbsUI from "apollo-react/components/Breadcrumbs";
 import Switch from "apollo-react/components/Switch";
 import ButtonGroup from "apollo-react/components/ButtonGroup";
 import TextField from "apollo-react/components/TextField";
-import Select from "apollo-react/components/Select";
 import AutocompleteV2 from "apollo-react/components/AutocompleteV2";
-import Trash from "apollo-react-icons/Trash";
 import SearchIcon from "apollo-react-icons/Search";
-import IconButton from "apollo-react/components/IconButton";
-import PlusIcon from "apollo-react-icons/Plus";
 import "./CreateUser.scss";
 import Typography from "apollo-react/components/Typography";
 import Link from "apollo-react/components/Link";
 import Grid from "apollo-react/components/Grid";
-import MenuItem from "apollo-react/components/MenuItem";
 import Modal from "apollo-react/components/Modal";
 import Paper from "apollo-react/components/Paper";
 
-import _, { set } from "lodash";
 import {
-  addVendorService,
-  deleteVendorContact,
   getUsers,
+  validateEmail,
+  inviteExternalUser,
   assingUserStudy,
 } from "../../../services/ApiServices";
-import { selectVendor, getENSList } from "../../../store/actions/VendorAction";
-import { MessageContext } from "../../../components/Providers/MessageProvider";
-import { getUserInfo, inputAlphaNumericWithUnderScore } from "../../../utils";
+import { getUserId } from "../../../utils";
 import usePermission, {
   Categories,
   Features,
 } from "../../../components/Common/usePermission";
+import { MessageContext } from "../../../components/Providers/MessageProvider";
 import {
   formComponentActive,
   hideAlert,
   showAppSwitcher,
-  formComponentInActive,
-  hideAppSwitcher,
 } from "../../../store/actions/AlertActions";
 import AlertBox from "../../AlertBox/AlertBox";
 import UserAssignmentTable from "./UserAssignmentTable";
 
 const userListURL = "/user-management";
+
+const emailRegex =
+  /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 
 const Box = ({ children }) => {
   return (
@@ -97,6 +93,7 @@ const AddUser = () => {
   const toast = useContext(MessageContext);
   const dispatch = useDispatch();
   const history = useHistory();
+
   const user = useSelector((state) => state.user);
   const alertStore = useSelector((state) => state.Alert);
   const { canRead, canCreate, canUpdate, readOnly } = usePermission(
@@ -113,6 +110,7 @@ const AddUser = () => {
   const [isAnyUpdate, setIsAnyUpdate] = useState(false);
   const [isShowAlertBox, setShowAlertBox] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedUserError, setSelectedUserError] = useState(null);
   const [userList, setUserList] = useState([]);
   const [isNewUser, setIsNewUser] = useState(false);
   const [pingParent, setPingParent] = useState(0);
@@ -176,14 +174,62 @@ const AddUser = () => {
 
   const handleChange = (e) => {
     const val = e.target.value;
+    const key = e.target.id;
     updateChanges();
-    if (e.target.id === "uName") {
-      inputAlphaNumericWithUnderScore(e, (v) => {
-        setSelectedUser(v);
-      });
-    } else if (e.target.id === "uDescription") {
-      // setVDescription(val);
+    setSelectedUser({ ...selectedUser, [key]: val });
+    // if (key === "usr_fst_nm") {
+    //   inputAlphaNumericWithUnderScore(e, (v) => {
+    //     setSelectedUser({ ...selectedUser, key: v });
+    //   });
+    // }
+  };
+
+  const getRequiredErrors = (key) => {
+    switch (key) {
+      case "usr_fst_nm":
+        return "First name required";
+      case "usr_lst_nm":
+        return "Last name required";
+      case "usr_mail_id":
+        return "Email address required";
+      default:
+        return "This Field is required";
     }
+  };
+
+  const checkEmailExists = async () => {
+    const res = await validateEmail(selectedUser.usr_mail_id);
+    return res.data.error;
+  };
+
+  const validateField = (e, list) => {
+    // const key = e?.target?.id;
+    // const value = selectedUser?.[key];
+
+    const currentErrors = { ...selectedUserError };
+
+    const keys = list || [e?.target?.id];
+
+    keys.forEach(async (key) => {
+      const value = selectedUser?.[key];
+      if (typeof value === "string") {
+        if (!value.length || value.trim() === "") {
+          currentErrors[key] = getRequiredErrors(key);
+        } else if (key === "usr_mail_id") {
+          const isValid = emailRegex.test(value);
+          if (!isValid) {
+            currentErrors[key] = "Invalid email address format";
+          } else {
+            currentErrors[key] = await checkEmailExists();
+            setSelectedUserError(currentErrors);
+          }
+        } else {
+          currentErrors[key] = "";
+        }
+      }
+    });
+
+    setSelectedUserError(currentErrors);
   };
 
   const getUserList = async () => {
@@ -211,8 +257,50 @@ const AddUser = () => {
     });
   };
 
+  const validNewUserDataCondition = () =>
+    selectedUser?.usr_fst_nm?.length &&
+    selectedUser?.usr_lst_nm?.length &&
+    selectedUser?.usr_mail_id?.length &&
+    !selectedUserError?.usr_fst_nm &&
+    !selectedUserError?.usr_lst_nm &&
+    !selectedUserError?.usr_mail_id;
+
+  const handleCreateUser = async () => {
+    if (validNewUserDataCondition()) {
+      const {
+        usr_fst_nm: firstName,
+        usr_lst_nm: lastName,
+        usr_mail_id: email,
+        extrnl_emp_id: employeeId,
+      } = selectedUser;
+      const currentUserId = getUserId();
+
+      const response = await inviteExternalUser(
+        firstName,
+        lastName,
+        email,
+        currentUserId,
+        employeeId
+      );
+      if (response.status === 1) {
+        const msg = response.message || "Success";
+        toast.showSuccessMessage(msg);
+      } else {
+        const msg = response.message || "Error Occured";
+        toast.showErrorMessage(msg);
+      }
+      return response;
+    }
+    const fields = ["usr_fst_nm", "usr_lst_nm", "usr_mail_id"];
+    validateField(undefined, fields);
+    return false;
+  };
+
   const handleSave = async () => {
     setPingParent((oldValue) => oldValue + 1);
+    if (isNewUser) {
+      handleCreateUser();
+    }
   };
 
   useEffect(() => {
@@ -221,7 +309,10 @@ const AddUser = () => {
   }, []);
 
   const switchUserType = (newUser) => {
-    setSelectedUser(null);
+    const defaultValues = newUser
+      ? { usr_fst_nm: "", usr_lst_nm: "", usr_mail_id: "", extrnl_emp_id: "" }
+      : null;
+    setSelectedUser(defaultValues);
     setIsNewUser(newUser);
   };
 
@@ -289,7 +380,7 @@ const AddUser = () => {
           stayHere={stayHere}
         />
       )}
-      <Paper style={{ padding: "16px 28px" }}>
+      <div className="paper">
         <Box className="top-content">
           <BreadcrumbsUI className="breadcrump" items={breadcrumpItems} />
           <div className="flex full-cover">
@@ -344,7 +435,7 @@ const AddUser = () => {
             {isEditPage ? selectedUser : "Add New User"}
           </Typography>
         </Box>
-      </Paper>
+      </div>
       <div className="padded">
         <Grid container spacing={2}>
           {/* {console.log("save", disableSave)} */}
@@ -360,6 +451,9 @@ const AddUser = () => {
                       inputProps={{
                         maxLength: 100,
                       }}
+                      onBlur={(e) => validateField(e)}
+                      error={!!selectedUserError?.usr_fst_nm?.length}
+                      helperText={selectedUserError?.usr_fst_nm}
                       onChange={handleChange}
                     />
                     <TextField
@@ -369,6 +463,9 @@ const AddUser = () => {
                       inputProps={{
                         maxLength: 255,
                       }}
+                      onBlur={(e) => validateField(e)}
+                      error={!!selectedUserError?.usr_lst_nm?.length}
+                      helperText={selectedUserError?.usr_lst_nm}
                       onChange={handleChange}
                     />
                     <TextField
@@ -377,6 +474,20 @@ const AddUser = () => {
                       size="small"
                       label="Email"
                       onChange={handleChange}
+                      onBlur={(e) => validateField(e)}
+                      error={!!selectedUserError?.usr_mail_id?.length}
+                      helperText={selectedUserError?.usr_mail_id}
+                      // error={
+                      //   !emailRegex.test(selectedUser.usr_mail_id) &&
+                      //   selectedUser.usr_mail_id > 0
+                      // }
+                      // helperText={
+                      //   blurred &&
+                      //   selectedUser.usr_mail_id > 0 &&
+                      //   ((isStarted && !row[key] && "Required") ||
+                      //     (!emailRegex.test(selectedUser.usr_mail_id) &&
+                      //       "Invalid Email Format"))
+                      // }
                     />
                     <TextField
                       id="extrnl_emp_id"
@@ -405,7 +516,6 @@ const AddUser = () => {
                         placeholder="Search by name or email"
                         value={selectedUser}
                         onChange={(e, v, r) => {
-                          // eslint-disable-next-line no-debugger
                           updateChanges();
                           setSelectedUser(v);
                         }}

@@ -416,6 +416,23 @@ export const getUsers = () => {
   }
 };
 
+export const validateEmail = (email) => {
+  try {
+    return new Promise((resolve, reject) => {
+      axios
+        .post(`${API_URL}/users/validate-email`, { email })
+        .then((res) => {
+          resolve(res.data);
+        })
+        .catch((err) => {
+          reject(err.response.data);
+        });
+    });
+  } catch (err) {
+    return console.log("Error", err);
+  }
+};
+
 export const getStudies = () => {
   try {
     return new Promise((resolve, reject) => {
@@ -458,6 +475,38 @@ export const getRoles = () => {
   }
 };
 
+export const inviteExternalUser = (
+  firstName,
+  lastName,
+  email,
+  currentUser,
+  employeeId
+) => {
+  try {
+    return new Promise((resolve, reject) => {
+      axios
+        .post(`${API_URL}/users/invite-external-user`, {
+          firstName,
+          lastName,
+          email,
+          uid: employeeId,
+          updatedBy: currentUser,
+        })
+        .then((res) => {
+          resolve(res.data);
+        })
+        .catch((err) => {
+          if (err.response?.data) {
+            resolve(err.response?.data);
+          } else {
+            resolve({ message: "Something went wrong" });
+          }
+        });
+    });
+  } catch (err) {
+    return console.log("Error", err);
+  }
+};
 export const getUserStudy = (studyUserId) => {
   try {
     return new Promise((resolve, reject) => {
