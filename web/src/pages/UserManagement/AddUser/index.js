@@ -380,7 +380,7 @@ const AddUser = () => {
           stayHere={stayHere}
         />
       )}
-      <Paper style={{ padding: "16px 28px" }}>
+      <div className="paper">
         <Box className="top-content">
           <BreadcrumbsUI className="breadcrump" items={breadcrumpItems} />
           <div className="flex full-cover">
@@ -435,7 +435,7 @@ const AddUser = () => {
             {isEditPage ? selectedUser : "Add New User"}
           </Typography>
         </Box>
-      </Paper>
+      </div>
       <div className="padded">
         <Grid container spacing={2}>
           {/* {console.log("save", disableSave)} */}
