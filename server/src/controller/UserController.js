@@ -98,6 +98,31 @@ exports.listUsers = async function (req, res) {
   }
 };
 
+exports.getUserStudy = async function (req, res) {
+  try {
+    const studyUserId = req.query.studyUserId;
+    return await DB.executeQuery(
+      `SELECT * from ${schemaName}.study_user WHERE usr_id='${studyUserId}'`
+    )
+      .then((response) => {
+        return apiResponse.successResponseWithData(
+          res,
+          "User retrieved successfully",
+          response
+        );
+      })
+      .catch((err) => {
+        console.log({ err });
+        return apiResponse.ErrorResponse(
+          response,
+          err.detail || "Something went wrong"
+        );
+      });
+  } catch (err) {
+    return false;
+  }
+};
+
 exports.isUserExists = async (req, res) => {
   const data = req.body;
   Logger.info({ message: "is user exists- begin" });

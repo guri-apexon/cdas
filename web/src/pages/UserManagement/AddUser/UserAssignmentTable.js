@@ -28,6 +28,7 @@ const UserAssignmentTable = ({
   updateChanges,
   pingParent,
   isNewUser,
+  updateUserAssign,
 }) => {
   const toast = useContext(MessageContext);
   const dispatch = useDispatch();
@@ -41,7 +42,6 @@ const UserAssignmentTable = ({
   const [roleLists, setroleLists] = useState([]);
 
   useEffect(() => {
-    console.log("tableStudies", tableStudies);
     if (tableStudies.length === 0) {
       setLoad(false);
     } else {
@@ -58,7 +58,6 @@ const UserAssignmentTable = ({
   };
 
   const addNewStudy = () => {
-    console.log("adding new study");
     if (tableStudies.find((x) => x.study == null)) {
       setInitialRender(!initialRender);
       setTableStudies([...tableStudies]);
@@ -84,14 +83,14 @@ const UserAssignmentTable = ({
       data.map((study) => {
         return {
           ...study,
-          label: `${study.protocolnumber}`,
+          label: `${study.prot_nbr_stnd}`,
         };
       }) || [];
     filtered.sort(function (a, b) {
-      if (a.firstName < b.firstName) {
+      if (a.prot_nbr_stnd < b.prot_nbr_stnd) {
         return -1;
       }
-      if (a.firstName > b.firstName) {
+      if (a.prot_nbr_stnd > b.prot_nbr_stnd) {
         return 1;
       }
       return 0;
@@ -152,6 +151,7 @@ const UserAssignmentTable = ({
     return (
       <div className="study">
         <AutocompleteV2
+          placeholder="Add new study and role"
           matchFrom="any"
           size="small"
           fullWidth
@@ -188,7 +188,7 @@ const UserAssignmentTable = ({
     return (
       <div className="role">
         <AutocompleteV2
-          showSelectAll
+          placeholder="Choose one or more roles"
           size="small"
           fullWidth
           multiple
@@ -236,82 +236,19 @@ const UserAssignmentTable = ({
     });
   };
 
-  const AssignUser = async (assign = true) => {
-    const studiesRows = [...tableStudies].slice(0, -1);
-    if (assign) {
-      if (!selectedUser) {
-        toast.showErrorMessage("Select a user or create a new one");
-        return false;
-      }
-      if (!studiesRows.length) {
-        toast.showErrorMessage("Add some studies to proceed");
-        return false;
-      }
-      if (studiesRows.find((x) => x.study == null)) {
-        setInitialRender(!initialRender);
-        setTableStudies([...tableStudies]);
-        toast.showErrorMessage("Please fill study or remove blank rows");
-        return false;
-      }
-      if (studiesRows.find((x) => x.alreadyExist)) {
-        toast.showErrorMessage("Please remove duplicate values");
-        return false;
-      }
-      const emptyRoles = studiesRows.filter((x) => x.roles.length === 0);
-      if (emptyRoles.length) {
-        toast.showErrorMessage(
-          `This assignment is incomplete. Please select a study and a role to continue.`
-        );
-        return false;
-      }
-    }
-
-    // const { spnsr_nm_stnd: sponsorNameStnd, prot_nbr_stnd: protNbrStnd } =
-    //   selectedUser;
-    // const reqBody = {
-    //   sponsorNameStnd,
-    //   protNbrStnd,
-    //   userId: userInfo.user_id,
-    //   insrt_tm: new Date().toISOString(),
-    //   updt_tm: new Date().toISOString(),
-    // };
-    // if (assign) {
-    //   reqBody.studies = studiesRows;
-    // }
-    // setLoading(true);
-    // // TODO change api
-    // const response = await onboardStudy(reqBody);
-    // setLoading(false);
-    // if (response.status === "OK") {
-    //   toast.showSuccessMessage(response.message, 0);
-    //   // unblockRouter();
-    //   history.push("/user-management");
-    // } else {
-    //   toast.showErrorMessage(response.message, 0);
-    // }
-    return null;
-  };
-
-  const AssignUserCopy = () => {
-    if (!selectedUser) {
-      toast.showErrorMessage("Select a user or create a new one");
-      return false;
-    }
+  const AssignUser = async () => {
+    updateUserAssign(tableStudies);
     return null;
   };
 
   useEffect(() => {
     if (pingParent !== 0) {
-      AssignUserCopy();
+      AssignUser();
     }
   }, [pingParent]);
 
   useEffect(() => {
-    // TODO: Remove Below Comment to load studies data
-    // dispatch(getStudyboardData());
-
-    // TODO: Remove Below Line if above is uncommented
-    addNewStudy();
+    dispatch(getStudyboardData());
   }, []);
 
   const CustomHeader = ({ focusLastStudy }) => {
@@ -334,13 +271,13 @@ const UserAssignmentTable = ({
     {
       header: "Protocol Number",
       accessor: "study",
-      width: "50%",
+      width: "30%",
       customCell: EditableStudy,
     },
     {
       header: "Role",
       accessor: "roles",
-      width: "50%",
+      width: "70%",
       customCell: EditableRoles,
     },
     {
@@ -355,7 +292,7 @@ const UserAssignmentTable = ({
     () => (
       <>
         <Table
-          // isLoading={!load}
+          isLoading={!load}
           title="User Assignments"
           columns={columns}
           rows={tableStudies.map((row) => ({
