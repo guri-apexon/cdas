@@ -5,7 +5,7 @@ const constants = require("../config/constants");
 const studyHelper = require("./studyHelper");
 const roleHelper = require("./roleHelper");
 const { result } = require("lodash");
-const { insertAuditLog } = require("./studyUserroleHelper");
+const { insertAuditLog } = require("./studyUserRoleHelper");
 const { DB_SCHEMA_NAME: schemaName } = constants;
 
 /**
@@ -209,8 +209,8 @@ exports.validateProtocolsRoles = async (user, protocols) => {
   }
   // create an error message
   let message =
-    makeArrayErrorMesage("Protocol(s)", "not found. ", protocolNotPresent) &&
-    makeArrayErrorMesage("Role(s)", "not found. ", roleNotPresent) &&
+    makeArrayErrorMesage("Protocol(s)", "not found. ", protocolNotPresent) +
+    makeArrayErrorMesage("Role(s)", "not found. ", roleNotPresent) +
     makeArrayErrorMesage("Protocol(s)", "found inactive. ", roleNotActive);
 
   if (message.trim() !== "")
