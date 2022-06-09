@@ -1,6 +1,6 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import _debounce from "lodash/debounce";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { Typography } from "@material-ui/core";
 import React, {
   useMemo,
@@ -39,7 +39,7 @@ import usePermission, {
   Features,
 } from "../../../components/Common/usePermission";
 
-import { createUser } from "../../../store/actions/UserActions";
+// import { createUser } from "../../../store/actions/UserActions";
 
 const ProductsCell = ({ row, column: { accessor } }) => {
   const rowValue = row[accessor];
@@ -274,7 +274,7 @@ const ListUsers = () => {
   ];
 
   const handleAddUser = () => {
-    dispatch(createUser());
+    // dispatch(createUser());
     history.push("/user-management/add-user");
   };
 
