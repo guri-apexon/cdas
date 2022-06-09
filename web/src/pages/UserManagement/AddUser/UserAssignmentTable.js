@@ -80,12 +80,16 @@ const UserAssignmentTable = ({
   const getStudyList = async () => {
     const data = [...studyData?.studyboardData];
     const filtered =
-      data.map((study) => {
-        return {
-          ...study,
-          label: `${study.prot_nbr_stnd}`,
-        };
-      }) || [];
+      data
+        .filter((study) => {
+          return study?.onboardingprogress?.toLowerCase() === "success";
+        })
+        .map((study) => {
+          return {
+            ...study,
+            label: `${study.prot_nbr_stnd}`,
+          };
+        }) || [];
     filtered.sort(function (a, b) {
       if (a.prot_nbr_stnd < b.prot_nbr_stnd) {
         return -1;
@@ -263,7 +267,7 @@ const UserAssignmentTable = ({
             .focus();
         }}
       >
-        Add new user assignment
+        Add user assignment
       </Button>
     );
   };
