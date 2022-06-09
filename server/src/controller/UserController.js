@@ -162,7 +162,6 @@ exports.deleteNewUser = async (req, res) => {
     const { tenant_id, user_type, email_id, user_id, updt_tm, updated_by } =
       req.body;
     if (tenant_id && user_type && email_id) {
-
       if (validateEmail(email_id)) {
         const inActiveUserQuery = ` UPDATE ${schemaName}.user set usr_stat=$1 , updt_tm=$2 WHERE usr_mail_id='${email_id}'`;
         const studyStatusUpdateQuery = `UPDATE ${schemaName}.study_user set act_flg=0 , updt_tm='${updt_tm}' WHERE usr_id='${user_id}'`;
@@ -276,9 +275,7 @@ exports.deleteNewUser = async (req, res) => {
       } else {
         return apiResponse.ErrorResponse(res, "Email id invalid");
       }
-
     } else {
-
       return apiResponse.ErrorResponse(res, "Required fields are missing");
     }
 
