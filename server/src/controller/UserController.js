@@ -161,21 +161,16 @@ exports.deleteNewUser = async (req, res) => {
   try {
     const { tenant_id, user_type, email_id, user_id, updt_tm, updated_by } =
       req.body;
-    if (tenant_id && user_type && email_id && user_id) {
-      const inActiveUserQuery = ` UPDATE ${schemaName}.user set usr_stat=$1 , updt_tm=$2 WHERE usr_mail_id='${email_id}'`;
-      const studyStatusUpdateQuery = `UPDATE ${schemaName}.study_user set act_flg=0 , updt_tm='${updt_tm}' WHERE usr_id='${user_id}'`;
-      const getStudiesQuery = `SELECT * from ${schemaName}.study WHERE usr_id='${user_id}'`;
+    if (tenant_id && user_type && email_id) {
+      if (validateEmail(email_id)) {
+        const inActiveUserQuery = ` UPDATE ${schemaName}.user set usr_stat=$1 , updt_tm=$2 WHERE usr_mail_id='${email_id}'`;
+        const studyStatusUpdateQuery = `UPDATE ${schemaName}.study_user set act_flg=0 , updt_tm='${updt_tm}' WHERE usr_id='${user_id}'`;
+        const getStudiesQuery = `SELECT * from ${schemaName}.study WHERE usr_id='${user_id}'`;
 
-      const user = await userHelper.findByEmail(email_id);
-      console.log(user);
+        const user = await userHelper.findByEmail(email_id);
 
-      if (user?.isActive) {
-        const inActiveStatus = await DB.executeQuery(inActiveUserQuery, [
-          "InActive",
-          updt_tm,
-        ]);
-
-        if (inActiveStatus.rowCount) {
+        // SDA
+        if (user?.isActive) {
           const userDetails = await userHelper.getSDAuserDataById(user_id);
 
           const requestBody = {
@@ -189,19 +184,44 @@ exports.deleteNewUser = async (req, res) => {
           let sda_status = {};
           sda_status = await userHelper.deProvisionUser(requestBody, user_type);
 
-          if (!sda_status) {
+          if (sda_status.status !== 200 && sda_status.status !== 204) {
             return apiResponse.ErrorResponse(
               res,
-              "Unable to delete User in SDA API"
+              "An error occured during user delete in SDA"
             );
           }
 
+          //CDAS Assignments Update
           let studyStatusUpdate = {};
-          let fsr_status = {};
 
           if (sda_status.status === 204 || sda_status.status === 200) {
             studyStatusUpdate = await DB.executeQuery(studyStatusUpdateQuery);
+            if (studyStatusUpdate.rowCount === 0) {
+              return apiResponse.ErrorResponse(
+                res,
+                "An error occured while updating study status"
+              );
+            }
+          }
 
+          //CDAS User Update
+          let inActiveStatus = {};
+          if (studyStatusUpdate.rowCount > 0) {
+            inActiveStatus = await DB.executeQuery(inActiveUserQuery, [
+              "InActive",
+              updt_tm,
+            ]);
+            if (inActiveStatus.rowCount === 0) {
+              return apiResponse.ErrorResponse(
+                res,
+                "An error occured while updating user status"
+              );
+            }
+          }
+
+          // FSR
+          let fsr_status = {};
+          if (inActiveStatus.rowCount > 0) {
             if (user_type == "internal") {
               const studyData = await DB.executeQuery(getStudiesQuery);
               const fsr_requestBody = {
@@ -214,18 +234,16 @@ exports.deleteNewUser = async (req, res) => {
                 studyData?.rows
               );
               if (fsr_status === false) {
-                return apiResponse.ErrorResponse(res, "FSR Revoke API Failed");
+                return apiResponse.ErrorResponse(
+                  res,
+                  "FSR Revoke internal API Failed "
+                );
               }
             }
-          } else {
-            return apiResponse.ErrorResponse(res, "Study Status Update failed");
           }
 
-          if (
-            (sda_status.status === 204 || sda_status.status === 200) &&
-            studyStatusUpdate.rowCount > 0 &&
-            fsr_status !== false
-          ) {
+          //CDAS Audit
+          if (fsr_status !== false) {
             const audit_log = await DB.executeQuery(logQuery, [
               "user",
               user_id,
@@ -242,21 +260,25 @@ exports.deleteNewUser = async (req, res) => {
                 "User Deleted Successfully"
               );
             } else {
-              return apiResponse.ErrorResponse(res, "Audit tracking failed");
+              return apiResponse.ErrorResponse(
+                res,
+                "An error occured during audit log updation"
+              );
             }
-          } else {
-            return apiResponse.ErrorResponse(
-              res,
-              "Unable to update Audit track"
-            );
           }
         } else {
-          return apiResponse.ErrorResponse(res, "SDA API getting failed");
+          return apiResponse.ErrorResponse(
+            res,
+            "User is already in inactive status"
+          );
         }
       } else {
-        return apiResponse.ErrorResponse(res, "Invalid Data");
+        return apiResponse.ErrorResponse(res, "Email id invalid");
       }
+    } else {
+      return apiResponse.ErrorResponse(res, "Required fields are missing");
     }
+
   } catch (err) {
     console.log(err, "unable to delete user");
     //throw error in json response with status 500.
