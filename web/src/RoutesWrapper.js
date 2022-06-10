@@ -154,14 +154,14 @@ const RoutesWrapper = () => {
             />
             <Route path="/user-management" exact render={() => <ListUsers />} />
             <Route
-              path="/user-management/:id"
-              exact
-              render={() => <UpdateUser />}
-            />
-            <Route
               path="/user-management/add-user"
               exact
               render={() => <AddUser />}
+            />
+            <Route
+              path="/user-management/:id"
+              exact
+              render={() => <UpdateUser />}
             />
             <Route
               path="/vendor/edit/:id"

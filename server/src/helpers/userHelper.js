@@ -1,11 +1,12 @@
 const { default: axios } = require("axios");
 const { result } = require("lodash");
+const ActiveDirectory = require("activedirectory2").promiseWrapper;
 const DB = require("../config/db");
 const { data } = require("../config/logger");
 const { getCurrentTime, validateEmail } = require("./customFunctions");
 const Logger = require("../config/logger");
 const constants = require("../config/constants");
-const { DB_SCHEMA_NAME: schemaName } = constants;
+const { DB_SCHEMA_NAME: schemaName, AD_CONFIG: ADConfig } = constants;
 
 const SDA_BASE_API_URL = `${process.env.SDA_BASE_URL}/sda-rest-api/api/external/entitlement/V1/ApplicationUsers`;
 const SDA_Endpoint = `${SDA_BASE_API_URL}?appKey=${process.env.SDA_APP_KEY}`;
@@ -232,6 +233,41 @@ exports.insertUserInDb = async (userDetails) => {
     return response.rows[0].usr_id;
   } catch (err) {
     console.log("error: insertUserInDb", err);
+    return false;
+  }
+};
+
+exports.getUsersFromAD = async (query = "") => {
+  const ad = new ActiveDirectory(ADConfig);
+  const mustMailFilter = `(mail=*)`;
+  const userFilter = `(objectCategory=person)(objectClass=user)${mustMailFilter}`;
+  const emailFilter = `(mail=*${query}*)`;
+  const firstNameFilter = `(givenName=*${query}*)`;
+  const lastNameFilter = `(sn=*${query}*)`;
+  const displayNameFilter = `(displayName=*${query}*)`;
+  const filter = query
+    ? `(&${userFilter}(|${emailFilter}${firstNameFilter}${lastNameFilter}${displayNameFilter}))`
+    : `(&${userFilter})`;
+
+  const opts = {
+    filter,
+    sizeLimit: 100,
+    attributes: [
+      "givenName",
+      "sn",
+      "displayName",
+      "mail",
+      "userPrincipalName",
+      "employeeID",
+      "sAMAccountName",
+    ],
+  };
+
+  try {
+    const res = await ad.findUsers(opts);
+    return res;
+  } catch (err) {
+    console.log("error: getUsersFromAD", err);
     return false;
   }
 };

@@ -4,6 +4,7 @@
 import React, { useEffect, useState, useContext } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useHistory } from "react-router";
+import ApolloProgress from "apollo-react/components/ApolloProgress";
 
 import BreadcrumbsUI from "apollo-react/components/Breadcrumbs";
 import Switch from "apollo-react/components/Switch";
@@ -16,15 +17,15 @@ import Typography from "apollo-react/components/Typography";
 import Link from "apollo-react/components/Link";
 import Grid from "apollo-react/components/Grid";
 import Modal from "apollo-react/components/Modal";
-import Paper from "apollo-react/components/Paper";
 
 import {
-  getUsers,
   validateEmail,
   inviteExternalUser,
   assingUserStudy,
+  fetchADUsers,
+  inviteInternalUser,
 } from "../../../services/ApiServices";
-import { getUserId } from "../../../utils";
+import { getUserId, debounceFunction } from "../../../utils";
 import usePermission, {
   Categories,
   Features,
@@ -115,6 +116,7 @@ const AddUser = () => {
   const [isNewUser, setIsNewUser] = useState(false);
   const [pingParent, setPingParent] = useState(0);
   const [tableStudies, setTableStudies] = useState([]);
+  const [fetchStatus, setFetchStatus] = useState("loading");
 
   const breadcrumpItems = [
     { href: "", onClick: () => history.push("/launchpad") },
@@ -232,29 +234,40 @@ const AddUser = () => {
     setSelectedUserError(currentErrors);
   };
 
-  const getUserList = async () => {
-    getUsers().then((result) => {
-      const filtered =
-        result.rows
-          ?.filter((u) => u?.usr_typ?.trim().toLowerCase() === "internal")
-          .map((u) => {
+  const getUserList = async (query = "") => {
+    setFetchStatus("loading");
+    debounceFunction(() => {
+      fetchADUsers(query).then((result) => {
+        const filtered =
+          result?.data?.map((u) => {
+            const { givenName, sn, displayName, mail } = u;
             return {
               ...u,
-              label: `${u.usr_fst_nm} ${u.usr_lst_nm} (${u.usr_mail_id})`,
+              label: `${
+                givenName && sn ? `${givenName} ${sn}` : displayName
+              } (${mail})`,
             };
           }) || [];
-      filtered.sort(function (a, b) {
-        if (a.usr_fst_nm < b.usr_fst_nm) {
-          return -1;
+        filtered.sort(function (a, b) {
+          const conditionA = a.givenName || a.displayName;
+          const conditionB = b.givenName || b.displayName;
+          if (conditionA < conditionB) {
+            return -1;
+          }
+          if (conditionA > conditionB) {
+            return 1;
+          }
+          return 0;
+        });
+        if (result.status === 1) {
+          setUserList(filtered);
         }
-        if (a.usr_fst_nm > b.usr_fst_nm) {
-          return 1;
+        setLoading(false);
+        if (result.status !== -1) {
+          setFetchStatus("success");
         }
-        return 0;
       });
-      setUserList(filtered);
-      setLoading(false);
-    });
+    }, 500);
   };
 
   const validNewUserDataCondition = () =>
@@ -282,13 +295,6 @@ const AddUser = () => {
         currentUserId,
         employeeId
       );
-      if (response.status === 1) {
-        const msg = response.message || "Success";
-        toast.showSuccessMessage(msg);
-      } else {
-        const msg = response.message || "Error Occured";
-        toast.showErrorMessage(msg);
-      }
       return response;
     }
     const fields = ["usr_fst_nm", "usr_lst_nm", "usr_mail_id"];
@@ -298,9 +304,6 @@ const AddUser = () => {
 
   const handleSave = async () => {
     setPingParent((oldValue) => oldValue + 1);
-    if (isNewUser) {
-      handleCreateUser();
-    }
   };
 
   useEffect(() => {
@@ -349,8 +352,30 @@ const AddUser = () => {
         roles: e.roles.map((r) => r.label),
       };
     });
+
+    let userResponse = null;
+    if (isNewUser) {
+      userResponse = await handleCreateUser();
+    } else {
+      userResponse = await inviteInternalUser(
+        selectedUser.givenName,
+        selectedUser.sn,
+        selectedUser.mail,
+        selectedUser.sAMAccountName
+      );
+    }
+
+    if (userResponse.status === 1) {
+      const msg = userResponse.message || "Success";
+      toast.showSuccessMessage(msg);
+    } else {
+      const msg = userResponse.message || "Error Occured";
+      toast.showErrorMessage(msg);
+      return false;
+    }
+
     const insertUserStudy = {
-      email: selectedUser.usr_mail_id,
+      email: !isNewUser ? selectedUser.mail : selectedUser.usr_mail_id,
       protocols: formattedRows,
       tenant: "t1",
     };
@@ -508,32 +533,30 @@ const AddUser = () => {
                         label="Name"
                         placeholder="Search by name or email"
                         value={selectedUser}
+                        onKeyUp={(e) => {
+                          getUserList(e.target.value);
+                        }}
+                        noOptionsText={
+                          // eslint-disable-next-line react/jsx-wrap-multilines
+                          <div className="flex-center flex justify-center">
+                            {fetchStatus === "loading" ? (
+                              <ApolloProgress />
+                            ) : (
+                              "No user found"
+                            )}
+                          </div>
+                        }
                         onChange={(e, v, r) => {
                           updateChanges();
                           setSelectedUser(v);
                         }}
                         enableVirtualization
-                        // error={
-                        //   row.alreadyExist ||
-                        //   (!initialRender &&
-                        //     !row[key] &&
-                        //     row.index !== tableUsers[tableUsers.length - 1].index)
-                        // }
-                        // helperText={
-                        //   row.alreadyExist
-                        //     ? "This user already has assignments. Please select a different user to continue."
-                        //     : !initialRender &&
-                        //       !row[key] &&
-                        //       row.index !==
-                        //         tableUsers[tableUsers.length - 1].index &&
-                        //       "Required"
-                        // }
                       />
                     </div>
                     {selectedUser && (
                       <Typography className="mt-4">
                         <Label>Employee ID</Label>
-                        <Value>{selectedUser.usr_id}</Value>
+                        <Value>{selectedUser.sAMAccountName}</Value>
                       </Typography>
                     )}
                     <Typography variant="body2" className="mt-4" gutterBottom>
