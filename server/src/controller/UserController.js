@@ -166,111 +166,121 @@ exports.deleteNewUser = async (req, res) => {
         const inActiveUserQuery = ` UPDATE ${schemaName}.user set usr_stat=$1 , updt_tm=$2 WHERE usr_mail_id='${email_id}'`;
         const studyStatusUpdateQuery = `UPDATE ${schemaName}.study_user set act_flg=0 , updt_tm='${updt_tm}' WHERE usr_id='${user_id}'`;
         const getStudiesQuery = `SELECT * from ${schemaName}.study WHERE usr_id='${user_id}'`;
+        
+        const isUserExists = await userHelper.isUserExists(email_id);
+        if (isUserExists) {
+          const user = await userHelper.findByEmail(email_id);
 
-        const user = await userHelper.findByEmail(email_id);
+          // SDA
+          if (user?.isActive) {
+            const userDetails = await userHelper.getSDAuserDataById(user_id);
 
-        // SDA
-        if (user?.isActive) {
-          const userDetails = await userHelper.getSDAuserDataById(user_id);
+            const requestBody = {
+              appKey: SDA_APP_KEY,
+              userType: user_type,
+              roleType: userDetails?.roleType,
+              networkId: user_id,
+              updatedBy: "Admin",
+              email: email_id,
+            };
 
-          const requestBody = {
-            appKey: SDA_APP_KEY,
-            userType: user_type,
-            roleType: userDetails?.roleType,
-            networkId: user_id,
-            updatedBy: "Admin",
-          };
-
-          let sda_status = {};
-          sda_status = await userHelper.deProvisionUser(requestBody, user_type);
-
-          if (sda_status.status !== 200 && sda_status.status !== 204) {
-            return apiResponse.ErrorResponse(
-              res,
-              "An error occured during user delete in SDA"
+            let sda_status = {};
+            sda_status = await userHelper.deProvisionUser(
+              requestBody,
+              user_type
             );
-          }
 
-          //CDAS Assignments Update
-          let studyStatusUpdate = {};
 
-          if (sda_status.status === 204 || sda_status.status === 200) {
-            studyStatusUpdate = await DB.executeQuery(studyStatusUpdateQuery);
-            if (studyStatusUpdate.rowCount === 0) {
+            if (sda_status.status !== 200 && sda_status.status !== 204) {
               return apiResponse.ErrorResponse(
                 res,
-                "An error occured while updating study status"
+                "An error occured during user delete in SDA"
               );
             }
-          }
 
-          //CDAS User Update
-          let inActiveStatus = {};
-          if (studyStatusUpdate.rowCount > 0) {
-            inActiveStatus = await DB.executeQuery(inActiveUserQuery, [
-              "InActive",
-              updt_tm,
-            ]);
-            if (inActiveStatus.rowCount === 0) {
-              return apiResponse.ErrorResponse(
-                res,
-                "An error occured while updating user status"
-              );
-            }
-          }
+            //CDAS Assignments Update
+            let studyStatusUpdate = {};
 
-          // FSR
-          let fsr_status = {};
-          if (inActiveStatus.rowCount > 0) {
-            if (user_type == "internal") {
-              const studyData = await DB.executeQuery(getStudiesQuery);
-              const fsr_requestBody = {
-                userId: user_id,
-                roUsers: user_id,
-                rwUsers: user_id,
-              };
-              fsr_status = await userHelper.revokeStudy(
-                fsr_requestBody,
-                studyData?.rows
-              );
-              if (fsr_status === false) {
+            if (sda_status.status === 204 || sda_status.status === 200) {
+              studyStatusUpdate = await DB.executeQuery(studyStatusUpdateQuery);
+              if (studyStatusUpdate.rowCount === 0) {
                 return apiResponse.ErrorResponse(
                   res,
-                  "FSR Revoke internal API Failed "
+                  "An error occured while updating study status"
                 );
               }
             }
-          }
 
-          //CDAS Audit
-          if (fsr_status !== false) {
-            const audit_log = await DB.executeQuery(logQuery, [
-              "user",
-              user_id,
-              "usr_stat",
-              "Active",
-              "InActive",
-              "User Requested",
-              updated_by,
-              updt_tm,
-            ]);
-            if (audit_log.rowCount > 0) {
-              return apiResponse.successResponse(
-                res,
-                "User Deleted Successfully"
-              );
-            } else {
-              return apiResponse.ErrorResponse(
-                res,
-                "An error occured during audit log updation"
-              );
+            //CDAS User Update
+            let inActiveStatus = {};
+            if (studyStatusUpdate.rowCount > 0) {
+              inActiveStatus = await DB.executeQuery(inActiveUserQuery, [
+                "InActive",
+                updt_tm,
+              ]);
+              if (inActiveStatus.rowCount === 0) {
+                return apiResponse.ErrorResponse(
+                  res,
+                  "An error occured while updating user status"
+                );
+              }
             }
+
+            // FSR
+            let fsr_status = {};
+            if (inActiveStatus.rowCount > 0) {
+              if (user_type == "internal") {
+                const studyData = await DB.executeQuery(getStudiesQuery);
+                const fsr_requestBody = {
+                  userId: user_id,
+                  roUsers: user_id,
+                  rwUsers: user_id,
+                };
+                fsr_status = await userHelper.revokeStudy(
+                  fsr_requestBody,
+                  studyData?.rows
+                );
+                if (fsr_status === false) {
+                  return apiResponse.ErrorResponse(
+                    res,
+                    "FSR Revoke internal API Failed "
+                  );
+                }
+              }
+            }
+
+            //CDAS Audit
+            if (fsr_status !== false) {
+              const audit_log = await DB.executeQuery(logQuery, [
+                "user",
+                user_id,
+                "usr_stat",
+                "Active",
+                "InActive",
+                "User Requested",
+                updated_by,
+                updt_tm,
+              ]);
+              if (audit_log.rowCount > 0) {
+                return apiResponse.successResponse(
+                  res,
+                  "User Deleted Successfully"
+                );
+              } else {
+                return apiResponse.ErrorResponse(
+                  res,
+                  "An error occured during audit log updation"
+                );
+              }
+            }
+          } else {
+            return apiResponse.ErrorResponse(
+              res,
+              "User is already in inactive status"
+            );
           }
         } else {
-          return apiResponse.ErrorResponse(
-            res,
-            "User is already in inactive status"
-          );
+          return apiResponse.ErrorResponse(res, "User does not exists");
         }
       } else {
         return apiResponse.ErrorResponse(res, "Email id invalid");
