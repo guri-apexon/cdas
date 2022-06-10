@@ -383,14 +383,10 @@ const AddUser = () => {
       <div className="paper">
         <Box className="top-content">
           <BreadcrumbsUI className="breadcrump" items={breadcrumpItems} />
-          <div className="flex full-cover">
-            <div>
-              <span style={{ marginBottom: 16 }}>
-                <Link onClick={handleCancel} size="small">
-                  &#x276E; Back to User Management
-                </Link>
-              </span>
-            </div>
+          <Typography variant="title1" className="b-font title">
+            {isEditPage ? selectedUser : "Add New User"}
+          </Typography>
+          <div className="flex flex-end">
             <div className="flex top-actions">
               {!readOnly && (
                 <Switch
@@ -431,9 +427,6 @@ const AddUser = () => {
               />
             </div>
           </div>
-          <Typography variant="title1" className="b-font title">
-            {isEditPage ? selectedUser : "Add New User"}
-          </Typography>
         </Box>
       </div>
       <div className="padded">
