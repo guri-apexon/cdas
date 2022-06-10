@@ -46,7 +46,7 @@ const ProductsCell = ({ row, column: { accessor } }) => {
   return <>{rowValue}</>;
 };
 
-const statusList = ["Active", "In Active", "Invited"];
+const statusList = ["Active", "Inactive", "Invited"];
 
 const ListUsers = () => {
   const history = useHistory();
@@ -117,15 +117,14 @@ const ListUsers = () => {
     const data = row[accessor];
     // const id = row.usr_id;
     const btnVariant = {
-      active: "green",
-      "in active": "grey",
-      inactive: "grey",
-      invited: "purple",
+      Active: "green",
+      Inactive: "grey",
+      Invited: "purple",
     };
-    const variantKey = row?.trimed_usr_stat?.toLowerCase();
+    const variantKey = row?.formatted_stat;
     return (
       <div>
-        {row.trimed_usr_stat && (
+        {row.formatted_stat && (
           <Tag
             className="user-tag-capitalized"
             label={variantKey}
@@ -261,10 +260,10 @@ const ListUsers = () => {
     },
     {
       header: "Status",
-      accessor: "trimed_usr_stat",
+      accessor: "formatted_stat",
       customCell: StatusCell,
       sortFunction: compareStrings,
-      filterFunction: createStringArraySearchFilter("trimed_usr_stat"),
+      filterFunction: createStringArraySearchFilter("formatted_stat"),
       filterComponent: createSelectFilterComponent(statusList, {
         size: "small",
         multiple: true,
