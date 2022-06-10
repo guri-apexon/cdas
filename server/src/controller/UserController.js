@@ -74,10 +74,72 @@ exports.addLoginActivity = async (loginDetails) => {
   }
 };
 
-exports.createNewUser = async (req, res) => {
-  const data = req.body;
-  Logger.info({ message: "create user - begin" });
+exports.listUsers = async function (req, res) {
+  try {
+    return await DB.executeQuery(
+      `SELECT *, TRIM(usr_stat) AS trimed_usr_stat,  CONCAT(usr_fst_nm,' ',usr_lst_nm) AS usr_full_nm from ${schemaName}.user`
+    )
+      .then((response) => {
+        return apiResponse.successResponseWithData(
+          res,
+          "User retrieved successfully",
+          response
+        );
+      })
+      .catch((err) => {
+        console.log({ err });
+        return apiResponse.ErrorResponse(
+          response,
+          err.detail || "Something went wrong"
+        );
+      });
+  } catch (err) {
+    return false;
+  }
+};
 
+exports.getUserStudy = async function (req, res) {
+  try {
+    const studyUserId = req.query.studyUserId;
+    return await DB.executeQuery(
+      `SELECT * from ${schemaName}.study_user WHERE usr_id='${studyUserId}'`
+    )
+      .then((response) => {
+        return apiResponse.successResponseWithData(
+          res,
+          "User retrieved successfully",
+          response
+        );
+      })
+      .catch((err) => {
+        console.log({ err });
+        return apiResponse.ErrorResponse(
+          response,
+          err.detail || "Something went wrong"
+        );
+      });
+  } catch (err) {
+    return false;
+  }
+};
+
+exports.isUserExists = async (req, res) => {
+  const data = req.body;
+  Logger.info({ message: "is user exists- begin" });
+  const user = await userHelper.isUserExists(data.email);
+  if (user) {
+    return apiResponse.successResponseWithData(res, "Email validated", {
+      taken: true,
+      error: "Email address already in system",
+    });
+  }
+  return apiResponse.successResponseWithData(res, "Email validated", {
+    taken: false,
+    error: "",
+  });
+};
+
+async function createNewUser(data, req, res) {
   // validate data
   const validate = await userHelper.validateCreateUserData(data);
   if (validate.success === false)
@@ -154,4 +216,48 @@ exports.createNewUser = async (req, res) => {
       "An error occured while entering user and tenant detail"
     );
   return apiResponse.successResponseWithData(res, "User successfully created");
+}
+
+exports.inviteExternalUser = async (req, res) => {
+  // { , , firstName, lastName, email, uid, employeeId }
+
+  // firstName,
+  // lastName,
+  // email,
+  // uid: employeeId,
+  // updatedBy:currentUser,
+  const data = req.body;
+  data["userType"] = "external";
+  data["updatedBy"] = data.uid;
+  Logger.info({ message: "add user - begin" });
+
+  // Fetch First Tenet
+  const query = `SELECT tenant_nm FROM ${schemaName}.tenant LIMIT 1`;
+  try {
+    const result = await DB.executeQuery(query);
+    if (result.rowCount > 0) {
+      data["tenant"] = result.rows[0].tenant_nm;
+    } else {
+      return apiResponse.ErrorResponse(res, "Tenant does not exists");
+    }
+  } catch (error) {
+    return apiResponse.ErrorResponse(res, "Unable to fetch tenet");
+  }
+
+  const response = await createNewUser(data, req, res);
+  return response;
+};
+
+exports.createNewUser = async (req, res) => {
+  const data = req.body;
+  Logger.info({ message: "create user - begin" });
+  const response = await createNewUser(data, req, res);
+  return response;
+};
+
+exports.getADUsers = async (req, res) => {
+  const data = req.body;
+  Logger.info({ message: "getADUsers - begin" });
+  await userHelper.getUsersFromAD();
+  return apiResponse.successResponse(res, "API Worked successfully");
 };

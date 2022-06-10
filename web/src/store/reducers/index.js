@@ -5,6 +5,7 @@ import PolicyReducer from "./PolicyReducer";
 import VendorReducer from "./VendorReducer";
 import RolesReducer from "./RolesReducer";
 import AlertReducer from "./AlertReducer";
+import UserReducer from "./UserReducer";
 
 export const appReducer = combineReducers({
   studyBoard: StudyBoardReaducer,
@@ -12,4 +13,5 @@ export const appReducer = combineReducers({
   vendor: VendorReducer,
   Roles: RolesReducer,
   Alert: AlertReducer,
+  user: UserReducer,
 });

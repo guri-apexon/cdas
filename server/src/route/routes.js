@@ -9,6 +9,7 @@ const studyRoute = require("./study");
 const policyRoute = require("./policy");
 const verdorRoute = require("./vendor");
 const roleRoute = require("./role");
+const usersRoute = require("./users");
 const userRoute = require("./user");
 const assignmentRoute = require("./assignment");
 
@@ -28,6 +29,7 @@ router.use("/v1/api/study/", studyRoute);
 router.use("/v1/api/policy/", policyRoute);
 router.use("/v1/api/vendor/", verdorRoute);
 router.use("/v1/api/role/", roleRoute);
+router.use("/v1/api/users/", usersRoute);
 router.use("/v1/api/user/", userRoute);
 router.use("/v1/api/assignment/", assignmentRoute);
 

@@ -1,11 +1,12 @@
 const { default: axios } = require("axios");
 const { result } = require("lodash");
+const ActiveDirectory = require("activedirectory");
 const DB = require("../config/db");
 const { data } = require("../config/logger");
 const { getCurrentTime, validateEmail } = require("./customFunctions");
 const Logger = require("../config/logger");
 const constants = require("../config/constants");
-const { DB_SCHEMA_NAME: schemaName } = constants;
+const { DB_SCHEMA_NAME: schemaName, AD_CONFIG: ADConfig } = constants;
 
 const SDA_BASE_API_URL = `${process.env.SDA_BASE_URL}/sda-rest-api/api/external/entitlement/V1/ApplicationUsers`;
 const SDA_Endpoint = `${SDA_BASE_API_URL}?appKey=${process.env.SDA_APP_KEY}`;
@@ -120,6 +121,37 @@ exports.isUserExists = async (email) => {
 };
 
 /**
+ * validates data for add user api
+ * @param {object} data = {  firstName, lastName, email, uid, employeeId }
+ * @returns {success: boolean , message: string} success as true on success false other wise
+ */
+exports.validateAddUserData = async (data) => {
+  const { firstName, lastName, email, uid, employeeId } = data;
+  if (!data) {
+    return { success: false, message: "data not provided" };
+  }
+  if (!(firstName && firstName.trim()))
+    return { success: false, message: "First Name is required field" };
+
+  if (!(lastName && lastName.trim()))
+    return { success: false, message: "Last Name is required field" };
+
+  if (!(email && email.trim()))
+    return { success: false, message: "Email id is required field" };
+
+  if (!validateEmail(email))
+    return { success: false, message: "Email id invalid" };
+
+  try {
+    const isUserAlreadyProvisioned = await this.isUserAlreadyProvisioned(email);
+    if (isUserAlreadyProvisioned) {
+      return { success: false, message: "User already Provisioned" };
+    }
+  } catch (error) {}
+
+  return { success: true, message: "validation success" };
+};
+/**
  * validates data for create user api
  * @param {object} data = { tenant, userType, firstName, lastName, email, uid, employeeId }
  * @returns {success: boolean , message: string} success as true on success false other wise
@@ -203,4 +235,36 @@ exports.insertUserInDb = async (userDetails) => {
     console.log("error: insertUserInDb", err);
     return false;
   }
+};
+
+exports.getUsersFromAD = async () => {
+  // console.log("===========================================", ADConfig);
+  // // var groupName = "Employees";
+  // const query = `cn=\*vinit\*`;
+  // const ad = new ActiveDirectory(ADConfig);
+  // ad.getUsersForGroup(groupName, function (err, users) {
+  //   if (err) {
+  //     console.log("ss " + JSON.stringify(err));
+  //     return;
+  //   }
+
+  //   if (!users) console.log("asd " + groupName + " not found.");
+  //   else {
+  //     console.log(JSON.stringify(users));
+  //   }
+  //   console.log("==========================================");
+  // });
+  // ad.findUsers(query, true, function (err, users) {
+  //   if (err) {
+  //     console.log("ERROR: " + JSON.stringify(err));
+  //     return;
+  //   }
+
+  //   if (!users || users.length == 0) console.log("No users found.");
+  //   else {
+  //     console.log("findUsers: " + JSON.stringify(users));
+  //   }
+  //   console.log("===========================================");
+  // });
+  return Promise.resolve(true);
 };
