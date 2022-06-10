@@ -254,3 +254,10 @@ exports.createNewUser = async (req, res) => {
   const response = await createNewUser(data, req, res);
   return response;
 };
+
+exports.getADUsers = async (req, res) => {
+  const data = req.body;
+  Logger.info({ message: "getADUsers - begin" });
+  await userHelper.getUsersFromAD();
+  return apiResponse.successResponse(res, "API Worked successfully");
+};

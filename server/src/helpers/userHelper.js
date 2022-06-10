@@ -1,11 +1,12 @@
 const { default: axios } = require("axios");
 const { result } = require("lodash");
+const ActiveDirectory = require("activedirectory");
 const DB = require("../config/db");
 const { data } = require("../config/logger");
 const { getCurrentTime, validateEmail } = require("./customFunctions");
 const Logger = require("../config/logger");
 const constants = require("../config/constants");
-const { DB_SCHEMA_NAME: schemaName } = constants;
+const { DB_SCHEMA_NAME: schemaName, AD_CONFIG: ADConfig } = constants;
 
 const SDA_BASE_API_URL = `${process.env.SDA_BASE_URL}/sda-rest-api/api/external/entitlement/V1/ApplicationUsers`;
 const SDA_Endpoint = `${SDA_BASE_API_URL}?appKey=${process.env.SDA_APP_KEY}`;
@@ -234,4 +235,36 @@ exports.insertUserInDb = async (userDetails) => {
     console.log("error: insertUserInDb", err);
     return false;
   }
+};
+
+exports.getUsersFromAD = async () => {
+  // console.log("===========================================", ADConfig);
+  // // var groupName = "Employees";
+  // const query = `cn=\*vinit\*`;
+  // const ad = new ActiveDirectory(ADConfig);
+  // ad.getUsersForGroup(groupName, function (err, users) {
+  //   if (err) {
+  //     console.log("ss " + JSON.stringify(err));
+  //     return;
+  //   }
+
+  //   if (!users) console.log("asd " + groupName + " not found.");
+  //   else {
+  //     console.log(JSON.stringify(users));
+  //   }
+  //   console.log("==========================================");
+  // });
+  // ad.findUsers(query, true, function (err, users) {
+  //   if (err) {
+  //     console.log("ERROR: " + JSON.stringify(err));
+  //     return;
+  //   }
+
+  //   if (!users || users.length == 0) console.log("No users found.");
+  //   else {
+  //     console.log("findUsers: " + JSON.stringify(users));
+  //   }
+  //   console.log("===========================================");
+  // });
+  return Promise.resolve(true);
 };
