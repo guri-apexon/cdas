@@ -28,8 +28,8 @@
   }
   min-height: calc(100vh - 152px);
   .breadcrump {
-    margin-left: -8px;
-    margin-bottom: 0;
+    margin-left: 0px;
+    margin-bottom: 10px;
     padding-left: 0;
   }
   .product-tabs {
@@ -42,10 +42,13 @@
     justify-content: space-between;
     margin: 8px 0px;
   }
+  .flex-end {
+    justify-content: end;
+  }
   .top-actions {
     justify-content: end;
     label {
-      margin-right: 40px;
+      margin-right: 20px;
     }
   }
   .title {

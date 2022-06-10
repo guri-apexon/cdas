@@ -44,6 +44,9 @@ const CreateVendor = lazy(() =>
 );
 const ListUsers = lazy(() => import("./pages/UserManagement/ListUsers/index"));
 const AddUser = lazy(() => import("./pages/UserManagement/AddUser/index"));
+const UpdateUser = lazy(() =>
+  import("./pages/UserManagement/UpdateUser/UpdateUser")
+);
 const Empty = () => <></>;
 
 const RoutesWrapper = () => {
@@ -150,6 +153,11 @@ const RoutesWrapper = () => {
               render={() => <UpdateRole />}
             />
             <Route path="/user-management" exact render={() => <ListUsers />} />
+            <Route
+              path="/user-management/:id"
+              exact
+              render={() => <UpdateUser />}
+            />
             <Route
               path="/user-management/add-user"
               exact

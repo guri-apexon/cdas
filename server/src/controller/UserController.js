@@ -77,7 +77,7 @@ exports.addLoginActivity = async (loginDetails) => {
 exports.listUsers = async function (req, res) {
   try {
     return await DB.executeQuery(
-      `SELECT *, TRIM(usr_stat) AS trimed_usr_stat,  CONCAT(usr_fst_nm,' ',usr_lst_nm) AS usr_full_nm from ${schemaName}.user`
+      `SELECT *, CASE WHEN TRIM(usr_stat) IN ('In Active', 'Inactive', 'In active', 'inactive', 'InActive', 'in active') THEN 'Inactive' ELSE TRIM(usr_stat) END AS formatted_stat, TRIM(usr_stat) AS trimed_usr_stat,  CONCAT(usr_fst_nm,' ',usr_lst_nm) AS usr_full_nm from ${schemaName}.user`
     )
       .then((response) => {
         return apiResponse.successResponseWithData(
