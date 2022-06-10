@@ -258,6 +258,18 @@ exports.createNewUser = async (req, res) => {
 exports.getADUsers = async (req, res) => {
   const data = req.body;
   Logger.info({ message: "getADUsers - begin" });
-  await userHelper.getUsersFromAD();
-  return apiResponse.successResponse(res, "API Worked successfully");
+
+  const { query = "" } = data;
+  const users = await userHelper.getUsersFromAD(query);
+  if (users) {
+    return apiResponse.successResponseWithData(
+      res,
+      "AD Users retrieved successfully",
+      users
+    );
+  }
+  return apiResponse.ErrorResponse(
+    res,
+    "An error occured while fetching ad users"
+  );
 };

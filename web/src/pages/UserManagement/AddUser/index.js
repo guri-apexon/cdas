@@ -16,13 +16,12 @@ import Typography from "apollo-react/components/Typography";
 import Link from "apollo-react/components/Link";
 import Grid from "apollo-react/components/Grid";
 import Modal from "apollo-react/components/Modal";
-import Paper from "apollo-react/components/Paper";
 
 import {
-  getUsers,
   validateEmail,
   inviteExternalUser,
   assingUserStudy,
+  fetchADUsers,
 } from "../../../services/ApiServices";
 import { getUserId } from "../../../utils";
 import usePermission, {
@@ -233,21 +232,24 @@ const AddUser = () => {
   };
 
   const getUserList = async () => {
-    getUsers().then((result) => {
+    fetchADUsers().then((result) => {
       const filtered =
-        result.rows
-          ?.filter((u) => u?.usr_typ?.trim().toLowerCase() === "internal")
-          .map((u) => {
-            return {
-              ...u,
-              label: `${u.usr_fst_nm} ${u.usr_lst_nm} (${u.usr_mail_id})`,
-            };
-          }) || [];
+        result?.data?.map((u) => {
+          const { givenName, sn, displayName, mail } = u;
+          return {
+            ...u,
+            label: `${
+              givenName && sn ? `${givenName} ${sn}` : displayName
+            } (${mail})`,
+          };
+        }) || [];
       filtered.sort(function (a, b) {
-        if (a.usr_fst_nm < b.usr_fst_nm) {
+        const conditionA = a.givenName || a.displayName;
+        const conditionB = b.givenName || b.displayName;
+        if (conditionA < conditionB) {
           return -1;
         }
-        if (a.usr_fst_nm > b.usr_fst_nm) {
+        if (conditionA > conditionB) {
           return 1;
         }
         return 0;

@@ -1,6 +1,6 @@
 const { default: axios } = require("axios");
 const { result } = require("lodash");
-const ActiveDirectory = require("activedirectory");
+const ActiveDirectory = require("activedirectory2").promiseWrapper;
 const DB = require("../config/db");
 const { data } = require("../config/logger");
 const { getCurrentTime, validateEmail } = require("./customFunctions");
@@ -237,34 +237,37 @@ exports.insertUserInDb = async (userDetails) => {
   }
 };
 
-exports.getUsersFromAD = async () => {
-  // console.log("===========================================", ADConfig);
-  // // var groupName = "Employees";
-  // const query = `cn=\*vinit\*`;
-  // const ad = new ActiveDirectory(ADConfig);
-  // ad.getUsersForGroup(groupName, function (err, users) {
-  //   if (err) {
-  //     console.log("ss " + JSON.stringify(err));
-  //     return;
-  //   }
+exports.getUsersFromAD = async (query = "") => {
+  const ad = new ActiveDirectory(ADConfig);
+  const mustMailFilter = `(mail=*)`;
+  const userFilter = `(objectCategory=person)(objectClass=user)${mustMailFilter}`;
+  const emailFilter = `(mail=*${query}*)`;
+  const firstNameFilter = `(givenName=*${query}*)`;
+  const lastNameFilter = `(sn=*${query}*)`;
+  const displayNameFilter = `(displayName=*${query}*)`;
+  const filter = query
+    ? `(&${userFilter}(|${emailFilter}${firstNameFilter}${lastNameFilter}${displayNameFilter}))`
+    : `(&${userFilter})`;
 
-  //   if (!users) console.log("asd " + groupName + " not found.");
-  //   else {
-  //     console.log(JSON.stringify(users));
-  //   }
-  //   console.log("==========================================");
-  // });
-  // ad.findUsers(query, true, function (err, users) {
-  //   if (err) {
-  //     console.log("ERROR: " + JSON.stringify(err));
-  //     return;
-  //   }
+  const opts = {
+    filter,
+    sizeLimit: 100,
+    attributes: [
+      "givenName",
+      "sn",
+      "displayName",
+      "mail",
+      "userPrincipalName",
+      "employeeID",
+      "sAMAccountName",
+    ],
+  };
 
-  //   if (!users || users.length == 0) console.log("No users found.");
-  //   else {
-  //     console.log("findUsers: " + JSON.stringify(users));
-  //   }
-  //   console.log("===========================================");
-  // });
-  return Promise.resolve(true);
+  try {
+    const res = await ad.findUsers(opts);
+    return res;
+  } catch (err) {
+    console.log("error: getUsersFromAD", err);
+    return false;
+  }
 };
