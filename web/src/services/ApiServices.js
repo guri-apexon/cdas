@@ -476,13 +476,7 @@ export const getRoles = () => {
   }
 };
 
-export const inviteExternalUser = (
-  firstName,
-  lastName,
-  email,
-  currentUser,
-  employeeId
-) => {
+export const inviteExternalUser = (firstName, lastName, email, employeeId) => {
   try {
     return new Promise((resolve, reject) => {
       axios
@@ -491,7 +485,8 @@ export const inviteExternalUser = (
           lastName,
           email,
           uid: employeeId,
-          updatedBy: currentUser,
+          updatedBy: userId,
+          userType: "external",
         })
         .then((res) => {
           resolve(res.data);
@@ -508,6 +503,40 @@ export const inviteExternalUser = (
     return console.log("Error", err);
   }
 };
+
+export const inviteInternalUser = (
+  firstName = "",
+  lastName = "",
+  email,
+  employeeId
+) => {
+  try {
+    return new Promise((resolve, reject) => {
+      axios
+        .post(`${API_URL}/users/invite-external-user`, {
+          firstName,
+          lastName,
+          email,
+          uid: employeeId,
+          updatedBy: userId,
+          userType: "internal",
+        })
+        .then((res) => {
+          resolve(res.data);
+        })
+        .catch((err) => {
+          if (err.response?.data) {
+            resolve(err.response?.data);
+          } else {
+            resolve({ message: "Something went wrong" });
+          }
+        });
+    });
+  } catch (err) {
+    return console.log("Error", err);
+  }
+};
+
 export const getUserStudy = (studyUserId) => {
   try {
     return new Promise((resolve, reject) => {

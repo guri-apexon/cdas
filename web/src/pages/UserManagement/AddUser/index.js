@@ -23,6 +23,7 @@ import {
   inviteExternalUser,
   assingUserStudy,
   fetchADUsers,
+  inviteInternalUser,
 } from "../../../services/ApiServices";
 import { getUserId, debounceFunction } from "../../../utils";
 import usePermission, {
@@ -294,13 +295,6 @@ const AddUser = () => {
         currentUserId,
         employeeId
       );
-      if (response.status === 1) {
-        const msg = response.message || "Success";
-        toast.showSuccessMessage(msg);
-      } else {
-        const msg = response.message || "Error Occured";
-        toast.showErrorMessage(msg);
-      }
       return response;
     }
     const fields = ["usr_fst_nm", "usr_lst_nm", "usr_mail_id"];
@@ -310,9 +304,6 @@ const AddUser = () => {
 
   const handleSave = async () => {
     setPingParent((oldValue) => oldValue + 1);
-    if (isNewUser) {
-      handleCreateUser();
-    }
   };
 
   useEffect(() => {
@@ -361,8 +352,30 @@ const AddUser = () => {
         roles: e.roles.map((r) => r.label),
       };
     });
+
+    let userResponse = null;
+    if (isNewUser) {
+      userResponse = await handleCreateUser();
+    } else {
+      userResponse = await inviteInternalUser(
+        selectedUser.givenName,
+        selectedUser.sn,
+        selectedUser.mail,
+        selectedUser.sAMAccountName
+      );
+    }
+
+    if (userResponse.status === 1) {
+      const msg = userResponse.message || "Success";
+      toast.showSuccessMessage(msg);
+    } else {
+      const msg = userResponse.message || "Error Occured";
+      toast.showErrorMessage(msg);
+      return false;
+    }
+
     const insertUserStudy = {
-      email: selectedUser.usr_mail_id,
+      email: !isNewUser ? selectedUser.mail : selectedUser.usr_mail_id,
       protocols: formattedRows,
       tenant: "t1",
     };

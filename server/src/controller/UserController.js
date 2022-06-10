@@ -227,7 +227,7 @@ exports.inviteExternalUser = async (req, res) => {
   // uid: employeeId,
   // updatedBy:currentUser,
   const data = req.body;
-  data["userType"] = "external";
+  data["userType"] = data.userType;
   data["updatedBy"] = data.uid;
   Logger.info({ message: "add user - begin" });
 
