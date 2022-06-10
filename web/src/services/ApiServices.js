@@ -11,6 +11,7 @@ import {
 import { deleteAllCookies, getUserId } from "../utils";
 
 const userId = getUserId();
+const CT = axios.CancelToken;
 
 export const searchStudy = async (searchQuery = "") => {
   try {
@@ -550,24 +551,37 @@ export const assingUserStudy = async (reqBody) => {
   }
 };
 
+let fetchADUsersCancelToken;
 export const fetchADUsers = (query) => {
+  if (fetchADUsersCancelToken !== undefined) {
+    fetchADUsersCancelToken();
+  }
   try {
-    return new Promise((resolve, reject) => {
-      axios
-        .post(`${API_URL}/users/get-ad-list`, {
+    return axios
+      .post(
+        `${API_URL}/users/get-ad-list`,
+        {
           query,
-        })
-        .then((res) => {
-          resolve(res.data);
-        })
-        .catch((err) => {
-          if (err.response?.data) {
-            resolve(err.response?.data);
-          } else {
-            resolve({ message: "Something went wrong" });
-          }
-        });
-    });
+        },
+        {
+          cancelToken: new CT(function executor(c) {
+            // An executor function receives a cancel function as a parameter
+            fetchADUsersCancelToken = c;
+          }),
+        }
+      )
+      .then((res) => {
+        return res.data;
+      })
+      .catch((err) => {
+        if (axios.isCancel(err)) {
+          return { status: -1 };
+        }
+        if (err.response?.data) {
+          return err.response?.data;
+        }
+        return { message: "Something went wrong" };
+      });
   } catch (err) {
     return console.log("Error", err);
   }
