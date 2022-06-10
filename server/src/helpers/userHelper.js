@@ -30,19 +30,20 @@ exports.CONSTANTS = {
  */
 
  exports.deProvisionUser = async (data, user_type) => {
-  const { networkId, ...rest } = data;
-  let requestBody;
-  try {
-    if (user_type === "internal") {
-      requestBody = data;
-    } else {
-      requestBody = rest;
-    }
-    return await axios.delete(SDA_Endpoint_Deprovision, { data: requestBody });
-  } catch (error) {
-    return error;
-  }
-};
+   let requestBody;
+   try {
+     if (user_type === "internal") {
+       const { email, ...rest } = data;
+       requestBody = rest;
+     } else {
+       const { networkId, ...rest } = data;
+       requestBody = rest;
+     }
+     return await axios.delete(SDA_Endpoint_Deprovision, { data: requestBody });
+   } catch (error) {
+     return error;
+   }
+ };
 /**
  * Verifies the email with SDA whether it is provisioned or not
  * @param {*} email

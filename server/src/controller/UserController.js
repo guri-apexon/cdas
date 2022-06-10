@@ -181,6 +181,7 @@ exports.deleteNewUser = async (req, res) => {
               roleType: userDetails?.roleType,
               networkId: user_id,
               updatedBy: "Admin",
+              email: email_id,
             };
 
             let sda_status = {};
@@ -188,6 +189,7 @@ exports.deleteNewUser = async (req, res) => {
               requestBody,
               user_type
             );
+
 
             if (sda_status.status !== 200 && sda_status.status !== 204) {
               return apiResponse.ErrorResponse(
