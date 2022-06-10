@@ -268,9 +268,8 @@ exports.insertUserInDb = async (userDetails) => {
 };
 
 exports.getSDAuserDataById = async (uid) => {
-  const getusersURL = `${SDA_BASE_URL}/sda-rest-api/api/external/entitlement/V1/ApplicationUsers/getUsersForApplication?appKey=${process.env.SDA_APP_KEY}`;
   try {
-    const response = await axios.get(getusersURL);
+    const response = await axios.get(SDA_Endpoint_get_users);
     return response?.data.find((e) => e?.userId == uid);
   } catch (error) {
     console.log("Internal user provision error", data, error);
