@@ -7,7 +7,7 @@ const Logger = require("../config/logger");
 const constants = require("../config/constants");
 const { FSR_API_URI, FSR_HEADERS } = require("../config/constants");
 const e = require("express");
-const { DB_SCHEMA_NAME: schemaName, SDA_BASE_URL } = constants;
+const { DB_SCHEMA_NAME: schemaName } = constants;
 
 const SDA_BASE_API_URL = `${process.env.SDA_BASE_URL}/sda-rest-api/api/external/entitlement/V1/ApplicationUsers`;
 const SDA_Endpoint = `${SDA_BASE_API_URL}?appKey=${process.env.SDA_APP_KEY}`;
@@ -33,10 +33,10 @@ exports.CONSTANTS = {
    let requestBody;
    try {
      if (user_type === "internal") {
-       const { email, ...rest } = data;
+      const { networkId, ...rest } = data;
        requestBody = rest;
      } else {
-       const { networkId, ...rest } = data;
+       const { email, ...rest } = data;
        requestBody = rest;
      }
      return await axios.delete(SDA_Endpoint_Deprovision, { data: requestBody });
