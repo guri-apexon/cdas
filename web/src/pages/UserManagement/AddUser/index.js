@@ -61,13 +61,13 @@ const Label = ({ children }) => {
 };
 const Value = ({ children }) => {
   return (
-    <div
-      className="value"
+    <span
+      className="value flex"
       variant="body2"
-      style={{ "word-wrap": "break-word", fontWeight: "bold" }}
+      style={{ wordWrap: "break-word", fontWeight: "bold" }}
     >
       {children}
-    </div>
+    </span>
   );
 };
 
@@ -90,6 +90,34 @@ const ConfirmModal = React.memo(({ open, cancel, stayHere, loading }) => {
   );
 });
 
+const InviteUserModal = ({ open, onSendInvite, stayHere, loading, email }) => {
+  return (
+    <Modal
+      open={open}
+      onClose={stayHere}
+      className="save-confirm"
+      disableBackdropClick="true"
+      title="Invite User?"
+      id="neutral"
+      buttonProps={[
+        { label: "Change email", disabled: loading },
+        { label: "Email invitation", onClick: onSendInvite, disabled: loading },
+      ]}
+    >
+      <Typography gutterBottom>
+        This new user will be sent an email invitation.
+        <br />
+        Please double check the email address.
+      </Typography>
+      <Typography gutterTop>
+        <div className="flex justify-center flex-center">
+          <span className="b-font">{email}</span>
+        </div>
+      </Typography>
+    </Modal>
+  );
+};
+
 const AddUser = () => {
   const toast = useContext(MessageContext);
   const dispatch = useDispatch();
@@ -106,7 +134,7 @@ const AddUser = () => {
   const [active, setActive] = useState(true);
   const [disableSave, setDisableSave] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [initialRender, setInitialRender] = useState(true);
+  // const [initialRender, setInitialRender] = useState(true);
   const [confirm, setConfirm] = useState(false);
   const [isAnyUpdate, setIsAnyUpdate] = useState(false);
   const [isShowAlertBox, setShowAlertBox] = useState(false);
@@ -115,8 +143,11 @@ const AddUser = () => {
   const [userList, setUserList] = useState([]);
   const [isNewUser, setIsNewUser] = useState(false);
   const [pingParent, setPingParent] = useState(0);
-  const [tableStudies, setTableStudies] = useState([]);
-  const [fetchStatus, setFetchStatus] = useState("loading");
+  // const [tableStudies, setTableStudies] = useState([]);
+  const [studiesRows, setStudiesRows] = useState();
+  const [fetchStatus, setFetchStatus] = useState("success");
+  const [createUserStatus, setCreateUserStatus] = useState("success");
+  const [confirmInviteUser, setConfirmInviteUser] = useState(false);
 
   const breadcrumpItems = [
     { href: "", onClick: () => history.push("/launchpad") },
@@ -240,6 +271,12 @@ const AddUser = () => {
   };
 
   const getUserList = async (query = "") => {
+    if (!query) {
+      if (userList.length) {
+        setUserList([]);
+      }
+      return;
+    }
     setFetchStatus("loading");
     debounceFunction(() => {
       fetchADUsers(query).then((result) => {
@@ -313,7 +350,7 @@ const AddUser = () => {
 
   useEffect(() => {
     dispatch(formComponentActive());
-    getUserList();
+    // getUserList();
   }, []);
 
   const switchUserType = (newUser) => {
@@ -323,52 +360,13 @@ const AddUser = () => {
     setSelectedUser(defaultValues);
     setIsNewUser(newUser);
   };
-
-  const updateUserAssign = async (selectedStudies) => {
-    const studiesRows = [...selectedStudies].slice(0, -1);
-    if (!selectedUser) {
-      toast.showErrorMessage("Select a user or create a new one");
-      return false;
-    }
-    if (!studiesRows.length) {
-      toast.showErrorMessage("Add some studies to proceed");
-      return false;
-    }
-    if (studiesRows.find((x) => x.study == null)) {
-      setInitialRender(!initialRender);
-      setTableStudies([...studiesRows]);
-      toast.showErrorMessage("Please fill study or remove blank rows");
-      return false;
-    }
-    if (studiesRows.find((x) => x.alreadyExist)) {
-      toast.showErrorMessage("Please remove duplicate values");
-      return false;
-    }
-    const emptyRoles = studiesRows.filter((x) => x.roles.length === 0);
-    if (emptyRoles.length) {
-      toast.showErrorMessage(
-        `This assignment is incomplete. Please select a study and a role to continue.`
-      );
-      return false;
-    }
+  const assignStudyRoleToCreatedUser = async (userResponse) => {
     const formattedRows = studiesRows.map((e) => {
       return {
         protocolname: e?.study?.prot_nbr_stnd,
         roles: e.roles.map((r) => r.label),
       };
     });
-
-    let userResponse = null;
-    if (isNewUser) {
-      userResponse = await handleCreateUser();
-    } else {
-      userResponse = await inviteInternalUser(
-        selectedUser.givenName,
-        selectedUser.sn,
-        selectedUser.mail,
-        selectedUser.sAMAccountName
-      );
-    }
 
     if (userResponse.status === 1) {
       const msg = userResponse.message || "Success";
@@ -393,9 +391,8 @@ const AddUser = () => {
       protocols: formattedRows,
       tenant: "t1",
     };
-    setLoading(true);
+
     const response = await assingUserStudy(insertUserStudy);
-    setLoading(false);
     if (response.data.status) {
       let msg;
       if (!isNewUser) {
@@ -408,14 +405,84 @@ const AddUser = () => {
     } else {
       toast.showErrorMessage(response.data.message, 0);
     }
-
+    setLoading(false);
     return null;
+  };
+
+  useEffect(() => {
+    if (!studiesRows) {
+      return false;
+    }
+    if (!selectedUser) {
+      toast.showErrorMessage("Select a user or create a new one");
+      return false;
+    }
+    if (!studiesRows.length) {
+      toast.showErrorMessage("Add some studies to proceed");
+      return false;
+    }
+    if (studiesRows.find((x) => x.study == null)) {
+      // setInitialRender(!initialRender);
+      // setTableStudies([...studiesRows]);
+      toast.showErrorMessage("Please fill study or remove blank rows");
+      return false;
+    }
+    if (studiesRows.find((x) => x.alreadyExist)) {
+      toast.showErrorMessage("Please remove duplicate values");
+      return false;
+    }
+    const emptyRoles = studiesRows.filter((x) => x.roles.length === 0);
+    if (emptyRoles.length) {
+      toast.showErrorMessage(
+        `This assignment is incomplete. Please select a study and a role to continue.`
+      );
+      return false;
+    }
+    setLoading(true);
+    if (isNewUser) {
+      setConfirmInviteUser(true);
+      return true;
+    }
+    return (async () => {
+      setCreateUserStatus("loading");
+      const userResponse = await inviteInternalUser(
+        selectedUser.givenName,
+        selectedUser.sn,
+        selectedUser.mail,
+        selectedUser.sAMAccountName
+      );
+      setCreateUserStatus("success");
+      return assignStudyRoleToCreatedUser(userResponse);
+    })();
+  }, [studiesRows]);
+
+  const updateUserAssign = async (selectedStudies) => {
+    const sr = [...selectedStudies].slice(0, -1);
+    setStudiesRows(sr);
   };
 
   return (
     <div className="create-user-wrapper">
       {isShowAlertBox && (
         <AlertBox cancel={keepEditingBtn} submit={leavePageBtn} />
+      )}
+      {isNewUser && (
+        <InviteUserModal
+          open={confirmInviteUser}
+          onSendInvite={async () => {
+            setCreateUserStatus("loading");
+            const userResponse = await handleCreateUser();
+            setCreateUserStatus("success");
+            setConfirmInviteUser(false);
+            return assignStudyRoleToCreatedUser(userResponse);
+          }}
+          loading={createUserStatus === "loading"}
+          email={selectedUser?.usr_mail_id}
+          stayHere={() => {
+            setConfirmInviteUser(false);
+            setLoading(false);
+          }}
+        />
       )}
       {isAnyUpdate && (
         <ConfirmModal
