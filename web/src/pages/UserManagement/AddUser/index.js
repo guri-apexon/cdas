@@ -148,6 +148,7 @@ const AddUser = () => {
   const [fetchStatus, setFetchStatus] = useState("success");
   const [createUserStatus, setCreateUserStatus] = useState("success");
   const [confirmInviteUser, setConfirmInviteUser] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const breadcrumpItems = [
     { href: "", onClick: () => history.push("/launchpad") },
@@ -271,6 +272,7 @@ const AddUser = () => {
   };
 
   const getUserList = async (query = "") => {
+    setSearchQuery(query);
     if (!query) {
       if (userList.length) {
         setUserList([]);
@@ -630,7 +632,11 @@ const AddUser = () => {
                             {fetchStatus === "loading" ? (
                               <ApolloProgress />
                             ) : (
-                              "No user found"
+                              <>
+                                {searchQuery
+                                  ? "No user found"
+                                  : "Type a word to search"}
+                              </>
                             )}
                           </div>
                         }
