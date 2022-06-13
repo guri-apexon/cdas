@@ -125,7 +125,7 @@ const ListUsers = () => {
       <div>
         {row.formatted_stat && (
           <Tag
-            className="user-tag-capitalized"
+            className={`user-tag-capitalized user-tag-${btnVariant[variantKey]}`}
             label={variantKey}
             variant={btnVariant[variantKey]}
           />
