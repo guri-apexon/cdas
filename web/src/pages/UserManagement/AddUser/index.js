@@ -5,7 +5,7 @@ import React, { useEffect, useState, useContext } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useHistory } from "react-router";
 import ApolloProgress from "apollo-react/components/ApolloProgress";
-// import Tooltip from "apollo-react/components/Tooltip";
+import Tooltip from "apollo-react/components/Tooltip";
 
 import BreadcrumbsUI from "apollo-react/components/Breadcrumbs";
 import Switch from "apollo-react/components/Switch";
@@ -152,6 +152,7 @@ const AddUser = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [checkUserAssignmentTableData, setCheckUserAssignmentTableData] =
     useState();
+  const [showToolTip, setShowToolTip] = useState(false);
 
   const breadcrumpItems = [
     { href: "", onClick: () => history.push("/launchpad") },
@@ -417,7 +418,6 @@ const AddUser = () => {
   const checkSaveDisableCondition = () => {
     const sr = [...(checkUserAssignmentTableData || [])].slice(0, -1);
     const emptyRoles = sr.filter((x) => x.roles.length === 0);
-    console.log({ selectedUser, sr, emptyRoles });
     return (
       !selectedUser ||
       !sr?.length ||
@@ -592,23 +592,30 @@ const AddUser = () => {
                       helperText={selectedUserError?.usr_lst_nm}
                       onChange={handleChange}
                     />
-                    {/* <Tooltip
-                      variant="dark"
-                      title={selectedUser?.usr_mail_id}
-                      placement="top-end"
-                      open
-                    > */}
+                    <div className="p-relative">
+                      <Tooltip
+                        variant="dark"
+                        placement="top"
+                        title={selectedUser?.usr_mail_id}
+                        open={showToolTip}
+                      >
+                        <div className="email-tooltip" />
+                      </Tooltip>
+                    </div>
                     <TextField
                       type="email"
                       id="usr_mail_id"
                       size="small"
                       label="Email"
                       onChange={handleChange}
-                      onBlur={(e) => validateField(e)}
+                      onFocus={() => setShowToolTip(true)}
+                      onBlur={(e) => {
+                        validateField(e);
+                        setShowToolTip(false);
+                      }}
                       error={!!selectedUserError?.usr_mail_id?.length}
                       helperText={selectedUserError?.usr_mail_id}
                     />
-                    {/* </Tooltip> */}
 
                     <TextField
                       id="extrnl_emp_id"

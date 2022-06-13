@@ -21,6 +21,11 @@
   }
 }
 .create-user-wrapper {
+  .email-tooltip {
+    position: absolute;
+    right: 10px;
+    top: 45px;
+  }
   .paper {
     background-color: #fff;
     display: flex;
