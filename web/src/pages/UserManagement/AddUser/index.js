@@ -367,15 +367,24 @@ const AddUser = () => {
 
     if (userResponse.status === 1) {
       const msg = userResponse.message || "Success";
-      toast.showSuccessMessage(msg);
+      toast.showSuccessMessage(`${msg}. Now assigning study roles.`);
     } else {
       const msg = userResponse.message || "Error Occured";
       toast.showErrorMessage(msg);
       return false;
     }
 
+    const email = !isNewUser ? selectedUser.mail : selectedUser.usr_mail_id;
+    const name = !isNewUser
+      ? `${
+          selectedUser.givenName
+            ? `${selectedUser.givenName} ${selectedUser.sn}`
+            : selectedUser.displayName
+        }`
+      : `${selectedUser.usr_fst_nm} ${selectedUser.usr_lst_nm}`;
+
     const insertUserStudy = {
-      email: !isNewUser ? selectedUser.mail : selectedUser.usr_mail_id,
+      email,
       protocols: formattedRows,
       tenant: "t1",
     };
@@ -383,7 +392,13 @@ const AddUser = () => {
     const response = await assingUserStudy(insertUserStudy);
     setLoading(false);
     if (response.data.status) {
-      toast.showSuccessMessage(response.data.message, 0);
+      let msg;
+      if (!isNewUser) {
+        msg = `A new user ${name} has been added`;
+      } else {
+        msg = `An invitation has been emailed to ${email}`;
+      }
+      toast.showSuccessMessage(msg, 0);
       history.push("/user-management");
     } else {
       toast.showErrorMessage(response.data.message, 0);
