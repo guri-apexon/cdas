@@ -479,7 +479,7 @@ const AddUser = () => {
                       size="small"
                       label="Last name"
                       inputProps={{
-                        maxLength: 255,
+                        maxLength: 100,
                       }}
                       onBlur={(e) => validateField(e)}
                       error={!!selectedUserError?.usr_lst_nm?.length}
