@@ -580,6 +580,7 @@ const AddUser = () => {
                 updateChanges={updateChanges}
                 pingParent={pingParent}
                 updateUserAssign={(e) => updateUserAssign(e)}
+                disableSaveBtn={(e) => setDisableSave(e)}
               />
             </div>
           </Grid>

@@ -19,6 +19,7 @@ const UserAssignmentTable = ({
   updateChanges,
   pingParent,
   updateUserAssign,
+  disableSaveBtn,
 }) => {
   const toast = useContext(MessageContext);
   const dispatch = useDispatch();
@@ -36,6 +37,12 @@ const UserAssignmentTable = ({
       setLoad(false);
     } else {
       setLoad(true);
+    }
+
+    if (tableStudies.length > 1) {
+      disableSaveBtn(false);
+    } else {
+      disableSaveBtn(true);
     }
   }, [tableStudies]);
 
@@ -208,14 +215,10 @@ const UserAssignmentTable = ({
   };
 
   const onDelete = (index) => {
-    setTableStudies((rows) => {
-      const newRows = rows.filter((row) => row.index !== index);
-      const tableIndex = tableStudies.findIndex((el) => el.index === index);
-      if (tableIndex + 1 === tableStudies.length) {
-        return [...newRows, getStudyObj()];
-      }
-      return newRows;
-    });
+    const prevTableStudies = tableStudies;
+    const tableIndex = tableStudies.findIndex((el) => el.index === index);
+    prevTableStudies.splice(tableIndex, 1);
+    setTableStudies([...prevTableStudies]);
   };
 
   const AssignUser = async () => {
