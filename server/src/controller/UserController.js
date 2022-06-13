@@ -227,7 +227,7 @@ exports.inviteExternalUser = async (req, res) => {
   // uid: employeeId,
   // updatedBy:currentUser,
   const data = req.body;
-  data["userType"] = "external";
+  data["userType"] = data.userType;
   data["updatedBy"] = data.uid;
   Logger.info({ message: "add user - begin" });
 
@@ -253,4 +253,23 @@ exports.createNewUser = async (req, res) => {
   Logger.info({ message: "create user - begin" });
   const response = await createNewUser(data, req, res);
   return response;
+};
+
+exports.getADUsers = async (req, res) => {
+  const data = req.body;
+  Logger.info({ message: "getADUsers - begin" });
+
+  const { query = "" } = data;
+  const users = await userHelper.getUsersFromAD(query);
+  if (users) {
+    return apiResponse.successResponseWithData(
+      res,
+      "AD Users retrieved successfully",
+      users
+    );
+  }
+  return apiResponse.ErrorResponse(
+    res,
+    "An error occured while fetching ad users"
+  );
 };

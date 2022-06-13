@@ -11,6 +11,7 @@ import {
 import { deleteAllCookies, getUserId } from "../utils";
 
 const userId = getUserId();
+const CT = axios.CancelToken;
 
 export const searchStudy = async (searchQuery = "") => {
   try {
@@ -475,13 +476,7 @@ export const getRoles = () => {
   }
 };
 
-export const inviteExternalUser = (
-  firstName,
-  lastName,
-  email,
-  currentUser,
-  employeeId
-) => {
+export const inviteExternalUser = (firstName, lastName, email, employeeId) => {
   try {
     return new Promise((resolve, reject) => {
       axios
@@ -490,7 +485,8 @@ export const inviteExternalUser = (
           lastName,
           email,
           uid: employeeId,
-          updatedBy: currentUser,
+          updatedBy: userId,
+          userType: "external",
         })
         .then((res) => {
           resolve(res.data);
@@ -507,6 +503,40 @@ export const inviteExternalUser = (
     return console.log("Error", err);
   }
 };
+
+export const inviteInternalUser = (
+  firstName = "",
+  lastName = "",
+  email,
+  employeeId
+) => {
+  try {
+    return new Promise((resolve, reject) => {
+      axios
+        .post(`${API_URL}/users/invite-external-user`, {
+          firstName,
+          lastName,
+          email,
+          uid: employeeId,
+          updatedBy: userId,
+          userType: "internal",
+        })
+        .then((res) => {
+          resolve(res.data);
+        })
+        .catch((err) => {
+          if (err.response?.data) {
+            resolve(err.response?.data);
+          } else {
+            resolve({ message: "Something went wrong" });
+          }
+        });
+    });
+  } catch (err) {
+    return console.log("Error", err);
+  }
+};
+
 export const getUserStudy = (studyUserId) => {
   try {
     return new Promise((resolve, reject) => {
@@ -545,6 +575,42 @@ export const assingUserStudy = async (reqBody) => {
           reject(err.response?.data);
         });
     });
+  } catch (err) {
+    return console.log("Error", err);
+  }
+};
+
+let fetchADUsersCancelToken;
+export const fetchADUsers = (query) => {
+  if (fetchADUsersCancelToken !== undefined) {
+    fetchADUsersCancelToken();
+  }
+  try {
+    return axios
+      .post(
+        `${API_URL}/users/get-ad-list`,
+        {
+          query,
+        },
+        {
+          cancelToken: new CT(function executor(c) {
+            // An executor function receives a cancel function as a parameter
+            fetchADUsersCancelToken = c;
+          }),
+        }
+      )
+      .then((res) => {
+        return res.data;
+      })
+      .catch((err) => {
+        if (axios.isCancel(err)) {
+          return { status: -1 };
+        }
+        if (err.response?.data) {
+          return err.response?.data;
+        }
+        return { message: "Something went wrong" };
+      });
   } catch (err) {
     return console.log("Error", err);
   }
