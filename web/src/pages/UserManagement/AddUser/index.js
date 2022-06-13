@@ -287,7 +287,7 @@ const AddUser = () => {
               ...u,
               label: `${
                 givenName && sn ? `${givenName} ${sn}` : displayName
-              } (${mail})`,
+              }\n\t(${mail})`,
             };
           }) || [];
         filtered.sort(function (a, b) {
