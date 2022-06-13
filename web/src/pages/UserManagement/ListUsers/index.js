@@ -114,14 +114,13 @@ const ListUsers = () => {
   };
 
   const StatusCell = ({ row, column: { accessor } }) => {
-    const data = row[accessor];
-    // const id = row.usr_id;
     const btnVariant = {
-      Active: "green",
-      Inactive: "grey",
-      Invited: "purple",
+      active: "green",
+      inactive: "grey",
+      invited: "purple",
     };
-    const variantKey = row?.formatted_stat;
+    let variantKey = row?.formatted_stat || "";
+    variantKey = variantKey.replaceAll(" ", "").trim().toLowerCase();
     return (
       <div>
         {row.formatted_stat && (
