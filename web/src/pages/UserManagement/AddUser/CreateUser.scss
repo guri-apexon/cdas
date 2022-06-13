@@ -1,4 +1,11 @@
 @import "../../../styles/customscroll.scss";
+#highligh-autocomplete-popup {
+  li {
+    [class^="makeStyles-bold"] {
+      background: #fee285;
+    }
+  }
+}
 .create-user-wrapper {
   .paper {
     background-color: #fff;

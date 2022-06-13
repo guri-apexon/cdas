@@ -539,6 +539,7 @@ const AddUser = () => {
                   <>
                     <div className="user-autocomplete">
                       <AutocompleteV2
+                        id="highligh-autocomplete"
                         matchFrom="any"
                         size="small"
                         fullWidth
