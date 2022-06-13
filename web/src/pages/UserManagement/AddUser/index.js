@@ -211,7 +211,7 @@ const AddUser = () => {
     const currentErrors = { ...selectedUserError };
 
     const keys = list || [e?.target?.id];
-
+    setSelectedUserError(null);
     keys.forEach(async (key) => {
       const value = selectedUser?.[key];
       if (typeof value === "string") {
@@ -222,8 +222,13 @@ const AddUser = () => {
           if (!isValid) {
             currentErrors[key] = "Invalid email address format";
           } else {
-            currentErrors[key] = await checkEmailExists();
-            setSelectedUserError(currentErrors);
+            const emailStatus = await checkEmailExists();
+            if (emailStatus) {
+              currentErrors[key] = await checkEmailExists();
+            } else {
+              delete currentErrors[key];
+            }
+            setSelectedUserError({ ...currentErrors });
           }
         } else {
           currentErrors[key] = "";
