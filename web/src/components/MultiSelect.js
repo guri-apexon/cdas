@@ -11,6 +11,8 @@ export default function MultiSelect({
   const [value, setValue] = useState(tableStudies[tableIndex]?.roles || []);
   const editRow = (e, v, r) => {
     setValue([...v]);
+  };
+  const updateTableStudies = (v) => {
     const copy = [...tableStudies];
     copy[tableIndex].roles = [...v];
     setTableStudies(copy);
@@ -29,6 +31,7 @@ export default function MultiSelect({
         limitChips={5}
         value={value}
         onChange={(e, v, r) => editRow(e, v, r)}
+        onBlur={() => updateTableStudies(value)}
         filterSelectedOptions={false}
         blurOnSelect={false}
         clearOnBlur={false}
