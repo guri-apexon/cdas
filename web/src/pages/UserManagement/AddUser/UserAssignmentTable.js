@@ -241,8 +241,10 @@ const UserAssignmentTable = ({
         icon={PlusIcon}
         onClick={(e) => {
           document
-            .querySelector(".study-table tr:nth-last-child(2) .study input")
-            .focus();
+            .querySelector(
+              ".study-table tr:nth-last-child(2) .study .a-MuiAutocomplete-popupIndicator"
+            )
+            .click();
         }}
       >
         Add user assignment
