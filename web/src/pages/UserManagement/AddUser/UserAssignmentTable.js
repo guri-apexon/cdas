@@ -24,7 +24,6 @@ const UserAssignmentTable = ({
   const toast = useContext(MessageContext);
   const dispatch = useDispatch();
   const studyData = useSelector((state) => state.studyBoard);
-  const history = useHistory();
 
   const [load, setLoad] = useState(false);
   const [studyList, setStudyList] = useState([]);
@@ -147,11 +146,23 @@ const UserAssignmentTable = ({
       return newRows;
     });
   };
+  const allChildRefs = [];
+  const childRefs = () => {
+    const newChildRef = React.createRef();
+    if (!newChildRef.current) allChildRefs.push(newChildRef);
+    return newChildRef;
+  };
+
+  const lineRefs = React.useRef([]);
+  lineRefs.current = tableStudies.map(
+    (_, i) => lineRefs.current[i] ?? React.createRef()
+  );
 
   const EditableStudy = ({ row, column: { accessor: key } }) => {
     return (
       <div className="study">
         <AutocompleteV2
+          ref={lineRefs.current[row.index - 1]}
           placeholder="Add new study and role"
           matchFrom="any"
           size="small"
@@ -243,11 +254,9 @@ const UserAssignmentTable = ({
         variant="secondary"
         icon={PlusIcon}
         onClick={(e) => {
-          document
-            .querySelector(
-              ".study-table tr:nth-last-child(2) .study .a-MuiAutocomplete-popupIndicator"
-            )
-            .click();
+          lineRefs.current[
+            tableStudies.length - 1
+          ].current.lastElementChild.childNodes[0].firstElementChild.childNodes[1].childNodes[1].click();
         }}
       >
         Add user assignment
