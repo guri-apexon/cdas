@@ -25,6 +25,10 @@
     position: absolute;
     right: 10px;
     top: 45px;
+    &.top {
+      top: 32px;
+      right: 25px;
+    }
   }
   .paper {
     background-color: #fff;

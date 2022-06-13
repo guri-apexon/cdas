@@ -365,6 +365,7 @@ const AddUser = () => {
       : null;
     setSelectedUser(defaultValues);
     setIsNewUser(newUser);
+    setShowToolTip(false);
   };
   const assignStudyRoleToCreatedUser = async (userResponse) => {
     const formattedRows = studiesRows.map((e) => {
@@ -380,6 +381,7 @@ const AddUser = () => {
     } else {
       const msg = userResponse.message || "Error Occured";
       toast.showErrorMessage(msg);
+      setLoading(false);
       return false;
     }
 
@@ -632,6 +634,17 @@ const AddUser = () => {
                   </>
                 ) : (
                   <>
+                    <div className="p-relative">
+                      <Tooltip
+                        variant="dark"
+                        placement="top"
+                        title={selectedUser?.displayName}
+                        extraLabels={[{ subtitle: selectedUser?.mail }]}
+                        open={showToolTip && selectedUser}
+                      >
+                        <div className="email-tooltip top" />
+                      </Tooltip>
+                    </div>
                     <div className="user-autocomplete">
                       <AutocompleteV2
                         id="highligh-autocomplete"
@@ -639,6 +652,12 @@ const AddUser = () => {
                         size="small"
                         fullWidth
                         forcePopupIcon
+                        onMouseEnter={() => {
+                          setShowToolTip(true);
+                        }}
+                        onMouseLeave={() => {
+                          setShowToolTip(false);
+                        }}
                         popupIcon={<SearchIcon fontSize="extraSmall" />}
                         source={userList}
                         label="Name"
