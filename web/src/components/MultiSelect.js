@@ -1,11 +1,18 @@
 import React, { useState } from "react";
 import AutocompleteV2 from "apollo-react/components/AutocompleteV2";
 
-export default function MultiSelect({ roleLists, row, tableStudies }) {
+export default function MultiSelect({
+  roleLists,
+  row,
+  tableStudies,
+  setTableStudies,
+}) {
   const [value, setValue] = useState(tableStudies[row.index - 1]?.roles || []);
   const editRow = (e, v, r) => {
     setValue([...v]);
-    tableStudies[row.index - 1].roles = [...v];
+    const copy = [...tableStudies];
+    copy[row.index - 1].roles = [...v];
+    setTableStudies(copy);
   };
   return (
     <div>

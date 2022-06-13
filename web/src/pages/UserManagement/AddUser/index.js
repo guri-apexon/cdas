@@ -5,6 +5,7 @@ import React, { useEffect, useState, useContext } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useHistory } from "react-router";
 import ApolloProgress from "apollo-react/components/ApolloProgress";
+// import Tooltip from "apollo-react/components/Tooltip";
 
 import BreadcrumbsUI from "apollo-react/components/Breadcrumbs";
 import Switch from "apollo-react/components/Switch";
@@ -149,6 +150,8 @@ const AddUser = () => {
   const [createUserStatus, setCreateUserStatus] = useState("success");
   const [confirmInviteUser, setConfirmInviteUser] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [checkUserAssignmentTableData, setCheckUserAssignmentTableData] =
+    useState();
 
   const breadcrumpItems = [
     { href: "", onClick: () => history.push("/launchpad") },
@@ -411,6 +414,17 @@ const AddUser = () => {
     return null;
   };
 
+  const checkSaveDisableCondition = () => {
+    const sr = [...(checkUserAssignmentTableData || [])].slice(0, -1);
+    const emptyRoles = sr.filter((x) => x.roles.length === 0);
+    console.log({ selectedUser, sr, emptyRoles });
+    return (
+      !selectedUser ||
+      !sr?.length ||
+      sr?.find((x) => x.study == null || emptyRoles.length)
+    );
+  };
+
   useEffect(() => {
     if (!studiesRows) {
       return false;
@@ -533,7 +547,10 @@ const AddUser = () => {
                         {
                           label: "Save",
                           size: "small",
-                          disabled: loading || disableSave,
+                          disabled:
+                            loading ||
+                            disableSave ||
+                            checkSaveDisableCondition(),
                           onClick: handleSave,
                         },
                       ]
@@ -575,6 +592,12 @@ const AddUser = () => {
                       helperText={selectedUserError?.usr_lst_nm}
                       onChange={handleChange}
                     />
+                    {/* <Tooltip
+                      variant="dark"
+                      title={selectedUser?.usr_mail_id}
+                      placement="top-end"
+                      open
+                    > */}
                     <TextField
                       type="email"
                       id="usr_mail_id"
@@ -584,18 +607,9 @@ const AddUser = () => {
                       onBlur={(e) => validateField(e)}
                       error={!!selectedUserError?.usr_mail_id?.length}
                       helperText={selectedUserError?.usr_mail_id}
-                      // error={
-                      //   !emailRegex.test(selectedUser.usr_mail_id) &&
-                      //   selectedUser.usr_mail_id > 0
-                      // }
-                      // helperText={
-                      //   blurred &&
-                      //   selectedUser.usr_mail_id > 0 &&
-                      //   ((isStarted && !row[key] && "Required") ||
-                      //     (!emailRegex.test(selectedUser.usr_mail_id) &&
-                      //       "Invalid Email Format"))
-                      // }
                     />
+                    {/* </Tooltip> */}
+
                     <TextField
                       id="extrnl_emp_id"
                       size="small"
@@ -674,6 +688,9 @@ const AddUser = () => {
                 updateChanges={updateChanges}
                 pingParent={pingParent}
                 updateUserAssign={(e) => updateUserAssign(e)}
+                setCheckUserAssignmentTableData={
+                  setCheckUserAssignmentTableData
+                }
               />
             </div>
           </Grid>

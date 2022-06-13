@@ -19,6 +19,7 @@ const UserAssignmentTable = ({
   updateChanges,
   pingParent,
   updateUserAssign,
+  setCheckUserAssignmentTableData,
 }) => {
   const toast = useContext(MessageContext);
   const dispatch = useDispatch();
@@ -37,6 +38,7 @@ const UserAssignmentTable = ({
     } else {
       setLoad(true);
     }
+    setCheckUserAssignmentTableData(tableStudies);
   }, [tableStudies]);
 
   const getStudyObj = () => {
@@ -186,6 +188,7 @@ const UserAssignmentTable = ({
           row={row}
           rowKey={key}
           tableStudies={tableStudies}
+          setTableStudies={setTableStudies}
           editRow={(e, v, r, rowIndex, rowKey) =>
             editRow(e, v, r, rowIndex, rowKey)
           }
