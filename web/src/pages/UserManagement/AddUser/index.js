@@ -684,7 +684,7 @@ const AddUser = () => {
                           updateChanges();
                           setSelectedUser(v);
                         }}
-                        enableVirtualization
+                        // enableVirtualization
                       />
                     </div>
                     {selectedUser && (
