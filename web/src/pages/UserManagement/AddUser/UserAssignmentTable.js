@@ -19,6 +19,7 @@ const UserAssignmentTable = ({
   updateChanges,
   pingParent,
   updateUserAssign,
+  setCheckUserAssignmentTableData,
   disableSaveBtn,
 }) => {
   const toast = useContext(MessageContext);
@@ -37,6 +38,7 @@ const UserAssignmentTable = ({
     } else {
       setLoad(true);
     }
+    setCheckUserAssignmentTableData(tableStudies);
 
     if (tableStudies.length > 1) {
       disableSaveBtn(false);
@@ -204,6 +206,7 @@ const UserAssignmentTable = ({
           row={row}
           rowKey={key}
           tableStudies={tableStudies}
+          setTableStudies={setTableStudies}
           editRow={(e, v, r, rowIndex, rowKey) =>
             editRow(e, v, r, rowIndex, rowKey)
           }

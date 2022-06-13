@@ -1,5 +1,31 @@
 @import "../../../styles/customscroll.scss";
+#highligh-autocomplete-popup {
+  li {
+    min-height: 48px;
+    position: relative !important;
+    top: unset !important;
+    left: unset !important;
+    height: auto !important;
+    padding-top: 0;
+    padding-bottom: 0;
+    overflow-x: hidden;
+    [class^="makeStyles-bold"] {
+      background: #fee285;
+    }
+    > div {
+      width: 100%;
+      padding: 6px 0;
+      border-bottom: 1px solid #e9e9e9;
+      white-space: pre;
+    }
+  }
+}
 .create-user-wrapper {
+  .email-tooltip {
+    position: absolute;
+    right: 10px;
+    top: 45px;
+  }
   .paper {
     background-color: #fff;
     display: flex;
