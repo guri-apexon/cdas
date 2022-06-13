@@ -698,6 +698,7 @@ const AddUser = () => {
                 setCheckUserAssignmentTableData={
                   setCheckUserAssignmentTableData
                 }
+                disableSaveBtn={(e) => setDisableSave(e)}
               />
             </div>
           </Grid>

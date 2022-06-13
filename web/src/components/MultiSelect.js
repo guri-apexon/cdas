@@ -7,11 +7,12 @@ export default function MultiSelect({
   tableStudies,
   setTableStudies,
 }) {
-  const [value, setValue] = useState(tableStudies[row.index - 1]?.roles || []);
+  const tableIndex = tableStudies.findIndex((el) => el.index === row.index);
+  const [value, setValue] = useState(tableStudies[tableIndex]?.roles || []);
   const editRow = (e, v, r) => {
     setValue([...v]);
     const copy = [...tableStudies];
-    copy[row.index - 1].roles = [...v];
+    copy[tableIndex].roles = [...v];
     setTableStudies(copy);
   };
   return (
