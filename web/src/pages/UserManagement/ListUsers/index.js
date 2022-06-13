@@ -1,5 +1,6 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import _debounce from "lodash/debounce";
+import { useDispatch } from "react-redux";
 import { Typography } from "@material-ui/core";
 import React, {
   useMemo,
@@ -33,12 +34,19 @@ import "./index.scss";
 import { AppContext } from "../../../components/Providers/AppProvider";
 import { getUsers } from "../../../services/ApiServices";
 
+import usePermission, {
+  Categories,
+  Features,
+} from "../../../components/Common/usePermission";
+
+// import { createUser } from "../../../store/actions/UserActions";
+
 const ProductsCell = ({ row, column: { accessor } }) => {
   const rowValue = row[accessor];
   return <>{rowValue}</>;
 };
 
-const statusList = ["Active", "In Active", "Invited"];
+const statusList = ["Active", "Inactive", "Invited"];
 
 const ListUsers = () => {
   const history = useHistory();
@@ -50,10 +58,17 @@ const ListUsers = () => {
   const [initialSearchStr, setInitialSearchStr] = useState("");
   const [curRow, setCurRow] = useState({});
   const appContext = useContext(AppContext);
+  const dispatch = useDispatch();
+
   const { permissions } = appContext.user;
   const [createRolePermission, setCreateRolePermission] = useState(false);
   const [readRolePermission, setReadRolePermission] = useState(false);
   const [updateRolePermission, setUpdateRolePermission] = useState(false);
+
+  const { canCreate } = usePermission(
+    Categories.MENU,
+    Features.USER_MANAGEMENT
+  );
 
   const filterMethod = (rolePermissions) => {
     const filterrolePermissions = rolePermissions.filter(
@@ -99,19 +114,20 @@ const ListUsers = () => {
   };
 
   const StatusCell = ({ row, column: { accessor } }) => {
-    const data = row[accessor];
-    // const id = row.usr_id;
     const btnVariant = {
-      Active: "green",
-      "In Active": "grey",
-      Invited: "purple",
+      active: "green",
+      inactive: "grey",
+      invited: "purple",
     };
+    let variantKey = row?.formatted_stat || "";
+    variantKey = variantKey.replaceAll(" ", "").trim().toLowerCase();
     return (
       <div>
-        {row.trimed_usr_stat && (
+        {row.formatted_stat && (
           <Tag
-            label={row.trimed_usr_stat}
-            variant={btnVariant[row.trimed_usr_stat]}
+            className={`user-tag-capitalized user-tag-${btnVariant[variantKey]}`}
+            label={variantKey}
+            variant={btnVariant[variantKey]}
           />
         )}
       </div>
@@ -243,10 +259,10 @@ const ListUsers = () => {
     },
     {
       header: "Status",
-      accessor: "trimed_usr_stat",
+      accessor: "formatted_stat",
       customCell: StatusCell,
       sortFunction: compareStrings,
-      filterFunction: createStringArraySearchFilter("trimed_usr_stat"),
+      filterFunction: createStringArraySearchFilter("formatted_stat"),
       filterComponent: createSelectFilterComponent(statusList, {
         size: "small",
         multiple: true,
@@ -255,18 +271,22 @@ const ListUsers = () => {
     },
   ];
 
+  const handleAddUser = () => {
+    // dispatch(createUser());
+    history.push("/user-management/add-user");
+  };
+
   const Header = () => {
     return (
       <Paper>
         <div className="user-list-header">
           <Typography variant="h3">User Management</Typography>
-          {createRolePermission && (
+          {canCreate && (
             <Button
-              size="small"
               variant="primary"
-              icon={PlusIcon}
-              onClick={() => history.push("/user-assignment")}
-              style={{ boxShadow: "none" }}
+              icon={<PlusIcon />}
+              size="small"
+              onClick={handleAddUser}
             >
               Add new user
             </Button>

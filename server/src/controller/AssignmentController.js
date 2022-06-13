@@ -129,5 +129,5 @@ exports.assignmentCreate = async (req, res) => {
       }
     }
   }
-  return apiResponse.successResponse(res, "Assignments created successfully");
+  return apiResponse.successResponse(res, `An invitation has been emailed to ${email}`);
 };
