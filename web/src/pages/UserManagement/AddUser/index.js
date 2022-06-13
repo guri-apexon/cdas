@@ -157,7 +157,7 @@ const AddUser = () => {
       onClick: () => history.push(userListURL),
     },
     {
-      title: isEditPage ? selectedUser : "Create New User",
+      title: isEditPage ? selectedUser : "Add New User",
     },
   ];
 
