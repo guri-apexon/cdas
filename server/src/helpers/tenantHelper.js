@@ -8,7 +8,7 @@ const { DB_SCHEMA_NAME: schemaName } = constants;
  * @param {string} tenant_nm Name of the tenant
  * @returns returns tenant_id, false otherwise
  */
-exports.isTenantExists = async (tenant_nm) => {
+exports.findByName = async (tenant_nm) => {
   const query = `SELECT tenant_id FROM ${schemaName}.tenant WHERE tenant_nm = '${tenant_nm}' LIMIT 1`;
   try {
     const result = await DB.executeQuery(query);
