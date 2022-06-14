@@ -377,7 +377,7 @@ const AddUser = () => {
 
     if (userResponse.status === 1) {
       const msg = userResponse.message || "Success";
-      toast.showSuccessMessage(`${msg}. Now assigning study roles.`);
+      // toast.showSuccessMessage(`${msg}. Now assigning study roles.`);
     } else {
       const msg = userResponse.message || "Error Occured";
       toast.showErrorMessage(msg);
