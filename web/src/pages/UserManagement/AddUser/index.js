@@ -365,6 +365,7 @@ const AddUser = () => {
       : null;
     setSelectedUser(defaultValues);
     setIsNewUser(newUser);
+    setShowToolTip(false);
   };
   const assignStudyRoleToCreatedUser = async (userResponse) => {
     const formattedRows = studiesRows.map((e) => {
@@ -382,6 +383,7 @@ const AddUser = () => {
       const msg =
         "Unable to add new user – please try again or report problem to the system administrator";
       toast.showErrorMessage(msg);
+      setLoading(false);
       return false;
     }
 
@@ -462,10 +464,15 @@ const AddUser = () => {
       return true;
     }
     return (async () => {
+      const splittedNames = selectedUser?.displayName?.split(", ") || [];
+      const firstName =
+        selectedUser.givenName ||
+        (splittedNames.length === 2 ? splittedNames[1] : splittedNames[0]);
+      const lastName = selectedUser.sn || splittedNames[0];
       setCreateUserStatus("loading");
       const userResponse = await inviteInternalUser(
-        selectedUser.givenName,
-        selectedUser.sn,
+        firstName,
+        lastName,
         selectedUser.mail,
         selectedUser.sAMAccountName
       );
@@ -610,11 +617,11 @@ const AddUser = () => {
                       size="small"
                       label="Email"
                       onChange={handleChange}
-                      onFocus={() => setShowToolTip(true)}
                       onBlur={(e) => {
                         validateField(e);
-                        setShowToolTip(false);
                       }}
+                      onMouseLeave={() => setShowToolTip(false)}
+                      onMouseEnter={() => setShowToolTip(true)}
                       error={!!selectedUserError?.usr_mail_id?.length}
                       helperText={selectedUserError?.usr_mail_id}
                     />
@@ -634,6 +641,17 @@ const AddUser = () => {
                   </>
                 ) : (
                   <>
+                    <div className="p-relative">
+                      <Tooltip
+                        variant="dark"
+                        placement="top"
+                        title={selectedUser?.displayName}
+                        extraLabels={[{ subtitle: selectedUser?.mail }]}
+                        open={showToolTip && selectedUser}
+                      >
+                        <div className="email-tooltip top" />
+                      </Tooltip>
+                    </div>
                     <div className="user-autocomplete">
                       <AutocompleteV2
                         id="highligh-autocomplete"
@@ -641,6 +659,16 @@ const AddUser = () => {
                         size="small"
                         fullWidth
                         forcePopupIcon
+                        onMouseEnter={() => {
+                          setShowToolTip(true);
+                        }}
+                        onMouseLeave={() => {
+                          setShowToolTip(false);
+                        }}
+                        // onBlur={() => {
+                        //   setSearchQuery("");
+                        //   setUserList([]);
+                        // }}
                         popupIcon={<SearchIcon fontSize="extraSmall" />}
                         source={userList}
                         label="Name"
@@ -667,7 +695,7 @@ const AddUser = () => {
                           updateChanges();
                           setSelectedUser(v);
                         }}
-                        enableVirtualization
+                        // enableVirtualization
                       />
                     </div>
                     {selectedUser && (
