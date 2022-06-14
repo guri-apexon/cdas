@@ -462,11 +462,11 @@ const AddUser = () => {
       return true;
     }
     return (async () => {
-      let splitedNames = selectedUser?.displayName?.split(", ") || [];
-      if (!splitedNames.length)
-        splitedNames = selectedUser?.displayName?.split(",") || [];
-      const firstName = selectedUser.givenName || splitedNames[1];
-      const lastName = selectedUser.sn || splitedNames[0];
+      const splittedNames = selectedUser?.displayName?.split(", ") || [];
+      const firstName =
+        selectedUser.givenName ||
+        (splittedNames.length === 2 ? splittedNames[1] : splittedNames[0]);
+      const lastName = selectedUser.sn || splittedNames[0];
       setCreateUserStatus("loading");
       const userResponse = await inviteInternalUser(
         firstName,
