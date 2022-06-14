@@ -171,6 +171,7 @@ exports.deleteNewUser = async (req, res) => {
         if (isUserExists) {
           const user = await userHelper.findByEmail(email_id);
 
+
           // SDA
           if (user?.isActive) {
             const userDetails = await userHelper.getSDAuserDataById(user_id);
