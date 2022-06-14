@@ -32,6 +32,7 @@ const UserAssignmentTable = ({
   const [initialRender, setInitialRender] = useState(true);
   const [roleLists, setroleLists] = useState([]);
 
+  const lineRefs = React.useRef([]);
   useEffect(() => {
     if (tableStudies.length === 0) {
       setLoad(false);
@@ -45,11 +46,14 @@ const UserAssignmentTable = ({
     } else {
       disableSaveBtn(true);
     }
+
+    lineRefs.current = tableStudies.map((_, i) => React.createRef());
   }, [tableStudies]);
 
   const getStudyObj = () => {
+    const rowIndex = Math.max(...tableStudies.map((o) => o.index), 0) + 1;
     return {
-      index: Math.max(...tableStudies.map((o) => o.index), 0) + 1,
+      index: rowIndex,
       study: null,
       roles: [],
     };
@@ -155,11 +159,6 @@ const UserAssignmentTable = ({
     return newChildRef;
   };
 
-  const lineRefs = React.useRef([]);
-  lineRefs.current = tableStudies.map(
-    (_, i) => lineRefs.current[i] ?? React.createRef()
-  );
-
   const EditableStudy = ({ row, column: { accessor: key } }) => {
     return (
       <div className="study">
@@ -229,9 +228,10 @@ const UserAssignmentTable = ({
   };
 
   const onDelete = (index) => {
-    const prevTableStudies = tableStudies;
+    let prevTableStudies = tableStudies;
     const tableIndex = tableStudies.findIndex((el) => el.index === index);
     prevTableStudies.splice(tableIndex, 1);
+    prevTableStudies = prevTableStudies.map((e, i) => ({ ...e, index: i + 1 }));
     setTableStudies([...prevTableStudies]);
   };
 
