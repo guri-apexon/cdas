@@ -412,7 +412,7 @@ exports.createVendor = async (req, res) => {
             "vendor",
             updatedID,
             key,
-            existDf[key],
+            existingObj[key],
             diffObj[key],
             "User Requested",
             userId,
