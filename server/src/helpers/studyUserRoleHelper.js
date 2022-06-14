@@ -37,8 +37,8 @@ exports.insertAuditLog = async (
       old_val,
       new_val,
       rsn_for_chg,
-      updated_by,
-      updated_on,
+      updated_by || "",
+      updated_on || getCurrentTime(),
     ]);
     if (result.rowCount > 0) return true;
   } catch (error) {

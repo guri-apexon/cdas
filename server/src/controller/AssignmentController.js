@@ -84,7 +84,7 @@ exports.assignmentCreate = async (req, res) => {
 
 exports.assignmentRemove = async (req, res) => {
   const data = req.body;
-  const { email, protocols, createdBy, createdOn, tenant } = data;
+  const { email, protocols, updatedBy, updatedOn, tenant } = data;
 
   // validate data
   const validate = await assignmentHelper.validateAssignment(data);
@@ -102,9 +102,9 @@ exports.assignmentRemove = async (req, res) => {
   if (user.isInactive)
     return apiResponse.ErrorResponse(res, "No active or invited user found");
 
-  // validate createdby
-  const createdById = await userHelper.findByUserId(createdBy);
-  if (createdBy && !createdById)
+  // validate updatedBy
+  const updatedById = await userHelper.findByUserId(updatedBy);
+  if (updatedBy && !updatedById)
     return apiResponse.ErrorResponse(res, "Created by Id does not exists");
 
   protocols.forEach((p) => (p.isValid = false));
@@ -121,8 +121,8 @@ exports.assignmentRemove = async (req, res) => {
     let revokeResult = await assignmentHelper.protocolsStudyRevoke(
       protocols,
       user,
-      createdBy,
-      createdOn
+      updatedBy,
+      updatedOn
     );
     if (!revokeResult)
       return apiResponse.ErrorResponse(
@@ -135,8 +135,8 @@ exports.assignmentRemove = async (req, res) => {
   const assignmentResult = await assignmentHelper.makeAssignmentsInactive(
     protocols,
     user,
-    createdBy,
-    createdOn
+    updatedBy,
+    updatedOn
   );
   if (!assignmentResult)
     return apiResponse.ErrorResponse(
