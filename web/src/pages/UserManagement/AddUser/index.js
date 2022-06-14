@@ -462,10 +462,15 @@ const AddUser = () => {
       return true;
     }
     return (async () => {
+      let splitedNames = selectedUser?.displayName?.split(", ") || [];
+      if (!splitedNames.length)
+        splitedNames = selectedUser?.displayName?.split(",") || [];
+      const firstName = selectedUser.givenName || splitedNames[1];
+      const lastName = selectedUser.sn || splitedNames[0];
       setCreateUserStatus("loading");
       const userResponse = await inviteInternalUser(
-        selectedUser.givenName,
-        selectedUser.sn,
+        firstName,
+        lastName,
         selectedUser.mail,
         selectedUser.sAMAccountName
       );
