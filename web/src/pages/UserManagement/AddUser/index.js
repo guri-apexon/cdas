@@ -486,6 +486,18 @@ const AddUser = () => {
     setStudiesRows(sr);
   };
 
+  const getFullName = () => {
+    if (selectedUser?.givenName && selectedUser?.sn) {
+      return `${selectedUser?.givenName} ${selectedUser?.sn}`;
+    }
+    const splittedNames = selectedUser?.displayName?.split(", ") || [];
+    const firstName =
+      selectedUser?.givenName ||
+      (splittedNames.length === 2 ? splittedNames[1] : splittedNames[0]);
+    const lastName = selectedUser?.sn || splittedNames[0];
+    return `${firstName} ${lastName}`;
+  };
+
   return (
     <div className="create-user-wrapper">
       {isShowAlertBox && (
@@ -645,7 +657,7 @@ const AddUser = () => {
                       <Tooltip
                         variant="dark"
                         placement="top"
-                        title={selectedUser?.displayName}
+                        title={getFullName()}
                         extraLabels={[{ subtitle: selectedUser?.mail }]}
                         open={showToolTip && selectedUser}
                       >
