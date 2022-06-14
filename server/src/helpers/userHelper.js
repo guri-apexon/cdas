@@ -5,6 +5,8 @@ const { data } = require("../config/logger");
 const { getCurrentTime, validateEmail } = require("./customFunctions");
 const Logger = require("../config/logger");
 const constants = require("../config/constants");
+const { FSR_API_URI, FSR_HEADERS } = require("../config/constants");
+const e = require("express");
 const { DB_SCHEMA_NAME: schemaName } = constants;
 
 const SDA_BASE_API_URL = `${process.env.SDA_BASE_URL}/sda-rest-api/api/external/entitlement/V1/ApplicationUsers`;
@@ -20,16 +22,28 @@ exports.CONSTANTS = {
   INTERNAL: "INTERNAL",
 };
 
-exports.deProvisionUser = async (data) => {
-  const { appKey, userType, roleType, email, updatedBy } = data;
-  try {
-    const response = await axios(SDA_Endpoint_Deprovision);
-    return response;
-  } catch (error) {
-    return error;
-  }
-};
+/**
+ *
+ * @param {*appKey, userType, roleType, email, updatedBy  , networkId} data
+ * @param {*} user_type
+ * @returns
+ */
 
+ exports.deProvisionUser = async (data, user_type) => {
+   let requestBody;
+   try {
+     if (user_type === "internal") {
+      const {email , ...rest } = data;
+       requestBody = rest;
+     } else {
+       const { networkId, ...rest } = data;
+       requestBody = rest;
+     }
+     return await axios.delete(SDA_Endpoint_Deprovision, { data: requestBody });
+   } catch (error) {
+     return error;
+   }
+ };
 /**
  * Verifies the email with SDA whether it is provisioned or not
  * @param {*} email
@@ -253,3 +267,35 @@ exports.insertUserInDb = async (userDetails) => {
     return false;
   }
 };
+
+exports.getSDAuserDataById = async (uid) => {
+  try {
+    const response = await axios.get(SDA_Endpoint_get_users);
+    return response?.data.find((e) => e?.userId == uid);
+  } catch (error) {
+    console.log("Internal user provision error", data, error);
+  }
+};
+
+exports.revokeStudy = async (requestBody, studyList) => {
+  const FSR_Revoke = `${FSR_API_URI}/study/revoke`;
+  let apiStatus = "";
+  for (const element of studyList) {
+    axios
+      .post(
+        FSR_Revoke,
+        { ...requestBody, studyId: element?.prot_nbr_stnd },
+        {
+          headers: FSR_HEADERS,
+        }
+      )
+      .then((res) => {})
+      .catch((err) => {
+        apiStatus = false;
+      });
+  }
+
+  return apiStatus === "" ? true : false;
+};
+
+
