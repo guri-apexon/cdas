@@ -610,11 +610,11 @@ const AddUser = () => {
                       size="small"
                       label="Email"
                       onChange={handleChange}
-                      onFocus={() => setShowToolTip(true)}
                       onBlur={(e) => {
                         validateField(e);
-                        setShowToolTip(false);
                       }}
+                      onMouseLeave={() => setShowToolTip(false)}
+                      onMouseEnter={() => setShowToolTip(true)}
                       error={!!selectedUserError?.usr_mail_id?.length}
                       helperText={selectedUserError?.usr_mail_id}
                     />
@@ -658,6 +658,10 @@ const AddUser = () => {
                         onMouseLeave={() => {
                           setShowToolTip(false);
                         }}
+                        // onBlur={() => {
+                        //   setSearchQuery("");
+                        //   setUserList([]);
+                        // }}
                         popupIcon={<SearchIcon fontSize="extraSmall" />}
                         source={userList}
                         label="Name"
