@@ -83,7 +83,7 @@ exports.insertUserStudyRole = async (
     LIMIT 1`;
 
   const checkStudyUserRoleQuery = `
-    SELECT * FROM ${schemaName}.study_user_role 
+    SELECT * FROM ${schemaName}.study_user_role
     WHERE usr_id='${usr_id}' AND prot_id='${prot_id}' AND role_id='${role_id}' 
     LIMIT 1`;
 
@@ -155,11 +155,9 @@ exports.makeUserStudyRoleInactive = async (
     LIMIT 1`;
 
   const updateQuery = `
-    UPDATE ${schemaName}.study_user_role SET act_flg = 0 
+    UPDATE ${schemaName}.study_user_role SET act_flg = 0, updated_by='${createdBy}', updated_on = '${createdOn}
     WHERE usr_id='${usr_id}' AND prot_id='${prot_id}' AND role_id='${role_id}' 
     RETURNING prot_usr_role_id`;
-
-  const auditQuery = ``;
 
   try {
     const isExist = await DB.executeQuery(checkStudyUserRoleQuery);
@@ -169,6 +167,33 @@ exports.makeUserStudyRoleInactive = async (
     }
   } catch (error) {
     console.log(">>>> error:insertUserStudyRole ", error);
+  }
+  return false;
+};
+exports.makeUserStudyInactive = async (
+  usr_id,
+  prot_id,
+  createdBy,
+  createdOn
+) => {
+  const checkStudyUserRoleQuery = `
+    SELECT * FROM ${schemaName}.study_user
+    WHERE usr_id='${usr_id}' AND prot_id='${prot_id}' AND act_flg = 1
+    LIMIT 1`;
+
+  const updateQuery = `
+    UPDATE ${schemaName}.study_user SET act_flg = 0, updt_tm = '${createdOn}' 
+    WHERE usr_id='${usr_id}' AND prot_id='${prot_id}' 
+    RETURNING prot_usr_role_id`;
+
+  try {
+    const isExist = await DB.executeQuery(checkStudyUserRoleQuery);
+    if (isExist && isExist.rowCount > 0) {
+      const result = await DB.executeQuery(updateQuery);
+      return result.rows[0].prot_usr_role_id;
+    }
+  } catch (error) {
+    console.log(">>>> error:insertUserStudy ", error);
   }
   return false;
 };
@@ -211,7 +236,7 @@ exports.validateProtocolsRoles = async (user, protocols) => {
   let message =
     makeArrayErrorMesage("Protocol(s)", "not found. ", protocolNotPresent) +
     makeArrayErrorMesage("Role(s)", "not found. ", roleNotPresent) +
-    makeArrayErrorMesage("Protocol(s)", "found inactive. ", roleNotActive);
+    makeArrayErrorMesage("Role(s)", "found inactive. ", roleNotActive);
 
   if (message.trim() !== "")
     return { success: false, message, protocols: null };
@@ -305,9 +330,17 @@ exports.makeAssignmentsInactive = async (
   createdBy,
   createdOn
 ) => {
+  let flag = false;
   for (let i = 0; i < protocols.length; i++) {
     const protocol = protocols[i];
     if (!protocol.roleIds || !protocol.isValid) continue;
+    const result = await this.makeUserStudyInactive(
+      user.usr_id,
+      protocol.id,
+      createdBy || "",
+      createdOn || getCurrentTime()
+    );
+    if (result) flag = true;
     for (let j = 0; j < protocol.roleIds.length; j++) {
       const roleId = protocol.roleIds[j];
       const result = await this.makeUserStudyRoleInactive(
@@ -319,11 +352,11 @@ exports.makeAssignmentsInactive = async (
       );
       if (result) {
         await insertAuditLog(result, "act_flg", 1, 0, createdBy, createdOn);
+        flag = true;
       } else {
         Logger.error("assignmentCreate > saveToDb > " + protocol.name);
-        return false;
       }
     }
   }
-  return true;
+  return flag;
 };
