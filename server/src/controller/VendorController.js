@@ -239,7 +239,6 @@ exports.createVendor = async (req, res) => {
   try {
     Logger.info({ message: "createVendor" });
 
-
     const {
       ExternalId,
       systemName,
@@ -249,9 +248,18 @@ exports.createVendor = async (req, res) => {
       vStatus,
       vESName,
       vContacts,
+      vMnemonic,
       userId,
-      insrt_tm
+      insrt_tm,
     } = req.body;
+
+    if (vMnemonic) {
+      if (typeof vMnemonic !== "string") {
+        return apiResponse.validationErrorWithData(
+          "vMnemonic fields optional and data type should be string."
+        );
+      }
+    }
 
     const insertQuery = `INSERT INTO ${schemaName}.vendor (vend_nm, vend_nm_stnd, description, active, extrnl_sys_nm, insrt_tm, updt_tm ,  created_by, updated_by , extrnl_id) VALUES($1, $2, $3, $4, $5, $6, $6, $7, $7, $8) RETURNING *`;
     const dfVendorList = `select distinct vend_id from ${schemaName}.dataflow d`;
@@ -278,9 +286,19 @@ exports.createVendor = async (req, res) => {
       existingVendor = await DB.executeQuery(selectVendor, [ID]);
     }
 
+    let vNameStd;
+    if (vMnemonic) {
+      vNameStd = vMnemonic;
+    } else {
+      if (vName) {
+        const vNameStr = vName.replace(/[^a-zA-Z0-9]/g, "");
+        vNameStd = vNameStr.toUpperCase();
+      }
+    }
+
     const payload = [
       vName,
-      vName,
+      vNameStd,
       vDescription,
       vStatus,
       vESName,
@@ -334,13 +352,13 @@ exports.createVendor = async (req, res) => {
           );
         }
 
-        let updatedContacts = {} ;
+        let updatedContacts = {};
 
         const updatedVendor = await DB.executeQuery(updateQuery, [
           ...payload,
           updatedID,
         ]);
-        console.log(vContacts)
+        console.log(vContacts);
         if (vContacts?.length) {
           for (let e of vContacts) {
             if (e.isNew) {
@@ -372,7 +390,7 @@ exports.createVendor = async (req, res) => {
           !existingVendor?.rowCount ||
           !updatedContacts?.rowCount
         ) {
-          return apiResponse.ErrorResponse(res, "Something went wrong" );
+          return apiResponse.ErrorResponse(res, "Something went wrong");
         }
 
         const vendorObj = updatedVendor?.rows[0];
@@ -394,7 +412,7 @@ exports.createVendor = async (req, res) => {
             "vendor",
             updatedID,
             key,
-            existDf[key],
+            existingObj[key],
             diffObj[key],
             "User Requested",
             userId,
@@ -413,7 +431,7 @@ exports.createVendor = async (req, res) => {
       }
     }
   } catch (err) {
-    console.log('errrrrr' ,  err )
+    console.log("errrrrr", err);
     //throw error in json response with status 500.
     Logger.error("catch :createVendor");
     Logger.error(err);
