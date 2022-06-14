@@ -187,10 +187,7 @@ const UserAssignmentTable = ({
   };
 
   const EditableRoles = ({ row, column: { accessor: key } }) => {
-    if (
-      row.study === null &&
-      row.index === tableStudies[tableStudies.length - 1]?.index
-    )
+    if (row.index === tableStudies[tableStudies.length - 1]?.index)
       return false;
     return (
       <div className="role">
@@ -208,10 +205,7 @@ const UserAssignmentTable = ({
     );
   };
   const DeleteStudyCell = ({ row }) => {
-    if (
-      row.study === null &&
-      row.index === tableStudies[tableStudies.length - 1]?.index
-    )
+    if (row.index === tableStudies[tableStudies.length - 1]?.index)
       return false;
     const { index, onDelete } = row;
     return (
