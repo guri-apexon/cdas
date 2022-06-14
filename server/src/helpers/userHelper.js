@@ -33,10 +33,10 @@ exports.CONSTANTS = {
    let requestBody;
    try {
      if (user_type === "internal") {
-      const { networkId, ...rest } = data;
+      const {email , ...rest } = data;
        requestBody = rest;
      } else {
-       const { email, ...rest } = data;
+       const { networkId, ...rest } = data;
        requestBody = rest;
      }
      return await axios.delete(SDA_Endpoint_Deprovision, { data: requestBody });
