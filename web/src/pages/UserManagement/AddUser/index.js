@@ -378,7 +378,9 @@ const AddUser = () => {
       const msg = userResponse.message || "Success";
       toast.showSuccessMessage(`${msg}. Now assigning study roles.`);
     } else {
-      const msg = userResponse.message || "Error Occured";
+      // const msg = userResponse.message || "Error Occured";
+      const msg =
+        "Unable to add new user – please try again or report problem to the system administrator";
       toast.showErrorMessage(msg);
       return false;
     }
