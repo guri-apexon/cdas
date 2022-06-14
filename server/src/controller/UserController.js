@@ -191,7 +191,6 @@ exports.deleteNewUser = async (req, res) => {
               user_type
             );
 
-            console.log(sda_status);
 
             if (sda_status.status !== 200 && sda_status.status !== 204) {
               return apiResponse.ErrorResponse(
