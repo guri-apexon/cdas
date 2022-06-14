@@ -6,7 +6,7 @@ const userHelper = require("../helpers/userHelper");
 const tenantHelper = require("../helpers/tenantHelper");
 const apiResponse = require("../helpers/apiResponse");
 const constants = require("../config/constants");
-const { DB_SCHEMA_NAME: schemaName, SDA_APP_KEY, SDA_BASE_URL } = constants;
+const { DB_SCHEMA_NAME: schemaName } = constants;
 
 const logQuery = `INSERT INTO ${schemaName}.audit_log (tbl_nm,id,attribute,old_val,new_val,rsn_for_chg,updated_by,updated_on) values ($1, $2, $3, $4, $5, $6, $7, $8)`;
 
@@ -166,7 +166,7 @@ exports.deleteNewUser = async (req, res) => {
         const inActiveUserQuery = ` UPDATE ${schemaName}.user set usr_stat=$1 , updt_tm=$2 WHERE usr_mail_id='${email_id}'`;
         const studyStatusUpdateQuery = `UPDATE ${schemaName}.study_user set act_flg=0 , updt_tm='${updt_tm}' WHERE usr_id='${user_id}'`;
         const getStudiesQuery = `SELECT * from ${schemaName}.study WHERE usr_id='${user_id}'`;
-        
+
         const isUserExists = await userHelper.isUserExists(email_id);
         if (isUserExists) {
           const user = await userHelper.findByEmail(email_id);
@@ -176,7 +176,7 @@ exports.deleteNewUser = async (req, res) => {
             const userDetails = await userHelper.getSDAuserDataById(user_id);
 
             const requestBody = {
-              appKey: SDA_APP_KEY,
+              appKey: process.env.SDA_APP_KEY,
               userType: user_type,
               roleType: userDetails?.roleType,
               networkId: user_id,
@@ -190,6 +190,7 @@ exports.deleteNewUser = async (req, res) => {
               user_type
             );
 
+            console.log(sda_status);
 
             if (sda_status.status !== 200 && sda_status.status !== 204) {
               return apiResponse.ErrorResponse(
@@ -288,7 +289,6 @@ exports.deleteNewUser = async (req, res) => {
     } else {
       return apiResponse.ErrorResponse(res, "Required fields are missing");
     }
-
   } catch (err) {
     console.log(err, "unable to delete user");
     //throw error in json response with status 500.
