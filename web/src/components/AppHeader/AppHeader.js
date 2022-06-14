@@ -347,7 +347,7 @@ const AppHeader = ({ history, setLoggedIn }) => {
               : item.menuItems.some((item) => item.pathname === pathname)
           }
           waves
-          notificationsMenuProps={notificationsMenuProps}
+          // notificationsMenuProps={notificationsMenuProps}
           otherButtons={
             // eslint-disable-next-line react/jsx-wrap-multilines
             <div className={classes.centerAligned}>
