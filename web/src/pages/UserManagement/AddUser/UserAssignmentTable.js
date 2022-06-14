@@ -152,12 +152,6 @@ const UserAssignmentTable = ({
       return newRows;
     });
   };
-  const allChildRefs = [];
-  const childRefs = () => {
-    const newChildRef = React.createRef();
-    if (!newChildRef.current) allChildRefs.push(newChildRef);
-    return newChildRef;
-  };
 
   const EditableStudy = ({ row, column: { accessor: key } }) => {
     return (
