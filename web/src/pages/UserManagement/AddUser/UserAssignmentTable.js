@@ -259,7 +259,7 @@ const UserAssignmentTable = ({
         onClick={(e) => {
           lineRefs.current[
             tableStudies.length - 1
-          ].current.lastElementChild.childNodes[0].firstElementChild.childNodes[1].childNodes[1].click();
+          ]?.current?.lastElementChild?.childNodes[0]?.firstElementChild?.childNodes[1]?.childNodes[1]?.click();
         }}
       >
         Add user assignment
