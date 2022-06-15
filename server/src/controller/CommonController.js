@@ -6,6 +6,7 @@ const btoa = require("btoa");
 const apiResponse = require("../helpers/apiResponse");
 const Logger = require("../config/logger");
 const constants = require("../config/constants");
+const { DB_SCHEMA_NAME: schemaName } = constants;
 
 const { FSR_HEADERS, FSR_API_URI, SDA_BASE_URL } = constants;
 
@@ -92,4 +93,77 @@ module.exports = {
       return apiResponse.ErrorResponse(res, err);
     }
   },
+};
+
+module.exports.auditEntry = async (name, id, diffObj, updatedObj, userId) => {
+  try {
+    // console.log("updated call", diffObj);
+
+    const currentTime = moment().format("YYYY-MM-DD HH:mm:ss");
+    for (let key of Object.keys(diffObj)) {
+      let newData = updatedObj[key];
+      let oldData = diffObj[key];
+      if (diffObj[key] === null) {
+        newData = null;
+        key = "New Entry";
+      }
+      await DB.executeQuery(
+        `INSERT INTO ${schemaName}.audit_log
+                        ( tbl_nm, id, attribute, old_val, new_val, rsn_for_chg, updated_by, updated_on)
+                        VALUES($1,$2,$3,$4,$5,$6,$7,$8);`,
+        [name, id, key, oldData, newData, "User Requested", userId, currentTime]
+      );
+    }
+    // console.log("updated");
+
+    return;
+  } catch (err) {
+    console.log(err);
+    Logger.error("catch :Audit log entry");
+    Logger.error(err);
+  }
+};
+
+module.exports.studyAudit = async (protId, column, oldVal, newVal, userId) => {
+  try {
+    // console.log("updated call");
+    const currentTime = moment().format("YYYY-MM-DD HH:mm:ss");
+    await DB.executeQuery(
+      `INSERT INTO ${schemaName}.study_audit_log
+                        ( prot_id, attribute, old_val, new_val, rsn_for_chg, updated_by, updated_on)
+                        VALUES($1,$2,$3,$4,$5,$6,$7);`,
+      [protId, column, oldVal, newVal, "User Requested", userId, currentTime]
+    );
+
+    return;
+  } catch (err) {
+    console.log(err);
+    Logger.error("catch :Audit log entry");
+    Logger.error(err);
+  }
+};
+
+module.exports.studyUserAudit = async (
+  rollId,
+  column,
+  oldVal,
+  newVal,
+  userId
+) => {
+  try {
+    // console.log("updated call");
+    const currentTime = moment().format("YYYY-MM-DD HH:mm:ss");
+    await DB.executeQuery(
+      `INSERT INTO ${schemaName}.study_user_role_audit_log
+                        ( prot_usr_role_id, attribute, old_val, new_val, rsn_for_chg, updated_by, updated_on)
+                        VALUES($1,$2,$3,$4,$5,$6,$7);`,
+      [rollId, column, oldVal, newVal, "User Requested", userId, currentTime]
+    );
+    // console.log("updated");
+    return;
+  } catch (err) {
+    console.log(err);
+    Logger.error("catch :Audit log entry");
+    Logger.error(err);
+  }
 };

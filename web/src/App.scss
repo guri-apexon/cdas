@@ -9,11 +9,17 @@
 .flex-center {
   align-items: center;
 }
+.justify-center {
+  justify-content: center;
+}
 .link {
   cursor: pointer;
 }
 .b-font {
   font-weight: 600 !important;
+}
+.p-relative {
+  position: relative;
 }
 .flexWrap {
   flex-direction: column;
