@@ -286,7 +286,7 @@ exports.createNewUser = async (req, res, returnBool = false) => {
           updt_tm: data.updt_tm || getCurrentTime(),
           status: "Invited",
           uid: "",
-          externalId: provision_response.data,
+          externalId: data?.employeeId,
         });
     } else {
       return returnBool
