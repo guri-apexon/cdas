@@ -360,9 +360,7 @@ const AddUser = () => {
   }, []);
 
   const switchUserType = (newUser) => {
-    const defaultValues = newUser
-      ? { usr_fst_nm: "", usr_lst_nm: "", usr_mail_id: "", extrnl_emp_id: "" }
-      : null;
+    const defaultValues = null;
     setSelectedUser(defaultValues);
     setIsNewUser(newUser);
     setShowToolTip(false);
@@ -425,7 +423,8 @@ const AddUser = () => {
     return (
       !selectedUser ||
       !sr?.length ||
-      sr?.find((x) => x.study == null || emptyRoles.length)
+      sr?.find((x) => x.study == null || emptyRoles.length) ||
+      (isNewUser && !validNewUserDataCondition())
     );
   };
 
