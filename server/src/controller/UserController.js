@@ -298,14 +298,21 @@ exports.createNewUser = async (req, res, returnBool = false) => {
     }
   }
   if (!usr_id)
-    apiResponse.ErrorResponse(res, "An error occured while inserting the user");
+    return returnBool
+      ? false
+      : apiResponse.ErrorResponse(
+          res,
+          "An error occured while inserting the user"
+        );
 
   if (usr_id && tenant_id) tenantHelper.insertTenantUser(usr_id, tenant_id);
   else
-    apiResponse.ErrorResponse(
-      res,
-      "An error occured while entering user and tenant detail"
-    );
+    return returnBool
+      ? false
+      : apiResponse.ErrorResponse(
+          res,
+          "An error occured while entering user and tenant detail"
+        );
   return returnBool
     ? true
     : apiResponse.successResponseWithData(res, "User successfully created");
