@@ -365,9 +365,8 @@ const AddUser = () => {
 
   const createUserAndAssignStudies = async () => {
     const email = isNewUser ? selectedUser.usr_mail_id : selectedUser.mail;
-    const uid = isNewUser
-      ? selectedUser?.extrnl_emp_id
-      : selectedUser?.sAMAccountName;
+    const uid = selectedUser?.sAMAccountName;
+    const employeeId = selectedUser?.extrnl_emp_id?.trim() || "";
 
     const formattedRows = studiesRows.map((e) => {
       return {
@@ -388,7 +387,7 @@ const AddUser = () => {
       payload = {
         firstName,
         lastName,
-        uid,
+        employeeId,
         ...insertUserStudy,
       };
     } else {
