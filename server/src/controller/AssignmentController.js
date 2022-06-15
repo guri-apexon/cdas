@@ -7,7 +7,7 @@ const moment = require("moment");
 const constants = require("../config/constants");
 const { create } = require("lodash");
 
-exports.assignmentCreate = async (req, res, returnBool) => {
+exports.assignmentCreate = async (req, res, returnBool = false) => {
   const data = req.body;
   const { email, protocols, createdBy, createdOn, tenant } = data;
 
