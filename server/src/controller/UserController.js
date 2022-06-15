@@ -290,7 +290,6 @@ exports.deleteNewUser = async (req, res) => {
         if (isUserExists) {
           const user = await userHelper.findByEmail(email_id);
 
-
           // SDA
           if (user?.isActive) {
             const userDetails = await userHelper.getSDAuserDataById(user_id);
@@ -309,7 +308,6 @@ exports.deleteNewUser = async (req, res) => {
               requestBody,
               user_type
             );
-
 
             if (sda_status.status !== 200 && sda_status.status !== 204) {
               return apiResponse.ErrorResponse(
@@ -415,3 +413,7 @@ exports.deleteNewUser = async (req, res) => {
   }
 };
 
+exports.secureApi = async (req, res) => {
+  const { userId } = req.body;
+  return apiResponse.successResponse(res, "Secure Api Success");
+};
