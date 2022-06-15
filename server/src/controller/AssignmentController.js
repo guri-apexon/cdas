@@ -97,7 +97,7 @@ exports.assignmentCreate = async (req, res, returnBool = false) => {
       : apiResponse.ErrorResponse(res, "All Protocols/Roles already existed");
 
   return returnBool
-    ? true
+    ? false
     : apiResponse.successResponse(
         res,
         `An invitation has been emailed to ${email}`
