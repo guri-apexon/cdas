@@ -7,40 +7,54 @@ const moment = require("moment");
 const constants = require("../config/constants");
 const { create } = require("lodash");
 
-exports.assignmentCreate = async (req, res) => {
+exports.assignmentCreate = async (req, res, returnBool) => {
   const data = req.body;
   const { email, protocols, createdBy, createdOn, tenant } = data;
 
   // validate data
   const validate = await assignmentHelper.validateAssignment(data);
   if (validate.success === false)
-    return apiResponse.ErrorResponse(res, validate.message);
+    return returnBool
+      ? false
+      : apiResponse.ErrorResponse(res, validate.message);
 
   // validate tenant
   const tenant_id = await tenantHelper.findByName(tenant);
   if (!tenant_id)
-    return apiResponse.ErrorResponse(res, "Tenant does not exists");
+    return returnBool
+      ? false
+      : apiResponse.ErrorResponse(res, "Tenant does not exists");
 
   // validate user
   const user = await userHelper.findByEmail(email);
-  if (!user) return apiResponse.ErrorResponse(res, "User does not exists");
+  if (!user)
+    return returnBool
+      ? false
+      : apiResponse.ErrorResponse(res, "User does not exists");
   if (user.isInactive)
-    return apiResponse.ErrorResponse(res, "No active or invited user found");
+    return returnBool
+      ? false
+      : apiResponse.ErrorResponse(res, "No active or invited user found");
 
   // validate createdby
   const createdById = await userHelper.findByUserId(createdBy);
   if (createdBy && !createdById)
-    return apiResponse.ErrorResponse(res, "Created by Id does not exists");
+    return returnBool
+      ? false
+      : apiResponse.ErrorResponse(res, "Created by Id does not exists");
 
   protocols.forEach((p) => (p.isValid = false));
   const vpr = await assignmentHelper.validateProtocolsRoles(user, protocols);
-  if (!vpr.success) return apiResponse.ErrorResponse(res, vpr.message);
+  if (!vpr.success)
+    return returnBool ? false : apiResponse.ErrorResponse(res, vpr.message);
 
   if (protocols.every((p) => !p.isValid))
-    return apiResponse.ErrorResponse(
-      res,
-      "No valid protocols found to be processed"
-    );
+    return returnBool
+      ? false
+      : apiResponse.ErrorResponse(
+          res,
+          "No valid protocols found to be processed"
+        );
 
   if (!user.isExternal) {
     const grantResult = await assignmentHelper.protocolsStudyGrant(
@@ -50,10 +64,12 @@ exports.assignmentCreate = async (req, res) => {
       createdOn
     );
     if (!grantResult)
-      return apiResponse.ErrorResponse(
-        res,
-        "An error occured while ganting study in the FSR"
-      );
+      return returnBool
+        ? false
+        : apiResponse.ErrorResponse(
+            res,
+            "An error occured while ganting study in the FSR"
+          );
   }
 
   // save it to the database
@@ -65,24 +81,27 @@ exports.assignmentCreate = async (req, res) => {
   );
 
   if (!saveResult.success)
-    return apiResponse.ErrorResponse(
-      res,
-      "An error occured while inserting records"
-    );
+    return returnBool
+      ? false
+      : apiResponse.ErrorResponse(
+          res,
+          "An error occured while inserting records"
+        );
 
   if (
     saveResult.protocolsInserted === 0 &&
     saveResult.studyRolesUserInserted === 0
   )
-    return apiResponse.ErrorResponse(
-      res,
-      "All Protocols/Roles already existed"
-    );
+    return returnBool
+      ? false
+      : apiResponse.ErrorResponse(res, "All Protocols/Roles already existed");
 
-  return apiResponse.successResponse(
-    res,
-    `An invitation has been emailed to ${email}`
-  );
+  return returnBool
+    ? true
+    : apiResponse.successResponse(
+        res,
+        `An invitation has been emailed to ${email}`
+      );
 };
 
 exports.assignmentRemove = async (req, res) => {

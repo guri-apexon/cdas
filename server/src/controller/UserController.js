@@ -6,6 +6,8 @@ const userHelper = require("../helpers/userHelper");
 const tenantHelper = require("../helpers/tenantHelper");
 const apiResponse = require("../helpers/apiResponse");
 const constants = require("../config/constants");
+const AssignmentController = require("../controller/AssignmentController");
+
 const { DB_SCHEMA_NAME: schemaName } = constants;
 
 const logQuery = `INSERT INTO ${schemaName}.audit_log (tbl_nm,id,attribute,old_val,new_val,rsn_for_chg,updated_by,updated_on) values ($1, $2, $3, $4, $5, $6, $7, $8)`;
@@ -142,9 +144,8 @@ exports.isUserExists = async (req, res) => {
 };
 
 exports.inviteExternalUser = async (req, res) => {
-  // { , , firstName, lastName, email, uid, employeeId }
   const newReq = { ...req };
-  newReq.body["userType"] = req?.body?.userType;
+  newReq.body["userType"] = "external";
   Logger.info({ message: "inviteExternalUser - begin" });
 
   // Fetch First Tenet
@@ -160,23 +161,82 @@ exports.inviteExternalUser = async (req, res) => {
     return apiResponse.ErrorResponse(res, "Unable to fetch tenant");
   }
 
-  const response = await this.createNewUser(newReq, res);
-  return response;
+  const response = await this.createNewUser(newReq, res, true);
+  if (response) {
+    const assignmentResponse = AssignmentController.assignmentCreate(
+      newReq,
+      res,
+      true
+    );
+    if (assignmentResponse) {
+      return apiResponse.successResponse(
+        res,
+        `An invitation has been emailed to ${newReq.body.email}`
+      );
+    }
+  }
+
+  return apiResponse.ErrorResponse(
+    res,
+    "Unable to add new user – please try again or report problem to the system administrator"
+  );
+};
+exports.inviteInternalUser = async (req, res) => {
+  // { , , firstName, lastName, email, uid, employeeId }
+  const newReq = { ...req };
+  newReq.body["userType"] = "internal";
+  Logger.info({ message: "inviteInternalUser - begin" });
+
+  // Fetch First Tenet
+  const query = `SELECT tenant_nm FROM ${schemaName}.tenant LIMIT 1`;
+  try {
+    const result = await DB.executeQuery(query);
+    if (result.rowCount > 0) {
+      newReq.body["tenant"] = result.rows[0].tenant_nm;
+    } else {
+      return apiResponse.ErrorResponse(res, "Tenant does not exists");
+    }
+  } catch (error) {
+    return apiResponse.ErrorResponse(res, "Unable to fetch tenant");
+  }
+
+  const response = await this.createNewUser(newReq, res, true);
+  if (response) {
+    const assignmentResponse = AssignmentController.assignmentCreate(
+      newReq,
+      res,
+      true
+    );
+    if (assignmentResponse) {
+      return apiResponse.successResponse(
+        res,
+        `A new user ${newReq.body.firstName} ${newReq.body.lastName} has been added`
+      );
+    }
+  }
+  return apiResponse.ErrorResponse(
+    res,
+    "Unable to add new user – please try again or report problem to the system administrator"
+  );
 };
 
-exports.createNewUser = async (req, res) => {
+exports.createNewUser = async (req, res, returnBool = false) => {
   const data = req.body;
   Logger.info({ message: "create user - begin" });
 
   // validate data
   const validate = await userHelper.validateCreateUserData(data);
   if (validate.success === false)
-    return apiResponse.ErrorResponse(res, validate.message);
+    return returnBool
+      ? false
+      : apiResponse.ErrorResponse(res, validate.message);
 
   // validate tenant
   const tenant_id = await tenantHelper.findByName(data.tenant);
   if (!tenant_id)
-    return apiResponse.ErrorResponse(res, "Tenant does not exists");
+    return returnBool
+      ? false
+      : apiResponse.ErrorResponse(res, "Tenant does not exists");
 
   // provision into SDA and save
   const user = await userHelper.findByEmail(data.email);
@@ -184,10 +244,9 @@ exports.createNewUser = async (req, res) => {
   let usr_stat = (user && user.usr_stat) || "";
 
   if (user?.isActive || user?.isInvited)
-    return apiResponse.ErrorResponse(
-      res,
-      "User already exists in the database"
-    );
+    return returnBool
+      ? false
+      : apiResponse.ErrorResponse(res, "User already exists in the database");
 
   if (data.userType === "internal") {
     const provision_response = await userHelper.provisionInternalUser(data);
@@ -204,10 +263,12 @@ exports.createNewUser = async (req, res) => {
           externalId: data.uid,
         });
     } else {
-      return apiResponse.ErrorResponse(
-        res,
-        "An error occured while provisioning internal user"
-      );
+      return returnBool
+        ? false
+        : apiResponse.ErrorResponse(
+            res,
+            "An error occured while provisioning internal user"
+          );
     }
   } else {
     const provision_response = await userHelper.provisionExternalUser(data);
@@ -228,10 +289,12 @@ exports.createNewUser = async (req, res) => {
           externalId: provision_response.data,
         });
     } else {
-      return apiResponse.ErrorResponse(
-        res,
-        "An error occured while provisioning external user"
-      );
+      return returnBool
+        ? false
+        : apiResponse.ErrorResponse(
+            res,
+            "An error occured while provisioning external user"
+          );
     }
   }
   if (!usr_id)
@@ -243,7 +306,9 @@ exports.createNewUser = async (req, res) => {
       res,
       "An error occured while entering user and tenant detail"
     );
-  return apiResponse.successResponseWithData(res, "User successfully created");
+  return returnBool
+    ? true
+    : apiResponse.successResponseWithData(res, "User successfully created");
 };
 
 exports.getADUsers = async (req, res) => {
