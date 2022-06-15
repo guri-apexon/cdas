@@ -1,13 +1,13 @@
 const { default: axios } = require("axios");
 const { result } = require("lodash");
+const ActiveDirectory = require("activedirectory2").promiseWrapper;
 const DB = require("../config/db");
 const { data } = require("../config/logger");
 const { getCurrentTime, validateEmail } = require("./customFunctions");
 const Logger = require("../config/logger");
 const constants = require("../config/constants");
-const { FSR_API_URI, FSR_HEADERS } = require("../config/constants");
+const { DB_SCHEMA_NAME: schemaName, AD_CONFIG: ADConfig, FSR_API_URI, FSR_HEADERS } = require("../config/constants");
 const e = require("express");
-const { DB_SCHEMA_NAME: schemaName } = constants;
 
 const SDA_BASE_API_URL = `${process.env.SDA_BASE_URL}/sda-rest-api/api/external/entitlement/V1/ApplicationUsers`;
 const SDA_Endpoint = `${SDA_BASE_API_URL}?appKey=${process.env.SDA_APP_KEY}`;
@@ -183,6 +183,37 @@ exports.findByEmail = async (email) =>
 exports.isUserExists = async (email) => this.findByEmail(email);
 
 /**
+ * validates data for add user api
+ * @param {object} data = {  firstName, lastName, email, uid, employeeId }
+ * @returns {success: boolean , message: string} success as true on success false other wise
+ */
+exports.validateAddUserData = async (data) => {
+  const { firstName, lastName, email, uid, employeeId } = data;
+  if (!data) {
+    return { success: false, message: "data not provided" };
+  }
+  if (!(firstName && firstName.trim()))
+    return { success: false, message: "First Name is required field" };
+
+  if (!(lastName && lastName.trim()))
+    return { success: false, message: "Last Name is required field" };
+
+  if (!(email && email.trim()))
+    return { success: false, message: "Email id is required field" };
+
+  if (!validateEmail(email))
+    return { success: false, message: "Email id invalid" };
+
+  try {
+    const isUserAlreadyProvisioned = await this.isUserAlreadyProvisioned(email);
+    if (isUserAlreadyProvisioned) {
+      return { success: false, message: "User already Provisioned" };
+    }
+  } catch (error) {}
+
+  return { success: true, message: "validation success" };
+};
+/**
  * validates data for create user api
  * @param {object} data = { tenant, userType, firstName, lastName, email, uid, employeeId }
  * @returns {Promise<object>} success as true on success false other wise
@@ -268,6 +299,40 @@ exports.insertUserInDb = async (userDetails) => {
   }
 };
 
+exports.getUsersFromAD = async (query = "") => {
+  const ad = new ActiveDirectory(ADConfig);
+  const mustMailFilter = `(mail=*)`;
+  const userFilter = `(objectCategory=person)(objectClass=user)${mustMailFilter}`;
+  const emailFilter = `(mail=*${query}*)`;
+  const firstNameFilter = `(givenName=*${query}*)`;
+  const lastNameFilter = `(sn=*${query}*)`;
+  const displayNameFilter = `(displayName=*${query}*)`;
+  const filter = query
+    ? `(&${userFilter}(|${emailFilter}${firstNameFilter}${lastNameFilter}${displayNameFilter}))`
+    : `(&${userFilter})`;
+
+  const opts = {
+    filter,
+    sizeLimit: 100,
+    attributes: [
+      "givenName",
+      "sn",
+      "displayName",
+      "mail",
+      "userPrincipalName",
+      "employeeID",
+      "sAMAccountName",
+    ],
+  };
+
+  try {
+    const res = await ad.findUsers(opts);
+    return res;
+  } catch (err) {
+    console.log("error: getUsersFromAD", err);
+    return false;
+  }
+};
 exports.getSDAuserDataById = async (uid) => {
   try {
     const response = await axios.get(SDA_Endpoint_get_users);

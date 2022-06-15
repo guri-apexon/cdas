@@ -78,8 +78,13 @@ exports.assignmentCreate = async (req, res) => {
       res,
       "All Protocols/Roles already existed"
     );
-
-  return apiResponse.successResponse(res, "Assignments created successfully");
+      if (!result) {
+        return apiResponse.successResponse(
+          res,
+          "An unknown error encountered while saving."
+        );
+      }
+      return apiResponse.successResponse(res, `An invitation has been emailed to ${email}`);
 };
 
 exports.assignmentRemove = async (req, res) => {
