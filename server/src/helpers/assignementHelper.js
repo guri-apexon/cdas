@@ -155,15 +155,15 @@ exports.makeUserStudyRoleInactive = async (
     LIMIT 1`;
 
   const updateQuery = `
-    UPDATE ${schemaName}.study_user_role SET act_flg = 0, updated_by='${createdBy}', updated_on = '${createdOn}
+    UPDATE ${schemaName}.study_user_role SET act_flg = 0, updated_by='${createdBy}', updated_on='${createdOn}'
     WHERE usr_id='${usr_id}' AND prot_id='${prot_id}' AND role_id='${role_id}' 
-    RETURNING prot_usr_role_id`;
+    RETURNING *`;
 
   try {
     const isExist = await DB.executeQuery(checkStudyUserRoleQuery);
     if (isExist && isExist.rowCount > 0) {
       const result = await DB.executeQuery(updateQuery);
-      return result.rows[0].prot_usr_role_id;
+      return result.rows[0];
     }
   } catch (error) {
     console.log(">>>> error:insertUserStudyRole ", error);
