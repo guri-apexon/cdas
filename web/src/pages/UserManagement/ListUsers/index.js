@@ -254,10 +254,10 @@ const ListUsers = () => {
     },
     {
       header: "Employee ID",
-      accessor: "usr_id",
+      accessor: "formatted_emp_id",
       customCell: ProductsCell,
       sortFunction: compareStrings,
-      filterFunction: createStringSearchFilter("usr_id"),
+      filterFunction: createStringSearchFilter("formatted_emp_id"),
       filterComponent: TextFieldFilter,
       width: "30%",
     },
