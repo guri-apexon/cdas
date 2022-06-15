@@ -22,11 +22,10 @@ import Modal from "apollo-react/components/Modal";
 import {
   validateEmail,
   inviteExternalUser,
-  assingUserStudy,
   fetchADUsers,
   inviteInternalUser,
 } from "../../../services/ApiServices";
-import { getUserId, debounceFunction } from "../../../utils";
+import { debounceFunction } from "../../../utils";
 import usePermission, {
   Categories,
   Features,
@@ -135,7 +134,6 @@ const AddUser = () => {
   const [active, setActive] = useState(true);
   const [disableSave, setDisableSave] = useState(false);
   const [loading, setLoading] = useState(false);
-  // const [initialRender, setInitialRender] = useState(true);
   const [confirm, setConfirm] = useState(false);
   const [isAnyUpdate, setIsAnyUpdate] = useState(false);
   const [isShowAlertBox, setShowAlertBox] = useState(false);
@@ -144,10 +142,8 @@ const AddUser = () => {
   const [userList, setUserList] = useState([]);
   const [isNewUser, setIsNewUser] = useState(false);
   const [pingParent, setPingParent] = useState(0);
-  // const [tableStudies, setTableStudies] = useState([]);
   const [studiesRows, setStudiesRows] = useState();
   const [fetchStatus, setFetchStatus] = useState("success");
-  const [createUserStatus, setCreateUserStatus] = useState("success");
   const [confirmInviteUser, setConfirmInviteUser] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [checkUserAssignmentTableData, setCheckUserAssignmentTableData] =
@@ -241,9 +237,6 @@ const AddUser = () => {
   };
 
   const validateField = (e, list) => {
-    // const key = e?.target?.id;
-    // const value = selectedUser?.[key];
-
     const currentErrors = { ...selectedUserError };
 
     const keys = list || [e?.target?.id];
@@ -326,30 +319,6 @@ const AddUser = () => {
     !selectedUserError?.usr_lst_nm &&
     !selectedUserError?.usr_mail_id;
 
-  const handleCreateUser = async () => {
-    if (validNewUserDataCondition()) {
-      const {
-        usr_fst_nm: firstName,
-        usr_lst_nm: lastName,
-        usr_mail_id: email,
-        extrnl_emp_id: employeeId,
-      } = selectedUser;
-      const currentUserId = getUserId();
-
-      const response = await inviteExternalUser(
-        firstName,
-        lastName,
-        email,
-        currentUserId,
-        employeeId
-      );
-      return response;
-    }
-    const fields = ["usr_fst_nm", "usr_lst_nm", "usr_mail_id"];
-    validateField(undefined, fields);
-    return false;
-  };
-
   const handleSave = async () => {
     setPingParent((oldValue) => oldValue + 1);
   };
@@ -360,63 +329,10 @@ const AddUser = () => {
   }, []);
 
   const switchUserType = (newUser) => {
-    const defaultValues = newUser
-      ? { usr_fst_nm: "", usr_lst_nm: "", usr_mail_id: "", extrnl_emp_id: "" }
-      : null;
+    const defaultValues = null;
     setSelectedUser(defaultValues);
     setIsNewUser(newUser);
     setShowToolTip(false);
-  };
-  const assignStudyRoleToCreatedUser = async (userResponse) => {
-    const formattedRows = studiesRows.map((e) => {
-      return {
-        protocolname: e?.study?.prot_nbr_stnd,
-        roles: e.roles.map((r) => r.label),
-      };
-    });
-
-    if (userResponse.status === 1) {
-      const msg = userResponse.message || "Success";
-      // toast.showSuccessMessage(`${msg}. Now assigning study roles.`);
-    } else {
-      // const msg = userResponse.message || "Error Occured";
-      const msg =
-        "Unable to add new user – please try again or report problem to the system administrator";
-      toast.showErrorMessage(msg);
-      setLoading(false);
-      return false;
-    }
-
-    const email = !isNewUser ? selectedUser.mail : selectedUser.usr_mail_id;
-    const name = !isNewUser
-      ? `${
-          selectedUser.givenName
-            ? `${selectedUser.givenName} ${selectedUser.sn}`
-            : selectedUser.displayName
-        }`
-      : `${selectedUser.usr_fst_nm} ${selectedUser.usr_lst_nm}`;
-
-    const insertUserStudy = {
-      email,
-      protocols: formattedRows,
-      tenant: "t1",
-    };
-
-    const response = await assingUserStudy(insertUserStudy);
-    if (response.data.status) {
-      let msg;
-      if (!isNewUser) {
-        msg = `A new user ${name} has been added`;
-      } else {
-        msg = `An invitation has been emailed to ${email}`;
-      }
-      toast.showSuccessMessage(msg, 0);
-      history.push("/user-management");
-    } else {
-      toast.showErrorMessage(response.data.message, 0);
-    }
-    setLoading(false);
-    return null;
   };
 
   const checkSaveDisableCondition = () => {
@@ -425,8 +341,85 @@ const AddUser = () => {
     return (
       !selectedUser ||
       !sr?.length ||
-      sr?.find((x) => x.study == null || emptyRoles.length)
+      sr?.find((x) => x.study == null || emptyRoles.length) ||
+      (isNewUser && !validNewUserDataCondition())
     );
+  };
+
+  const updateUserAssign = async (selectedStudies) => {
+    const sr = [...selectedStudies].slice(0, -1);
+    setStudiesRows(sr);
+  };
+
+  const getFullName = () => {
+    if (selectedUser?.givenName && selectedUser?.sn) {
+      return `${selectedUser?.givenName} ${selectedUser?.sn}`;
+    }
+    const splittedNames = selectedUser?.displayName?.split(", ") || [];
+    const firstName =
+      selectedUser?.givenName ||
+      (splittedNames.length === 2 ? splittedNames[1] : splittedNames[0]);
+    const lastName = selectedUser?.sn || splittedNames[0];
+    return `${firstName} ${lastName}`;
+  };
+
+  const createUserAndAssignStudies = async () => {
+    const email = isNewUser ? selectedUser.usr_mail_id : selectedUser.mail;
+    const uid = isNewUser
+      ? selectedUser?.extrnl_emp_id
+      : selectedUser?.sAMAccountName;
+
+    const formattedRows = studiesRows.map((e) => {
+      return {
+        protocolname: e?.study?.prot_nbr_stnd,
+        roles: e.roles.map((r) => r.label),
+      };
+    });
+
+    const insertUserStudy = {
+      email,
+      protocols: formattedRows,
+    };
+
+    let payload = {};
+
+    if (isNewUser) {
+      const { usr_fst_nm: firstName, usr_lst_nm: lastName } = selectedUser;
+      payload = {
+        firstName,
+        lastName,
+        uid,
+        ...insertUserStudy,
+      };
+    } else {
+      const splittedNames = selectedUser?.displayName?.split(", ") || [];
+      const firstName =
+        selectedUser.givenName ||
+        (splittedNames.length === 2 ? splittedNames[1] : splittedNames[0]);
+      const lastName = selectedUser.sn || splittedNames[0];
+      payload = {
+        firstName,
+        lastName,
+        uid,
+        ...insertUserStudy,
+      };
+    }
+    let response;
+    if (isNewUser) {
+      response = await inviteExternalUser(payload);
+    } else {
+      response = await inviteInternalUser(payload);
+    }
+    setConfirmInviteUser(false);
+    setLoading(false);
+    const msg = response.message;
+    if (response.status === 1) {
+      toast.showSuccessMessage(msg);
+      history.push("/user-management");
+    } else {
+      toast.showErrorMessage(msg);
+    }
+    return null;
   };
 
   useEffect(() => {
@@ -458,45 +451,14 @@ const AddUser = () => {
       );
       return false;
     }
-    setLoading(true);
     if (isNewUser) {
       setConfirmInviteUser(true);
       return true;
     }
-    return (async () => {
-      const splittedNames = selectedUser?.displayName?.split(", ") || [];
-      const firstName =
-        selectedUser.givenName ||
-        (splittedNames.length === 2 ? splittedNames[1] : splittedNames[0]);
-      const lastName = selectedUser.sn || splittedNames[0];
-      setCreateUserStatus("loading");
-      const userResponse = await inviteInternalUser(
-        firstName,
-        lastName,
-        selectedUser.mail,
-        selectedUser.sAMAccountName
-      );
-      setCreateUserStatus("success");
-      return assignStudyRoleToCreatedUser(userResponse);
-    })();
+    setLoading(true);
+    createUserAndAssignStudies();
+    return null;
   }, [studiesRows]);
-
-  const updateUserAssign = async (selectedStudies) => {
-    const sr = [...selectedStudies].slice(0, -1);
-    setStudiesRows(sr);
-  };
-
-  const getFullName = () => {
-    if (selectedUser?.givenName && selectedUser?.sn) {
-      return `${selectedUser?.givenName} ${selectedUser?.sn}`;
-    }
-    const splittedNames = selectedUser?.displayName?.split(", ") || [];
-    const firstName =
-      selectedUser?.givenName ||
-      (splittedNames.length === 2 ? splittedNames[1] : splittedNames[0]);
-    const lastName = selectedUser?.sn || splittedNames[0];
-    return `${firstName} ${lastName}`;
-  };
 
   return (
     <div className="create-user-wrapper">
@@ -507,13 +469,16 @@ const AddUser = () => {
         <InviteUserModal
           open={confirmInviteUser}
           onSendInvite={async () => {
-            setCreateUserStatus("loading");
-            const userResponse = await handleCreateUser();
-            setCreateUserStatus("success");
-            setConfirmInviteUser(false);
-            return assignStudyRoleToCreatedUser(userResponse);
+            if (validNewUserDataCondition()) {
+              setLoading(true);
+              createUserAndAssignStudies();
+            } else {
+              setConfirmInviteUser(false);
+              const fields = ["usr_fst_nm", "usr_lst_nm", "usr_mail_id"];
+              validateField(undefined, fields);
+            }
           }}
-          loading={createUserStatus === "loading"}
+          loading={loading}
           email={selectedUser?.usr_mail_id}
           stayHere={() => {
             setConfirmInviteUser(false);
