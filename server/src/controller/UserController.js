@@ -473,3 +473,8 @@ exports.deleteNewUser = async (req, res) => {
     return err;
   }
 };
+
+exports.secureApi = async (req, res) => {
+  const { userId } = req.body;
+  return apiResponse.successResponse(res, "Secure Api Success");
+};
