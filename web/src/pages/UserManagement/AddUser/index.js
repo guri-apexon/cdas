@@ -334,13 +334,11 @@ const AddUser = () => {
         usr_mail_id: email,
         extrnl_emp_id: employeeId,
       } = selectedUser;
-      const currentUserId = getUserId();
 
       const response = await inviteExternalUser(
         firstName,
         lastName,
         email,
-        currentUserId,
         employeeId
       );
       return response;

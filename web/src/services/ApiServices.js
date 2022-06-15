@@ -504,12 +504,7 @@ export const inviteExternalUser = (firstName, lastName, email, employeeId) => {
   }
 };
 
-export const inviteInternalUser = (
-  firstName = "",
-  lastName = "",
-  email,
-  employeeId
-) => {
+export const inviteInternalUser = (firstName, lastName, email, employeeId) => {
   try {
     return new Promise((resolve, reject) => {
       axios
