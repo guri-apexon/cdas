@@ -6,23 +6,44 @@ const { data } = require("../config/logger");
 const { getCurrentTime, validateEmail } = require("./customFunctions");
 const Logger = require("../config/logger");
 const constants = require("../config/constants");
-const { DB_SCHEMA_NAME: schemaName, AD_CONFIG: ADConfig } = constants;
+const { DB_SCHEMA_NAME: schemaName, AD_CONFIG: ADConfig, FSR_API_URI, FSR_HEADERS } = require("../config/constants");
+const e = require("express");
 
 const SDA_BASE_API_URL = `${process.env.SDA_BASE_URL}/sda-rest-api/api/external/entitlement/V1/ApplicationUsers`;
 const SDA_Endpoint = `${SDA_BASE_API_URL}?appKey=${process.env.SDA_APP_KEY}`;
 const SDA_Endpoint_Deprovision = `${SDA_BASE_API_URL}/deprovisionUserFromApplication`;
 const SDA_Endpoint_get_users = `${SDA_BASE_API_URL}/getUsersForApplication?appKey=${process.env.SDA_APP_KEY}`;
 
-exports.deProvisionUser = async (data) => {
-  const { appKey, userType, roleType, email, updatedBy } = data;
-  try {
-    const response = await axios(SDA_Endpoint_Deprovision);
-    return response;
-  } catch (error) {
-    return error;
-  }
+exports.CONSTANTS = {
+  INACTIVE: "INACTIVE",
+  ACTIVE: "ACTIVE",
+  INVITED: "INVITED",
+  EXTERNAL: "EXTERNAL",
+  INTERNAL: "INTERNAL",
 };
 
+/**
+ *
+ * @param {*appKey, userType, roleType, email, updatedBy  , networkId} data
+ * @param {*} user_type
+ * @returns
+ */
+
+ exports.deProvisionUser = async (data, user_type) => {
+   let requestBody;
+   try {
+     if (user_type === "internal") {
+      const {email , ...rest } = data;
+       requestBody = rest;
+     } else {
+       const { networkId, ...rest } = data;
+       requestBody = rest;
+     }
+     return await axios.delete(SDA_Endpoint_Deprovision, { data: requestBody });
+   } catch (error) {
+     return error;
+   }
+ };
 /**
  * Verifies the email with SDA whether it is provisioned or not
  * @param {*} email
@@ -102,23 +123,64 @@ exports.provisionExternalUser = async (data) => {
   }
 };
 
+const compareString = (val1, val2) => {
+  if (val1 && val2) {
+    val1 = val1.toUpperCase().trim().replace(" ", "");
+    val2 = val2.toUpperCase().trim().replace(" ", "");
+    return val1 === val2;
+  }
+};
+exports.findUser = async (filter) => {
+  const query = `SELECT *, UPPER(usr_stat) as userState, UPPER(usr_typ) as userType  FROM ${schemaName}.user WHERE ${filter};`;
+  try {
+    const response = await DB.executeQuery(query);
+    if (response.rowCount > 0) {
+      const row = response.rows[0];
+      console.log("user", {
+        ...row,
+        isActive: compareString(row.userstate, this.CONSTANTS.ACTIVE),
+        isInvited: compareString(row.userstate, this.CONSTANTS.INVITED),
+        isInactive: compareString(row.userstate, this.CONSTANTS.INACTIVE),
+        isExternal: compareString(row.usertype, this.CONSTANTS.EXTERNAL),
+        isInternal: compareString(row.usertype, this.CONSTANTS.INTERNAL),
+      });
+      return {
+        ...row,
+        isActive: compareString(row.userstate, this.CONSTANTS.ACTIVE),
+        isInvited: compareString(row.userstate, this.CONSTANTS.INVITED),
+        isInactive: compareString(row.userstate, this.CONSTANTS.INACTIVE),
+        isExternal: compareString(row.usertype, this.CONSTANTS.EXTERNAL),
+        isInternal: compareString(row.usertype, this.CONSTANTS.INTERNAL),
+      };
+    }
+  } catch (error) {
+    Logger.error("userHelper.findUser", error);
+  }
+  return undefined;
+};
+
+/**
+ * Checks that if a user exists or not
+ * @param {string} userId
+ * @returns on success user usr_id and usr_stat (in upper case) , on error reurns false
+ */
+exports.findByUserId = async (userId) =>
+  await this.findUser(`usr_id = '${userId}';`);
+
 /**
  * Checks that if a user exists or not
  * @param {string} email
  * @returns on success user usr_id and usr_stat (in upper case) , on error reurns false
  */
-exports.isUserExists = async (email) => {
-  const query = `SELECT usr_id, UPPER(usr_stat) as usr_stat, usr_typ FROM ${schemaName}.user WHERE UPPER(usr_mail_id) = '${email.toUpperCase()}';`;
+exports.findByEmail = async (email) =>
+  await this.findUser(`UPPER(usr_mail_id) = '${email.toUpperCase()}';`);
 
-  try {
-    var response = await DB.executeQuery(query);
-    if (response.rowCount > 0) return response.rows[0];
-    return false;
-  } catch (error) {
-    console.log("error: provisionExternalUser", email, error);
-    return false;
-  }
-};
+/**
+ * Checks that if a user exists or not
+ * @param {string} email
+ * @returns on success user usr_id and usr_stat (in upper case) , on error reurns false
+ */
+exports.isUserExists = async (email) => this.findByEmail(email);
 
 /**
  * validates data for add user api
@@ -154,7 +216,7 @@ exports.validateAddUserData = async (data) => {
 /**
  * validates data for create user api
  * @param {object} data = { tenant, userType, firstName, lastName, email, uid, employeeId }
- * @returns {success: boolean , message: string} success as true on success false other wise
+ * @returns {Promise<object>} success as true on success false other wise
  */
 exports.validateCreateUserData = async (data) => {
   const { tenant, userType, firstName, lastName, email, uid, employeeId } =
@@ -271,3 +333,34 @@ exports.getUsersFromAD = async (query = "") => {
     return false;
   }
 };
+exports.getSDAuserDataById = async (uid) => {
+  try {
+    const response = await axios.get(SDA_Endpoint_get_users);
+    return response?.data.find((e) => e?.userId == uid);
+  } catch (error) {
+    console.log("Internal user provision error", data, error);
+  }
+};
+
+exports.revokeStudy = async (requestBody, studyList) => {
+  const FSR_Revoke = `${FSR_API_URI}/study/revoke`;
+  let apiStatus = "";
+  for (const element of studyList) {
+    axios
+      .post(
+        FSR_Revoke,
+        { ...requestBody, studyId: element?.prot_nbr_stnd },
+        {
+          headers: FSR_HEADERS,
+        }
+      )
+      .then((res) => {})
+      .catch((err) => {
+        apiStatus = false;
+      });
+  }
+
+  return apiStatus === "" ? true : false;
+};
+
+

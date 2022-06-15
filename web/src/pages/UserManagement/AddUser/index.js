@@ -5,6 +5,7 @@ import React, { useEffect, useState, useContext } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useHistory } from "react-router";
 import ApolloProgress from "apollo-react/components/ApolloProgress";
+import Tooltip from "apollo-react/components/Tooltip";
 
 import BreadcrumbsUI from "apollo-react/components/Breadcrumbs";
 import Switch from "apollo-react/components/Switch";
@@ -61,13 +62,13 @@ const Label = ({ children }) => {
 };
 const Value = ({ children }) => {
   return (
-    <div
-      className="value"
+    <span
+      className="value flex"
       variant="body2"
-      style={{ "word-wrap": "break-word", fontWeight: "bold" }}
+      style={{ wordWrap: "break-word", fontWeight: "bold" }}
     >
       {children}
-    </div>
+    </span>
   );
 };
 
@@ -90,6 +91,34 @@ const ConfirmModal = React.memo(({ open, cancel, stayHere, loading }) => {
   );
 });
 
+const InviteUserModal = ({ open, onSendInvite, stayHere, loading, email }) => {
+  return (
+    <Modal
+      open={open}
+      onClose={stayHere}
+      className="save-confirm"
+      disableBackdropClick="true"
+      title="Invite User?"
+      id="neutral"
+      buttonProps={[
+        { label: "Change email", disabled: loading },
+        { label: "Email invitation", onClick: onSendInvite, disabled: loading },
+      ]}
+    >
+      <Typography gutterBottom>
+        This new user will be sent an email invitation.
+        <br />
+        Please double check the email address.
+      </Typography>
+      <Typography gutterTop>
+        <div className="flex justify-center flex-center">
+          <span className="b-font">{email}</span>
+        </div>
+      </Typography>
+    </Modal>
+  );
+};
+
 const AddUser = () => {
   const toast = useContext(MessageContext);
   const dispatch = useDispatch();
@@ -106,7 +135,7 @@ const AddUser = () => {
   const [active, setActive] = useState(true);
   const [disableSave, setDisableSave] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [initialRender, setInitialRender] = useState(true);
+  // const [initialRender, setInitialRender] = useState(true);
   const [confirm, setConfirm] = useState(false);
   const [isAnyUpdate, setIsAnyUpdate] = useState(false);
   const [isShowAlertBox, setShowAlertBox] = useState(false);
@@ -115,8 +144,15 @@ const AddUser = () => {
   const [userList, setUserList] = useState([]);
   const [isNewUser, setIsNewUser] = useState(false);
   const [pingParent, setPingParent] = useState(0);
-  const [tableStudies, setTableStudies] = useState([]);
-  const [fetchStatus, setFetchStatus] = useState("loading");
+  // const [tableStudies, setTableStudies] = useState([]);
+  const [studiesRows, setStudiesRows] = useState();
+  const [fetchStatus, setFetchStatus] = useState("success");
+  const [createUserStatus, setCreateUserStatus] = useState("success");
+  const [confirmInviteUser, setConfirmInviteUser] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [checkUserAssignmentTableData, setCheckUserAssignmentTableData] =
+    useState();
+  const [showToolTip, setShowToolTip] = useState(false);
 
   const breadcrumpItems = [
     { href: "", onClick: () => history.push("/launchpad") },
@@ -125,7 +161,7 @@ const AddUser = () => {
       onClick: () => history.push(userListURL),
     },
     {
-      title: isEditPage ? selectedUser : "Create New User",
+      title: isEditPage ? selectedUser : "Add New User",
     },
   ];
 
@@ -211,7 +247,7 @@ const AddUser = () => {
     const currentErrors = { ...selectedUserError };
 
     const keys = list || [e?.target?.id];
-
+    setSelectedUserError(null);
     keys.forEach(async (key) => {
       const value = selectedUser?.[key];
       if (typeof value === "string") {
@@ -222,8 +258,13 @@ const AddUser = () => {
           if (!isValid) {
             currentErrors[key] = "Invalid email address format";
           } else {
-            currentErrors[key] = await checkEmailExists();
-            setSelectedUserError(currentErrors);
+            const emailStatus = await checkEmailExists();
+            if (emailStatus) {
+              currentErrors[key] = await checkEmailExists();
+            } else {
+              delete currentErrors[key];
+            }
+            setSelectedUserError({ ...currentErrors });
           }
         } else {
           currentErrors[key] = "";
@@ -235,6 +276,13 @@ const AddUser = () => {
   };
 
   const getUserList = async (query = "") => {
+    setSearchQuery(query);
+    if (!query) {
+      if (userList.length) {
+        setUserList([]);
+      }
+      return;
+    }
     setFetchStatus("loading");
     debounceFunction(() => {
       fetchADUsers(query).then((result) => {
@@ -245,7 +293,7 @@ const AddUser = () => {
               ...u,
               label: `${
                 givenName && sn ? `${givenName} ${sn}` : displayName
-              } (${mail})`,
+              }\n\t(${mail})`,
             };
           }) || [];
         filtered.sort(function (a, b) {
@@ -308,7 +356,7 @@ const AddUser = () => {
 
   useEffect(() => {
     dispatch(formComponentActive());
-    getUserList();
+    // getUserList();
   }, []);
 
   const switchUserType = (newUser) => {
@@ -317,10 +365,74 @@ const AddUser = () => {
       : null;
     setSelectedUser(defaultValues);
     setIsNewUser(newUser);
+    setShowToolTip(false);
+  };
+  const assignStudyRoleToCreatedUser = async (userResponse) => {
+    const formattedRows = studiesRows.map((e) => {
+      return {
+        protocolname: e?.study?.prot_nbr_stnd,
+        roles: e.roles.map((r) => r.label),
+      };
+    });
+
+    if (userResponse.status === 1) {
+      const msg = userResponse.message || "Success";
+      // toast.showSuccessMessage(`${msg}. Now assigning study roles.`);
+    } else {
+      // const msg = userResponse.message || "Error Occured";
+      const msg =
+        "Unable to add new user – please try again or report problem to the system administrator";
+      toast.showErrorMessage(msg);
+      setLoading(false);
+      return false;
+    }
+
+    const email = !isNewUser ? selectedUser.mail : selectedUser.usr_mail_id;
+    const name = !isNewUser
+      ? `${
+          selectedUser.givenName
+            ? `${selectedUser.givenName} ${selectedUser.sn}`
+            : selectedUser.displayName
+        }`
+      : `${selectedUser.usr_fst_nm} ${selectedUser.usr_lst_nm}`;
+
+    const insertUserStudy = {
+      email,
+      protocols: formattedRows,
+      tenant: "t1",
+    };
+
+    const response = await assingUserStudy(insertUserStudy);
+    if (response.data.status) {
+      let msg;
+      if (!isNewUser) {
+        msg = `A new user ${name} has been added`;
+      } else {
+        msg = `An invitation has been emailed to ${email}`;
+      }
+      toast.showSuccessMessage(msg, 0);
+      history.push("/user-management");
+    } else {
+      toast.showErrorMessage(response.data.message, 0);
+    }
+    setLoading(false);
+    return null;
   };
 
-  const updateUserAssign = async (selectedStudies) => {
-    const studiesRows = [...selectedStudies].slice(0, -1);
+  const checkSaveDisableCondition = () => {
+    const sr = [...(checkUserAssignmentTableData || [])].slice(0, -1);
+    const emptyRoles = sr.filter((x) => x.roles.length === 0);
+    return (
+      !selectedUser ||
+      !sr?.length ||
+      sr?.find((x) => x.study == null || emptyRoles.length)
+    );
+  };
+
+  useEffect(() => {
+    if (!studiesRows) {
+      return false;
+    }
     if (!selectedUser) {
       toast.showErrorMessage("Select a user or create a new one");
       return false;
@@ -330,8 +442,8 @@ const AddUser = () => {
       return false;
     }
     if (studiesRows.find((x) => x.study == null)) {
-      setInitialRender(!initialRender);
-      setTableStudies([...studiesRows]);
+      // setInitialRender(!initialRender);
+      // setTableStudies([...studiesRows]);
       toast.showErrorMessage("Please fill study or remove blank rows");
       return false;
     }
@@ -346,56 +458,68 @@ const AddUser = () => {
       );
       return false;
     }
-    const formattedRows = studiesRows.map((e) => {
-      return {
-        protocolname: e?.study?.prot_nbr_stnd,
-        roles: e.roles.map((r) => r.label),
-      };
-    });
-
-    let userResponse = null;
+    setLoading(true);
     if (isNewUser) {
-      userResponse = await handleCreateUser();
-    } else {
-      userResponse = await inviteInternalUser(
-        selectedUser.givenName,
-        selectedUser.sn,
+      setConfirmInviteUser(true);
+      return true;
+    }
+    return (async () => {
+      const splittedNames = selectedUser?.displayName?.split(", ") || [];
+      const firstName =
+        selectedUser.givenName ||
+        (splittedNames.length === 2 ? splittedNames[1] : splittedNames[0]);
+      const lastName = selectedUser.sn || splittedNames[0];
+      setCreateUserStatus("loading");
+      const userResponse = await inviteInternalUser(
+        firstName,
+        lastName,
         selectedUser.mail,
         selectedUser.sAMAccountName
       );
-    }
+      setCreateUserStatus("success");
+      return assignStudyRoleToCreatedUser(userResponse);
+    })();
+  }, [studiesRows]);
 
-    if (userResponse.status === 1) {
-      const msg = userResponse.message || "Success";
-      toast.showSuccessMessage(msg);
-    } else {
-      const msg = userResponse.message || "Error Occured";
-      toast.showErrorMessage(msg);
-      return false;
-    }
+  const updateUserAssign = async (selectedStudies) => {
+    const sr = [...selectedStudies].slice(0, -1);
+    setStudiesRows(sr);
+  };
 
-    const insertUserStudy = {
-      email: !isNewUser ? selectedUser.mail : selectedUser.usr_mail_id,
-      protocols: formattedRows,
-      tenant: "t1",
-    };
-    setLoading(true);
-    const response = await assingUserStudy(insertUserStudy);
-    setLoading(false);
-    if (response.data.status) {
-      toast.showSuccessMessage(response.data.message, 0);
-      history.push("/user-management");
-    } else {
-      toast.showErrorMessage(response.data.message, 0);
+  const getFullName = () => {
+    if (selectedUser?.givenName && selectedUser?.sn) {
+      return `${selectedUser?.givenName} ${selectedUser?.sn}`;
     }
-
-    return null;
+    const splittedNames = selectedUser?.displayName?.split(", ") || [];
+    const firstName =
+      selectedUser?.givenName ||
+      (splittedNames.length === 2 ? splittedNames[1] : splittedNames[0]);
+    const lastName = selectedUser?.sn || splittedNames[0];
+    return `${firstName} ${lastName}`;
   };
 
   return (
     <div className="create-user-wrapper">
       {isShowAlertBox && (
         <AlertBox cancel={keepEditingBtn} submit={leavePageBtn} />
+      )}
+      {isNewUser && (
+        <InviteUserModal
+          open={confirmInviteUser}
+          onSendInvite={async () => {
+            setCreateUserStatus("loading");
+            const userResponse = await handleCreateUser();
+            setCreateUserStatus("success");
+            setConfirmInviteUser(false);
+            return assignStudyRoleToCreatedUser(userResponse);
+          }}
+          loading={createUserStatus === "loading"}
+          email={selectedUser?.usr_mail_id}
+          stayHere={() => {
+            setConfirmInviteUser(false);
+            setLoading(false);
+          }}
+        />
       )}
       {isAnyUpdate && (
         <ConfirmModal
@@ -444,7 +568,10 @@ const AddUser = () => {
                         {
                           label: "Save",
                           size: "small",
-                          disabled: loading || disableSave,
+                          disabled:
+                            loading ||
+                            disableSave ||
+                            checkSaveDisableCondition(),
                           onClick: handleSave,
                         },
                       ]
@@ -479,34 +606,38 @@ const AddUser = () => {
                       size="small"
                       label="Last name"
                       inputProps={{
-                        maxLength: 255,
+                        maxLength: 100,
                       }}
                       onBlur={(e) => validateField(e)}
                       error={!!selectedUserError?.usr_lst_nm?.length}
                       helperText={selectedUserError?.usr_lst_nm}
                       onChange={handleChange}
                     />
+                    <div className="p-relative">
+                      <Tooltip
+                        variant="dark"
+                        placement="top"
+                        title={selectedUser?.usr_mail_id}
+                        open={showToolTip}
+                      >
+                        <div className="email-tooltip" />
+                      </Tooltip>
+                    </div>
                     <TextField
                       type="email"
                       id="usr_mail_id"
                       size="small"
                       label="Email"
                       onChange={handleChange}
-                      onBlur={(e) => validateField(e)}
+                      onBlur={(e) => {
+                        validateField(e);
+                      }}
+                      onMouseLeave={() => setShowToolTip(false)}
+                      onMouseEnter={() => setShowToolTip(true)}
                       error={!!selectedUserError?.usr_mail_id?.length}
                       helperText={selectedUserError?.usr_mail_id}
-                      // error={
-                      //   !emailRegex.test(selectedUser.usr_mail_id) &&
-                      //   selectedUser.usr_mail_id > 0
-                      // }
-                      // helperText={
-                      //   blurred &&
-                      //   selectedUser.usr_mail_id > 0 &&
-                      //   ((isStarted && !row[key] && "Required") ||
-                      //     (!emailRegex.test(selectedUser.usr_mail_id) &&
-                      //       "Invalid Email Format"))
-                      // }
                     />
+
                     <TextField
                       id="extrnl_emp_id"
                       size="small"
@@ -522,12 +653,34 @@ const AddUser = () => {
                   </>
                 ) : (
                   <>
+                    <div className="p-relative">
+                      <Tooltip
+                        variant="dark"
+                        placement="top"
+                        title={getFullName()}
+                        extraLabels={[{ subtitle: selectedUser?.mail }]}
+                        open={showToolTip && selectedUser}
+                      >
+                        <div className="email-tooltip top" />
+                      </Tooltip>
+                    </div>
                     <div className="user-autocomplete">
                       <AutocompleteV2
+                        id="highligh-autocomplete"
                         matchFrom="any"
                         size="small"
                         fullWidth
                         forcePopupIcon
+                        onMouseEnter={() => {
+                          setShowToolTip(true);
+                        }}
+                        onMouseLeave={() => {
+                          setShowToolTip(false);
+                        }}
+                        // onBlur={() => {
+                        //   setSearchQuery("");
+                        //   setUserList([]);
+                        // }}
                         popupIcon={<SearchIcon fontSize="extraSmall" />}
                         source={userList}
                         label="Name"
@@ -542,7 +695,11 @@ const AddUser = () => {
                             {fetchStatus === "loading" ? (
                               <ApolloProgress />
                             ) : (
-                              "No user found"
+                              <>
+                                {searchQuery
+                                  ? "No user found"
+                                  : "Type a word to search"}
+                              </>
                             )}
                           </div>
                         }
@@ -550,7 +707,7 @@ const AddUser = () => {
                           updateChanges();
                           setSelectedUser(v);
                         }}
-                        enableVirtualization
+                        // enableVirtualization
                       />
                     </div>
                     {selectedUser && (
@@ -580,6 +737,9 @@ const AddUser = () => {
                 updateChanges={updateChanges}
                 pingParent={pingParent}
                 updateUserAssign={(e) => updateUserAssign(e)}
+                setCheckUserAssignmentTableData={
+                  setCheckUserAssignmentTableData
+                }
                 disableSaveBtn={(e) => setDisableSave(e)}
               />
             </div>

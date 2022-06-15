@@ -19,6 +19,7 @@ const UserAssignmentTable = ({
   updateChanges,
   pingParent,
   updateUserAssign,
+  setCheckUserAssignmentTableData,
   disableSaveBtn,
 }) => {
   const toast = useContext(MessageContext);
@@ -31,23 +32,28 @@ const UserAssignmentTable = ({
   const [initialRender, setInitialRender] = useState(true);
   const [roleLists, setroleLists] = useState([]);
 
+  const lineRefs = React.useRef([]);
   useEffect(() => {
     if (tableStudies.length === 0) {
       setLoad(false);
     } else {
       setLoad(true);
     }
+    setCheckUserAssignmentTableData(tableStudies);
 
     if (tableStudies.length > 1) {
       disableSaveBtn(false);
     } else {
       disableSaveBtn(true);
     }
+
+    lineRefs.current = tableStudies.map((_, i) => React.createRef());
   }, [tableStudies]);
 
   const getStudyObj = () => {
+    const rowIndex = Math.max(...tableStudies.map((o) => o.index), 0) + 1;
     return {
-      index: Math.max(...tableStudies.map((o) => o.index), 0) + 1,
+      index: rowIndex,
       study: null,
       roles: [],
     };
@@ -146,17 +152,6 @@ const UserAssignmentTable = ({
       return newRows;
     });
   };
-  const allChildRefs = [];
-  const childRefs = () => {
-    const newChildRef = React.createRef();
-    if (!newChildRef.current) allChildRefs.push(newChildRef);
-    return newChildRef;
-  };
-
-  const lineRefs = React.useRef([]);
-  lineRefs.current = tableStudies.map(
-    (_, i) => lineRefs.current[i] ?? React.createRef()
-  );
 
   const EditableStudy = ({ row, column: { accessor: key } }) => {
     return (
@@ -192,10 +187,7 @@ const UserAssignmentTable = ({
   };
 
   const EditableRoles = ({ row, column: { accessor: key } }) => {
-    if (
-      row.study === null &&
-      row.index === tableStudies[tableStudies.length - 1]?.index
-    )
+    if (row.index === tableStudies[tableStudies.length - 1]?.index)
       return false;
     return (
       <div className="role">
@@ -204,6 +196,7 @@ const UserAssignmentTable = ({
           row={row}
           rowKey={key}
           tableStudies={tableStudies}
+          setTableStudies={setTableStudies}
           editRow={(e, v, r, rowIndex, rowKey) =>
             editRow(e, v, r, rowIndex, rowKey)
           }
@@ -212,10 +205,7 @@ const UserAssignmentTable = ({
     );
   };
   const DeleteStudyCell = ({ row }) => {
-    if (
-      row.study === null &&
-      row.index === tableStudies[tableStudies.length - 1]?.index
-    )
+    if (row.index === tableStudies[tableStudies.length - 1]?.index)
       return false;
     const { index, onDelete } = row;
     return (
@@ -226,9 +216,10 @@ const UserAssignmentTable = ({
   };
 
   const onDelete = (index) => {
-    const prevTableStudies = tableStudies;
+    let prevTableStudies = tableStudies;
     const tableIndex = tableStudies.findIndex((el) => el.index === index);
     prevTableStudies.splice(tableIndex, 1);
+    prevTableStudies = prevTableStudies.map((e, i) => ({ ...e, index: i + 1 }));
     setTableStudies([...prevTableStudies]);
   };
 
@@ -256,7 +247,7 @@ const UserAssignmentTable = ({
         onClick={(e) => {
           lineRefs.current[
             tableStudies.length - 1
-          ].current.lastElementChild.childNodes[0].firstElementChild.childNodes[1].childNodes[1].click();
+          ]?.current?.lastElementChild?.childNodes[0]?.firstElementChild?.childNodes[1]?.childNodes[1]?.click();
         }}
       >
         Add user assignment
