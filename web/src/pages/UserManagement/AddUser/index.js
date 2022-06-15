@@ -641,10 +641,10 @@ const AddUser = () => {
                         onMouseLeave={() => {
                           setShowToolTip(false);
                         }}
-                        // onBlur={() => {
-                        //   setSearchQuery("");
-                        //   setUserList([]);
-                        // }}
+                        onBlur={() => {
+                          setSearchQuery("");
+                          setUserList([]);
+                        }}
                         popupIcon={<SearchIcon fontSize="extraSmall" />}
                         source={userList}
                         label="Name"
