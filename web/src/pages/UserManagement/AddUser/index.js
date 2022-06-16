@@ -146,6 +146,7 @@ const AddUser = () => {
   const [fetchStatus, setFetchStatus] = useState("success");
   const [confirmInviteUser, setConfirmInviteUser] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isTextOverflow, setIsTextOverflow] = useState(false);
   const [checkUserAssignmentTableData, setCheckUserAssignmentTableData] =
     useState();
   const [showToolTip, setShowToolTip] = useState(false);
@@ -211,11 +212,15 @@ const AddUser = () => {
     const key = e.target.id;
     updateChanges();
     setSelectedUser({ ...selectedUser, [key]: val });
-    // if (key === "usr_fst_nm") {
-    //   inputAlphaNumericWithUnderScore(e, (v) => {
-    //     setSelectedUser({ ...selectedUser, key: v });
-    //   });
-    // }
+    if (key === "usr_mail_id") {
+      const div = document.getElementById("hidden");
+      div.innerText = val;
+      if (div.clientWidth > e.target.clientWidth) {
+        setIsTextOverflow(true);
+      } else {
+        setIsTextOverflow(false);
+      }
+    }
   };
 
   const getRequiredErrors = (key) => {
@@ -582,11 +587,12 @@ const AddUser = () => {
                         variant="dark"
                         placement="top"
                         title={selectedUser?.usr_mail_id}
-                        open={showToolTip}
+                        open={showToolTip && isTextOverflow}
                       >
                         <div className="email-tooltip" />
                       </Tooltip>
                     </div>
+                    <div id="hidden">{selectedUser?.usr_mail_id}</div>
                     <TextField
                       type="email"
                       id="usr_mail_id"
