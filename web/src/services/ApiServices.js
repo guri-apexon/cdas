@@ -476,18 +476,12 @@ export const getRoles = () => {
   }
 };
 
-export const inviteExternalUser = (firstName, lastName, email, employeeId) => {
+export const inviteExternalUser = (payload) => {
   try {
     return new Promise((resolve, reject) => {
+      payload.updatedBy = userId;
       axios
-        .post(`${API_URL}/users/invite-external-user`, {
-          firstName,
-          lastName,
-          email,
-          uid: employeeId,
-          updatedBy: userId,
-          userType: "external",
-        })
+        .post(`${API_URL}/users/invite-external-user`, payload)
         .then((res) => {
           resolve(res.data);
         })
@@ -504,23 +498,12 @@ export const inviteExternalUser = (firstName, lastName, email, employeeId) => {
   }
 };
 
-export const inviteInternalUser = (
-  firstName = "",
-  lastName = "",
-  email,
-  employeeId
-) => {
+export const inviteInternalUser = (payload) => {
   try {
     return new Promise((resolve, reject) => {
+      payload.updatedBy = userId;
       axios
-        .post(`${API_URL}/users/invite-external-user`, {
-          firstName,
-          lastName,
-          email,
-          uid: employeeId,
-          updatedBy: userId,
-          userType: "internal",
-        })
+        .post(`${API_URL}/users/invite-internal-user`, payload)
         .then((res) => {
           resolve(res.data);
         })
