@@ -219,6 +219,7 @@ const AddUser = () => {
     } else {
       setIsTextOverflow(false);
     }
+    return true;
   };
 
   const handleChange = (e) => {
