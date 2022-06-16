@@ -207,19 +207,27 @@ const AddUser = () => {
     }
   };
 
+  const compareInputLength = (val = "", inputWidth) => {
+    if (!val) {
+      setIsTextOverflow(false);
+      return false;
+    }
+    const div = document.getElementById("hidden");
+    div.innerHTML = val.replace(/\n+/g, " ");
+    if (div.clientWidth > inputWidth) {
+      setIsTextOverflow(true);
+    } else {
+      setIsTextOverflow(false);
+    }
+  };
+
   const handleChange = (e) => {
     const val = e.target.value;
     const key = e.target.id;
     updateChanges();
     setSelectedUser({ ...selectedUser, [key]: val });
     if (key === "usr_mail_id") {
-      const div = document.getElementById("hidden");
-      div.innerText = val;
-      if (div.clientWidth > e.target.clientWidth) {
-        setIsTextOverflow(true);
-      } else {
-        setIsTextOverflow(false);
-      }
+      compareInputLength(val, e.target.clientWidth);
     }
   };
 
@@ -592,7 +600,6 @@ const AddUser = () => {
                         <div className="email-tooltip" />
                       </Tooltip>
                     </div>
-                    <div id="hidden">{selectedUser?.usr_mail_id}</div>
                     <TextField
                       type="email"
                       id="usr_mail_id"
@@ -629,7 +636,7 @@ const AddUser = () => {
                         placement="top"
                         title={getFullName()}
                         extraLabels={[{ subtitle: selectedUser?.mail }]}
-                        open={showToolTip && selectedUser}
+                        open={showToolTip && selectedUser && isTextOverflow}
                       >
                         <div className="email-tooltip top" />
                       </Tooltip>
@@ -676,6 +683,10 @@ const AddUser = () => {
                         onChange={(e, v, r) => {
                           updateChanges();
                           setSelectedUser(v);
+                          compareInputLength(
+                            v?.label,
+                            e.currentTarget.clientWidth
+                          );
                         }}
                         // enableVirtualization
                       />
@@ -714,6 +725,7 @@ const AddUser = () => {
               />
             </div>
           </Grid>
+          <div id="hidden"> </div>
         </Grid>
       </div>
     </div>
