@@ -107,7 +107,7 @@ exports.assignmentRemove = async (req, res) => {
   // validate updatedBy
   const updatedById = await userHelper.findByUserId(updatedBy);
   if (updatedBy && !updatedById)
-    return apiResponse.ErrorResponse(res, "Created by Id does not exists");
+    return apiResponse.ErrorResponse(res, "Updated by Id does not exists");
 
   protocols.forEach((p) => (p.isValid = false));
   const vpr = await assignmentHelper.validateProtocolsRoles(user, protocols);
