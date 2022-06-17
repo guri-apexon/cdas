@@ -146,6 +146,7 @@ const AddUser = () => {
   const [fetchStatus, setFetchStatus] = useState("success");
   const [confirmInviteUser, setConfirmInviteUser] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isTextOverflow, setIsTextOverflow] = useState(false);
   const [checkUserAssignmentTableData, setCheckUserAssignmentTableData] =
     useState();
   const [showToolTip, setShowToolTip] = useState(false);
@@ -206,16 +207,29 @@ const AddUser = () => {
     }
   };
 
+  const compareInputLength = (val = "", inputWidth) => {
+    if (!val) {
+      setIsTextOverflow(false);
+      return false;
+    }
+    const div = document.getElementById("hidden");
+    div.innerHTML = val.replace(/\n+/g, " ");
+    if (div.clientWidth > inputWidth) {
+      setIsTextOverflow(true);
+    } else {
+      setIsTextOverflow(false);
+    }
+    return true;
+  };
+
   const handleChange = (e) => {
     const val = e.target.value;
     const key = e.target.id;
     updateChanges();
     setSelectedUser({ ...selectedUser, [key]: val });
-    // if (key === "usr_fst_nm") {
-    //   inputAlphaNumericWithUnderScore(e, (v) => {
-    //     setSelectedUser({ ...selectedUser, key: v });
-    //   });
-    // }
+    if (key === "usr_mail_id") {
+      compareInputLength(val, e.target.clientWidth);
+    }
   };
 
   const getRequiredErrors = (key) => {
@@ -582,7 +596,7 @@ const AddUser = () => {
                         variant="dark"
                         placement="top"
                         title={selectedUser?.usr_mail_id}
-                        open={showToolTip}
+                        open={showToolTip && isTextOverflow}
                       >
                         <div className="email-tooltip" />
                       </Tooltip>
@@ -623,7 +637,7 @@ const AddUser = () => {
                         placement="top"
                         title={getFullName()}
                         extraLabels={[{ subtitle: selectedUser?.mail }]}
-                        open={showToolTip && selectedUser}
+                        open={showToolTip && selectedUser && isTextOverflow}
                       >
                         <div className="email-tooltip top" />
                       </Tooltip>
@@ -670,6 +684,10 @@ const AddUser = () => {
                         onChange={(e, v, r) => {
                           updateChanges();
                           setSelectedUser(v);
+                          compareInputLength(
+                            v?.label,
+                            e.currentTarget.clientWidth
+                          );
                         }}
                         // enableVirtualization
                       />
@@ -708,6 +726,7 @@ const AddUser = () => {
               />
             </div>
           </Grid>
+          <div id="hidden"> </div>
         </Grid>
       </div>
     </div>
