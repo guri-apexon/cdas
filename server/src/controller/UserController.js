@@ -482,7 +482,7 @@ exports.secureApi = async (req, res) => {
 exports.checkInvitedStatus = async () => {
   try {
     const statusCase = `CASE WHEN LOWER(TRIM(usr_stat)) IN ('invited') THEN 'invited' END`;
-    const query = `SELECT usr_id as uid, usr_mail_id as email, usr_typ as userType, extrnl_emp_id as externalId, LOWER(TRIM(usr_stat)) as status from ${schemaName}.user where (${statusCase} = 'invited')`;
+    const query = `SELECT usr_id as uid, usr_mail_id as email, usr_typ as userType, sdr_usr_key as userKey, LOWER(TRIM(usr_stat)) as status from ${schemaName}.user where (${statusCase} = 'invited')`;
 
     const result = await DB.executeQuery(query);
     if (!result) return false;
@@ -495,10 +495,9 @@ exports.checkInvitedStatus = async () => {
 
     await Promise.all(
       invitedUsers.map(async (invitedUser) => {
-        const { email, userType, status, uid, externalId } = invitedUser;
+        const { email, status, userKey } = invitedUser;
         if (status === "invited") {
-          // TODO Pass userKey instead of email
-          const SDAStatus = await userHelper.getSDAUserStatus(email);
+          const SDAStatus = await userHelper.getSDAUserStatus(userKey);
           if (SDAStatus) {
             // TODO if possible use makeUserActive instead of markInvitedUserActive
             // userHelper.makeUserActive(uid, externalId);

@@ -381,6 +381,10 @@ exports.getSDAUsers = async () => {
 };
 
 exports.getSDAUserStatus = async (userKey) => {
+  if (!userKey) {
+    console.log("user key not found, cannot fetch sda user");
+    return false;
+  }
   try {
     const response = await axios.get(
       `${SDA_Endpoint_get_user_status}&userKey=${userKey}`
