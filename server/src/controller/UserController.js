@@ -287,6 +287,7 @@ exports.createNewUser = async (req, res, returnBool = false) => {
           status: "Invited",
           uid: "",
           externalId: data?.employeeId,
+          userKey: provision_response.data,
         });
     } else {
       return returnBool
