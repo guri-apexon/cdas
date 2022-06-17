@@ -8,6 +8,7 @@ import React, {
   useEffect,
   useContext,
   useCallback,
+  useRef,
 } from "react";
 import Paper from "apollo-react/components/Paper";
 import { useHistory } from "react-router-dom";
@@ -57,6 +58,7 @@ const ListUsers = () => {
   const [peekContent, setPeekContent] = useState("");
   const [initialSearchStr, setInitialSearchStr] = useState("");
   const [curRow, setCurRow] = useState({});
+  const searchRef = useRef();
   const appContext = useContext(AppContext);
   const dispatch = useDispatch();
 
@@ -193,6 +195,7 @@ const ListUsers = () => {
         setTableRows([...initialTableRows]);
       }
       setInitialSearchStr(str);
+      searchRef?.current?.childNodes[1]?.childNodes[1]?.focus();
     }, 1000),
     [initialTableRows]
   );
@@ -206,6 +209,7 @@ const ListUsers = () => {
     return (
       <div>
         <Search
+          ref={searchRef}
           placeholder="Search by name, email, or user ID"
           value={searchStr}
           onChange={(e) => handleSearchChange(e)}
@@ -250,10 +254,10 @@ const ListUsers = () => {
     },
     {
       header: "Employee ID",
-      accessor: "usr_id",
+      accessor: "formatted_emp_id",
       customCell: ProductsCell,
       sortFunction: compareStrings,
-      filterFunction: createStringSearchFilter("usr_id"),
+      filterFunction: createStringSearchFilter("formatted_emp_id"),
       filterComponent: TextFieldFilter,
       width: "30%",
     },
