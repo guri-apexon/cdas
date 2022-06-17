@@ -361,7 +361,7 @@ exports.makeAssignmentsInactive = async (
         );
         flag = true;
       } else {
-        Logger.error("assignmentCreate > saveToDb > " + protocol.name);
+        Logger.error("assignmentCreate > saveToDb > " + protocol.protocolname);
       }
     }
   }
