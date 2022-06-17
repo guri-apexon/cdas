@@ -12,10 +12,15 @@ const logQuery = `INSERT INTO ${schemaName}.audit_log (tbl_nm, id, "attribute", 
 
 exports.getVendorsList = async (req, res) => {
   try {
+    let extrnl_sys_nm = req.query.extrnl_sys_nm || null;
+    let filter = "";
+    if (extrnl_sys_nm) {
+      filter = ` where v.extrnl_sys_nm = '${extrnl_sys_nm}'`;
+    }
     Logger.info({ message: "vendorList" });
 
     let query = `select v.vend_id as "vId", vend_nm as "vName", vend_nm_stnd as "vNStd", description as "vDescription", active as "status", extrnl_sys_nm as "vESN", vc.Ven_Contact_nm as "vContactName" from ${schemaName}.vendor v 
-    left join (select vc.vend_id , string_agg(vc.contact_nm,', ') as Ven_Contact_nm from ${schemaName}.vendor_contact vc where act_flg =1 group by vc.vend_id) vc on v.vend_id =vc.vend_id`;
+    left join (select vc.vend_id , string_agg(vc.contact_nm,', ') as Ven_Contact_nm from ${schemaName}.vendor_contact vc where act_flg =1 group by vc.vend_id) vc  on v.vend_id =vc.vend_id ${filter}`;
 
     let dbQuery = await DB.executeQuery(query);
 
