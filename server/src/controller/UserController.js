@@ -478,3 +478,51 @@ exports.secureApi = async (req, res) => {
   const { userId } = req.body;
   return apiResponse.successResponse(res, "Secure Api Success");
 };
+
+exports.checkInvitedStatus = async () => {
+  try {
+    const statusCase = `CASE WHEN LOWER(TRIM(usr_stat)) IN ('invited') THEN 'invited' END`;
+    const query = `SELECT usr_id as uid, usr_mail_id as email, usr_typ as userType, extrnl_emp_id as externalId, LOWER(TRIM(usr_stat)) as status from ${schemaName}.user where (${statusCase} = 'invited')`;
+
+    const result = await DB.executeQuery(query);
+    if (!result) return false;
+
+    const invitedUsers = result.rows || [];
+    if (!invitedUsers.length) return false;
+
+    // Get Active Users from SDA API
+    const activeUsers = userHelper.getSDAUsers();
+
+    await Promise.all(
+      invitedUsers.map(async (invitedUser) => {
+        const { email, userType, status, uid, externalId } = invitedUser;
+        if (status === "invited") {
+          // TODO Pass userKey instead of email
+          const SDAStatus = await userHelper.getSDAUserStatus(email);
+          if (SDAStatus) {
+            // TODO if possible use makeUserActive instead of markInvitedUserActive
+            // userHelper.makeUserActive(uid, externalId);
+            userHelper.markInvitedUserActive(email);
+          } else {
+            const user = activeUsers.find(
+              (u) => u.email.toUpperCase() === email.toUpperCase()
+            );
+            if (user) {
+              userHelper.markInvitedUserActive(email);
+            }
+          }
+        } else {
+          console.log("Error, received user who is not invited.", invitedUser);
+        }
+      })
+    );
+
+    Logger.info({
+      message: "checkInvitedStatusCronFinished",
+    });
+
+    return true;
+  } catch {
+    return false;
+  }
+};

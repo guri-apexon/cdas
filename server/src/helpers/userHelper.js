@@ -6,13 +6,19 @@ const { data } = require("../config/logger");
 const { getCurrentTime, validateEmail } = require("./customFunctions");
 const Logger = require("../config/logger");
 const constants = require("../config/constants");
-const { DB_SCHEMA_NAME: schemaName, AD_CONFIG: ADConfig, FSR_API_URI, FSR_HEADERS } = require("../config/constants");
+const {
+  DB_SCHEMA_NAME: schemaName,
+  AD_CONFIG: ADConfig,
+  FSR_API_URI,
+  FSR_HEADERS,
+} = require("../config/constants");
 const e = require("express");
 
 const SDA_BASE_API_URL = `${process.env.SDA_BASE_URL}/sda-rest-api/api/external/entitlement/V1/ApplicationUsers`;
 const SDA_Endpoint = `${SDA_BASE_API_URL}?appKey=${process.env.SDA_APP_KEY}`;
 const SDA_Endpoint_Deprovision = `${SDA_BASE_API_URL}/deprovisionUserFromApplication`;
 const SDA_Endpoint_get_users = `${SDA_BASE_API_URL}/getUsersForApplication?appKey=${process.env.SDA_APP_KEY}`;
+const SDA_Endpoint_get_user_status = `${SDA_BASE_API_URL}/UserProvisioningStatus?appKey=${process.env.SDA_APP_KEY}`;
 
 exports.CONSTANTS = {
   INACTIVE: "INACTIVE",
@@ -29,21 +35,21 @@ exports.CONSTANTS = {
  * @returns
  */
 
- exports.deProvisionUser = async (data, user_type) => {
-   let requestBody;
-   try {
-     if (user_type === "internal") {
-      const {email , ...rest } = data;
-       requestBody = rest;
-     } else {
-       const { networkId, ...rest } = data;
-       requestBody = rest;
-     }
-     return await axios.delete(SDA_Endpoint_Deprovision, { data: requestBody });
-   } catch (error) {
-     return error;
-   }
- };
+exports.deProvisionUser = async (data, user_type) => {
+  let requestBody;
+  try {
+    if (user_type === "internal") {
+      const { email, ...rest } = data;
+      requestBody = rest;
+    } else {
+      const { networkId, ...rest } = data;
+      requestBody = rest;
+    }
+    return await axios.delete(SDA_Endpoint_Deprovision, { data: requestBody });
+  } catch (error) {
+    return error;
+  }
+};
 /**
  * Verifies the email with SDA whether it is provisioned or not
  * @param {*} email
@@ -363,4 +369,47 @@ exports.revokeStudy = async (requestBody, studyList) => {
   return apiStatus === "" ? true : false;
 };
 
+exports.getSDAUsers = async () => {
+  try {
+    const response = await axios.get(SDA_Endpoint_get_users);
+    if (response && response.data) return response.data;
+    return [];
+  } catch (error) {
+    console.log("error: getSDAUsers", error);
+    return [];
+  }
+};
 
+exports.getSDAUserStatus = async (userKey) => {
+  try {
+    const response = await axios.get(
+      `${SDA_Endpoint_get_user_status}&userKey=${userKey}`
+    );
+    if (
+      response?.data?.status.trim().toLowerCase() === "provisioning successfull"
+    ) {
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.log(
+      "Internal user fetch status error",
+      error?.response?.data || error
+    );
+    return false;
+  }
+};
+
+// TODO: use makeUserActive if possible instead of this and remove this
+exports.markInvitedUserActive = async (email) => {
+  const query = `UPDATE ${schemaName}.user SET usr_stat='Active' WHERE email = '${email}'`;
+  try {
+    const result = await DB.executeQuery(query);
+    console.log(`SET ${email} as Active`);
+    if (result.rowCount > 0) return true;
+    return false;
+  } catch (error) {
+    console.log("error: markInvitedUserActive", error);
+    return false;
+  }
+};
