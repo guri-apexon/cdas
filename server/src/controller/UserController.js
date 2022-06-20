@@ -81,7 +81,7 @@ exports.addLoginActivity = async (loginDetails) => {
 exports.listUsers = async function (req, res) {
   try {
     return await DB.executeQuery(
-      `SELECT *, CASE WHEN LOWER(TRIM(usr_stat)) IN ('in active', 'inactive') THEN 'Inactive' WHEN LOWER(TRIM(usr_stat)) IN ('active') THEN 'Active' WHEN LOWER(TRIM(usr_stat)) IN ('invited') THEN 'Invited' WHEN usr_stat IS NULL THEN 'Active' ELSE TRIM(usr_stat) END AS formatted_stat, TRIM(usr_stat) AS trimed_usr_stat,  CONCAT(TRIM(usr_fst_nm),' ',TRIM(usr_lst_nm)) AS usr_full_nm, CASE WHEN LOWER(usr_typ)='internal' THEN usr_id ELSE extrnl_emp_id END AS formatted_emp_id from ${schemaName}.user`
+      `SELECT *, CASE WHEN LOWER(TRIM(usr_stat)) IN ('in active', 'inactive') THEN 'Inactive' WHEN LOWER(TRIM(usr_stat)) IN ('active') THEN 'Active' WHEN LOWER(TRIM(usr_stat)) IN ('invited') THEN 'Invited' WHEN usr_stat IS NULL THEN 'Active' ELSE TRIM(usr_stat) END AS formatted_stat, TRIM(usr_stat) AS trimed_usr_stat,  CONCAT(TRIM(usr_fst_nm),' ',TRIM(usr_lst_nm)) AS usr_full_nm from ${schemaName}.user`
     )
       .then((response) => {
         return apiResponse.successResponseWithData(
@@ -312,6 +312,7 @@ exports.createNewUser = async (req, res, returnBool = false) => {
           status: "Invited",
           uid: "",
           externalId: data?.employeeId,
+          userKey: provision_response.data,
         });
     } else {
       return returnBool

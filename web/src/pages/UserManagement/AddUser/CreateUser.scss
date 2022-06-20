@@ -21,6 +21,20 @@
   }
 }
 .create-user-wrapper {
+  #hidden {
+    width: auto;
+    display: inline-block;
+    visibility: hidden;
+    position: fixed;
+    overflow: auto;
+    z-index: -1;
+    white-space: pre;
+    pointer-events: none;
+    font-size: 14px;
+    padding: 8px 8px 8px 7px;
+    letter-spacing: normal;
+    font-family: "Proxima Nova", "Nunito Sans", sans-serif;
+  }
   .email-tooltip {
     position: absolute;
     right: 10px;
