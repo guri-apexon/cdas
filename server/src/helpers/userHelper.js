@@ -288,13 +288,14 @@ exports.insertUserInDb = async (userDetails) => {
       insrt_tm,
       updt_tm,
       userType: usr_typ,
+      userKey: sda_usr_key = "",
     } = userDetails;
 
     const internalQuery = `INSERT INTO ${schemaName}.user(usr_id, usr_typ, usr_fst_nm, usr_lst_nm, usr_mail_id, insrt_tm, updt_tm, usr_stat, extrnl_emp_id) VALUES(
       '${usr_id}', '${usr_typ}', '${usr_fst_nm}', '${usr_lst_nm}', '${usr_mail_id}', '${insrt_tm}', '${updt_tm}', '${usr_stat}', '${extrnl_emp_id}') RETURNING usr_id`;
 
-    const externalQuery = `INSERT INTO ${schemaName}.user( usr_typ, usr_fst_nm, usr_lst_nm, usr_mail_id, insrt_tm, updt_tm, usr_stat, extrnl_emp_id) VALUES(
-      '${usr_typ}', '${usr_fst_nm}', '${usr_lst_nm}', '${usr_mail_id}', '${insrt_tm}', '${updt_tm}', '${usr_stat}', '${extrnl_emp_id}') RETURNING usr_id`;
+    const externalQuery = `INSERT INTO ${schemaName}.user( usr_typ, usr_fst_nm, usr_lst_nm, usr_mail_id, insrt_tm, updt_tm, usr_stat, extrnl_emp_id, sda_usr_key) VALUES(
+      '${usr_typ}', '${usr_fst_nm}', '${usr_lst_nm}', '${usr_mail_id}', '${insrt_tm}', '${updt_tm}', '${usr_stat}', '${extrnl_emp_id}', '${sda_usr_key}') RETURNING usr_id`;
 
     const query = usr_typ === "internal" ? internalQuery : externalQuery;
     const response = await DB.executeQuery(query);
