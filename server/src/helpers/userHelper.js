@@ -381,9 +381,9 @@ exports.getSDAUsers = async () => {
   }
 };
 
-exports.getSDAUserStatus = async (userKey) => {
+exports.getSDAUserStatus = async (userKey, email) => {
   if (!userKey) {
-    console.log("user key not found, cannot fetch sda user");
+    console.log("user key not found, cannot fetch sda user:", email);
     return false;
   }
   try {
@@ -401,20 +401,6 @@ exports.getSDAUserStatus = async (userKey) => {
       "Internal user fetch status error",
       error?.response?.data || error
     );
-    return false;
-  }
-};
-
-// TODO: use makeUserActive if possible instead of this and remove this
-exports.markInvitedUserActive = async (email) => {
-  const query = `UPDATE ${schemaName}.user SET usr_stat='Active' WHERE email = '${email}'`;
-  try {
-    const result = await DB.executeQuery(query);
-    console.log(`SET ${email} as Active`);
-    if (result.rowCount > 0) return true;
-    return false;
-  } catch (error) {
-    console.log("error: markInvitedUserActive", error);
     return false;
   }
 };

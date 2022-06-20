@@ -482,9 +482,8 @@ exports.secureApi = async (req, res) => {
 
 exports.checkInvitedStatus = async () => {
   try {
-    const statusCase = `CASE WHEN LOWER(TRIM(usr_stat)) IN ('invited') THEN 'invited' END`;
-    const query = `SELECT usr_id as uid, usr_mail_id as email, usr_typ as userType, sdr_usr_key as userKey, LOWER(TRIM(usr_stat)) as status from ${schemaName}.user where (${statusCase} = 'invited')`;
-
+    const statusCase = `LOWER(TRIM(usr_stat))`;
+    const query = `SELECT usr_id as uid, usr_mail_id as email, extrnl_emp_id as employee_id, usr_typ as user_type, sda_usr_key as user_key, ${statusCase} as status from ${schemaName}.user where (${statusCase} = 'invited')`;
     const result = await DB.executeQuery(query);
     if (!result) return false;
 
@@ -496,24 +495,32 @@ exports.checkInvitedStatus = async () => {
 
     await Promise.all(
       invitedUsers.map(async (invitedUser) => {
-        const { email, status, userKey } = invitedUser;
+        const {
+          email,
+          status,
+          user_key: userKey,
+          employee_id: employeeId = "",
+          uid,
+        } = invitedUser;
+
         if (status === "invited") {
-          const SDAStatus = await userHelper.getSDAUserStatus(userKey);
+          const SDAStatus = await userHelper.getSDAUserStatus(userKey, email);
           if (SDAStatus) {
-            // TODO if possible use makeUserActive instead of markInvitedUserActive
-            // userHelper.makeUserActive(uid, externalId);
-            userHelper.markInvitedUserActive(email);
+            console.log(`*mariking invited ${email} as active`);
+            userHelper.makeUserActive(uid, employeeId);
           } else {
             const user = activeUsers.find(
               (u) => u.email.toUpperCase() === email.toUpperCase()
             );
             if (user) {
-              userHelper.markInvitedUserActive(email);
+              console.log(`-mariking invited ${email} as active`);
+              userHelper.makeUserActive(uid, employeeId);
             }
           }
         } else {
           console.log("Error, received user who is not invited.", invitedUser);
         }
+        return Promise.resolve(true);
       })
     );
 
