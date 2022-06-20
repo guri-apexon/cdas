@@ -506,8 +506,8 @@ exports.secureApi = async (req, res) => {
 
 const getUserStudyRoles = async (prot_id, userId) => {
   const userRolesQuery = `SELECT r.role_nm AS label, r.role_id AS value from ${schemaName}.study_user_role AS sur LEFT JOIN ${schemaName}.role AS r ON sur.role_id=r.role_id WHERE sur.prot_id='${prot_id}' AND sur.usr_id='${userId}'`;
-  return await DB.executeQuery(userRolesQuery).then((res)=>res.rows);
-}
+  return await DB.executeQuery(userRolesQuery).then((res) => res.rows);
+};
 
 exports.getUserStudyAndRoles = async function (req, res) {
   try {
@@ -518,16 +518,40 @@ exports.getUserStudyAndRoles = async function (req, res) {
         return response.rows;
       }
     );
-    await Promise.all(userStudies.map(async (e,i) => {
-      const roles = await getUserStudyRoles(e.prot_id, userId);
-      userStudies[i].roles = roles;
-    }));
+    await Promise.all(
+      userStudies.map(async (e, i) => {
+        const roles = await getUserStudyRoles(e.prot_id, userId);
+        userStudies[i].roles = roles;
+      })
+    );
     return apiResponse.successResponseWithData(
       res,
-      "User Study and roles retrieved successfully1",
+      "User Study and roles retrieved successfully",
       userStudies
     );
-    
+  } catch (err) {
+    return false;
+  }
+};
+
+exports.updateUserStatus = async function (req, res) {
+  try {
+    const userId = req.body.userId;
+    const userStatus = req.body.status;
+    const updt_tm = getCurrentTime(true);
+    const inActiveUserQuery = `UPDATE ${schemaName}.user set usr_stat=$1, updt_tm=$2 WHERE usr_id='${userId}'`;
+    console.log({ inActiveUserQuery });
+    const userStudies = await DB.executeQuery(inActiveUserQuery, [
+      userStatus,
+      updt_tm,
+    ]).then((response) => {
+      return response;
+    });
+    return apiResponse.successResponseWithData(
+      res,
+      "User status updated successfully",
+      userStudies
+    );
   } catch (err) {
     return false;
   }

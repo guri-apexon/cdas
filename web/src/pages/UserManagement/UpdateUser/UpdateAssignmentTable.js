@@ -13,6 +13,8 @@ import Tooltip from "apollo-react/components/Tooltip";
 import EllipsisVertical from "apollo-react-icons/EllipsisVertical";
 import IconMenuButton from "apollo-react/components/IconMenuButton";
 import FilterIcon from "apollo-react-icons/Filter";
+import Modal from "apollo-react/components/Modal";
+import Grid from "apollo-react/components/Grid";
 import Table, {
   createSelectFilterComponent,
   createStringSearchFilter,
@@ -40,6 +42,8 @@ const UserAssignmentTable = ({
   disableSaveBtn,
   userId,
   targetUser,
+  showRolePopup,
+  setShowRolePopup,
 }) => {
   const toast = useContext(MessageContext);
   const dispatch = useDispatch();
@@ -400,9 +404,61 @@ const UserAssignmentTable = ({
     },
   ];
 
+  const AssignmentInfoModal = React.memo(({ open, cancel, loading }) => {
+    let rolesCount = 0;
+    console.log({ tableStudies });
+    tableStudies.map((a) => {
+      rolesCount += a.roles.length;
+      return false;
+    });
+    return (
+      <Modal
+        open={open}
+        onClose={cancel}
+        className="save-confirm"
+        variant="secondary"
+        title="Removed assignments"
+        buttonProps={[
+          {
+            label: "Dismiss",
+            onClick: cancel,
+            disabled: loading,
+          },
+        ]}
+        id="neutral2"
+      >
+        <Typography gutterBottom>
+          {`${tableStudies.length} assignments were removed from ${rolesCount} studies as the Roles are now inactive:`}
+          <br />
+          <Grid container spacing={2}>
+            {tableStudies.map((study) => {
+              return (
+                <>
+                  <Grid item xs={5}>
+                    {study.prot_nbr_stnd}
+                  </Grid>
+                  <Grid item xs={7}>
+                    {study.roles.map((r) => r.label).join(", ")}
+                  </Grid>
+                </>
+              );
+            })}
+          </Grid>
+        </Typography>
+      </Modal>
+    );
+  });
+
   const getUserAssignmentTable = React.useMemo(
     () => (
       <>
+        {showRolePopup && (
+          <AssignmentInfoModal
+            open={true}
+            cancel={() => setShowRolePopup(false)}
+            loading={false}
+          />
+        )}
         <Table
           isLoading={!load}
           title="User Assignments"
@@ -419,7 +475,7 @@ const UserAssignmentTable = ({
         />
       </>
     ),
-    [tableStudies, load]
+    [tableStudies, load, showRolePopup]
   );
   return getUserAssignmentTable;
 };

@@ -26,6 +26,7 @@ import {
   fetchADUsers,
   inviteInternalUser,
   getUser,
+  updateUserStatus,
 } from "../../../services/ApiServices";
 import { debounceFunction } from "../../../utils";
 import usePermission, {
@@ -155,6 +156,7 @@ const AddUser = () => {
     useState();
   const [showToolTip, setShowToolTip] = useState(false);
   const [breadcrumpItems, setBreadcrumpItems] = useState([]);
+  const [showRolePopup, setShowRolePopup] = useState(false);
   // const [breadcrumpItems, setBreadcrumpItems] = useState([
   //   { href: "", onClick: () => history.push("/launchpad") },
   //   {
@@ -188,9 +190,23 @@ const AddUser = () => {
       setIsAnyUpdate(true);
     }
   };
+  const checkUserTypeAndUpdate = (checked) => {
+    const userType = targetUser.usr_typ;
+    if (userType === "internal") {
+      if (checked) {
+        updateUserStatus(userId, "Active");
+      } else {
+        updateUserStatus(userId, "In Active");
+        setShowRolePopup(true);
+      }
+    } else {
+      updateUserStatus(userId, checked ? "Active" : "In Active");
+    }
+  };
   const handleActive = (e, checked) => {
     setActive(checked);
     updateChanges();
+    checkUserTypeAndUpdate(checked);
   };
   const cancelEdit = () => {
     // unbFckRouter();
@@ -583,6 +599,8 @@ const AddUser = () => {
                 updateChanges={updateChanges}
                 pingParent={pingParent}
                 updateUserAssign={(e) => updateUserAssign(e)}
+                showRolePopup={showRolePopup}
+                setShowRolePopup={setShowRolePopup}
                 setCheckUserAssignmentTableData={
                   setCheckUserAssignmentTableData
                 }
