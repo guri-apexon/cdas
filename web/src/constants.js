@@ -24,6 +24,10 @@ export const UPDATE_POLICY_STATUS_SUCCESS = "UPDATE_POLICY_STATUS_SUCCESS";
 export const UPDATE_POLICY_STATUS = "UPDATE_POLICY_STATUS";
 export const UPDATE_POLICY_STATUS_FAILURE = "UPDATE_POLICY_STATUS_FAILURE";
 
+export const GET_USER_PERMISSIONS = "GET_USER_PERMISSIONS";
+export const USER_PERMISSIONS_SUCCESS = "USER_PERMISSIONS_SUCCESS";
+export const USER_PERMISSIONS_FAILURE = "USER_PERMISSIONS_FAILURE";
+
 export const VENDOR_LIST = "VENDOR_LIST";
 export const VENDOR_LIST_SUCCESS = "VENDOR_LIST_SUCCESS";
 export const VENDOR_LIST_FAILURE = "VENDOR_LIST_FAILURE";
@@ -68,6 +72,7 @@ export const UPDATE_POLICY = "v1/api/policy/update/status";
 export const ROLES_LIST = "study/select-roles";
 export const VENDOR_BASE = "v1/api/vendor";
 export const ASSIGN_BASE = "v1/api/study/assign";
+export const FETCH_PERMISSIONS = "v1/api/role/getUserRolesPermissions";
 // export const VENDOR_LIST_FETCH = `${VENDOR_BASE}/list`;
 // export const ADD_VENDOR = `${VENDOR_BASE}/create`;
 // export const UPDATE_VENDOR = `${VENDOR_BASE}/update`;

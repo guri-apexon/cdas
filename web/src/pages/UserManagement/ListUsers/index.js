@@ -90,6 +90,9 @@ const ListUsers = () => {
     if (permissions.length > 0) {
       filterMethod(permissions);
     }
+  }, [permissions]);
+
+  useEffect(() => {
     getUsers().then((u) => {
       setTableRows(u.rows);
       setInitialTableRows(u.rows);
