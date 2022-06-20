@@ -668,18 +668,21 @@ const AddUser = () => {
                           getUserList(e.target.value);
                         }}
                         noOptionsText={
-                          // eslint-disable-next-line react/jsx-wrap-multilines
-                          <div className="flex-center flex justify-center">
-                            {fetchStatus === "loading" ? (
+                          fetchStatus === "loading" ? (
+                            <div className="flex-center flex justify-center">
                               <ApolloProgress />
-                            ) : (
-                              <>
-                                {searchQuery
-                                  ? "No user found"
-                                  : "Type a word to search"}
-                              </>
-                            )}
-                          </div>
+                            </div>
+                          ) : (
+                            <>
+                              {searchQuery ? (
+                                <div className="flex-center flex justify-center">
+                                  No user found
+                                </div>
+                              ) : (
+                                "No options"
+                              )}
+                            </>
+                          )
                         }
                         onChange={(e, v, r) => {
                           updateChanges();
