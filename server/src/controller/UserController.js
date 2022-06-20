@@ -102,6 +102,31 @@ exports.listUsers = async function (req, res) {
   }
 };
 
+exports.getUserDetail = async function (req, res) {
+  const userId = req.query.userId;
+  try {
+    return await DB.executeQuery(
+      `SELECT * from ${schemaName}.user WHERE usr_id='${userId}'`
+    )
+      .then((response) => {
+        return apiResponse.successResponseWithData(
+          res,
+          "User retrieved successfully",
+          response
+        );
+      })
+      .catch((err) => {
+        console.log({ err });
+        return apiResponse.ErrorResponse(
+          response,
+          err.detail || "Something went wrong"
+        );
+      });
+  } catch (err) {
+    return false;
+  }
+};
+
 exports.getUserStudy = async function (req, res) {
   try {
     const studyUserId = req.query.studyUserId;
@@ -477,4 +502,33 @@ exports.deleteNewUser = async (req, res) => {
 exports.secureApi = async (req, res) => {
   const { userId } = req.body;
   return apiResponse.successResponse(res, "Secure Api Success");
+};
+
+const getUserStudyRoles = async (prot_id, userId) => {
+  const userRolesQuery = `SELECT r.role_nm AS label, r.role_id AS value from ${schemaName}.study_user_role AS sur LEFT JOIN ${schemaName}.role AS r ON sur.role_id=r.role_id WHERE sur.prot_id='${prot_id}' AND sur.usr_id='${userId}'`;
+  return await DB.executeQuery(userRolesQuery).then((res)=>res.rows);
+}
+
+exports.getUserStudyAndRoles = async function (req, res) {
+  try {
+    const userId = req.query.userId;
+    const userStudyQuery = `SELECT s.prot_id, s.prot_nbr_stnd from ${schemaName}.study_user AS su LEFT JOIN ${schemaName}.study AS s ON su.prot_id=s.prot_id WHERE su.usr_id='${userId}'`;
+    const userStudies = await DB.executeQuery(userStudyQuery).then(
+      (response) => {
+        return response.rows;
+      }
+    );
+    await Promise.all(userStudies.map(async (e,i) => {
+      const roles = await getUserStudyRoles(e.prot_id, userId);
+      userStudies[i].roles = roles;
+    }));
+    return apiResponse.successResponseWithData(
+      res,
+      "User Study and roles retrieved successfully1",
+      userStudies
+    );
+    
+  } catch (err) {
+    return false;
+  }
 };

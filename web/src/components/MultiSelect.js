@@ -8,6 +8,7 @@ export default function MultiSelect({
   setTableStudies,
 }) {
   const tableIndex = tableStudies.findIndex((el) => el.index === row.index);
+  console.log({ tableStudies, row });
   const [value, setValue] = useState(tableStudies[tableIndex]?.roles || []);
   const editRow = (e, v, r) => {
     setValue([...v]);

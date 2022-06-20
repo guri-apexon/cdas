@@ -417,6 +417,27 @@ export const getUsers = () => {
   }
 };
 
+export const getUser = (id) => {
+  try {
+    return new Promise((resolve, reject) => {
+      axios
+        .get(`${API_URL}/user/getUserDetail`, { params: { userId: id } })
+        .then((res) => {
+          resolve(res.data?.data || res.data);
+        })
+        .catch((err) => {
+          if (err.response?.data) {
+            resolve(err.response?.data);
+          } else {
+            resolve({ message: "Something went wrong" });
+          }
+        });
+    });
+  } catch (err) {
+    return console.log("Error", err);
+  }
+};
+
 export const validateEmail = (email) => {
   try {
     return new Promise((resolve, reject) => {
@@ -594,6 +615,31 @@ export const fetchADUsers = (query) => {
         }
         return { message: "Something went wrong" };
       });
+  } catch (err) {
+    return console.log("Error", err);
+  }
+};
+
+export const getUserStudyAndRoles = (userIdForStudyData) => {
+  try {
+    return new Promise((resolve, reject) => {
+      axios
+        .get(`${API_URL}/users/get-user-study-and-roles`, {
+          params: {
+            userId: userIdForStudyData,
+          },
+        })
+        .then((res) => {
+          resolve(res?.data);
+        })
+        .catch((err) => {
+          if (err.response?.data) {
+            resolve(err.response?.data);
+          } else {
+            resolve({ message: "Something went wrong" });
+          }
+        });
+    });
   } catch (err) {
     return console.log("Error", err);
   }
