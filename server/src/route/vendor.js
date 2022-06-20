@@ -3,7 +3,7 @@ const VendorController = require("../controller/VendorController");
 
 var router = express.Router();
 
-router.post("/list", VendorController.getVendorsList);
+router.all("/list", VendorController.getVendorsList);
 router.post("/statusUpdate", VendorController.activeStatusUpdate);
 router.get("/details/:vendor_id", VendorController.getVendorById);
 router.post("/create", VendorController.createVendor);
