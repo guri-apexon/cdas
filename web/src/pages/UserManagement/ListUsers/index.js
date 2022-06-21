@@ -67,22 +67,22 @@ const ListUsers = () => {
   const [readRolePermission, setReadRolePermission] = useState(false);
   const [updateRolePermission, setUpdateRolePermission] = useState(false);
 
-  const { canCreate } = usePermission(
+  const { canCreate, readOnly } = usePermission(
     Categories.MENU,
     Features.USER_MANAGEMENT
   );
 
   const filterMethod = (rolePermissions) => {
-    const filterrolePermissions = rolePermissions.filter(
+    const filterrolePermissions = rolePermissions.find(
       (item) => item.featureName === "User Management"
-    )[0];
-    if (filterrolePermissions.allowedPermission.includes("Read")) {
+    );
+    if (filterrolePermissions?.allowedPermission.includes("Read")) {
       setReadRolePermission(true);
     }
-    if (filterrolePermissions.allowedPermission.includes("Update")) {
+    if (filterrolePermissions?.allowedPermission.includes("Update")) {
       setUpdateRolePermission(true);
     }
-    if (filterrolePermissions.allowedPermission.includes("Create")) {
+    if (filterrolePermissions?.allowedPermission.includes("Create")) {
       setCreateRolePermission(true);
     }
   };
@@ -90,6 +90,9 @@ const ListUsers = () => {
     if (permissions.length > 0) {
       filterMethod(permissions);
     }
+  }, [permissions]);
+
+  useEffect(() => {
     getUsers().then((u) => {
       setTableRows(u.rows);
       setInitialTableRows(u.rows);
@@ -141,9 +144,10 @@ const ListUsers = () => {
     const id = row.usr_id;
     if (!rowValue) return null;
     const charLimit = getOverflowLimit(width, 100);
+    const disabledLink = readOnly;
     if (rowValue.length < charLimit) {
       return (
-        <Link disabled={!readRolePermission} onClick={(e) => goToUser(e, id)}>
+        <Link disabled={disabledLink} onClick={(e) => goToUser(e, id)}>
           {rowValue}
         </Link>
       );
@@ -152,7 +156,7 @@ const ListUsers = () => {
       <Link
         onMouseOver={() => handleMouseOver(row, "roleName")}
         onMouseOut={handleMouseOut}
-        disabled={!readRolePermission}
+        disabled={disabledLink}
         onClick={(e) => goToUser(e, id)}
       >
         {`${rowValue.slice(0, charLimit - 10)} [...]`}

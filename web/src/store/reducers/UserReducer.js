@@ -1,7 +1,11 @@
 import produce from "immer";
 // import moment from "moment";
 
-import { CREAT_USER, UPDATE_USER_STATUS } from "../../constants";
+import {
+  CREAT_USER,
+  UPDATE_USER_STATUS,
+  USER_PERMISSIONS_SUCCESS,
+} from "../../constants";
 
 export const initialState = {
   userList: [],
@@ -32,6 +36,9 @@ const UserReducer = (state = initialState, action) =>
         newState.isEditPage = false;
         newState.isCreatePage = true;
         newState.selectedUser = {};
+        break;
+      case USER_PERMISSIONS_SUCCESS:
+        newState.permissions = action.response;
         break;
 
       default:
