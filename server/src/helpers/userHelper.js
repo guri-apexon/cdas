@@ -18,6 +18,7 @@ const SDA_BASE_API_URL = `${process.env.SDA_BASE_URL}/sda-rest-api/api/external/
 const SDA_Endpoint = `${SDA_BASE_API_URL}?appKey=${process.env.SDA_APP_KEY}`;
 const SDA_Endpoint_Deprovision = `${SDA_BASE_API_URL}/deprovisionUserFromApplication`;
 const SDA_Endpoint_get_users = `${SDA_BASE_API_URL}/getUsersForApplication?appKey=${process.env.SDA_APP_KEY}`;
+const SDA_Endpoint_get_user_status = `${SDA_BASE_API_URL}/UserProvisioningStatus?appKey=${process.env.SDA_APP_KEY}`;
 
 exports.CONSTANTS = {
   INACTIVE: "INACTIVE",
@@ -367,4 +368,39 @@ exports.revokeStudy = async (requestBody, studyList) => {
   }
 
   return apiStatus === "" ? true : false;
+};
+
+exports.getSDAUsers = async () => {
+  try {
+    const response = await axios.get(SDA_Endpoint_get_users);
+    if (response && response.data) return response.data;
+    return [];
+  } catch (error) {
+    console.log("error: getSDAUsers", error);
+    return [];
+  }
+};
+
+exports.getSDAUserStatus = async (userKey, email) => {
+  if (!userKey) {
+    console.log("user key not found, cannot fetch sda user:", email);
+    return false;
+  }
+  try {
+    const response = await axios.get(
+      `${SDA_Endpoint_get_user_status}&userKey=${userKey}`
+    );
+    if (
+      response?.data?.status.trim().toLowerCase() === "provisioning successfull"
+    ) {
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.log(
+      "Internal user fetch status error",
+      error?.response?.data || error
+    );
+    return false;
+  }
 };
