@@ -207,6 +207,10 @@ const AddUser = () => {
     setActive(checked);
     updateChanges();
     checkUserTypeAndUpdate(checked);
+    setTargetUser({
+      ...targetUser,
+      usr_stat: checked ? "Active" : "In Active",
+    });
   };
   const cancelEdit = () => {
     // unbFckRouter();
@@ -466,43 +470,43 @@ const AddUser = () => {
     return null;
   };
 
-  useEffect(() => {
-    if (!studiesRows) {
-      return false;
-    }
-    if (!selectedUser) {
-      toast.showErrorMessage("Select a user or create a new one");
-      return false;
-    }
-    if (!studiesRows.length) {
-      toast.showErrorMessage("Add some studies to proceed");
-      return false;
-    }
-    if (studiesRows.find((x) => x.study == null)) {
-      // setInitialRender(!initialRender);
-      // setTableStudies([...studiesRows]);
-      toast.showErrorMessage("Please fill study or remove blank rows");
-      return false;
-    }
-    if (studiesRows.find((x) => x.alreadyExist)) {
-      toast.showErrorMessage("Please remove duplicate values");
-      return false;
-    }
-    const emptyRoles = studiesRows.filter((x) => x.roles.length === 0);
-    if (emptyRoles.length) {
-      toast.showErrorMessage(
-        `This assignment is incomplete. Please select a study and a role to continue.`
-      );
-      return false;
-    }
-    if (isNewUser) {
-      setConfirmInviteUser(true);
-      return true;
-    }
-    setLoading(true);
-    createUserAndAssignStudies();
-    return null;
-  }, [studiesRows]);
+  // useEffect(() => {
+  //   if (!studiesRows) {
+  //     return false;
+  //   }
+  //   if (!selectedUser) {
+  //     toast.showErrorMessage("Select a user or create a new one");
+  //     return false;
+  //   }
+  //   if (!studiesRows.length) {
+  //     toast.showErrorMessage("Add some studies to proceed");
+  //     return false;
+  //   }
+  //   if (studiesRows.find((x) => x.study == null)) {
+  //     // setInitialRender(!initialRender);
+  //     // setTableStudies([...studiesRows]);
+  //     toast.showErrorMessage("Please fill study or remove blank rows");
+  //     return false;
+  //   }
+  //   if (studiesRows.find((x) => x.alreadyExist)) {
+  //     toast.showErrorMessage("Please remove duplicate values");
+  //     return false;
+  //   }
+  //   const emptyRoles = studiesRows.filter((x) => x.roles.length === 0);
+  //   if (emptyRoles.length) {
+  //     toast.showErrorMessage(
+  //       `This assignment is incomplete. Please select a study and a role to continue.`
+  //     );
+  //     return false;
+  //   }
+  //   if (isNewUser) {
+  //     setConfirmInviteUser(true);
+  //     return true;
+  //   }
+  //   setLoading(true);
+  //   createUserAndAssignStudies();
+  //   return null;
+  // }, [studiesRows]);
 
   return (
     <div className="create-user-wrapper">

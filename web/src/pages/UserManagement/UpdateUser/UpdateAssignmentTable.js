@@ -10,6 +10,7 @@ import Button from "apollo-react/components/Button";
 import PlusIcon from "apollo-react-icons/Plus";
 import Typography from "apollo-react/components/Typography";
 import Tooltip from "apollo-react/components/Tooltip";
+import Rocket from "apollo-react-icons/Rocket";
 import EllipsisVertical from "apollo-react-icons/EllipsisVertical";
 import IconMenuButton from "apollo-react/components/IconMenuButton";
 import FilterIcon from "apollo-react-icons/Filter";
@@ -54,6 +55,7 @@ const UserAssignmentTable = ({
   const [tableStudies, setTableStudies] = useState([]);
   const [initialRender, setInitialRender] = useState(true);
   const [roleLists, setroleLists] = useState([]);
+  const [showUserAssignmentModal, setUserAssignmentModal] = useState(false);
 
   const lineRefs = React.useRef([]);
   // useEffect(() => {
@@ -139,14 +141,14 @@ const UserAssignmentTable = ({
   };
 
   const addNewStudy = () => {
-    if (tableStudies.find((x) => x.study == null)) {
-      setInitialRender(!initialRender);
-      setTableStudies([...tableStudies]);
-      toast.showErrorMessage(
-        "Please fill study or remove blank rows to add new row"
-      );
-      return false;
-    }
+    // if (tableStudies.find((x) => x.study == null)) {
+    //   setInitialRender(!initialRender);
+    //   setTableStudies([...tableStudies]);
+    //   toast.showErrorMessage(
+    //     "Please fill study or remove blank rows to add new row"
+    //   );
+    //   return false;
+    // }
     const studyObj = getStudyObj();
     setTableStudies((u) => [...u, studyObj]);
     return true;
@@ -357,11 +359,7 @@ const UserAssignmentTable = ({
             size="small"
             variant="secondary"
             icon={PlusIcon}
-            onClick={(e) => {
-              lineRefs.current[
-                tableStudies.length - 1
-              ]?.current?.lastElementChild?.childNodes[0]?.firstElementChild?.childNodes[1]?.childNodes[1]?.click();
-            }}
+            onClick={() => setUserAssignmentModal(true)}
           >
             Add user assignment
           </Button>
@@ -449,6 +447,57 @@ const UserAssignmentTable = ({
     );
   });
 
+  const UserAssignmentModal = React.memo(({ open, cancel, loading }) => {
+    return (
+      <Modal
+        open={open}
+        onClose={cancel}
+        className="save-confirm"
+        variant="secondary"
+        title="Add User Assignment"
+        buttonProps={[
+          {
+            label: "Cancel",
+            onClick: cancel,
+            disabled: loading,
+          },
+          {
+            label: "Save",
+            onClick: cancel,
+            disabled: loading,
+          },
+        ]}
+        id="neutral2"
+      >
+        <Typography gutterBottom>UserAssignmentModal</Typography>
+      </Modal>
+    );
+  });
+
+  const EmptyTableContent = () => {
+    return (
+      <>
+        <Typography variant="body2" className="">
+          <Rocket />
+        </Typography>
+        <Typography variant="body2" className="">
+          Nothing to See Here
+        </Typography>
+        <Typography variant="body2" className="">
+          At least one assignment is needed to access any CDAS product
+        </Typography>
+        <Button
+          size="small"
+          variant="secondary"
+          icon={PlusIcon}
+          onClick={() => setUserAssignmentModal(true)}
+        >
+          Add user assignment
+        </Button>
+      </>
+    );
+  };
+
   const getUserAssignmentTable = React.useMemo(
     () => (
       <>
@@ -456,6 +505,13 @@ const UserAssignmentTable = ({
           <AssignmentInfoModal
             open={true}
             cancel={() => setShowRolePopup(false)}
+            loading={false}
+          />
+        )}
+        {showUserAssignmentModal && (
+          <UserAssignmentModal
+            open={true}
+            cancel={() => setUserAssignmentModal(false)}
             loading={false}
           />
         )}
@@ -472,10 +528,11 @@ const UserAssignmentTable = ({
           hidePagination={true}
           CustomHeader={(props) => <CustomButtonHeader {...props} />}
           headerProps={{ addNewStudy }}
+          emptyProps={{ content: <EmptyTableContent /> }}
         />
       </>
     ),
-    [tableStudies, load, showRolePopup]
+    [tableStudies, load, showRolePopup, showUserAssignmentModal, targetUser]
   );
   return getUserAssignmentTable;
 };
