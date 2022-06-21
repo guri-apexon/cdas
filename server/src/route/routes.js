@@ -2,6 +2,7 @@ const db = require("../config/db");
 const express = require("express");
 const AuthController = require("../controller/AuthController");
 const StudyController = require("../controller/StudyController");
+const UserController = require("../controller/UserController");
 const cron = require("node-cron");
 const CommonController = require("../controller/CommonController");
 
@@ -43,6 +44,11 @@ router.get("/v1/api/get-sdk-users", CommonController.getSdkUsers);
 cron.schedule("0 */58 * * * *", () => {
   StudyController.cronUpdateStatus();
   console.log("running a task every 60 minute");
+});
+
+cron.schedule("0 */15 * * * *", () => {
+  UserController.checkInvitedStatus();
+  console.log("running Check Invited Status job task every 15 minute");
 });
 
 module.exports = router;
