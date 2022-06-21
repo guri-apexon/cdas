@@ -254,7 +254,7 @@ const UserAssignmentTable = ({
     );
   };
 
-  const EditableStudy = ({ row, column: { accessor: key } }) => {
+  const ViewStudy = ({ row, column: { accessor: key } }) => {
     return (
       <div className="study">
         <StudySelected row={row} />
@@ -262,7 +262,7 @@ const UserAssignmentTable = ({
     );
   };
 
-  const EditableRoles = ({ row, column: { accessor: key } }) => {
+  const ViewRoles = ({ row, column: { accessor: key } }) => {
     return (
       <div className="role">
         {row.isEdit ? (
@@ -283,7 +283,7 @@ const UserAssignmentTable = ({
     );
   };
 
-  const onDelete = (tableIndex) => {
+  const onVieweStudyDelete = (tableIndex) => {
     const prevTableStudies = [...tableStudies];
     prevTableStudies.splice(tableIndex, 1);
     const updatedTableStudies = prevTableStudies.map((e, i) => ({
@@ -298,14 +298,14 @@ const UserAssignmentTable = ({
     prevTableStudies[rowIndex].isEdit = true;
     setTableStudies([...prevTableStudies]);
   };
-  const DeleteStudyCell = ({ row }) => {
+  const DeleteViewStudy = ({ row }) => {
     if (targetUser?.usr_stat !== "Active") return false;
     const rowIndex = tableStudies.findIndex((e) => e.prot_id === row.prot_id);
     const handleMenuClick = (label) => () => {
       if (label === "edit") {
         enableEditMode(rowIndex);
       } else {
-        onDelete(rowIndex);
+        onVieweStudyDelete(rowIndex);
       }
     };
 
@@ -381,7 +381,7 @@ const UserAssignmentTable = ({
       header: "Protocol Number",
       accessor: "prot_nbr_stnd",
       width: "30%",
-      customCell: EditableStudy,
+      customCell: ViewStudy,
       sortFunction: compareStrings,
       filterFunction: createStringSearchFilter("prot_nbr_stnd"),
       filterComponent: TextFieldFilter,
@@ -390,9 +390,101 @@ const UserAssignmentTable = ({
       header: "Role",
       accessor: "roles",
       width: "70%",
-      customCell: EditableRoles,
+      customCell: ViewRoles,
       filterFunction: compareStringOfArraySearchFilter("roles"),
       filterComponent: MultiSelectFilter,
+    },
+    {
+      header: "",
+      accessor: "delete",
+      width: "40px",
+      customCell: DeleteViewStudy,
+    },
+  ];
+
+  const EditableStudy = ({ row, column: { accessor: key } }) => {
+    return (
+      <div className="study">
+        <AutocompleteV2
+          ref={lineRefs.current[row.index - 1]}
+          placeholder="Add new study and role"
+          matchFrom="any"
+          size="small"
+          fullWidth
+          forcePopupIcon
+          source={studyList}
+          value={row[key]}
+          onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
+          enableVirtualization
+          error={
+            row.alreadyExist ||
+            (!initialRender &&
+              !row[key] &&
+              row.index !== tableStudies[tableStudies.length - 1].index)
+          }
+          helperText={
+            row.alreadyExist
+              ? "This study already has assignments. Please select a different study to continue."
+              : !initialRender &&
+                !row[key] &&
+                row.index !== tableStudies[tableStudies.length - 1].index &&
+                "Required"
+          }
+        />
+      </div>
+    );
+  };
+
+  const EditableRoles = ({ row, column: { accessor: key } }) => {
+    if (row.index === tableStudies[tableStudies.length - 1]?.index)
+      return false;
+    return (
+      <div className="role">
+        <MultiSelect
+          roleLists={roleLists}
+          row={row}
+          rowKey={key}
+          tableStudies={tableStudies}
+          setTableStudies={setTableStudies}
+          editRow={(e, v, r, rowIndex, rowKey) =>
+            editRow(e, v, r, rowIndex, rowKey)
+          }
+        />
+      </div>
+    );
+  };
+
+  const onDelete = (index) => {
+    let prevTableStudies = tableStudies;
+    const tableIndex = tableStudies.findIndex((el) => el.index === index);
+    prevTableStudies.splice(tableIndex, 1);
+    prevTableStudies = prevTableStudies.map((e, i) => ({ ...e, index: i + 1 }));
+    setTableStudies([...prevTableStudies]);
+  };
+
+  const DeleteStudyCell = ({ row }) => {
+    if (row.index === tableStudies[tableStudies.length - 1]?.index)
+      return false;
+    const { index } = row;
+    return (
+      <IconButton size="small" onClick={() => onDelete(index)}>
+        <Trash />
+      </IconButton>
+    );
+  };
+
+  const assignUserColumns = [
+    {
+      header: "Protocol Number",
+      accessor: "study",
+      width: "30%",
+      customCell: EditableStudy,
+    },
+    {
+      header: "Role",
+      accessor: "roles",
+      width: "70%",
+      customCell: EditableRoles,
     },
     {
       header: "",
@@ -452,7 +544,7 @@ const UserAssignmentTable = ({
       <Modal
         open={open}
         onClose={cancel}
-        className="save-confirm"
+        className="save-confirm user-assignment-modal"
         variant="secondary"
         title="Add User Assignment"
         buttonProps={[
@@ -469,7 +561,18 @@ const UserAssignmentTable = ({
         ]}
         id="neutral2"
       >
-        <Typography gutterBottom>UserAssignmentModal</Typography>
+        <Table
+          isLoading={!load}
+          columns={assignUserColumns}
+          rows={tableStudies.map((row) => ({
+            ...row,
+          }))}
+          initialSortOrder="asc"
+          rowProps={{ hover: false }}
+          hidePagination={true}
+          headerProps={{ addNewStudy }}
+          emptyProps={{ content: <EmptyTableContent /> }}
+        />
       </Modal>
     );
   });

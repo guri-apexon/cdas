@@ -19,6 +19,7 @@ import Typography from "apollo-react/components/Typography";
 import Link from "apollo-react/components/Link";
 import Grid from "apollo-react/components/Grid";
 import Modal from "apollo-react/components/Modal";
+import Tag from "apollo-react/components/Tag";
 
 import {
   validateEmail,
@@ -554,13 +555,19 @@ const AddUser = () => {
             <Link onClick={(e) => goToUser(e)}>
               {"< Back to User Management List"}
             </Link>
-            {!readOnly && (
+            {!readOnly && targetUser?.usr_stat !== "Invited" ? (
               <Switch
                 label="Active"
                 className="inline-checkbox"
                 checked={active}
                 onChange={handleActive}
                 size="small"
+              />
+            ) : (
+              <Tag
+                className="user-tag-capitalized"
+                label={`Status: ${targetUser?.usr_stat}`}
+                variant="purple"
               />
             )}
           </div>
