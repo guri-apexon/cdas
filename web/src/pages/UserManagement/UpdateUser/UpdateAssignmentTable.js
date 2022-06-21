@@ -78,8 +78,9 @@ const UserAssignmentTable = ({
   const getStudyObj = () => {
     const rowIndex = Math.max(...tableStudies.map((o) => o.index), 0) + 1;
     return {
-      index: rowIndex,
-      study: null,
+      index: rowIndex + 1,
+      prot_nbr_stnd: "",
+      prot_id: "",
       roles: [],
     };
   };
@@ -149,19 +150,20 @@ const UserAssignmentTable = ({
     //   );
     //   return false;
     // }
-    const studyObj = getStudyObj();
-    setTableStudies((u) => [...u, studyObj]);
+    // const studyObj = getStudyObj();
+    // setTableStudies((u) => [...u, studyObj]);
     return true;
   };
 
   const getRoles = async () => {
     const result = await fetchRoles();
     setroleLists(result || []);
-    addNewStudy();
+    // addNewStudy();
   };
 
   const getStudyList = async () => {
     const data = [...studyData?.studyboardData];
+    // console.log({ data });
     const filtered =
       data
         .filter((study) => {
@@ -183,18 +185,18 @@ const UserAssignmentTable = ({
       return 0;
     });
     setStudyList(filtered);
-    getRoles();
+    // getRoles();
   };
 
-  // useEffect(() => {
-  //   if (
-  //     !studyData.loading &&
-  //     studyData?.studyboardFetchSuccess &&
-  //     !tableStudies.length
-  //   ) {
-  //     getStudyList();
-  //   }
-  // }, [studyData]);
+  useEffect(() => {
+    // if (
+    //   !studyData.loading &&
+    //   studyData?.studyboardFetchSuccess &&
+    //   !tableStudies.length
+    // ) {
+    getStudyList();
+    // }
+  }, [studyData]);
 
   const editRow = (e, value, reason, index, key) => {
     updateChanges();
@@ -204,7 +206,7 @@ const UserAssignmentTable = ({
     } else {
       setInitialRender(false);
     }
-    if (key === "study" && value) {
+    if (key === "prot_nbr_stnd" && value) {
       alreadyExist = tableStudies.find(
         (x) => x.study?.prot_id === value.prot_id
       )
@@ -215,7 +217,7 @@ const UserAssignmentTable = ({
     setTableStudies((rows) => {
       const newRows = rows.map((row) => {
         if (row.index === index) {
-          if (key === "study") {
+          if (key === "prot_nbr_stnd") {
             return { ...row, [key]: value, alreadyExist };
           }
           return { ...row, [key]: value };
@@ -224,7 +226,7 @@ const UserAssignmentTable = ({
       });
       if (
         !alreadyExist &&
-        key === "study" &&
+        key === "prot_nbr_stnd" &&
         value &&
         tableIndex + 1 === tableStudies.length
       ) {
@@ -290,7 +292,7 @@ const UserAssignmentTable = ({
       ...e,
       index: i + 1,
     }));
-    setTableStudies([...updatedTableStudies]);
+    setTableStudies([...updatedTableStudies, getStudyObj()]);
   };
 
   const enableEditMode = (rowIndex) => {
@@ -340,12 +342,14 @@ const UserAssignmentTable = ({
   // }, [pingParent]);
 
   useEffect(() => {
-    // dispatch(getStudyboardData());
+    dispatch(getStudyboardData());
+    // getStudyList();
     getRoles();
     (async () => {
       const userStudy = await getUserStudyAndRoles(userId);
       if (userStudy.status) {
-        setTableStudies(userStudy.data.map((e, i) => ({ ...e, index: i })));
+        const userSutdyRes = userStudy.data.map((e, i) => ({ ...e, index: i }));
+        setTableStudies([...userSutdyRes, getStudyObj()]);
       }
       setLoad(true);
     })();
@@ -403,6 +407,7 @@ const UserAssignmentTable = ({
   ];
 
   const EditableStudy = ({ row, column: { accessor: key } }) => {
+    const editStudyRowIndex = studyList.findIndex((e) => e[key] === row[key]);
     return (
       <div className="study">
         <AutocompleteV2
@@ -413,7 +418,7 @@ const UserAssignmentTable = ({
           fullWidth
           forcePopupIcon
           source={studyList}
-          value={row[key]}
+          value={studyList[editStudyRowIndex]}
           onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
           enableVirtualization
           error={
@@ -436,8 +441,7 @@ const UserAssignmentTable = ({
   };
 
   const EditableRoles = ({ row, column: { accessor: key } }) => {
-    if (row.index === tableStudies[tableStudies.length - 1]?.index)
-      return false;
+    if (row.index === tableStudies[tableStudies.length]?.index) return false;
     return (
       <div className="role">
         <MultiSelect
@@ -463,7 +467,8 @@ const UserAssignmentTable = ({
   };
 
   const DeleteStudyCell = ({ row }) => {
-    if (row.index === tableStudies[tableStudies.length - 1]?.index)
+    // console.log({ row, tableStudies });
+    if (row.index === tableStudies[tableStudies.length + 1]?.index)
       return false;
     const { index } = row;
     return (
@@ -476,7 +481,7 @@ const UserAssignmentTable = ({
   const assignUserColumns = [
     {
       header: "Protocol Number",
-      accessor: "study",
+      accessor: "prot_nbr_stnd",
       width: "30%",
       customCell: EditableStudy,
     },
@@ -496,7 +501,7 @@ const UserAssignmentTable = ({
 
   const AssignmentInfoModal = React.memo(({ open, cancel, loading }) => {
     let rolesCount = 0;
-    console.log({ tableStudies });
+    // console.log({ tableStudies });
     tableStudies.map((a) => {
       rolesCount += a.roles.length;
       return false;
@@ -506,7 +511,7 @@ const UserAssignmentTable = ({
         open={open}
         onClose={cancel}
         className="save-confirm"
-        variant="secondary"
+        variant="default"
         title="Removed assignments"
         buttonProps={[
           {
@@ -540,12 +545,24 @@ const UserAssignmentTable = ({
   });
 
   const UserAssignmentModal = React.memo(({ open, cancel, loading }) => {
+    // const newTableStudies = tableStudies.map((e) => ({
+    //   study: e.prot_nbr_stnd,
+    //   index: e.index,
+    //   roles: e.roles,
+    // }));
+    // const rowIndex = Math.max(...tableStudies.map((o) => o.index), 0) + 1;
+    // newTableStudies.push({
+    //   index: rowIndex,
+    //   study: null,
+    //   roles: [],
+    // });
+    // // console.log({ newTableStudies });
     return (
       <Modal
         open={open}
         onClose={cancel}
         className="save-confirm user-assignment-modal"
-        variant="secondary"
+        variant="default"
         title="Add User Assignment"
         buttonProps={[
           {
@@ -564,13 +581,10 @@ const UserAssignmentTable = ({
         <Table
           isLoading={!load}
           columns={assignUserColumns}
-          rows={tableStudies.map((row) => ({
-            ...row,
-          }))}
+          rows={tableStudies}
           initialSortOrder="asc"
           rowProps={{ hover: false }}
           hidePagination={true}
-          headerProps={{ addNewStudy }}
           emptyProps={{ content: <EmptyTableContent /> }}
         />
       </Modal>
@@ -635,7 +649,14 @@ const UserAssignmentTable = ({
         />
       </>
     ),
-    [tableStudies, load, showRolePopup, showUserAssignmentModal, targetUser]
+    [
+      tableStudies,
+      load,
+      showRolePopup,
+      showUserAssignmentModal,
+      targetUser,
+      studyList,
+    ]
   );
   return getUserAssignmentTable;
 };
