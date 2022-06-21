@@ -208,7 +208,7 @@ const UserAssignmentTable = ({
     }
     if (key === "prot_nbr_stnd" && value) {
       alreadyExist = tableStudies.find(
-        (x) => x.study?.prot_id === value.prot_id
+        (x) => x.prot_nbr_stnd === value.prot_nbr_stnd
       )
         ? true
         : false;
@@ -218,9 +218,9 @@ const UserAssignmentTable = ({
       const newRows = rows.map((row) => {
         if (row.index === index) {
           if (key === "prot_nbr_stnd") {
-            return { ...row, [key]: value, alreadyExist };
+            return { ...row, [key]: value.prot_nbr_stnd, alreadyExist };
           }
-          return { ...row, [key]: value };
+          return { ...row, [key]: value.prot_nbr_stnd };
         }
         return row;
       });
@@ -441,7 +441,8 @@ const UserAssignmentTable = ({
   };
 
   const EditableRoles = ({ row, column: { accessor: key } }) => {
-    if (row.index === tableStudies[tableStudies.length]?.index) return false;
+    if (row.index === tableStudies[tableStudies.length - 1]?.index)
+      return false;
     return (
       <div className="role">
         <MultiSelect
@@ -467,8 +468,7 @@ const UserAssignmentTable = ({
   };
 
   const DeleteStudyCell = ({ row }) => {
-    // console.log({ row, tableStudies });
-    if (row.index === tableStudies[tableStudies.length + 1]?.index)
+    if (row.index === tableStudies[tableStudies.length - 1]?.index)
       return false;
     const { index } = row;
     return (
@@ -545,18 +545,6 @@ const UserAssignmentTable = ({
   });
 
   const UserAssignmentModal = React.memo(({ open, cancel, loading }) => {
-    // const newTableStudies = tableStudies.map((e) => ({
-    //   study: e.prot_nbr_stnd,
-    //   index: e.index,
-    //   roles: e.roles,
-    // }));
-    // const rowIndex = Math.max(...tableStudies.map((o) => o.index), 0) + 1;
-    // newTableStudies.push({
-    //   index: rowIndex,
-    //   study: null,
-    //   roles: [],
-    // });
-    // // console.log({ newTableStudies });
     return (
       <Modal
         open={open}
@@ -636,9 +624,7 @@ const UserAssignmentTable = ({
           isLoading={!load}
           title="User Assignments"
           columns={columns}
-          rows={tableStudies.map((row) => ({
-            ...row,
-          }))}
+          rows={tableStudies.filter((e) => e.prot_id)}
           initialSortedColumn="prot_nbr_stnd"
           initialSortOrder="asc"
           rowProps={{ hover: false }}
