@@ -557,3 +557,56 @@ exports.updateUserStatus = async function (req, res) {
     return false;
   }
 };
+exports.checkInvitedStatus = async () => {
+  try {
+    const statusCase = `LOWER(TRIM(usr_stat))`;
+    const query = `SELECT usr_id as uid, usr_mail_id as email, extrnl_emp_id as employee_id, usr_typ as user_type, sda_usr_key as user_key, ${statusCase} as status from ${schemaName}.user where (${statusCase} = 'invited')`;
+    const result = await DB.executeQuery(query);
+    if (!result) return false;
+
+    const invitedUsers = result.rows || [];
+    if (!invitedUsers.length) return false;
+
+    // Get Active Users from SDA API
+    const activeUsers = userHelper.getSDAUsers();
+
+    await Promise.all(
+      invitedUsers.map(async (invitedUser) => {
+        const {
+          email,
+          status,
+          user_key: userKey,
+          employee_id: employeeId = "",
+          uid,
+        } = invitedUser;
+
+        if (status === "invited") {
+          const SDAStatus = await userHelper.getSDAUserStatus(userKey, email);
+          if (SDAStatus) {
+            console.log(`*mariking invited ${email} as active`);
+            userHelper.makeUserActive(uid, employeeId);
+          } else {
+            const user = activeUsers.find(
+              (u) => u.email.toUpperCase() === email.toUpperCase()
+            );
+            if (user) {
+              console.log(`-mariking invited ${email} as active`);
+              userHelper.makeUserActive(uid, employeeId);
+            }
+          }
+        } else {
+          console.log("Error, received user who is not invited.", invitedUser);
+        }
+        return Promise.resolve(true);
+      })
+    );
+
+    Logger.info({
+      message: "checkInvitedStatusCronFinished",
+    });
+
+    return true;
+  } catch {
+    return false;
+  }
+};
