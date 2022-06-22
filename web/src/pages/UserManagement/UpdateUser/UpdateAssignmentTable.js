@@ -457,59 +457,6 @@ const UserAssignmentTable = ({
     },
   ];
 
-  const EditableStudy = ({ row, column: { accessor: key } }) => {
-    const editStudyRowIndex = studyList.findIndex((e) => e[key] === row[key]);
-    return (
-      <div className="study">
-        <AutocompleteV2
-          ref={lineRefs.current[row.index - 1]}
-          placeholder="Add new study and role"
-          matchFrom="any"
-          size="small"
-          fullWidth
-          forcePopupIcon
-          source={studyList}
-          value={studyList[editStudyRowIndex]}
-          onChange={(e, v, r) => editStudyRow(e, v, r, row.index, key)}
-          enableVirtualization
-          error={
-            row.alreadyExist ||
-            (!initialRender &&
-              !row[key] &&
-              row.index !== tableStudies[tableStudies.length - 1].index)
-          }
-          helperText={
-            row.alreadyExist
-              ? "This study already has assignments. Please select a different study to continue."
-              : !initialRender &&
-                !row[key] &&
-                row.index !== tableStudies[tableStudies.length - 1].index &&
-                "Required"
-          }
-        />
-      </div>
-    );
-  };
-
-  const EditableRoles = ({ row, column: { accessor: key } }) => {
-    if (row.index === tableStudies[tableStudies.length - 1]?.index)
-      return false;
-    return (
-      <div className="role">
-        <MultiSelect
-          roleLists={roleLists}
-          row={row}
-          rowKey={key}
-          tableStudies={tableStudies}
-          setTableStudies={setTableStudies}
-          editRow={(e, v, r, rowIndex, rowKey) =>
-            editRoleRow(e, v, r, rowIndex, rowKey)
-          }
-        />
-      </div>
-    );
-  };
-
   const onDelete = (index) => {
     let prevTableStudies = tableStudies;
     const tableIndex = tableStudies.findIndex((el) => el.index === index);
@@ -529,12 +476,12 @@ const UserAssignmentTable = ({
     );
   };
 
-  const createUserAndAssignStudies = async () => {
+  const createUserAndAssignStudies = async (rowsToUpdate) => {
     const email = targetUser.usr_mail_id;
     const uid = targetUser?.sAMAccountName;
     const employeeId = targetUser?.extrnl_emp_id?.trim() || "";
 
-    const formattedRows = tableStudies.map((e) => {
+    const formattedRows = rowsToUpdate.map((e) => {
       console.log({ e });
       return {
         protocolname: e?.prot_nbr_stnd,
@@ -543,7 +490,7 @@ const UserAssignmentTable = ({
       };
     });
 
-    console.log({ tableStudies });
+    console.log({ rowsToUpdate });
 
     const newFormattedRows = formattedRows.filter((e) => e.id);
     console.log({ formattedRows, newFormattedRows });
@@ -567,6 +514,7 @@ const UserAssignmentTable = ({
     const response = await updateUserAssignments(payload);
     if (response.status === 1) {
       setUserAssignmentModal(false);
+      setTableStudies(rowsToUpdate);
       toast.showSuccessMessage(response.message);
     } else {
       toast.showErrorMessage(response.message);
@@ -574,7 +522,7 @@ const UserAssignmentTable = ({
     // return null;
   };
 
-  const updateUserAssignment = () => {
+  const updateUserAssignment2 = () => {
     // if (!studiesRows) {
     //   return false;
     // }
@@ -610,27 +558,6 @@ const UserAssignmentTable = ({
     setLoad(true);
     createUserAndAssignStudies();
   };
-
-  const assignUserColumns = [
-    {
-      header: "Protocol Number",
-      accessor: "prot_id",
-      width: "30%",
-      customCell: EditableStudy,
-    },
-    {
-      header: "Role",
-      accessor: "roles",
-      width: "70%",
-      customCell: EditableRoles,
-    },
-    {
-      header: "",
-      accessor: "delete",
-      width: "40px",
-      customCell: DeleteStudyCell,
-    },
-  ];
 
   const AssignmentInfoModal = React.memo(({ open, cancel, loading }) => {
     let rolesCount = 0;
@@ -678,6 +605,208 @@ const UserAssignmentTable = ({
   });
 
   const UserAssignmentModal = React.memo(({ open, cancel, loading }) => {
+    const [modalTableStudies, setModalTableStudies] = useState([
+      ...tableStudies,
+    ]);
+
+    const editModalStudyRow = (e, value, reason, index, key) => {
+      updateChanges();
+      let alreadyExist;
+      if (value) {
+        setInitialRender(true);
+      } else {
+        setInitialRender(false);
+      }
+      if (key === "prot_id" && value) {
+        alreadyExist = modalTableStudies.find(
+          (x) => x.prot_id === value.prot_id
+        )
+          ? true
+          : false;
+      }
+      const tableIndex = modalTableStudies.findIndex(
+        (el) => el.index === index
+      );
+      setModalTableStudies((rows) => {
+        const newRows = rows.map((row) => {
+          console.log({ row });
+          if (row.index === index) {
+            if (key === "prot_id") {
+              return {
+                ...row,
+                [key]: value.prot_id,
+                id: value.prot_id,
+                prot_nbr_stnd: value.prot_nbr_stnd,
+                alreadyExist,
+              };
+            }
+            return {
+              ...row,
+              [key]: value.prot_id,
+              id: value.prot_id,
+              prot_nbr_stnd: value.prot_nbr_stnd,
+            };
+          }
+          return row;
+        });
+        if (
+          !alreadyExist &&
+          key === "prot_id" &&
+          value &&
+          tableIndex + 1 === modalTableStudies.length
+        ) {
+          return [...newRows, getStudyObj()];
+        }
+        console.log({ newRows });
+        return newRows;
+      });
+    };
+
+    const editModalRoleRow = (e, value, reason, index, key) => {
+      updateChanges();
+      let alreadyExist;
+      if (value) {
+        setInitialRender(true);
+      } else {
+        setInitialRender(false);
+      }
+      if (key === "prot_nbr_stnd" && value) {
+        alreadyExist = modalTableStudies.find(
+          (x) => x.prot_nbr_stnd === value.prot_nbr_stnd
+        )
+          ? true
+          : false;
+      }
+      const tableIndex = modalTableStudies.findIndex(
+        (el) => el.index === index
+      );
+      setModalTableStudies((rows) => {
+        const newRows = rows.map((row) => {
+          if (row.index === index) {
+            if (key === "prot_nbr_stnd") {
+              return { ...row, [key]: value.prot_nbr_stnd, alreadyExist };
+            }
+            return { ...row, [key]: value.prot_nbr_stnd };
+          }
+          return row;
+        });
+        if (
+          !alreadyExist &&
+          key === "prot_nbr_stnd" &&
+          value &&
+          tableIndex + 1 === modalTableStudies.length
+        ) {
+          return [...newRows, getStudyObj()];
+        }
+        return newRows;
+      });
+    };
+
+    const EditableStudy = ({ row, column: { accessor: key } }) => {
+      const editStudyRowIndex = studyList.findIndex((e) => e[key] === row[key]);
+      return (
+        <div className="study">
+          <AutocompleteV2
+            ref={lineRefs.current[row.index - 1]}
+            placeholder="Add new study and role"
+            matchFrom="any"
+            size="small"
+            fullWidth
+            forcePopupIcon
+            source={studyList}
+            value={studyList[editStudyRowIndex]}
+            onChange={(e, v, r) => editModalStudyRow(e, v, r, row.index, key)}
+            enableVirtualization
+            error={
+              row.alreadyExist ||
+              (!initialRender &&
+                !row[key] &&
+                row.index !==
+                  modalTableStudies[modalTableStudies.length - 1].index)
+            }
+            helperText={
+              row.alreadyExist
+                ? "This study already has assignments. Please select a different study to continue."
+                : !initialRender &&
+                  !row[key] &&
+                  row.index !==
+                    modalTableStudies[modalTableStudies.length - 1].index &&
+                  "Required"
+            }
+          />
+        </div>
+      );
+    };
+
+    const EditableRoles = ({ row, column: { accessor: key } }) => {
+      if (row.index === modalTableStudies[modalTableStudies.length - 1]?.index)
+        return false;
+      return (
+        <div className="role">
+          <MultiSelect
+            roleLists={roleLists}
+            row={row}
+            rowKey={key}
+            tableStudies={modalTableStudies}
+            setTableStudies={setModalTableStudies}
+            editRow={(e, v, r, rowIndex, rowKey) =>
+              editModalRoleRow(e, v, r, rowIndex, rowKey)
+            }
+          />
+        </div>
+      );
+    };
+
+    const onModalRowDelete = (index) => {
+      console.log("need to update");
+      let prevTableStudies = [...modalTableStudies];
+      const tableIndex = modalTableStudies.findIndex(
+        (el) => el.index === index
+      );
+      prevTableStudies.splice(tableIndex, 1);
+      prevTableStudies = prevTableStudies.map((e, i) => ({
+        ...e,
+        index: i + 1,
+      }));
+      setModalTableStudies([...prevTableStudies]);
+    };
+
+    const DeleteModalRow = ({ row }) => {
+      if (row.index === modalTableStudies[modalTableStudies.length - 1]?.index)
+        return false;
+      const { index } = row;
+      return (
+        <IconButton size="small" onClick={() => onModalRowDelete(index)}>
+          <Trash />
+        </IconButton>
+      );
+    };
+
+    const updateModalAssignment = () => {
+      setLoad(true);
+      createUserAndAssignStudies(modalTableStudies);
+    };
+
+    const assignUserColumns = [
+      {
+        header: "Protocol Number",
+        accessor: "prot_id",
+        width: "30%",
+        customCell: EditableStudy,
+      },
+      {
+        header: "Role",
+        accessor: "roles",
+        width: "70%",
+        customCell: EditableRoles,
+      },
+      {
+        header: "",
+        accessor: "delete",
+        width: "40px",
+        customCell: DeleteModalRow,
+      },
+    ];
     return (
       <Modal
         open={open}
@@ -693,7 +822,7 @@ const UserAssignmentTable = ({
           },
           {
             label: "Save",
-            onClick: updateUserAssignment,
+            onClick: updateModalAssignment,
             disabled: loading,
           },
         ]}
@@ -702,7 +831,7 @@ const UserAssignmentTable = ({
         <Table
           isLoading={!load}
           columns={assignUserColumns}
-          rows={tableStudies}
+          rows={modalTableStudies}
           initialSortOrder="asc"
           rowProps={{ hover: false }}
           hidePagination={true}
