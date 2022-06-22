@@ -551,10 +551,6 @@ const UserAssignmentTable = ({
     //   );
     //   return false;
     // }
-    // if (isNewUser) {
-    //   setConfirmInviteUser(true);
-    //   return true;
-    // }
     setLoad(true);
     createUserAndAssignStudies();
   };
@@ -784,7 +780,21 @@ const UserAssignmentTable = ({
 
     const updateModalAssignment = () => {
       setLoad(true);
-      createUserAndAssignStudies(modalTableStudies);
+      let isErorr = false;
+      if (modalTableStudies.find((x) => x.alreadyExist)) {
+        toast.showErrorMessage("Please remove duplicate values");
+        isErorr = true;
+      }
+      const emptyRoles = modalTableStudies.filter((x) => x.roles.length === 0);
+      if (emptyRoles.length) {
+        toast.showErrorMessage(
+          `This assignment is incomplete. Please select a study and a role to continue.`
+        );
+        isErorr = true;
+      }
+      if (!isErorr) {
+        createUserAndAssignStudies(modalTableStudies);
+      }
     };
 
     const assignUserColumns = [

@@ -175,11 +175,11 @@ exports.assignmentUpdate = async (req, res, returnBool = false) => {
   const { email, protocols, createdBy, createdOn, tenant } = data;
 
   // validate data
-  // const validate = await assignmentHelper.validateAssignment(data);
-  // if (validate.success === false)
-  //   return returnBool
-  //     ? false
-  //     : apiResponse.ErrorResponse(res, validate.message);
+  const validate = await assignmentHelper.validateAssignment(data);
+  if (validate.success === false)
+    return returnBool
+      ? false
+      : apiResponse.ErrorResponse(res, validate.message);
 
   // validate user
   const user = await userHelper.findByEmail(email);
