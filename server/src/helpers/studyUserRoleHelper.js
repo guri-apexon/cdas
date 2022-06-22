@@ -5,7 +5,8 @@ const constants = require("../config/constants");
 const studyHelper = require("./studyHelper");
 const roleHelper = require("./roleHelper");
 const { DB_SCHEMA_NAME: schemaName } = constants;
-
+const commonHelper = require("./commonHelper");
+const TABLE_NAME = "study_user_role";
 // study_user_role_audit_log
 //UPDATE cdascfg.study_user_role_audit_log
 // SET prot_usr_role_id='1472252', "attribute"='New Entry', old_val=NULL, new_val=NULL, rsn_for_chg='User Requested', updated_by='u1120581', updated_on='2022-06-06 21:40:47.000';
@@ -46,3 +47,5 @@ exports.insertAuditLog = async (
   }
   return false;
 };
+
+exports.find = async (filter) => await commonHelper.find(TABLE_NAME, filter);
