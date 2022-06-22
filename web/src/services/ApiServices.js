@@ -668,3 +668,25 @@ export const updateUserStatus = (userIdForStatusChange, status) => {
     return console.log("Error", err);
   }
 };
+
+export const updateUserAssignments = (payload) => {
+  try {
+    return new Promise((resolve, reject) => {
+      payload.updatedBy = userId;
+      axios
+        .post(`${API_URL}/users/update-user-assignments`, payload)
+        .then((res) => {
+          resolve(res.data);
+        })
+        .catch((err) => {
+          if (err.response?.data) {
+            resolve(err.response?.data);
+          } else {
+            resolve({ message: "Something went wrong" });
+          }
+        });
+    });
+  } catch (err) {
+    return console.log("Error", err);
+  }
+};

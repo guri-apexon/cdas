@@ -25,6 +25,7 @@ import Table, {
 import {
   fetchRoles,
   getUserStudyAndRoles,
+  updateUserAssignments,
 } from "../../../services/ApiServices";
 import { MessageContext } from "../../../components/Providers/MessageProvider";
 import { getStudyboardData } from "../../../store/actions/StudyBoardAction";
@@ -163,7 +164,7 @@ const UserAssignmentTable = ({
 
   const getStudyList = async () => {
     const data = [...studyData?.studyboardData];
-    // console.log({ data });
+    console.log({ data });
     const filtered =
       data
         .filter((study) => {
@@ -184,6 +185,7 @@ const UserAssignmentTable = ({
       }
       return 0;
     });
+    console.log({ filtered });
     setStudyList(filtered);
     // getRoles();
   };
@@ -198,7 +200,55 @@ const UserAssignmentTable = ({
     // }
   }, [studyData]);
 
-  const editRow = (e, value, reason, index, key) => {
+  const editStudyRow = (e, value, reason, index, key) => {
+    updateChanges();
+    let alreadyExist;
+    if (value) {
+      setInitialRender(true);
+    } else {
+      setInitialRender(false);
+    }
+    if (key === "prot_id" && value) {
+      alreadyExist = tableStudies.find((x) => x.prot_id === value.prot_id)
+        ? true
+        : false;
+    }
+    const tableIndex = tableStudies.findIndex((el) => el.index === index);
+    setTableStudies((rows) => {
+      const newRows = rows.map((row) => {
+        console.log({ row });
+        if (row.index === index) {
+          if (key === "prot_id") {
+            return {
+              ...row,
+              [key]: value.prot_id,
+              id: value.prot_id,
+              prot_nbr_stnd: value.prot_nbr_stnd,
+              alreadyExist,
+            };
+          }
+          return {
+            ...row,
+            [key]: value.prot_id,
+            id: value.prot_id,
+            prot_nbr_stnd: value.prot_nbr_stnd,
+          };
+        }
+        return row;
+      });
+      if (
+        !alreadyExist &&
+        key === "prot_id" &&
+        value &&
+        tableIndex + 1 === tableStudies.length
+      ) {
+        return [...newRows, getStudyObj()];
+      }
+      console.log({ newRows });
+      return newRows;
+    });
+  };
+  const editRoleRow = (e, value, reason, index, key) => {
     updateChanges();
     let alreadyExist;
     if (value) {
@@ -275,7 +325,7 @@ const UserAssignmentTable = ({
             tableStudies={tableStudies}
             setTableStudies={setTableStudies}
             editRow={(e, v, r, rowIndex, rowKey) =>
-              editRow(e, v, r, rowIndex, rowKey)
+              editRoleRow(e, v, r, rowIndex, rowKey)
             }
           />
         ) : (
@@ -349,6 +399,7 @@ const UserAssignmentTable = ({
       const userStudy = await getUserStudyAndRoles(userId);
       if (userStudy.status) {
         const userSutdyRes = userStudy.data.map((e, i) => ({ ...e, index: i }));
+        console.log({ userSutdyRes });
         setTableStudies([...userSutdyRes, getStudyObj()]);
       }
       setLoad(true);
@@ -419,7 +470,7 @@ const UserAssignmentTable = ({
           forcePopupIcon
           source={studyList}
           value={studyList[editStudyRowIndex]}
-          onChange={(e, v, r) => editRow(e, v, r, row.index, key)}
+          onChange={(e, v, r) => editStudyRow(e, v, r, row.index, key)}
           enableVirtualization
           error={
             row.alreadyExist ||
@@ -452,7 +503,7 @@ const UserAssignmentTable = ({
           tableStudies={tableStudies}
           setTableStudies={setTableStudies}
           editRow={(e, v, r, rowIndex, rowKey) =>
-            editRow(e, v, r, rowIndex, rowKey)
+            editRoleRow(e, v, r, rowIndex, rowKey)
           }
         />
       </div>
@@ -478,10 +529,100 @@ const UserAssignmentTable = ({
     );
   };
 
+  const createUserAndAssignStudies = async () => {
+    const email = targetUser.usr_mail_id;
+    const uid = targetUser?.sAMAccountName;
+    const employeeId = targetUser?.extrnl_emp_id?.trim() || "";
+
+    const formattedRows = tableStudies.map((e) => {
+      console.log({ e });
+      return {
+        protocolname: e?.prot_nbr_stnd,
+        id: e?.prot_id,
+        roles: e.roles.map((r) => r.value),
+      };
+    });
+
+    console.log({ tableStudies });
+
+    const newFormattedRows = formattedRows.filter((e) => e.id);
+    console.log({ formattedRows, newFormattedRows });
+    const insertUserStudy = {
+      email,
+      protocols: newFormattedRows,
+    };
+
+    let payload = {};
+    const splittedNames = targetUser?.displayName?.split(", ") || [];
+    const firstName =
+      targetUser.givenName ||
+      (splittedNames.length === 2 ? splittedNames[1] : splittedNames[0]);
+    const lastName = targetUser.sn || splittedNames[0];
+    payload = {
+      firstName,
+      lastName,
+      uid,
+      ...insertUserStudy,
+    };
+    const response = await updateUserAssignments(payload);
+    // if (isNewUser) {
+    //   response = await inviteExternalUser(payload);
+    // } else {
+    //   response = await inviteInternalUser(payload);
+    // }
+    // setConfirmInviteUser(false);
+    // setLoading(false);
+    // const msg = response.message;
+    // if (response.status === 1) {
+    //   toast.showSuccessMessage(msg);
+    //   history.push("/user-management");
+    // } else {
+    //   toast.showErrorMessage(msg);
+    // }
+    // return null;
+  };
+
+  const updateUserAssignment = () => {
+    // if (!studiesRows) {
+    //   return false;
+    // }
+    // if (!selectedUser) {
+    //   toast.showErrorMessage("Select a user or create a new one");
+    //   return false;
+    // }
+    // if (!studiesRows.length) {
+    //   toast.showErrorMessage("Add some studies to proceed");
+    //   return false;
+    // }
+    // if (studiesRows.find((x) => x.study == null)) {
+    //   // setInitialRender(!initialRender);
+    //   // setTableStudies([...studiesRows]);
+    //   toast.showErrorMessage("Please fill study or remove blank rows");
+    //   return false;
+    // }
+    // if (studiesRows.find((x) => x.alreadyExist)) {
+    //   toast.showErrorMessage("Please remove duplicate values");
+    //   return false;
+    // }
+    // const emptyRoles = studiesRows.filter((x) => x.roles.length === 0);
+    // if (emptyRoles.length) {
+    //   toast.showErrorMessage(
+    //     `This assignment is incomplete. Please select a study and a role to continue.`
+    //   );
+    //   return false;
+    // }
+    // if (isNewUser) {
+    //   setConfirmInviteUser(true);
+    //   return true;
+    // }
+    setLoad(true);
+    createUserAndAssignStudies();
+  };
+
   const assignUserColumns = [
     {
       header: "Protocol Number",
-      accessor: "prot_nbr_stnd",
+      accessor: "prot_id",
       width: "30%",
       customCell: EditableStudy,
     },
@@ -560,7 +701,7 @@ const UserAssignmentTable = ({
           },
           {
             label: "Save",
-            onClick: cancel,
+            onClick: updateUserAssignment,
             disabled: loading,
           },
         ]}
