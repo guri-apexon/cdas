@@ -138,8 +138,8 @@ exports.insertUserStudyRole = async (
  * @param {string} usr_id User Id
  * @param {string} prot_id Protocol Id
  * @param {number} role_id Role id
- * @param {string} createdBy user id of the person doing the operation
- * @param {string} createdOn date and time of the operation
+ * @param {string} updatedBy user id of the person doing the operation
+ * @param {string} updatedOn date and time of the operation
  * @returns id of newly created study user role otherwise false
  */
 exports.makeUserStudyRoleInactive = async (
@@ -181,6 +181,10 @@ exports.makeUserStudyInactive = async (
     WHERE usr_id='${usr_id}' AND prot_id='${prot_id}' AND act_flg = 1
     LIMIT 1`;
 
+  const countActiveRolesQuery = `
+    SELECT * FROM ${schemaName}.study_user_role
+    WHERE usr_id='${usr_id}' AND prot_id='${prot_id}' AND act_flg = 1`;
+
   const updateQuery = `
     UPDATE ${schemaName}.study_user SET act_flg = 0, updt_tm = '${createdOn}' 
     WHERE usr_id='${usr_id}' AND prot_id='${prot_id}' 
@@ -189,8 +193,11 @@ exports.makeUserStudyInactive = async (
   try {
     const isExist = await DB.executeQuery(checkStudyUserRoleQuery);
     if (isExist && isExist.rowCount > 0) {
-      const result = await DB.executeQuery(updateQuery);
-      return result.rows[0];
+      const activeRoles = await DB.executeQuery(countActiveRolesQuery);
+      if (activeRoles.rowCount == 0) {
+        const result = await DB.executeQuery(updateQuery);
+        return result.rows[0];
+      }
     }
   } catch (error) {
     console.log(">>>> error:insertUserStudy ", error);
@@ -334,13 +341,6 @@ exports.makeAssignmentsInactive = async (
   for (let i = 0; i < protocols.length; i++) {
     const protocol = protocols[i];
     if (!protocol.roleIds || !protocol.isValid) continue;
-    const result = await this.makeUserStudyInactive(
-      user.usr_id,
-      protocol.id,
-      createdBy || "",
-      createdOn || getCurrentTime()
-    );
-    if (result) flag = true;
     for (let j = 0; j < protocol.roleIds.length; j++) {
       const roleId = protocol.roleIds[j];
       const result = await this.makeUserStudyRoleInactive(
@@ -364,6 +364,13 @@ exports.makeAssignmentsInactive = async (
         Logger.error("assignmentCreate > saveToDb > " + protocol.protocolname);
       }
     }
+    const result = await this.makeUserStudyInactive(
+      user.usr_id,
+      protocol.id,
+      createdBy || "",
+      createdOn || getCurrentTime()
+    );
+    if (result) flag = true;
   }
   return flag;
 };
