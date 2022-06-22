@@ -473,7 +473,7 @@ const UserAssignmentTable = ({
     return (
       <>
         {row.isEdit ? (
-          <>
+          <div className="flex flex-end w-100">
             <Button
               variant="secondary"
               size="small"
@@ -490,13 +490,15 @@ const UserAssignmentTable = ({
             >
               Save
             </Button>
-          </>
+          </div>
         ) : (
-          <Tooltip title="Actions" disableFocusListener>
-            <IconMenuButton id="actions-2" menuItems={menuItems} size="small">
-              <EllipsisVertical />
-            </IconMenuButton>
-          </Tooltip>
+          <div className="flex flex-end w-100">
+            <Tooltip disableFocusListener>
+              <IconMenuButton id="actions-2" menuItems={menuItems} size="small">
+                <EllipsisVertical />
+              </IconMenuButton>
+            </Tooltip>
+          </div>
         )}
       </>
     );
@@ -543,6 +545,7 @@ const UserAssignmentTable = ({
         )}
         <Button
           size="small"
+          className="ml-3"
           variant="secondary"
           icon={FilterIcon}
           onClick={toggleFilters}
