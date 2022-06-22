@@ -565,20 +565,12 @@ const UserAssignmentTable = ({
       ...insertUserStudy,
     };
     const response = await updateUserAssignments(payload);
-    // if (isNewUser) {
-    //   response = await inviteExternalUser(payload);
-    // } else {
-    //   response = await inviteInternalUser(payload);
-    // }
-    // setConfirmInviteUser(false);
-    // setLoading(false);
-    // const msg = response.message;
-    // if (response.status === 1) {
-    //   toast.showSuccessMessage(msg);
-    //   history.push("/user-management");
-    // } else {
-    //   toast.showErrorMessage(msg);
-    // }
+    if (response.status === 1) {
+      setUserAssignmentModal(false);
+      toast.showSuccessMessage(response.message);
+    } else {
+      toast.showErrorMessage(response.message);
+    }
     // return null;
   };
 
