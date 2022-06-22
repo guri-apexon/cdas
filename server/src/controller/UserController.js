@@ -513,7 +513,7 @@ const getUserStudyRoles = async (prot_id, userId) => {
 exports.getUserStudyAndRoles = async function (req, res) {
   try {
     const userId = req.query.userId;
-    const userStudyQuery = `SELECT s.prot_id, s.prot_nbr_stnd from ${schemaName}.study_user AS su LEFT JOIN ${schemaName}.study AS s ON su.prot_id=s.prot_id WHERE su.usr_id='${userId}'`;
+    const userStudyQuery = `SELECT s.prot_id, s.prot_nbr_stnd from ${schemaName}.study_user AS su LEFT JOIN ${schemaName}.study AS s ON su.prot_id=s.prot_id WHERE su.usr_id='${userId}' AND act_flg=1`;
     const userStudies = await DB.executeQuery(userStudyQuery).then(
       (response) => {
         return response.rows;
@@ -662,7 +662,8 @@ exports.deleteUserAssignments = async (req, res) => {
   } catch (error) {
     return apiResponse.ErrorResponse(res, "Unable to fetch tenant");
   }
-  newReq.body["createdBy"] = newReq.body.userId;
+  newReq.body["createdBy"] = req.body.updatedBy;
+  newReq.body["updatedBy"] = req.body.updatedBy;
   newReq.body["createdOn"] = getCurrentTime();
 
   console.log(newReq.body);

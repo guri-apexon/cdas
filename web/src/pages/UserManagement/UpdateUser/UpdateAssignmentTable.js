@@ -26,6 +26,7 @@ import {
   fetchRoles,
   getUserStudyAndRoles,
   updateUserAssignments,
+  deleteUserAssignments,
 } from "../../../services/ApiServices";
 import { MessageContext } from "../../../components/Providers/MessageProvider";
 import { getStudyboardData } from "../../../store/actions/StudyBoardAction";
@@ -342,23 +343,22 @@ const UserAssignmentTable = ({
   };
 
   const onVieweStudyDelete = async (rowIndex) => {
+    setLoad(false);
     const email = targetUser.usr_mail_id;
     const uid = targetUser?.sAMAccountName;
     const employeeId = targetUser?.extrnl_emp_id?.trim() || "";
 
-    const formattedRows = tableStudies.map((e) => {
-      return {
-        protocolname: e?.prot_nbr_stnd,
-        id: e?.prot_id,
-        roles: e.roles.map((r) => r.value),
-      };
-    });
+    const formattedRows = [
+      {
+        protocolname: tableStudies[rowIndex].prot_nbr_stnd,
+        id: tableStudies[rowIndex].prot_id,
+        roles: tableStudies[rowIndex].roles.map((r) => r.label),
+      },
+    ];
 
     console.log(tableStudies[rowIndex]);
 
-    const newFormattedRows = formattedRows.filter(
-      (e) => e.id && e.id !== tableStudies[rowIndex].prot_id
-    );
+    const newFormattedRows = formattedRows.filter((e) => e.id);
     console.log({ formattedRows, newFormattedRows });
     const insertUserStudy = {
       email,
@@ -375,9 +375,11 @@ const UserAssignmentTable = ({
       firstName,
       lastName,
       uid,
+      tenent: "t1",
       ...insertUserStudy,
     };
-    const response = await updateUserAssignments(payload);
+    const response = await deleteUserAssignments(payload);
+    console.log({ response });
     if (response.status) {
       updateEditMode(rowIndex, false);
       toast.showSuccessMessage(
@@ -395,6 +397,7 @@ const UserAssignmentTable = ({
         response.message || "Error in Assignment Deletion!"
       );
     }
+    setLoad(true);
     console.log("saveEdit", response);
   };
 
