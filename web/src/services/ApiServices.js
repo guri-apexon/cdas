@@ -690,3 +690,25 @@ export const updateUserAssignments = (payload) => {
     return console.log("Error", err);
   }
 };
+
+export const deleteUserAssignments = (payload) => {
+  try {
+    return new Promise((resolve, reject) => {
+      payload.updatedBy = userId;
+      axios
+        .post(`${API_URL}/users/delete-user-assignments`, payload)
+        .then((res) => {
+          resolve(res.data);
+        })
+        .catch((err) => {
+          if (err.response?.data) {
+            resolve(err.response?.data);
+          } else {
+            resolve({ message: "Something went wrong" });
+          }
+        });
+    });
+  } catch (err) {
+    return console.log("Error", err);
+  }
+};

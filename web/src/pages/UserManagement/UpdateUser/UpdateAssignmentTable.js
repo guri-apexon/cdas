@@ -335,30 +335,126 @@ const UserAssignmentTable = ({
     );
   };
 
-  const onVieweStudyDelete = (tableIndex) => {
+  const updateEditMode = (rowIndex, editMode) => {
     const prevTableStudies = [...tableStudies];
-    prevTableStudies.splice(tableIndex, 1);
-    const updatedTableStudies = prevTableStudies.map((e, i) => ({
-      ...e,
-      index: i + 1,
-    }));
-    setTableStudies([...updatedTableStudies, getStudyObj()]);
-  };
-
-  const enableEditMode = (rowIndex) => {
-    const prevTableStudies = [...tableStudies];
-    prevTableStudies[rowIndex].isEdit = true;
+    prevTableStudies[rowIndex].isEdit = editMode;
     setTableStudies([...prevTableStudies]);
   };
+
+  const onVieweStudyDelete = async (rowIndex) => {
+    const email = targetUser.usr_mail_id;
+    const uid = targetUser?.sAMAccountName;
+    const employeeId = targetUser?.extrnl_emp_id?.trim() || "";
+
+    const formattedRows = tableStudies.map((e) => {
+      return {
+        protocolname: e?.prot_nbr_stnd,
+        id: e?.prot_id,
+        roles: e.roles.map((r) => r.value),
+      };
+    });
+
+    console.log(tableStudies[rowIndex]);
+
+    const newFormattedRows = formattedRows.filter(
+      (e) => e.id && e.id !== tableStudies[rowIndex].prot_id
+    );
+    console.log({ formattedRows, newFormattedRows });
+    const insertUserStudy = {
+      email,
+      protocols: newFormattedRows,
+    };
+
+    let payload = {};
+    const splittedNames = targetUser?.displayName?.split(", ") || [];
+    const firstName =
+      targetUser.givenName ||
+      (splittedNames.length === 2 ? splittedNames[1] : splittedNames[0]);
+    const lastName = targetUser.sn || splittedNames[0];
+    payload = {
+      firstName,
+      lastName,
+      uid,
+      ...insertUserStudy,
+    };
+    const response = await updateUserAssignments(payload);
+    if (response.status) {
+      updateEditMode(rowIndex, false);
+      toast.showSuccessMessage(
+        response.message || "Assignment Deleted Successfully!"
+      );
+      const prevTableStudies = [...tableStudies];
+      prevTableStudies.splice(rowIndex, 1);
+      const updatedTableStudies = prevTableStudies.map((e, i) => ({
+        ...e,
+        index: i + 1,
+      }));
+      setTableStudies([...updatedTableStudies, getStudyObj()]);
+    } else {
+      toast.showErrorMessage(
+        response.message || "Error in Assignment Deletion!"
+      );
+    }
+    console.log("saveEdit", response);
+  };
+
   const DeleteViewStudy = ({ row }) => {
     if (targetUser?.usr_stat !== "Active") return false;
     const rowIndex = tableStudies.findIndex((e) => e.prot_id === row.prot_id);
     const handleMenuClick = (label) => () => {
       if (label === "edit") {
-        enableEditMode(rowIndex);
+        updateEditMode(rowIndex, true);
       } else {
         onVieweStudyDelete(rowIndex);
       }
+    };
+
+    const cancelEdit = () => {
+      updateEditMode(rowIndex, false);
+    };
+
+    const saveEdit = async () => {
+      const email = targetUser.usr_mail_id;
+      const uid = targetUser?.sAMAccountName;
+      const employeeId = targetUser?.extrnl_emp_id?.trim() || "";
+
+      const formattedRows = [
+        {
+          protocolname: tableStudies[rowIndex].prot_nbr_stnd,
+          id: tableStudies[rowIndex].prot_id,
+          roles: tableStudies[rowIndex].roles.map((r) => r.value),
+        },
+      ];
+
+      console.log(tableStudies[rowIndex]);
+
+      const newFormattedRows = formattedRows.filter((e) => e.id);
+      console.log({ formattedRows, newFormattedRows });
+      const insertUserStudy = {
+        email,
+        protocols: newFormattedRows,
+      };
+
+      let payload = {};
+      const splittedNames = targetUser?.displayName?.split(", ") || [];
+      const firstName =
+        targetUser.givenName ||
+        (splittedNames.length === 2 ? splittedNames[1] : splittedNames[0]);
+      const lastName = targetUser.sn || splittedNames[0];
+      payload = {
+        firstName,
+        lastName,
+        uid,
+        ...insertUserStudy,
+      };
+      const response = await updateUserAssignments(payload);
+      if (response.status) {
+        updateEditMode(rowIndex, false);
+        toast.showSuccessMessage(response.message || "Updated Successfully!");
+      } else {
+        toast.showErrorMessage(response.message || "Error in update!");
+      }
+      console.log("saveEdit", response);
     };
 
     const menuItems = [
@@ -372,11 +468,34 @@ const UserAssignmentTable = ({
       },
     ];
     return (
-      <Tooltip title="Actions" disableFocusListener>
-        <IconMenuButton id="actions-2" menuItems={menuItems} size="small">
-          <EllipsisVertical />
-        </IconMenuButton>
-      </Tooltip>
+      <>
+        {row.isEdit ? (
+          <>
+            <Button
+              variant="secondary"
+              size="small"
+              style={{ marginRight: 10 }}
+              onClick={() => cancelEdit()}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              size="small"
+              style={{ marginRight: 10 }}
+              onClick={() => saveEdit()}
+            >
+              Save
+            </Button>
+          </>
+        ) : (
+          <Tooltip title="Actions" disableFocusListener>
+            <IconMenuButton id="actions-2" menuItems={menuItems} size="small">
+              <EllipsisVertical />
+            </IconMenuButton>
+          </Tooltip>
+        )}
+      </>
     );
   };
 
@@ -435,7 +554,7 @@ const UserAssignmentTable = ({
     {
       header: "Protocol Number",
       accessor: "prot_nbr_stnd",
-      width: "30%",
+      width: "25%",
       customCell: ViewStudy,
       sortFunction: compareStrings,
       filterFunction: createStringSearchFilter("prot_nbr_stnd"),
@@ -444,7 +563,7 @@ const UserAssignmentTable = ({
     {
       header: "Role",
       accessor: "roles",
-      width: "70%",
+      width: "55%",
       customCell: ViewRoles,
       filterFunction: compareStringOfArraySearchFilter("roles"),
       filterComponent: MultiSelectFilter,
@@ -452,7 +571,7 @@ const UserAssignmentTable = ({
     {
       header: "",
       accessor: "delete",
-      width: "40px",
+      width: "20%",
       customCell: DeleteViewStudy,
     },
   ];
@@ -493,31 +612,39 @@ const UserAssignmentTable = ({
     console.log({ rowsToUpdate });
 
     const newFormattedRows = formattedRows.filter((e) => e.id);
-    console.log({ formattedRows, newFormattedRows });
-    const insertUserStudy = {
-      email,
-      protocols: newFormattedRows,
-    };
 
-    let payload = {};
-    const splittedNames = targetUser?.displayName?.split(", ") || [];
-    const firstName =
-      targetUser.givenName ||
-      (splittedNames.length === 2 ? splittedNames[1] : splittedNames[0]);
-    const lastName = targetUser.sn || splittedNames[0];
-    payload = {
-      firstName,
-      lastName,
-      uid,
-      ...insertUserStudy,
-    };
-    const response = await updateUserAssignments(payload);
-    if (response.status === 1) {
-      setUserAssignmentModal(false);
-      setTableStudies(rowsToUpdate);
-      toast.showSuccessMessage(response.message);
+    const emptyRoles = newFormattedRows.filter((x) => x.roles.length === 0);
+    if (emptyRoles.length) {
+      toast.showErrorMessage(
+        `This assignment is incomplete. Please select a study and a role to continue.`
+      );
     } else {
-      toast.showErrorMessage(response.message);
+      console.log({ formattedRows, newFormattedRows });
+      const insertUserStudy = {
+        email,
+        protocols: newFormattedRows,
+      };
+
+      let payload = {};
+      const splittedNames = targetUser?.displayName?.split(", ") || [];
+      const firstName =
+        targetUser.givenName ||
+        (splittedNames.length === 2 ? splittedNames[1] : splittedNames[0]);
+      const lastName = targetUser.sn || splittedNames[0];
+      payload = {
+        firstName,
+        lastName,
+        uid,
+        ...insertUserStudy,
+      };
+      const response = await updateUserAssignments(payload);
+      if (response.status === 1) {
+        setUserAssignmentModal(false);
+        setTableStudies(rowsToUpdate);
+        toast.showSuccessMessage(response.message);
+      } else {
+        toast.showErrorMessage(response.message);
+      }
     }
     // return null;
   };
@@ -785,13 +912,14 @@ const UserAssignmentTable = ({
         toast.showErrorMessage("Please remove duplicate values");
         isErorr = true;
       }
-      const emptyRoles = modalTableStudies.filter((x) => x.roles.length === 0);
-      if (emptyRoles.length) {
-        toast.showErrorMessage(
-          `This assignment is incomplete. Please select a study and a role to continue.`
-        );
-        isErorr = true;
-      }
+      console.log({ modalTableStudies });
+      // const emptyRoles = modalTableStudies.filter((x) => x.roles.length === 0);
+      // if (emptyRoles.length) {
+      //   toast.showErrorMessage(
+      //     `This assignment is incomplete. Please select a study and a role to continue.`
+      //   );
+      //   isErorr = true;
+      // }
       if (!isErorr) {
         createUserAndAssignStudies(modalTableStudies);
       }

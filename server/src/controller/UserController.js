@@ -647,3 +647,40 @@ exports.updateUserAssignments = async (req, res) => {
     "Unable to add upate assignments – please try again or report problem to the system administrator"
   );
 };
+
+exports.deleteUserAssignments = async (req, res) => {
+  const newReq = { ...req };
+  // console.log({ newReq });
+  const query = `SELECT tenant_nm FROM ${schemaName}.tenant LIMIT 1`;
+  try {
+    const result = await DB.executeQuery(query);
+    if (result.rowCount > 0) {
+      newReq.body["tenant"] = result.rows[0].tenant_nm;
+    } else {
+      return apiResponse.ErrorResponse(res, "Tenant does not exists");
+    }
+  } catch (error) {
+    return apiResponse.ErrorResponse(res, "Unable to fetch tenant");
+  }
+  newReq.body["createdBy"] = newReq.body.userId;
+  newReq.body["createdOn"] = getCurrentTime();
+
+  console.log(newReq.body);
+
+  const assignmentResponse = AssignmentController.assignmentRemove(
+    newReq,
+    res,
+    true
+  );
+  assignmentResponse.then(e=>console.log({ e }));
+  if (assignmentResponse) {
+    return apiResponse.successResponse(
+      res,
+      `Assignments Updated Successfully.`
+    );
+  }
+  return apiResponse.ErrorResponse(
+    res,
+    "Unable to add upate assignments – please try again or report problem to the system administrator"
+  );
+};
