@@ -144,7 +144,7 @@ exports.isUserExists = async (req, res) => {
 };
 
 exports.inviteExternalUser = async (req, res) => {
-  const newReq = { ...req };
+  const newReq = { ...req, returnBool: true };
   newReq.body["userType"] = "external";
   Logger.info({ message: "inviteExternalUser - begin" });
 
@@ -161,12 +161,11 @@ exports.inviteExternalUser = async (req, res) => {
     return apiResponse.ErrorResponse(res, "Unable to fetch tenant");
   }
 
-  const response = await this.createNewUser(newReq, res, true);
+  const response = await this.createNewUser(newReq, res);
   if (response) {
     const assignmentResponse = AssignmentController.assignmentCreate(
       newReq,
-      res,
-      true
+      res
     );
     if (assignmentResponse) {
       return apiResponse.successResponse(
@@ -183,7 +182,7 @@ exports.inviteExternalUser = async (req, res) => {
 };
 exports.inviteInternalUser = async (req, res) => {
   // { , , firstName, lastName, email, uid, employeeId }
-  const newReq = { ...req };
+  const newReq = { ...req, returnBool: true };
   newReq.body["userType"] = "internal";
   Logger.info({ message: "inviteInternalUser - begin" });
 
@@ -200,12 +199,11 @@ exports.inviteInternalUser = async (req, res) => {
     return apiResponse.ErrorResponse(res, "Unable to fetch tenant");
   }
 
-  const response = await this.createNewUser(newReq, res, true);
+  const response = await this.createNewUser(newReq, res);
   if (response) {
     const assignmentResponse = AssignmentController.assignmentCreate(
       newReq,
-      res,
-      true
+      res
     );
     if (assignmentResponse) {
       return apiResponse.successResponse(
@@ -220,8 +218,10 @@ exports.inviteInternalUser = async (req, res) => {
   );
 };
 
-exports.createNewUser = async (req, res, returnBool = false) => {
+exports.createNewUser = async (req, res) => {
   const data = req.body;
+  const { returnBool } = req;
+
   Logger.info({ message: "create user - begin" });
 
   // validate data
