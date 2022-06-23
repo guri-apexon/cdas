@@ -280,7 +280,7 @@ const UserAssignmentTable = ({
       <>
         <Table
           isLoading={!load}
-          title="User Assignments"
+          title="User Assignments 1"
           columns={columns}
           rows={tableStudies.map((row) => ({
             ...row,

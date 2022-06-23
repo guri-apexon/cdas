@@ -102,6 +102,31 @@ exports.listUsers = async function (req, res) {
   }
 };
 
+exports.getUserDetail = async function (req, res) {
+  const userId = req.query.userId;
+  try {
+    return await DB.executeQuery(
+      `SELECT * from ${schemaName}.user WHERE usr_id='${userId}'`
+    )
+      .then((response) => {
+        return apiResponse.successResponseWithData(
+          res,
+          "User retrieved successfully",
+          response
+        );
+      })
+      .catch((err) => {
+        console.log({ err });
+        return apiResponse.ErrorResponse(
+          response,
+          err.detail || "Something went wrong"
+        );
+      });
+  } catch (err) {
+    return false;
+  }
+};
+
 exports.getUserStudy = async function (req, res) {
   try {
     const studyUserId = req.query.studyUserId;
@@ -480,6 +505,58 @@ exports.secureApi = async (req, res) => {
   return apiResponse.successResponse(res, "Secure Api Success");
 };
 
+const getUserStudyRoles = async (prot_id, userId) => {
+  const userRolesQuery = `SELECT r.role_nm AS label, r.role_id AS value from ${schemaName}.study_user_role AS sur LEFT JOIN ${schemaName}.role AS r ON sur.role_id=r.role_id WHERE sur.prot_id='${prot_id}' AND sur.usr_id='${userId}'`;
+  return await DB.executeQuery(userRolesQuery).then((res) => res.rows);
+};
+
+exports.getUserStudyAndRoles = async function (req, res) {
+  try {
+    const userId = req.query.userId;
+    const userStudyQuery = `SELECT s.prot_id, s.prot_nbr_stnd from ${schemaName}.study_user AS su LEFT JOIN ${schemaName}.study AS s ON su.prot_id=s.prot_id WHERE su.usr_id='${userId}' AND act_flg=1`;
+    const userStudies = await DB.executeQuery(userStudyQuery).then(
+      (response) => {
+        return response.rows;
+      }
+    );
+    await Promise.all(
+      userStudies.map(async (e, i) => {
+        const roles = await getUserStudyRoles(e.prot_id, userId);
+        userStudies[i].roles = roles;
+      })
+    );
+    return apiResponse.successResponseWithData(
+      res,
+      "User Study and roles retrieved successfully",
+      userStudies
+    );
+  } catch (err) {
+    return false;
+  }
+};
+
+exports.updateUserStatus = async function (req, res) {
+  try {
+    const userId = req.body.userId;
+    const userStatus = req.body.status;
+    const updt_tm = getCurrentTime(true);
+    const inActiveUserQuery = `UPDATE ${schemaName}.user set usr_stat=$1, updt_tm=$2 WHERE usr_id='${userId}'`;
+    console.log({ inActiveUserQuery });
+    const userStudies = await DB.executeQuery(inActiveUserQuery, [
+      userStatus,
+      updt_tm,
+    ]).then((response) => {
+      return response;
+    });
+    return apiResponse.successResponseWithData(
+      res,
+      "User status updated successfully",
+      userStudies
+    );
+  } catch (err) {
+    return false;
+  }
+};
 exports.checkInvitedStatus = async () => {
   try {
     const statusCase = `LOWER(TRIM(usr_stat))`;
@@ -532,4 +609,79 @@ exports.checkInvitedStatus = async () => {
   } catch {
     return false;
   }
+};
+
+exports.updateUserAssignments = async (req, res) => {
+  const newReq = { ...req };
+  // console.log({ newReq });
+  const query = `SELECT tenant_nm FROM ${schemaName}.tenant LIMIT 1`;
+  try {
+    const result = await DB.executeQuery(query);
+    if (result.rowCount > 0) {
+      newReq.body["tenant"] = result.rows[0].tenant_nm;
+    } else {
+      return apiResponse.ErrorResponse(res, "Tenant does not exists");
+    }
+  } catch (error) {
+    return apiResponse.ErrorResponse(res, "Unable to fetch tenant");
+  }
+  newReq.body["createdBy"] = newReq.body.userId;
+  newReq.body["createdOn"] = getCurrentTime();
+
+  console.log(newReq.body);
+
+  const assignmentResponse = AssignmentController.assignmentUpdate(
+    newReq,
+    res,
+    true
+  );
+  assignmentResponse.then(e=>console.log({ e }));
+  if (assignmentResponse) {
+    return apiResponse.successResponse(
+      res,
+      `Assignments Updated Successfully.`
+    );
+  }
+  return apiResponse.ErrorResponse(
+    res,
+    "Unable to add upate assignments – please try again or report problem to the system administrator"
+  );
+};
+
+exports.deleteUserAssignments = async (req, res) => {
+  const newReq = { ...req };
+  // console.log({ newReq });
+  const query = `SELECT tenant_nm FROM ${schemaName}.tenant LIMIT 1`;
+  try {
+    const result = await DB.executeQuery(query);
+    if (result.rowCount > 0) {
+      newReq.body["tenant"] = result.rows[0].tenant_nm;
+    } else {
+      return apiResponse.ErrorResponse(res, "Tenant does not exists");
+    }
+  } catch (error) {
+    return apiResponse.ErrorResponse(res, "Unable to fetch tenant");
+  }
+  newReq.body["createdBy"] = req.body.updatedBy;
+  newReq.body["updatedBy"] = req.body.updatedBy;
+  newReq.body["createdOn"] = getCurrentTime();
+
+  console.log(newReq.body);
+
+  const assignmentResponse = AssignmentController.assignmentRemove(
+    newReq,
+    res,
+    true
+  );
+  assignmentResponse.then(e=>console.log({ e }));
+  if (assignmentResponse) {
+    return apiResponse.successResponse(
+      res,
+      `Assignments Updated Successfully.`
+    );
+  }
+  return apiResponse.ErrorResponse(
+    res,
+    "Unable to add upate assignments – please try again or report problem to the system administrator"
+  );
 };
