@@ -405,7 +405,7 @@ export default function StudyTable({ studyData, studyboardData, refreshData }) {
         }
         columns={tableColumns}
         rows={tableRows}
-        rowId="protocolnumber"
+        rowId="prot_id"
         hasScroll={true}
         maxHeight="610px"
         initialSortedColumn="dateadded"
