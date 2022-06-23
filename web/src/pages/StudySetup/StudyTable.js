@@ -354,7 +354,6 @@ export default function StudyTable({ studyData, studyboardData, refreshData }) {
     });
     exportToCSV(newData, tempObj, fileName + fileExtension);
     const exportRows = exportDataRows();
-    console.log("e", exportRows);
     if (exportRows.length <= 0) {
       e.preventDefault();
       messageContext.showErrorMessage(
