@@ -28,7 +28,6 @@ import {
   inviteInternalUser,
   getUser,
   updateUserStatus,
-  makeUserInactive,
 } from "../../../services/ApiServices";
 import { debounceFunction } from "../../../utils";
 import usePermission, {
@@ -171,10 +170,20 @@ const AddUser = () => {
     const userType = targetUser.usr_typ;
     if (userType === "internal") {
       if (checked) {
-        updateUserStatus(userId, "Active");
+        // updateUserStatus(userId, "Active");
       } else {
-        updateUserStatus(userId, "In Active");
-        setShowRolePopup(true);
+        // const { tenant_id, user_type, email_id, user_id, updt_tm, updated_by } =
+        const payload = {
+          tenant_id: targetUser.tenant_id,
+          user_type: targetUser.usr_typ,
+          email_id: targetUser.usr_mail_id,
+          user_id: targetUser.usr_id,
+          changed_to: checked ? "active" : "inactive",
+        };
+
+        updateUserStatus(payload);
+        // updateUserStatus(userId, "In Active");
+        // setShowRolePopup(true);
       }
     } else {
       updateUserStatus(userId, checked ? "Active" : "In Active");
@@ -222,9 +231,9 @@ const AddUser = () => {
     dispatch(formComponentActive());
     (async () => {
       const userRes = await getUser(userId);
-      setTargetUser(userRes.rows[0]);
-      updateBreadcrump(userRes.rows[0]);
-      setActive(userRes.rows[0].usr_stat === "Active" ? true : false);
+      setTargetUser(userRes);
+      updateBreadcrump(userRes);
+      setActive(userRes.usr_stat === "Active" ? true : false);
     })();
   }, []);
 

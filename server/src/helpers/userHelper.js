@@ -47,6 +47,7 @@ exports.deProvisionUser = async (data, user_type) => {
     }
     return await axios.delete(SDA_Endpoint_Deprovision, { data: requestBody });
   } catch (error) {
+    console.log(error.data);
     return error;
   }
 };

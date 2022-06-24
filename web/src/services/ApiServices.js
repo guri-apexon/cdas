@@ -645,20 +645,44 @@ export const getUserStudyAndRoles = (userIdForStudyData) => {
   }
 };
 
-export const updateUserStatus = (userIdForStatusChange, status) => {
+// export const updateUserStatus = (userIdForStatusChange, status) => {
+//   try {
+//     return new Promise((resolve, reject) => {
+//       axios
+//         .post(`${API_URL}/users/update-user-status`, {
+//           userId: userIdForStatusChange,
+//           status,
+//         })
+//         .then((res) => {
+//           resolve(res?.data);
+//         })
+//         .catch((err) => {
+//           if (err.response?.data) {
+//             resolve({ message: `User status changed to: ${status}` });
+//           } else {
+//             resolve({ message: "Something went wrong" });
+//           }
+//         });
+//     });
+//   } catch (err) {
+//     return console.log("Error", err);
+//   }
+// };
+
+export const updateUserStatus = (payload) => {
   try {
+    // const { tenant_id, user_type, email_id, user_id, updt_tm, updated_by } =
+
     return new Promise((resolve, reject) => {
+      payload.updatedBy = userId;
       axios
-        .post(`${API_URL}/users/update-user-status`, {
-          userId: userIdForStatusChange,
-          status,
-        })
+        .post(`${API_URL}/users/update-status`, payload)
         .then((res) => {
-          resolve(res?.data);
+          resolve(res.data);
         })
         .catch((err) => {
           if (err.response?.data) {
-            resolve({ message: `User status changed to: ${status}` });
+            resolve(err.response?.data);
           } else {
             resolve({ message: "Something went wrong" });
           }

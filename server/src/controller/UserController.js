@@ -106,13 +106,14 @@ exports.getUserDetail = async function (req, res) {
   const userId = req.query.userId;
   try {
     return await DB.executeQuery(
-      `SELECT * from ${schemaName}.user WHERE usr_id='${userId}'`
+      `SELECT u.*, ut.tenant_id from ${schemaName}.user u left join ${schemaName}.user_tenant ut on ut.usr_id = u.usr_id WHERE u.usr_id='${userId}'`
     )
       .then((response) => {
+        const user = response?.rows?.[0] || {};
         return apiResponse.successResponseWithData(
           res,
           "User retrieved successfully",
-          response
+          user
         );
       })
       .catch((err) => {
@@ -173,16 +174,11 @@ exports.inviteExternalUser = async (req, res) => {
   newReq.body["userType"] = "external";
   Logger.info({ message: "inviteExternalUser - begin" });
 
-  // Fetch First Tenet
-  const query = `SELECT tenant_nm FROM ${schemaName}.tenant LIMIT 1`;
-  try {
-    const result = await DB.executeQuery(query);
-    if (result.rowCount > 0) {
-      newReq.body["tenant"] = result.rows[0].tenant_nm;
-    } else {
-      return apiResponse.ErrorResponse(res, "Tenant does not exists");
-    }
-  } catch (error) {
+  // Fetch First Tenant
+  const tenant = await tenantHelper.getFirstTenant();
+  if (tenant) {
+    newReq.body["tenant"] = tenant.tenant_nm;
+  } else {
     return apiResponse.ErrorResponse(res, "Unable to fetch tenant");
   }
 
@@ -211,16 +207,11 @@ exports.inviteInternalUser = async (req, res) => {
   newReq.body["userType"] = "internal";
   Logger.info({ message: "inviteInternalUser - begin" });
 
-  // Fetch First Tenet
-  const query = `SELECT tenant_nm FROM ${schemaName}.tenant LIMIT 1`;
-  try {
-    const result = await DB.executeQuery(query);
-    if (result.rowCount > 0) {
-      newReq.body["tenant"] = result.rows[0].tenant_nm;
-    } else {
-      return apiResponse.ErrorResponse(res, "Tenant does not exists");
-    }
-  } catch (error) {
+  // Fetch First Tenant
+  const tenant = await tenantHelper.getFirstTenant();
+  if (tenant) {
+    newReq.body["tenant"] = tenant.tenant_nm;
+  } else {
     return apiResponse.ErrorResponse(res, "Unable to fetch tenant");
   }
 
@@ -535,28 +526,54 @@ exports.getUserStudyAndRoles = async function (req, res) {
   }
 };
 
-exports.updateUserStatus = async function (req, res) {
+// exports.updateUserStatus = async function (req, res) {
+//   try {
+//     const userId = req.body.userId;
+//     const userStatus = req.body.status;
+//     const updt_tm = getCurrentTime(true);
+//     const inActiveUserQuery = `UPDATE ${schemaName}.user set usr_stat=$1, updt_tm=$2 WHERE usr_id='${userId}'`;
+//     console.log({ inActiveUserQuery });
+//     const userStudies = await DB.executeQuery(inActiveUserQuery, [
+//       userStatus,
+//       updt_tm,
+//     ]).then((response) => {
+//       return response;
+//     });
+//     return apiResponse.successResponseWithData(
+//       res,
+//       "User status updated successfully",
+//       userStudies
+//     );
+//   } catch (err) {
+//     return false;
+//   }
+// };
+
+exports.updateUserStatus = async (req, res) => {
+  const newReq = { ...req, returnBool: true };
+  Logger.info({ message: "changeStatus - begin" });
+
+  const userStatus = newReq.body["changed_to"];
+  newReq.body["updt_tm"] = getCurrentTime(true);
+
   try {
-    const userId = req.body.userId;
-    const userStatus = req.body.status;
-    const updt_tm = getCurrentTime(true);
-    const inActiveUserQuery = `UPDATE ${schemaName}.user set usr_stat=$1, updt_tm=$2 WHERE usr_id='${userId}'`;
-    console.log({ inActiveUserQuery });
-    const userStudies = await DB.executeQuery(inActiveUserQuery, [
-      userStatus,
-      updt_tm,
-    ]).then((response) => {
-      return response;
-    });
-    return apiResponse.successResponseWithData(
-      res,
-      "User status updated successfully",
-      userStudies
-    );
+    if (userStatus === "inactive") {
+      // Fetch First Tenant fi tenant id not present
+      if (!newReq?.body?.tenant_id) {
+        const tenant = await tenantHelper.getFirstTenant();
+        newReq.body["tenant_id"] = tenant.tenant_id;
+      }
+
+      const response = await this.deleteNewUser(newReq, res);
+    } else if (userStatus === "active") {
+      // Nasim Code Here, check acceptence criteria there are two different flows for inactive to active. Each for internal user and external user
+    }
   } catch (err) {
-    return false;
+    console.log({ err });
+    return apiResponse.ErrorResponse(newReq, "changeStatus: failed");
   }
 };
+
 exports.checkInvitedStatus = async () => {
   try {
     const statusCase = `LOWER(TRIM(usr_stat))`;
@@ -628,8 +645,6 @@ exports.updateUserAssignments = async (req, res) => {
   newReq.body["createdBy"] = newReq.body.userId;
   newReq.body["createdOn"] = getCurrentTime();
 
-  console.log(newReq.body);
-
   const assignmentResponse = AssignmentController.assignmentUpdate(
     newReq,
     res,
@@ -665,8 +680,6 @@ exports.deleteUserAssignments = async (req, res) => {
   newReq.body["createdBy"] = req.body.updatedBy;
   newReq.body["updatedBy"] = req.body.updatedBy;
   newReq.body["createdOn"] = getCurrentTime();
-
-  console.log(newReq.body);
 
   const assignmentResponse = AssignmentController.assignmentRemove(
     newReq,
