@@ -234,7 +234,7 @@ const ListUsers = () => {
       sortFunction: compareStrings,
       filterFunction: createStringSearchFilter("usr_full_nm"),
       filterComponent: TextFieldFilter,
-      width: "20%",
+      width: "32%",
     },
     {
       header: "Email",
@@ -243,7 +243,7 @@ const ListUsers = () => {
       filterFunction: createStringSearchFilter("usr_mail_id"),
       filterComponent: TextFieldFilter,
       customCell: DespCell,
-      width: "40%",
+      width: "32%",
     },
     {
       header: "Employee ID",
@@ -252,7 +252,7 @@ const ListUsers = () => {
       sortFunction: compareStrings,
       filterFunction: createStringSearchFilter("usr_id"),
       filterComponent: TextFieldFilter,
-      width: "30%",
+      width: "24%",
     },
     {
       header: "Status",
@@ -264,7 +264,7 @@ const ListUsers = () => {
         size: "small",
         multiple: true,
       }),
-      width: "10%",
+      width: "12%",
     },
   ];
 
