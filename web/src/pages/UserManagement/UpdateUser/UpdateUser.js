@@ -168,26 +168,16 @@ const AddUser = () => {
   };
   const checkUserTypeAndUpdate = (checked) => {
     const userType = targetUser.usr_typ;
-    if (userType === "internal") {
-      if (checked) {
-        // updateUserStatus(userId, "Active");
-      } else {
-        // const { tenant_id, user_type, email_id, user_id, updt_tm, updated_by } =
-        const payload = {
-          tenant_id: targetUser.tenant_id,
-          user_type: targetUser.usr_typ,
-          email_id: targetUser.usr_mail_id,
-          user_id: targetUser.usr_id,
-          changed_to: checked ? "active" : "inactive",
-        };
-
-        updateUserStatus(payload);
-        // updateUserStatus(userId, "In Active");
-        // setShowRolePopup(true);
-      }
-    } else {
-      updateUserStatus(userId, checked ? "Active" : "In Active");
-    }
+    const payload = {
+      tenant_id: targetUser.tenant_id,
+      user_type: targetUser.usr_typ,
+      email_id: targetUser.usr_mail_id,
+      user_id: targetUser.usr_id,
+      changed_to: checked ? "active" : "inactive",
+    };
+    updateUserStatus(payload);
+    // updateUserStatus(userId, "In Active");
+    // setShowRolePopup(true);
   };
   const handleActive = (e, checked) => {
     setActive(checked);
