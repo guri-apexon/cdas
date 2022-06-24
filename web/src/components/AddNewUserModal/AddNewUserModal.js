@@ -297,20 +297,25 @@ const AddNewUserModal = ({
         newObj.role_id = d.roles.map((e) => e.value).flat();
         return newObj;
       });
-    const response = await addAssignUser({
-      studyId,
-      protocol,
-      loginId: userInfo.user_id,
-      data,
-      insrt_tm: new Date().toISOString(),
-    });
+    let response = null;
+    try {
+      response = await addAssignUser({
+        studyId,
+        protocol,
+        loginId: userInfo.user_id,
+        data,
+        insrt_tm: new Date().toISOString(),
+      });
+    } catch (e) {
+      console.log(e);
+    }
     setDisableSave(false);
     handleClose();
     setLoading(false);
-    if (response.status === "BAD_REQUEST") {
+    if (response?.status === "BAD_REQUEST") {
       toast.showErrorMessage(response.message, 0);
     }
-    if (response.status === "OK") {
+    if (response?.status === "OK") {
       toast.showSuccessMessage(response.message, 0);
       // history.push("/study-setup");
     }
