@@ -81,13 +81,39 @@ exports.addLoginActivity = async (loginDetails) => {
 exports.listUsers = async function (req, res) {
   try {
     return await DB.executeQuery(
-      `SELECT *, CASE WHEN LOWER(TRIM(usr_stat)) IN ('in active', 'inactive') THEN 'Inactive' WHEN LOWER(TRIM(usr_stat)) IN ('active') THEN 'Active' WHEN LOWER(TRIM(usr_stat)) IN ('invited') THEN 'Invited' WHEN usr_stat IS NULL THEN 'Active' ELSE TRIM(usr_stat) END AS formatted_stat, TRIM(usr_stat) AS trimed_usr_stat,  CONCAT(TRIM(usr_fst_nm),' ',TRIM(usr_lst_nm)) AS usr_full_nm from ${schemaName}.user`
+      `SELECT *, CASE WHEN LOWER(TRIM(usr_stat)) IN ('in active', 'inactive') THEN 'Inactive' WHEN LOWER(TRIM(usr_stat)) IN ('active') THEN 'Active' WHEN LOWER(TRIM(usr_stat)) IN ('invited') THEN 'Invited' WHEN usr_stat IS NULL THEN 'Active' ELSE TRIM(usr_stat) END AS formatted_stat, TRIM(usr_stat) AS trimed_usr_stat,  CONCAT(TRIM(usr_fst_nm),' ',TRIM(usr_lst_nm)) AS usr_full_nm, CASE WHEN LOWER(usr_typ)='internal' THEN usr_id ELSE extrnl_emp_id END AS formatted_emp_id from ${schemaName}.user`
     )
       .then((response) => {
         return apiResponse.successResponseWithData(
           res,
           "User retrieved successfully",
           response
+        );
+      })
+      .catch((err) => {
+        console.log({ err });
+        return apiResponse.ErrorResponse(
+          response,
+          err.detail || "Something went wrong"
+        );
+      });
+  } catch (err) {
+    return false;
+  }
+};
+
+exports.getUserDetail = async function (req, res) {
+  const userId = req.query.userId;
+  try {
+    return await DB.executeQuery(
+      `SELECT u.*, ut.tenant_id from ${schemaName}.user u left join ${schemaName}.user_tenant ut on ut.usr_id = u.usr_id WHERE u.usr_id='${userId}'`
+    )
+      .then((response) => {
+        const user = response?.rows?.[0] || {};
+        return apiResponse.successResponseWithData(
+          res,
+          "User retrieved successfully",
+          user
         );
       })
       .catch((err) => {
@@ -144,29 +170,23 @@ exports.isUserExists = async (req, res) => {
 };
 
 exports.inviteExternalUser = async (req, res) => {
-  const newReq = { ...req };
+  const newReq = { ...req, returnBool: true };
   newReq.body["userType"] = "external";
   Logger.info({ message: "inviteExternalUser - begin" });
 
-  // Fetch First Tenet
-  const query = `SELECT tenant_nm FROM ${schemaName}.tenant LIMIT 1`;
-  try {
-    const result = await DB.executeQuery(query);
-    if (result.rowCount > 0) {
-      newReq.body["tenant"] = result.rows[0].tenant_nm;
-    } else {
-      return apiResponse.ErrorResponse(res, "Tenant does not exists");
-    }
-  } catch (error) {
+  // Fetch First Tenant
+  const tenant = await tenantHelper.getFirstTenant();
+  if (tenant) {
+    newReq.body["tenant"] = tenant.tenant_nm;
+  } else {
     return apiResponse.ErrorResponse(res, "Unable to fetch tenant");
   }
 
-  const response = await this.createNewUser(newReq, res, true);
+  const response = await this.createNewUser(newReq, res);
   if (response) {
     const assignmentResponse = AssignmentController.assignmentCreate(
       newReq,
-      res,
-      true
+      res
     );
     if (assignmentResponse) {
       return apiResponse.successResponse(
@@ -183,29 +203,23 @@ exports.inviteExternalUser = async (req, res) => {
 };
 exports.inviteInternalUser = async (req, res) => {
   // { , , firstName, lastName, email, uid, employeeId }
-  const newReq = { ...req };
+  const newReq = { ...req, returnBool: true };
   newReq.body["userType"] = "internal";
   Logger.info({ message: "inviteInternalUser - begin" });
 
-  // Fetch First Tenet
-  const query = `SELECT tenant_nm FROM ${schemaName}.tenant LIMIT 1`;
-  try {
-    const result = await DB.executeQuery(query);
-    if (result.rowCount > 0) {
-      newReq.body["tenant"] = result.rows[0].tenant_nm;
-    } else {
-      return apiResponse.ErrorResponse(res, "Tenant does not exists");
-    }
-  } catch (error) {
+  // Fetch First Tenant
+  const tenant = await tenantHelper.getFirstTenant();
+  if (tenant) {
+    newReq.body["tenant"] = tenant.tenant_nm;
+  } else {
     return apiResponse.ErrorResponse(res, "Unable to fetch tenant");
   }
 
-  const response = await this.createNewUser(newReq, res, true);
+  const response = await this.createNewUser(newReq, res);
   if (response) {
     const assignmentResponse = AssignmentController.assignmentCreate(
       newReq,
-      res,
-      true
+      res
     );
     if (assignmentResponse) {
       return apiResponse.successResponse(
@@ -220,8 +234,10 @@ exports.inviteInternalUser = async (req, res) => {
   );
 };
 
-exports.createNewUser = async (req, res, returnBool = false) => {
+exports.createNewUser = async (req, res) => {
   const data = req.body;
+  const { returnBool } = req;
+
   Logger.info({ message: "create user - begin" });
 
   // validate data
@@ -480,6 +496,84 @@ exports.secureApi = async (req, res) => {
   return apiResponse.successResponse(res, "Secure Api Success");
 };
 
+const getUserStudyRoles = async (prot_id, userId) => {
+  const userRolesQuery = `SELECT r.role_nm AS label, r.role_id AS value from ${schemaName}.study_user_role AS sur LEFT JOIN ${schemaName}.role AS r ON sur.role_id=r.role_id WHERE sur.prot_id='${prot_id}' AND sur.usr_id='${userId}'`;
+  return await DB.executeQuery(userRolesQuery).then((res) => res.rows);
+};
+
+exports.getUserStudyAndRoles = async function (req, res) {
+  try {
+    const userId = req.query.userId;
+    const userStudyQuery = `SELECT s.prot_id, s.prot_nbr_stnd from ${schemaName}.study_user AS su LEFT JOIN ${schemaName}.study AS s ON su.prot_id=s.prot_id WHERE su.usr_id='${userId}' AND act_flg=1`;
+    const userStudies = await DB.executeQuery(userStudyQuery).then(
+      (response) => {
+        return response.rows;
+      }
+    );
+    await Promise.all(
+      userStudies.map(async (e, i) => {
+        const roles = await getUserStudyRoles(e.prot_id, userId);
+        userStudies[i].roles = roles;
+      })
+    );
+    return apiResponse.successResponseWithData(
+      res,
+      "User Study and roles retrieved successfully",
+      userStudies
+    );
+  } catch (err) {
+    return false;
+  }
+};
+
+// exports.updateUserStatus = async function (req, res) {
+//   try {
+//     const userId = req.body.userId;
+//     const userStatus = req.body.status;
+//     const updt_tm = getCurrentTime(true);
+//     const inActiveUserQuery = `UPDATE ${schemaName}.user set usr_stat=$1, updt_tm=$2 WHERE usr_id='${userId}'`;
+//     console.log({ inActiveUserQuery });
+//     const userStudies = await DB.executeQuery(inActiveUserQuery, [
+//       userStatus,
+//       updt_tm,
+//     ]).then((response) => {
+//       return response;
+//     });
+//     return apiResponse.successResponseWithData(
+//       res,
+//       "User status updated successfully",
+//       userStudies
+//     );
+//   } catch (err) {
+//     return false;
+//   }
+// };
+
+exports.updateUserStatus = async (req, res) => {
+  const newReq = { ...req, returnBool: true };
+  Logger.info({ message: "changeStatus - begin" });
+
+  const userStatus = newReq.body["changed_to"];
+  newReq.body["updt_tm"] = getCurrentTime(true);
+
+  try {
+    if (userStatus === "inactive") {
+      // Fetch First Tenant fi tenant id not present
+      if (!newReq?.body?.tenant_id) {
+        const tenant = await tenantHelper.getFirstTenant();
+        newReq.body["tenant_id"] = tenant.tenant_id;
+      }
+
+      const response = await this.deleteNewUser(newReq, res);
+    } else if (userStatus === "active") {
+      // Nasim Code Here, check acceptence criteria there are two different flows for inactive to active. Each for internal user and external user
+    }
+  } catch (err) {
+    console.log({ err });
+    return apiResponse.ErrorResponse(newReq, "changeStatus: failed");
+  }
+};
+
 exports.checkInvitedStatus = async () => {
   try {
     const statusCase = `LOWER(TRIM(usr_stat))`;
@@ -532,4 +626,75 @@ exports.checkInvitedStatus = async () => {
   } catch {
     return false;
   }
+};
+
+exports.updateUserAssignments = async (req, res) => {
+  const newReq = { ...req };
+  // console.log({ newReq });
+  const query = `SELECT tenant_nm FROM ${schemaName}.tenant LIMIT 1`;
+  try {
+    const result = await DB.executeQuery(query);
+    if (result.rowCount > 0) {
+      newReq.body["tenant"] = result.rows[0].tenant_nm;
+    } else {
+      return apiResponse.ErrorResponse(res, "Tenant does not exists");
+    }
+  } catch (error) {
+    return apiResponse.ErrorResponse(res, "Unable to fetch tenant");
+  }
+  newReq.body["createdBy"] = newReq.body.userId;
+  newReq.body["createdOn"] = getCurrentTime();
+
+  const assignmentResponse = AssignmentController.assignmentUpdate(
+    newReq,
+    res,
+    true
+  );
+  assignmentResponse.then((e) => console.log({ e }));
+  if (assignmentResponse) {
+    return apiResponse.successResponse(
+      res,
+      `Assignments Updated Successfully.`
+    );
+  }
+  return apiResponse.ErrorResponse(
+    res,
+    "Unable to add upate assignments – please try again or report problem to the system administrator"
+  );
+};
+
+exports.deleteUserAssignments = async (req, res) => {
+  const newReq = { ...req };
+  // console.log({ newReq });
+  const query = `SELECT tenant_nm FROM ${schemaName}.tenant LIMIT 1`;
+  try {
+    const result = await DB.executeQuery(query);
+    if (result.rowCount > 0) {
+      newReq.body["tenant"] = result.rows[0].tenant_nm;
+    } else {
+      return apiResponse.ErrorResponse(res, "Tenant does not exists");
+    }
+  } catch (error) {
+    return apiResponse.ErrorResponse(res, "Unable to fetch tenant");
+  }
+  newReq.body["createdBy"] = req.body.updatedBy;
+  newReq.body["updatedBy"] = req.body.updatedBy;
+  newReq.body["createdOn"] = getCurrentTime();
+
+  const assignmentResponse = AssignmentController.assignmentRemove(
+    newReq,
+    res,
+    true
+  );
+  assignmentResponse.then((e) => console.log({ e }));
+  if (assignmentResponse) {
+    return apiResponse.successResponse(
+      res,
+      `Assignments Updated Successfully.`
+    );
+  }
+  return apiResponse.ErrorResponse(
+    res,
+    "Unable to add upate assignments – please try again or report problem to the system administrator"
+  );
 };

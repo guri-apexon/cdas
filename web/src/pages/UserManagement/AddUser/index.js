@@ -59,10 +59,10 @@ const Label = ({ children }) => {
     </span>
   );
 };
-const Value = ({ children }) => {
+const Value = ({ children, className }) => {
   return (
     <span
-      className="value flex"
+      className={`value flex ${className}`}
       variant="body2"
       style={{ wordWrap: "break-word", fontWeight: "bold" }}
     >
@@ -525,6 +525,7 @@ const AddUser = () => {
                 />
               )}
               <ButtonGroup
+                className="gap-8"
                 alignItems="right"
                 buttonProps={
                   readOnly
@@ -698,7 +699,9 @@ const AddUser = () => {
                     {selectedUser && (
                       <Typography className="mt-4">
                         <Label>Employee ID</Label>
-                        <Value>{selectedUser.sAMAccountName}</Value>
+                        <Value className="ml-8">
+                          {selectedUser.sAMAccountName}
+                        </Value>
                       </Typography>
                     )}
                     <Typography variant="body2" className="mt-4" gutterBottom>

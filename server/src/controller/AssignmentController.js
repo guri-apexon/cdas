@@ -7,8 +7,9 @@ const moment = require("moment");
 const constants = require("../config/constants");
 const { create } = require("lodash");
 
-exports.assignmentCreate = async (req, res, returnBool = false) => {
+exports.assignmentCreate = async (req, res) => {
   const data = req.body;
+  const { returnBool } = req;
   const { email, protocols, createdBy, createdOn, tenant } = data;
 
   // validate data
@@ -167,4 +168,52 @@ exports.assignmentRemove = async (req, res) => {
     );
 
   return apiResponse.successResponse(res, "Assignments removed successfully");
+};
+
+
+exports.assignmentUpdate = async (req, res, returnBool = false) => {
+  const data = req.body;
+  const { email, protocols, createdBy, createdOn, tenant } = data;
+
+  // validate data
+  const validate = await assignmentHelper.validateAssignment(data);
+  if (validate.success === false)
+    return returnBool
+      ? false
+      : apiResponse.ErrorResponse(res, validate.message);
+
+  // validate user
+  const user = await userHelper.findByEmail(email);
+  // save it to the database
+  const saveResult = await assignmentHelper.updateAssignments(
+    protocols,
+    user,
+    createdBy,
+    createdOn
+  );
+
+  console.log({ saveResult });
+
+  if (!saveResult.success)
+    return returnBool
+      ? false
+      : apiResponse.ErrorResponse(
+          res,
+          "An error occured while inserting records"
+        );
+
+  if (
+    saveResult.protocolsInserted === 0 &&
+    saveResult.studyRolesUserInserted === 0
+  )
+    return returnBool
+      ? false
+      : apiResponse.ErrorResponse(res, "All Protocols/Roles already existed");
+
+  return returnBool
+    ? false
+    : apiResponse.successResponse(
+        res,
+        `An invitation has been emailed to ${email}`
+      );
 };

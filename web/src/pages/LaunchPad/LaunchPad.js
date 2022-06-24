@@ -14,7 +14,6 @@ import CDMIcon from "../../components/Icons/CDM_ICON_96x96.svg";
 import CDRIcon from "../../components/Icons/CDR_ICON_96x96.svg";
 import DSWIcon from "../../components/Icons/DSW_ICON_96x96.svg";
 import "./LaunchPad.scss";
-import { getRolesPermissions } from "../../services/ApiServices";
 import { AppContext } from "../../components/Providers/AppProvider";
 import { MessageContext } from "../../components/Providers/MessageProvider";
 
