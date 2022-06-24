@@ -195,7 +195,7 @@ exports.getRolesPermissions = async (req, res) => {
 
     let uniquePermissions = await _.uniqWith($q1.rows, _.isEqual);
     // uniquePermissions = uniquePermissions.filter(x=>!(x.featureName==="User Management" && "Create, Download, Update".includes(x.allowedPermission)));
-    
+
     return apiResponse.successResponseWithData(
       res,
       "Operation success",
