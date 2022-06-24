@@ -98,10 +98,8 @@ const ListUsers = () => {
   }, []);
 
   const goToUser = (e, id) => {
-    if (readRolePermission) {
-      e.preventDefault();
-      history.push(`/user-management/${id}`);
-    }
+    e.preventDefault();
+    history.push(`/user-management/${id}`);
   };
 
   const handleMouseOut = () => {
@@ -142,17 +140,12 @@ const ListUsers = () => {
     if (!rowValue) return null;
     const charLimit = getOverflowLimit(width, 100);
     if (rowValue.length < charLimit) {
-      return (
-        <Link disabled={!readRolePermission} onClick={(e) => goToUser(e, id)}>
-          {rowValue}
-        </Link>
-      );
+      return <Link onClick={(e) => goToUser(e, id)}>{rowValue}</Link>;
     }
     return (
       <Link
         onMouseOver={() => handleMouseOver(row, "roleName")}
         onMouseOut={handleMouseOut}
-        disabled={!readRolePermission}
         onClick={(e) => goToUser(e, id)}
       >
         {`${rowValue.slice(0, charLimit - 10)} [...]`}
