@@ -7,6 +7,8 @@ import { useHistory } from "react-router";
 import { useLocation, useParams } from "react-router-dom";
 import ApolloProgress from "apollo-react/components/ApolloProgress";
 import Tooltip from "apollo-react/components/Tooltip";
+import EmailIcon from "apollo-react-icons/Email";
+import Button from "apollo-react/components/Button";
 
 import BreadcrumbsUI from "apollo-react/components/Breadcrumbs";
 import Switch from "apollo-react/components/Switch";
@@ -45,8 +47,20 @@ import UserAssignmentTable from "./UpdateAssignmentTable";
 
 const userListURL = "/user-management";
 
-const emailRegex =
-  /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+const monthNames = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
 
 const Box = ({ children }) => {
   return (
@@ -227,6 +241,45 @@ const AddUser = () => {
     })();
   }, []);
 
+  function formatAMPM(date) {
+    let hours = date.getHours();
+    let minutes = date.getMinutes();
+    const ampm = hours >= 12 ? "PM" : "AM";
+    hours %= 12;
+    hours = hours ? hours : 12; // the hour '0' should be '12'
+    minutes = minutes < 10 ? `0${minutes}` : minutes;
+    const strTime = `${hours}:${minutes} ${ampm}`;
+    return strTime;
+  }
+
+  const getExpirationDate = () => {
+    const inviteDate = new Date(targetUser?.invt_sent_tm);
+    inviteDate.setDate(inviteDate.getDate() + 3);
+    return inviteDate;
+  };
+
+  const getExpirationDateString = () => {
+    const expiryDate = getExpirationDate();
+    const year = expiryDate.getFullYear(); // 2019
+    const date = expiryDate.getDate(); // 23
+    const month = monthNames[expiryDate.getMonth()];
+    const time = formatAMPM(expiryDate);
+    const dateString = `${time}, ${date} ${month}, ${year}`;
+    return dateString;
+  };
+
+  const isInvitationExpired = () => {
+    if (getExpirationDate() < new Date()) {
+      return true;
+    }
+    return false;
+  };
+
+  const isUserInvited = () => {
+    const userStatus = targetUser?.usr_stat;
+    return userStatus?.trim()?.toLowerCase() === "invited" ? true : false;
+  };
+
   return (
     <div className="create-user-wrapper">
       {isShowAlertBox && (
@@ -279,18 +332,47 @@ const AddUser = () => {
               <div className="flex create-sidebar flexWrap">
                 <Typography className="user-update-label">
                   Name
-                  <div className="ml-3 user-update-font-500">{`${targetUser?.usr_fst_nm} ${targetUser?.usr_lst_nm}`}</div>
+                  <div className="ml-3">
+                    <div className="user-update-font-500">
+                      {`${targetUser?.usr_fst_nm} ${targetUser?.usr_lst_nm}`}
+                    </div>
+                  </div>
                 </Typography>
                 <Typography className="mt-4 user-update-label">
                   Email address
-                  <div className="ml-3 user-update-font-500">
-                    {targetUser?.usr_mail_id}
+                  <div className="ml-3">
+                    <div className="user-update-font-500 mt-2">
+                      {targetUser?.usr_mail_id}
+                    </div>
+                    {isUserInvited() && (
+                      <>
+                        <div className="light mt-2">
+                          {isInvitationExpired()
+                            ? "Invitation expired:"
+                            : "Invitation sent, not yet activated Expires"}
+                        </div>
+                        <div className="light mt-2">
+                          {getExpirationDateString()}
+                        </div>
+                        <div className="mt-2">
+                          <Button
+                            variant="secondary"
+                            icon={<EmailIcon />}
+                            size="small"
+                          >
+                            Resend Invitation
+                          </Button>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </Typography>
                 <Typography className="mt-4 user-update-label">
                   Employee ID
-                  <div className="ml-3 user-update-font-500">
-                    {targetUser?.usr_id}
+                  <div className="ml-3">
+                    <div className="user-update-font-500">
+                      {targetUser?.usr_id}
+                    </div>
                   </div>
                 </Typography>
               </div>
