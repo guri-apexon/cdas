@@ -98,10 +98,8 @@ const ListUsers = () => {
   }, []);
 
   const goToUser = (e, id) => {
-    if (readRolePermission) {
-      e.preventDefault();
-      history.push(`/user-management/${id}`);
-    }
+    e.preventDefault();
+    history.push(`/user-management/${id}`);
   };
 
   const handleMouseOut = () => {
@@ -142,17 +140,12 @@ const ListUsers = () => {
     if (!rowValue) return null;
     const charLimit = getOverflowLimit(width, 100);
     if (rowValue.length < charLimit) {
-      return (
-        <Link disabled={!readRolePermission} onClick={(e) => goToUser(e, id)}>
-          {rowValue}
-        </Link>
-      );
+      return <Link onClick={(e) => goToUser(e, id)}>{rowValue}</Link>;
     }
     return (
       <Link
         onMouseOver={() => handleMouseOver(row, "roleName")}
         onMouseOut={handleMouseOut}
-        disabled={!readRolePermission}
         onClick={(e) => goToUser(e, id)}
       >
         {`${rowValue.slice(0, charLimit - 10)} [...]`}
@@ -241,7 +234,7 @@ const ListUsers = () => {
       sortFunction: compareStrings,
       filterFunction: createStringSearchFilter("usr_full_nm"),
       filterComponent: TextFieldFilter,
-      width: "20%",
+      width: "32%",
     },
     {
       header: "Email",
@@ -250,16 +243,16 @@ const ListUsers = () => {
       filterFunction: createStringSearchFilter("usr_mail_id"),
       filterComponent: TextFieldFilter,
       customCell: DespCell,
-      width: "40%",
+      width: "32%",
     },
     {
       header: "Employee ID",
-      accessor: "usr_id",
+      accessor: "formatted_emp_id",
       customCell: ProductsCell,
       sortFunction: compareStrings,
       filterFunction: createStringSearchFilter("usr_id"),
       filterComponent: TextFieldFilter,
-      width: "30%",
+      width: "24%",
     },
     {
       header: "Status",
@@ -271,7 +264,7 @@ const ListUsers = () => {
         size: "small",
         multiple: true,
       }),
-      width: "10%",
+      width: "12%",
     },
   ];
 
