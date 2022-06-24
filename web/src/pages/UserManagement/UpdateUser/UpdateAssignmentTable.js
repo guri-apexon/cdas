@@ -39,10 +39,6 @@ import {
 
 const UserAssignmentTable = ({
   updateChanges,
-  pingParent,
-  updateUserAssign,
-  setCheckUserAssignmentTableData,
-  disableSaveBtn,
   userId,
   targetUser,
   showRolePopup,
@@ -502,11 +498,6 @@ const UserAssignmentTable = ({
         )}
       </>
     );
-  };
-
-  const AssignUser = async () => {
-    updateUserAssign(tableStudies);
-    return null;
   };
 
   // useEffect(() => {
