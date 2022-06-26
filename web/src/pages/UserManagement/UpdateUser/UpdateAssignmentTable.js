@@ -1,8 +1,6 @@
 /* eslint-disable no-debugger */
-import React, { useContext, useEffect, useState, useRef } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useHistory } from "react-router-dom";
-
 import AutocompleteV2 from "apollo-react/components/AutocompleteV2";
 import IconButton from "apollo-react/components/IconButton";
 import Trash from "apollo-react-icons/Trash";
@@ -17,11 +15,9 @@ import FilterIcon from "apollo-react-icons/Filter";
 import Modal from "apollo-react/components/Modal";
 import Grid from "apollo-react/components/Grid";
 import Table, {
-  createSelectFilterComponent,
   createStringSearchFilter,
   compareStrings,
 } from "apollo-react/components/Table";
-
 import {
   fetchRoles,
   getUserStudyAndRoles,
@@ -31,18 +27,11 @@ import {
 import { MessageContext } from "../../../components/Providers/MessageProvider";
 import { getStudyboardData } from "../../../store/actions/StudyBoardAction";
 import MultiSelect from "../../../components/MultiSelect";
-import {
-  TextFieldFilter,
-  createStringArraySearchFilter,
-  getOverflowLimit,
-} from "../../../utils/index";
+import { TextFieldFilter } from "../../../utils/index";
 
 const UserAssignmentTable = ({
   updateChanges,
-  pingParent,
   updateUserAssign,
-  setCheckUserAssignmentTableData,
-  disableSaveBtn,
   userId,
   targetUser,
   showRolePopup,
@@ -58,24 +47,6 @@ const UserAssignmentTable = ({
   const [initialRender, setInitialRender] = useState(true);
   const [roleLists, setroleLists] = useState([]);
   const [showUserAssignmentModal, setUserAssignmentModal] = useState(false);
-
-  const lineRefs = React.useRef([]);
-  // useEffect(() => {
-  //   if (tableStudies.length === 0) {
-  //     setLoad(false);
-  //   } else {
-  //     setLoad(true);
-  //   }
-  //   setCheckUserAssignmentTableData(tableStudies);
-
-  //   if (tableStudies.length > 1) {
-  //     disableSaveBtn(false);
-  //   } else {
-  //     disableSaveBtn(true);
-  //   }
-
-  //   lineRefs.current = tableStudies.map((_, i) => React.createRef());
-  // }, [tableStudies]);
 
   const getStudyObj = () => {
     const rowIndex = Math.max(...tableStudies.map((o) => o.index), 0) + 1;
@@ -143,24 +114,9 @@ const UserAssignmentTable = ({
     };
   };
 
-  const addNewStudy = () => {
-    // if (tableStudies.find((x) => x.study == null)) {
-    //   setInitialRender(!initialRender);
-    //   setTableStudies([...tableStudies]);
-    //   toast.showErrorMessage(
-    //     "Please fill study or remove blank rows to add new row"
-    //   );
-    //   return false;
-    // }
-    // const studyObj = getStudyObj();
-    // setTableStudies((u) => [...u, studyObj]);
-    return true;
-  };
-
   const getRoles = async () => {
     const result = await fetchRoles();
     setroleLists(result || []);
-    // addNewStudy();
   };
 
   const getStudyList = async () => {
@@ -192,63 +148,9 @@ const UserAssignmentTable = ({
   };
 
   useEffect(() => {
-    // if (
-    //   !studyData.loading &&
-    //   studyData?.studyboardFetchSuccess &&
-    //   !tableStudies.length
-    // ) {
     getStudyList();
-    // }
   }, [studyData]);
 
-  const editStudyRow = (e, value, reason, index, key) => {
-    updateChanges();
-    let alreadyExist;
-    if (value) {
-      setInitialRender(true);
-    } else {
-      setInitialRender(false);
-    }
-    if (key === "prot_id" && value) {
-      alreadyExist = tableStudies.find((x) => x.prot_id === value.prot_id)
-        ? true
-        : false;
-    }
-    const tableIndex = tableStudies.findIndex((el) => el.index === index);
-    setTableStudies((rows) => {
-      const newRows = rows.map((row) => {
-        console.log({ row });
-        if (row.index === index) {
-          if (key === "prot_id") {
-            return {
-              ...row,
-              [key]: value.prot_id,
-              id: value.prot_id,
-              prot_nbr_stnd: value.prot_nbr_stnd,
-              alreadyExist,
-            };
-          }
-          return {
-            ...row,
-            [key]: value.prot_id,
-            id: value.prot_id,
-            prot_nbr_stnd: value.prot_nbr_stnd,
-          };
-        }
-        return row;
-      });
-      if (
-        !alreadyExist &&
-        key === "prot_id" &&
-        value &&
-        tableIndex + 1 === tableStudies.length
-      ) {
-        return [...newRows, getStudyObj()];
-      }
-      console.log({ newRows });
-      return newRows;
-    });
-  };
   const editRoleRow = (e, value, reason, index, key) => {
     updateChanges();
     let alreadyExist;
@@ -346,7 +248,6 @@ const UserAssignmentTable = ({
     setLoad(false);
     const email = targetUser.usr_mail_id;
     const uid = targetUser?.sAMAccountName;
-    const employeeId = targetUser?.extrnl_emp_id?.trim() || "";
 
     const formattedRows = [
       {
@@ -379,7 +280,6 @@ const UserAssignmentTable = ({
       ...insertUserStudy,
     };
     const response = await deleteUserAssignments(payload);
-    console.log({ response });
     if (response.status) {
       updateEditMode(rowIndex, false);
       toast.showSuccessMessage(
@@ -398,7 +298,6 @@ const UserAssignmentTable = ({
       );
     }
     setLoad(true);
-    console.log("saveEdit", response);
   };
 
   const DeleteViewStudy = ({ row }) => {
@@ -419,8 +318,6 @@ const UserAssignmentTable = ({
     const saveEdit = async () => {
       const email = targetUser.usr_mail_id;
       const uid = targetUser?.sAMAccountName;
-      const employeeId = targetUser?.extrnl_emp_id?.trim() || "";
-
       const formattedRows = [
         {
           protocolname: tableStudies[rowIndex].prot_nbr_stnd,
@@ -428,16 +325,11 @@ const UserAssignmentTable = ({
           roles: tableStudies[rowIndex].roles.map((r) => r.value),
         },
       ];
-
-      console.log(tableStudies[rowIndex]);
-
       const newFormattedRows = formattedRows.filter((e) => e.id);
-      console.log({ formattedRows, newFormattedRows });
       const insertUserStudy = {
         email,
         protocols: newFormattedRows,
       };
-
       let payload = {};
       const splittedNames = targetUser?.displayName?.split(", ") || [];
       const firstName =
@@ -457,9 +349,7 @@ const UserAssignmentTable = ({
       } else {
         toast.showErrorMessage(response.message || "Error in update!");
       }
-      console.log("saveEdit", response);
     };
-
     const menuItems = [
       {
         text: "Edit",
@@ -504,26 +394,13 @@ const UserAssignmentTable = ({
     );
   };
 
-  const AssignUser = async () => {
-    updateUserAssign(tableStudies);
-    return null;
-  };
-
-  // useEffect(() => {
-  //   if (pingParent !== 0) {
-  //     AssignUser();
-  //   }
-  // }, [pingParent]);
-
   useEffect(() => {
     dispatch(getStudyboardData());
-    // getStudyList();
     getRoles();
     (async () => {
       const userStudy = await getUserStudyAndRoles(userId);
       if (userStudy.status) {
         const userSutdyRes = userStudy.data.map((e, i) => ({ ...e, index: i }));
-        console.log({ userSutdyRes });
         setTableStudies([...userSutdyRes, getStudyObj()]);
       }
       setLoad(true);
@@ -582,30 +459,9 @@ const UserAssignmentTable = ({
     },
   ];
 
-  const onDelete = (index) => {
-    let prevTableStudies = tableStudies;
-    const tableIndex = tableStudies.findIndex((el) => el.index === index);
-    prevTableStudies.splice(tableIndex, 1);
-    prevTableStudies = prevTableStudies.map((e, i) => ({ ...e, index: i + 1 }));
-    setTableStudies([...prevTableStudies]);
-  };
-
-  const DeleteStudyCell = ({ row }) => {
-    if (row.index === tableStudies[tableStudies.length - 1]?.index)
-      return false;
-    const { index } = row;
-    return (
-      <IconButton size="small" onClick={() => onDelete(index)}>
-        <Trash />
-      </IconButton>
-    );
-  };
-
   const createUserAndAssignStudies = async (rowsToUpdate) => {
     const email = targetUser.usr_mail_id;
     const uid = targetUser?.sAMAccountName;
-    const employeeId = targetUser?.extrnl_emp_id?.trim() || "";
-
     const formattedRows = rowsToUpdate.map((e) => {
       console.log({ e });
       return {
@@ -614,18 +470,13 @@ const UserAssignmentTable = ({
         roles: e.roles.map((r) => r.value),
       };
     });
-
-    console.log({ rowsToUpdate });
-
     const newFormattedRows = formattedRows.filter((e) => e.id);
-
     const emptyRoles = newFormattedRows.filter((x) => x.roles.length === 0);
     if (emptyRoles.length) {
       toast.showErrorMessage(
         `This assignment is incomplete. Please select a study and a role to continue.`
       );
     } else {
-      console.log({ formattedRows, newFormattedRows });
       const insertUserStudy = {
         email,
         protocols: newFormattedRows,
@@ -652,45 +503,10 @@ const UserAssignmentTable = ({
         toast.showErrorMessage(response.message);
       }
     }
-    // return null;
-  };
-
-  const updateUserAssignment2 = () => {
-    // if (!studiesRows) {
-    //   return false;
-    // }
-    // if (!selectedUser) {
-    //   toast.showErrorMessage("Select a user or create a new one");
-    //   return false;
-    // }
-    // if (!studiesRows.length) {
-    //   toast.showErrorMessage("Add some studies to proceed");
-    //   return false;
-    // }
-    // if (studiesRows.find((x) => x.study == null)) {
-    //   // setInitialRender(!initialRender);
-    //   // setTableStudies([...studiesRows]);
-    //   toast.showErrorMessage("Please fill study or remove blank rows");
-    //   return false;
-    // }
-    // if (studiesRows.find((x) => x.alreadyExist)) {
-    //   toast.showErrorMessage("Please remove duplicate values");
-    //   return false;
-    // }
-    // const emptyRoles = studiesRows.filter((x) => x.roles.length === 0);
-    // if (emptyRoles.length) {
-    //   toast.showErrorMessage(
-    //     `This assignment is incomplete. Please select a study and a role to continue.`
-    //   );
-    //   return false;
-    // }
-    setLoad(true);
-    createUserAndAssignStudies();
   };
 
   const AssignmentInfoModal = React.memo(({ open, cancel, loading }) => {
     let rolesCount = 0;
-    // console.log({ tableStudies });
     tableStudies.map((a) => {
       rolesCount += a.roles.length;
       return false;
@@ -734,99 +550,57 @@ const UserAssignmentTable = ({
   });
 
   const UserAssignmentModal = React.memo(({ open, cancel, loading }) => {
-    const [modalTableStudies, setModalTableStudies] = useState([
-      ...tableStudies,
-    ]);
+    const [modalTableStudies, setModalTableStudies] = useState(
+      tableStudies.map((s, i) => ({ ...s, index: i }))
+    );
+
+    const getModalStudyObj = (rowIndex) => {
+      return {
+        index: rowIndex + 1,
+        prot_nbr_stnd: "",
+        prot_id: "",
+        roles: [],
+        alreadyExist: false,
+      };
+    };
 
     const editModalStudyRow = (e, value, reason, index, key) => {
-      updateChanges();
-      let alreadyExist;
-      if (value) {
-        setInitialRender(true);
-      } else {
-        setInitialRender(false);
-      }
-      if (key === "prot_id" && value) {
-        alreadyExist = modalTableStudies.find(
-          (x) => x.prot_id === value.prot_id
-        )
-          ? true
-          : false;
-      }
-      const tableIndex = modalTableStudies.findIndex(
-        (el) => el.index === index
+      console.log({ e, value, reason, index, key });
+      console.log({ ...getModalStudyObj(index) });
+      const tempModalTableStudies = modalTableStudies.map((s) => ({
+        ...s,
+        alreadyExist: false,
+      }));
+      const duplicateIndex = tempModalTableStudies.findIndex(
+        (s) => s.prot_id === value.prot_id
       );
-      setModalTableStudies((rows) => {
-        const newRows = rows.map((row) => {
-          console.log({ row });
-          if (row.index === index) {
-            if (key === "prot_id") {
-              return {
-                ...row,
-                [key]: value.prot_id,
-                id: value.prot_id,
-                prot_nbr_stnd: value.prot_nbr_stnd,
-                alreadyExist,
-              };
-            }
-            return {
-              ...row,
-              [key]: value.prot_id,
-              id: value.prot_id,
-              prot_nbr_stnd: value.prot_nbr_stnd,
-            };
-          }
-          return row;
+      tempModalTableStudies[index].protocolname = value.prot_nbr_stnd;
+      tempModalTableStudies[index].prot_nbr_stnd = value.prot_nbr_stnd;
+      tempModalTableStudies[index].prot_id = value.prot_id;
+      if (duplicateIndex > -1) {
+        tempModalTableStudies[index].alreadyExist = true;
+      } else {
+        tempModalTableStudies.push({
+          ...getModalStudyObj(index),
         });
-        if (
-          !alreadyExist &&
-          key === "prot_id" &&
-          value &&
-          tableIndex + 1 === modalTableStudies.length
-        ) {
-          return [...newRows, getStudyObj()];
-        }
-        console.log({ newRows });
-        return newRows;
-      });
+      }
+      setModalTableStudies([...tempModalTableStudies]);
     };
 
     const editModalRoleRow = (e, value, reason, index, key) => {
       updateChanges();
-      let alreadyExist;
       if (value) {
         setInitialRender(true);
       } else {
         setInitialRender(false);
       }
-      if (key === "prot_nbr_stnd" && value) {
-        alreadyExist = modalTableStudies.find(
-          (x) => x.prot_nbr_stnd === value.prot_nbr_stnd
-        )
-          ? true
-          : false;
-      }
-      const tableIndex = modalTableStudies.findIndex(
-        (el) => el.index === index
-      );
       setModalTableStudies((rows) => {
         const newRows = rows.map((row) => {
           if (row.index === index) {
-            if (key === "prot_nbr_stnd") {
-              return { ...row, [key]: value.prot_nbr_stnd, alreadyExist };
-            }
             return { ...row, [key]: value.prot_nbr_stnd };
           }
           return row;
         });
-        if (
-          !alreadyExist &&
-          key === "prot_nbr_stnd" &&
-          value &&
-          tableIndex + 1 === modalTableStudies.length
-        ) {
-          return [...newRows, getStudyObj()];
-        }
         return newRows;
       });
     };
@@ -836,7 +610,6 @@ const UserAssignmentTable = ({
       return (
         <div className="study">
           <AutocompleteV2
-            ref={lineRefs.current[row.index - 1]}
             placeholder="Add new study and role"
             matchFrom="any"
             size="small"
@@ -895,7 +668,7 @@ const UserAssignmentTable = ({
       prevTableStudies.splice(tableIndex, 1);
       prevTableStudies = prevTableStudies.map((e, i) => ({
         ...e,
-        index: i + 1,
+        index: i,
       }));
       setModalTableStudies([...prevTableStudies]);
     };
@@ -918,14 +691,6 @@ const UserAssignmentTable = ({
         toast.showErrorMessage("Please remove duplicate values");
         isErorr = true;
       }
-      console.log({ modalTableStudies });
-      // const emptyRoles = modalTableStudies.filter((x) => x.roles.length === 0);
-      // if (emptyRoles.length) {
-      //   toast.showErrorMessage(
-      //     `This assignment is incomplete. Please select a study and a role to continue.`
-      //   );
-      //   isErorr = true;
-      // }
       if (!isErorr) {
         createUserAndAssignStudies(modalTableStudies);
       }
@@ -1036,7 +801,6 @@ const UserAssignmentTable = ({
           rowProps={{ hover: false }}
           hidePagination={true}
           CustomHeader={(props) => <CustomButtonHeader {...props} />}
-          headerProps={{ addNewStudy }}
           emptyProps={{ content: <EmptyTableContent /> }}
         />
       </>
