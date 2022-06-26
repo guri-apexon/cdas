@@ -44,8 +44,10 @@ const UserAssignmentTable = ({
   const [load, setLoad] = useState(false);
   const [studyList, setStudyList] = useState([]);
   const [tableStudies, setTableStudies] = useState([]);
+  const [initialTableRoles, setInitialTableRoles] = useState({});
   const [initialRender, setInitialRender] = useState(true);
   const [roleLists, setroleLists] = useState([]);
+
   const [showUserAssignmentModal, setUserAssignmentModal] = useState(false);
 
   const getStudyObj = () => {
@@ -305,6 +307,10 @@ const UserAssignmentTable = ({
     const rowIndex = tableStudies.findIndex((e) => e.prot_id === row.prot_id);
     const handleMenuClick = (label) => () => {
       if (label === "edit") {
+        setInitialTableRoles({
+          ...initialTableRoles,
+          [tableStudies[rowIndex].prot_id]: tableStudies[rowIndex].roles,
+        });
         updateEditMode(rowIndex, true);
       } else {
         onVieweStudyDelete(rowIndex);
@@ -312,6 +318,9 @@ const UserAssignmentTable = ({
     };
 
     const cancelEdit = () => {
+      tableStudies[rowIndex].roles =
+        initialTableRoles[tableStudies[rowIndex].prot_id];
+      setTableStudies([...tableStudies]);
       updateEditMode(rowIndex, false);
     };
 
