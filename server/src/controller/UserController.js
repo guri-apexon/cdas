@@ -417,6 +417,8 @@ exports.deleteNewUser = async (req, res) => {
               user_type
             );
 
+            // console.log("sda Status", sda_status);
+
             if (sda_status.status !== 200 && sda_status.status !== 204) {
               return apiResponse.ErrorResponse(
                 res,
@@ -672,78 +674,89 @@ exports.updateUserStatus = async (req, res) => {
         userType: user_type,
       };
       let returnRes = [];
-      const provision_response = await userHelper.provisionInternalUser(data);
-      if (provision_response) {
-        const {
-          rows: [getStudies],
-        } = await DB.executeQuery(
-          `SELECT * from ${schemaName}.study_user WHERE usr_id='${user_id}' order by updt_tm desc limit 1`
-        );
 
-        const studyId = getStudies.prot_id;
-        const studyUserId = getStudies.prot_usr_id;
+      const provision_response = await userHelper.provisionInternalUser(data);
+      console.log("provision_response", provision_response);
+
+      if (provision_response) {
+        await userHelper.makeUserActive(user_id, user_id);
+
+        const { rows: getStudies } = await DB.executeQuery(
+          `SELECT * from ${schemaName}.study_user WHERE usr_id='${user_id}'`
+        );
 
         const createdOn = getCurrentTime(true);
 
-        const grantStudy = await studyHelper.studyGrant(
-          studyId,
-          user_id,
-          updatedBy,
-          createdOn
-        );
+        if (getStudies) {
+          for (let prtId of getStudies.map(({ prot_id }) => prot_id)) {
+            // const studyId = getStudies.prot_id;
 
-        if (grantStudy) {
-          const {
-            rows: [inactiveStudies],
-          } = await DB.executeQuery(
-            `SELECT prot_id from ${schemaName}.study_user WHERE act_flg =0 and usr_id='${user_id}'`
-          );
-
-          for (let id of inactiveStudies.prot_id) {
-            returnRes.study = { studyId: id };
+            const studyUserId = getStudies.prot_usr_id;
+            // console.log("prtId", prtId);
 
             const {
-              rows: [roleId],
+              rows: [studyObj],
             } = await DB.executeQuery(
-              `SELECT role_id from ${schemaName}.study_role WHERE prot_id='${id}'`
+              `SELECT prot_nbr_stnd from ${schemaName}.study WHERE prot_id='${prtId}'`
             );
 
-            const {
-              rows: [roleDetails],
-            } = await DB.executeQuery(
-              `SELECT * from ${schemaName}.role WHERE role_id='${roleId.role_id}'`
+            const grantStudy = await studyHelper.studyGrant(
+              studyObj.prot_nbr_stnd,
+              user_id,
+              updatedBy,
+              createdOn
             );
-            returnRes.roleDetails = { ...roleDetails };
+
+            if (grantStudy) {
+              const studyUpdate = await DB.executeQuery(
+                `update ${schemaName}.study_user set act_flg=1 , insrt_tm='${createdOn}' WHERE prot_id='${prtId}'`
+              );
+
+              const { rows: roleId } = await DB.executeQuery(
+                `SELECT role_id from ${schemaName}.study_user_role WHERE prot_id='${prtId}' and usr_id='${user_id}'`
+              );
+
+              for (let key of roleId.map(({ role_id }) => role_id)) {
+                const {
+                  rows: [roleDetails],
+                } = await DB.executeQuery(
+                  `SELECT role_id, role_nm, role_stat from ${schemaName}.role WHERE role_stat=0 and role_id='${key}'`
+                );
+
+                if (roleDetails) {
+                  roleDetails.studyId = prtId;
+                  returnRes.push(roleDetails);
+                }
+              }
+            }
+
+            const auditInsert = `INSERT INTO ${schemaName}.audit_log
+                  (tbl_nm, id, attribute, old_val, new_val, rsn_for_chg, updated_by, updated_on)
+                  VALUES($1, $2, $3, $4, $5, $6, $7, $8) `;
+
+            const insert = await DB.executeQuery(auditInsert, [
+              "study_user",
+              studyUserId,
+              "act_flg",
+              0,
+              1,
+              "null",
+              updatedBy,
+              createdOn,
+            ]);
           }
         }
 
-        const auditInsert = `INSERT INTO ${schemaName}.audit_log
-              (tbl_nm, id, attribute, old_val, new_val, rsn_for_chg, updated_by, updated_on)
-              VALUES($1, $2, $3, $4, $5, $6, $7, $8) `;
-
-        const insert = await DB.executeQuery(auditInsert, [
-          "study_user",
-          studyUserId,
-          "act_flg",
-          0,
-          1,
-          "null",
-          updatedBy,
-          createdOn,
-        ]);
-
-        if (insert) {
-          return apiResponse.successResponseWithData(
-            res,
-            "This study active successfully",
-            returnRes
-          );
-        }
+        return apiResponse.successResponseWithData(
+          res,
+          "This study active successfully",
+          returnRes
+        );
       }
     }
   } catch (err) {
     console.log({ err });
-    return apiResponse.ErrorResponse(newReq, "changeStatus: failed");
+    return apiResponse.ErrorResponse(res, "changeStatus: failed");
   }
 };
 

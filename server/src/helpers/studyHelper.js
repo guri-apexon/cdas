@@ -37,8 +37,9 @@ exports.studyGrant = async (studyId, userIds, createdBy, createdOn) => {
     );
 
     if (result?.data?.code === 200) return true;
-  } catch (error) {
-    Logger.error("studyHelper > studyGrant", error);
+  } catch (err) {
+    console.log(err);
+    Logger.error("studyHelper > studyGrant", err);
   }
   return false;
 };

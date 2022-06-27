@@ -85,6 +85,7 @@ exports.provisionInternalUser = async (data) => {
 
   try {
     const response = await axios.post(url);
+
     return response.status === 200 ? networkId : false;
   } catch (error) {
     console.log("Internal user provision error", data, error);
