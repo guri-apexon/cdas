@@ -127,6 +127,7 @@ const AddUser = () => {
   const [breadcrumpItems, setBreadcrumpItems] = useState([]);
   const [showRolePopup, setShowRolePopup] = useState(false);
   const [isSendingInvite, setIsSendingInvite] = useState(false);
+  const [inactiveStudyRoles, setInactiveStudyRoles] = useState([]);
 
   const keepEditingBtn = () => {
     dispatch(hideAlert());
@@ -184,7 +185,8 @@ const AddUser = () => {
       lastName: targetUser.usr_lst_nm,
       changed_to: checked ? "active" : "inactive",
     };
-    await updateUserStatus(payload);
+    const res = await updateUserStatus(payload);
+    setInactiveStudyRoles(res?.data);
     await getUserAPI();
     setLoading(false);
     // updateUserStatus(userId, "In Active");
@@ -276,6 +278,17 @@ const AddUser = () => {
     setIsSendingInvite(false);
   };
 
+  const closeRolePopup = () => {
+    setInactiveStudyRoles([]);
+  };
+
+  const getInactiveRolesCount = () => {
+    return inactiveStudyRoles?.reduce(
+      (acc, study) => acc + study.inactiveRoles.length,
+      0
+    );
+  };
+
   return (
     <div className="create-user-wrapper">
       {isShowAlertBox && (
@@ -290,6 +303,42 @@ const AddUser = () => {
           stayHere={stayHere}
         />
       )} */}
+      <Modal
+        open={!!inactiveStudyRoles?.length}
+        onClose={closeRolePopup}
+        className="save-confirm"
+        variant="default"
+        title="Removed assignments"
+        buttonProps={[
+          {
+            label: "Dismiss",
+            onClick: closeRolePopup,
+            disabled: loading,
+          },
+        ]}
+        id="neutral2"
+      >
+        <Typography gutterBottom>
+          {`${getInactiveRolesCount()} assignments were removed from ${
+            inactiveStudyRoles?.length
+          } studies as the Roles are now inactive:`}
+          <br />
+          <Grid container spacing={2}>
+            {inactiveStudyRoles?.map(({ studyName, inactiveRoles }) => {
+              return (
+                <>
+                  <Grid item xs={5}>
+                    {studyName}
+                  </Grid>
+                  <Grid item xs={7}>
+                    {inactiveRoles.map((r) => r.name).join(", ")}
+                  </Grid>
+                </>
+              );
+            })}
+          </Grid>
+        </Typography>
+      </Modal>
       <div className="paper">
         <Box className="top-content">
           {breadcrumpItems.length && (
@@ -386,7 +435,7 @@ const AddUser = () => {
                 targetUser={targetUser}
                 updateChanges={updateChanges}
                 showRolePopup={showRolePopup}
-                setShowRolePopup={setShowRolePopup}
+                // setShowRolePopup={setShowRolePopup}
                 userUpdating={loading}
               />
             </div>

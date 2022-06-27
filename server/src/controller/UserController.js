@@ -697,7 +697,7 @@ exports.updateUserStatus = async (req, res) => {
             const {
               rows: [studyObj],
             } = await DB.executeQuery(
-              `SELECT prot_nbr_stnd from ${schemaName}.study WHERE prot_id='${prtId}'`
+              `SELECT * from ${schemaName}.study WHERE prot_id='${prtId}'`
             );
 
             const grantStudy = await studyHelper.studyGrant(
@@ -715,7 +715,7 @@ exports.updateUserStatus = async (req, res) => {
               const { rows: roleId } = await DB.executeQuery(
                 `SELECT role_id from ${schemaName}.study_user_role WHERE prot_id='${prtId}' and usr_id='${user_id}'`
               );
-
+              const studyRoles = [];
               for (let key of roleId.map(({ role_id }) => role_id)) {
                 const {
                   rows: [roleDetails],
@@ -725,9 +725,13 @@ exports.updateUserStatus = async (req, res) => {
 
                 if (roleDetails) {
                   roleDetails.studyId = prtId;
-                  returnRes.push(roleDetails);
+                  studyRoles.push({ name: roleDetails.role_nm });
                 }
               }
+              returnRes.push({
+                studyName: studyObj.prot_nbr_stnd,
+                inactiveRoles: studyRoles,
+              });
             }
 
             const auditInsert = `INSERT INTO ${schemaName}.audit_log
