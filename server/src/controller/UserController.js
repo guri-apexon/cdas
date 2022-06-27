@@ -3,6 +3,7 @@ const { getCurrentTime, validateEmail } = require("../helpers/customFunctions");
 const Logger = require("../config/logger");
 const axios = require("axios");
 const userHelper = require("../helpers/userHelper");
+const studyHelper = require("../helpers/studyHelper");
 const tenantHelper = require("../helpers/tenantHelper");
 const apiResponse = require("../helpers/apiResponse");
 const constants = require("../config/constants");
@@ -547,9 +548,76 @@ exports.getUserStudyAndRoles = async function (req, res) {
 //   } catch (err) {
 //     return false;
 //   }
+
+//  const returnBool = true;
+
+//  if (user_type === "internal") {
+//    const provision_response = await userHelper.provisionInternalUser(dataObj);
+
+//    console.log("res", provision_response);
+//    if (provision_response) {
+//      if (changed_to === userHelper.CONSTANTS.INACTIVE)
+//        user_id = await userHelper.makeUserActive(user_id, user_id);
+//      else
+//        user_id = await userHelper.insertUserInDb({
+//          ...dataObj,
+//          invt_sent_tm: null,
+//          insrt_tm: getCurrentTime(),
+//          updt_tm: getCurrentTime(),
+//          status: "Active",
+//          externalId: dataObj.uid,
+//          userKey: provision_response.data,
+//        });
+//    } else {
+//      return returnBool
+//        ? false
+//        : apiResponse.ErrorResponse(
+//            res,
+//            "An error occured while provisioning internal user"
+//          );
+//    }
+//  } else {
+//    const provision_response = await userHelper.provisionExternalUser(dataObj);
+//    if (provision_response) {
+//      if (changed_to === userHelper.CONSTANTS.INACTIVE)
+//        user_id = await userHelper.makeUserActive(
+//          user_id,
+//          provision_response.data
+//        );
+//      else
+//        user_id = await userHelper.insertUserInDb({
+//          ...dataObj,
+//          invt_sent_tm: getCurrentTime(),
+//          insrt_tm: getCurrentTime(),
+//          updt_tm: getCurrentTime(),
+//          status: "Invited",
+//          uid: "",
+//          externalId: data.uid,
+//          userKey: provision_response.data,
+//        });
+//    } else {
+//      return returnBool
+//        ? false
+//        : apiResponse.ErrorResponse(
+//            res,
+//            "An error occured while provisioning external user"
+//          );
+//    }
+//  }
 // };
 
 exports.updateUserStatus = async (req, res) => {
+  const {
+    tenant_id,
+    user_type,
+    email_id,
+    user_id,
+    firstName,
+    lastName,
+    changed_to,
+    updatedBy,
+  } = req.body;
+  console.log(req.body);
   const newReq = { ...req, returnBool: true };
   Logger.info({ message: "changeStatus - begin" });
 
@@ -566,7 +634,81 @@ exports.updateUserStatus = async (req, res) => {
 
       const response = await this.deleteNewUser(newReq, res);
     } else if (userStatus === "active") {
-      // Nasim Code Here, check acceptence criteria there are two different flows for inactive to active. Each for internal user and external user
+      const data = {
+        uid: user_id,
+        firstName: firstName,
+        lastName: lastName,
+        emai: email_id,
+        updatedBy: updatedBy,
+        userType: user_type,
+      };
+      let returnRes = [];
+      const provision_response = await userHelper.provisionInternalUser(data);
+      if (provision_response) {
+        const {
+          rows: [getStudies],
+        } = await DB.executeQuery(
+          `SELECT * from ${schemaName}.study_user WHERE usr_id='${user_id}' order by updt_tm desc limit 1`
+        );
+
+        const studyId = getStudies.prot_id;
+        const createdOn = getCurrentTime(true);
+
+        const grantStudy = await studyHelper.studyGrant(
+          studyId,
+          user_id,
+          updatedBy,
+          createdOn
+        );
+
+        if (grantStudy) {
+          const {
+            rows: [inactiveStudies],
+          } = await DB.executeQuery(
+            `SELECT prot_id from ${schemaName}.study_user WHERE act_flg =0 and usr_id='${user_id}'`
+          );
+
+          for (let id of inactiveStudies.prot_id) {
+            returnRes.study = { studyId: id };
+
+            const {
+              rows: [roleId],
+            } = await DB.executeQuery(
+              `SELECT role_id from ${schemaName}.study_role WHERE prot_id='${id}'`
+            );
+
+            const {
+              rows: [roleDetails],
+            } = await DB.executeQuery(
+              `SELECT * from ${schemaName}.role WHERE role_id='${roleId.role_id}'`
+            );
+            returnRes.roleDetails = { ...roleDetails };
+          }
+        }
+
+        const auditInsert = `INSERT INTO ${schemaName}.audit_log
+              (tbl_nm, id, attribute, old_val, new_val, rsn_for_chg, updated_by, updated_on)
+              VALUES($1, $2, $3, $4, $5, $6, $7, $8) `;
+
+        const insert = await DB.executeQuery(auditInsert, [
+          "study_user",
+          studyId,
+          "act_flg",
+          0,
+          1,
+          "null",
+          updatedBy,
+          createdOn,
+        ]);
+
+        if (insert) {
+          return apiResponse.successResponseWithData(
+            res,
+            "This study active successfully",
+            returnRes
+          );
+        }
+      }
     }
   } catch (err) {
     console.log({ err });

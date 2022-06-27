@@ -79,6 +79,7 @@ exports.isUserAlreadyProvisioned = async (email) => {
  */
 exports.provisionInternalUser = async (data) => {
   const { uid: networkId, updatedBy } = data;
+
   const userType = "internal";
   const roleType = "Reader";
   const url = `${SDA_Endpoint}&roleType=${roleType}&userType=${userType}&networkId=${networkId}&updatedBy=${updatedBy}`;

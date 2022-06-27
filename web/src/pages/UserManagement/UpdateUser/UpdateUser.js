@@ -187,6 +187,8 @@ const AddUser = () => {
       user_type: targetUser.usr_typ,
       email_id: targetUser.usr_mail_id,
       user_id: targetUser.usr_id,
+      firstName: targetUser.usr_fst_nm,
+      lastName: targetUser.usr_lst_nm,
       changed_to: checked ? "active" : "inactive",
     };
     updateUserStatus(payload);
