@@ -652,6 +652,8 @@ exports.updateUserStatus = async (req, res) => {
         );
 
         const studyId = getStudies.prot_id;
+        const studyUserId = getStudies.prot_usr_id;
+
         const createdOn = getCurrentTime(true);
 
         const grantStudy = await studyHelper.studyGrant(
@@ -692,7 +694,7 @@ exports.updateUserStatus = async (req, res) => {
 
         const insert = await DB.executeQuery(auditInsert, [
           "study_user",
-          studyId,
+          studyUserId,
           "act_flg",
           0,
           1,
