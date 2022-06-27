@@ -12,10 +12,6 @@ import Button from "apollo-react/components/Button";
 
 import BreadcrumbsUI from "apollo-react/components/Breadcrumbs";
 import Switch from "apollo-react/components/Switch";
-import ButtonGroup from "apollo-react/components/ButtonGroup";
-import TextField from "apollo-react/components/TextField";
-import AutocompleteV2 from "apollo-react/components/AutocompleteV2";
-import SearchIcon from "apollo-react-icons/Search";
 import "./UpdateUser.scss";
 import Typography from "apollo-react/components/Typography";
 import Link from "apollo-react/components/Link";
@@ -90,52 +86,24 @@ const Value = ({ children }) => {
   );
 };
 
-const ConfirmModal = React.memo(({ open, cancel, stayHere, loading }) => {
-  return (
-    <Modal
-      open={open}
-      onClose={stayHere}
-      className="save-confirm"
-      disableBackdropClick="true"
-      variant="warning"
-      title="Lose your work?"
-      message="All unsaved changes will be lost."
-      buttonProps={[
-        { label: "Keep editing", disabled: loading },
-        { label: "Leave without saving", onClick: cancel, disabled: loading },
-      ]}
-      id="neutral"
-    />
-  );
-});
-
-const InviteUserModal = ({ open, onSendInvite, stayHere, loading, email }) => {
-  return (
-    <Modal
-      open={open}
-      onClose={stayHere}
-      className="save-confirm"
-      disableBackdropClick="true"
-      title="Invite User?"
-      id="neutral"
-      buttonProps={[
-        { label: "Change email", disabled: loading },
-        { label: "Email invitation", onClick: onSendInvite, disabled: loading },
-      ]}
-    >
-      <Typography gutterBottom>
-        This new user will be sent an email invitation.
-        <br />
-        Please double check the email address.
-      </Typography>
-      <Typography gutterTop>
-        <div className="flex justify-center flex-center">
-          <span className="b-font">{email}</span>
-        </div>
-      </Typography>
-    </Modal>
-  );
-};
+// const ConfirmModal = React.memo(({ open, cancel, stayHere, loading }) => {
+//   return (
+//     <Modal
+//       open={open}
+//       onClose={stayHere}
+//       className="save-confirm"
+//       disableBackdropClick="true"
+//       variant="warning"
+//       title="Lose your work?"
+//       message="All unsaved changes will be lost."
+//       buttonProps={[
+//         { label: "Keep editing", disabled: loading },
+//         { label: "Leave without saving", onClick: cancel, disabled: loading },
+//       ]}
+//       id="neutral"
+//     />
+//   );
+// });
 
 const AddUser = () => {
   const toast = useContext(MessageContext);
@@ -182,7 +150,30 @@ const AddUser = () => {
       setIsAnyUpdate(true);
     }
   };
-  const checkUserTypeAndUpdate = (checked) => {
+
+  const updateBreadcrump = (usr) => {
+    const breadcrumpArr = [
+      { href: "", onClick: () => history.push("/launchpad") },
+      {
+        title: "User Management",
+        onClick: () => history.push(userListURL),
+      },
+      {
+        title: `${usr.usr_fst_nm} ${usr.usr_lst_nm}`,
+      },
+    ];
+    setBreadcrumpItems(breadcrumpArr);
+  };
+
+  const getUserAPI = async () => {
+    const userRes = await getUser(userId);
+    setTargetUser(userRes);
+    updateBreadcrump(userRes);
+    setActive(userRes.usr_stat === "Active" ? true : false);
+  };
+
+  const checkUserTypeAndUpdate = async (checked) => {
+    setLoading(true);
     const userType = targetUser.usr_typ;
     const payload = {
       tenant_id: targetUser.tenant_id,
@@ -193,7 +184,9 @@ const AddUser = () => {
       lastName: targetUser.usr_lst_nm,
       changed_to: checked ? "active" : "inactive",
     };
-    updateUserStatus(payload);
+    await updateUserStatus(payload);
+    await getUserAPI();
+    setLoading(false);
     // updateUserStatus(userId, "In Active");
     // setShowRolePopup(true);
   };
@@ -221,28 +214,9 @@ const AddUser = () => {
     history.push("/user-management/");
   };
 
-  const updateBreadcrump = (usr) => {
-    const breadcrumpArr = [
-      { href: "", onClick: () => history.push("/launchpad") },
-      {
-        title: "User Management",
-        onClick: () => history.push(userListURL),
-      },
-      {
-        title: `${usr.usr_fst_nm} ${usr.usr_lst_nm}`,
-      },
-    ];
-    setBreadcrumpItems(breadcrumpArr);
-  };
-
   useEffect(() => {
     dispatch(formComponentActive());
-    (async () => {
-      const userRes = await getUser(userId);
-      setTargetUser(userRes);
-      updateBreadcrump(userRes);
-      setActive(userRes.usr_stat === "Active" ? true : false);
-    })();
+    getUserAPI();
   }, []);
 
   function formatAMPM(date) {
@@ -308,14 +282,14 @@ const AddUser = () => {
         <AlertBox cancel={keepEditingBtn} submit={leavePageBtn} />
       )}
 
-      {isAnyUpdate && (
+      {/* {isAnyUpdate && (
         <ConfirmModal
           open={confirm}
           cancel={cancelEdit}
           loading={loading}
           stayHere={stayHere}
         />
-      )}
+      )} */}
       <div className="paper">
         <Box className="top-content">
           {breadcrumpItems.length && (
@@ -333,6 +307,7 @@ const AddUser = () => {
                 label="Active"
                 className="inline-checkbox"
                 checked={active}
+                disabled={loading}
                 onChange={handleActive}
                 size="small"
               />
@@ -412,6 +387,7 @@ const AddUser = () => {
                 updateChanges={updateChanges}
                 showRolePopup={showRolePopup}
                 setShowRolePopup={setShowRolePopup}
+                userUpdating={loading}
               />
             </div>
           </Grid>
