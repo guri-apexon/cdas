@@ -3,6 +3,7 @@ const { getCurrentTime, validateEmail } = require("../helpers/customFunctions");
 const Logger = require("../config/logger");
 const axios = require("axios");
 const userHelper = require("../helpers/userHelper");
+const studyHelper = require("../helpers/studyHelper");
 const tenantHelper = require("../helpers/tenantHelper");
 const apiResponse = require("../helpers/apiResponse");
 const constants = require("../config/constants");
@@ -106,13 +107,14 @@ exports.getUserDetail = async function (req, res) {
   const userId = req.query.userId;
   try {
     return await DB.executeQuery(
-      `SELECT * from ${schemaName}.user WHERE usr_id='${userId}'`
+      `SELECT u.*, ut.tenant_id from ${schemaName}.user u left join ${schemaName}.user_tenant ut on ut.usr_id = u.usr_id WHERE u.usr_id='${userId}'`
     )
       .then((response) => {
+        const user = response?.rows?.[0] || {};
         return apiResponse.successResponseWithData(
           res,
           "User retrieved successfully",
-          response
+          user
         );
       })
       .catch((err) => {
@@ -173,16 +175,11 @@ exports.inviteExternalUser = async (req, res) => {
   newReq.body["userType"] = "external";
   Logger.info({ message: "inviteExternalUser - begin" });
 
-  // Fetch First Tenet
-  const query = `SELECT tenant_nm FROM ${schemaName}.tenant LIMIT 1`;
-  try {
-    const result = await DB.executeQuery(query);
-    if (result.rowCount > 0) {
-      newReq.body["tenant"] = result.rows[0].tenant_nm;
-    } else {
-      return apiResponse.ErrorResponse(res, "Tenant does not exists");
-    }
-  } catch (error) {
+  // Fetch First Tenant
+  const tenant = await tenantHelper.getFirstTenant();
+  if (tenant) {
+    newReq.body["tenant"] = tenant.tenant_nm;
+  } else {
     return apiResponse.ErrorResponse(res, "Unable to fetch tenant");
   }
 
@@ -211,16 +208,11 @@ exports.inviteInternalUser = async (req, res) => {
   newReq.body["userType"] = "internal";
   Logger.info({ message: "inviteInternalUser - begin" });
 
-  // Fetch First Tenet
-  const query = `SELECT tenant_nm FROM ${schemaName}.tenant LIMIT 1`;
-  try {
-    const result = await DB.executeQuery(query);
-    if (result.rowCount > 0) {
-      newReq.body["tenant"] = result.rows[0].tenant_nm;
-    } else {
-      return apiResponse.ErrorResponse(res, "Tenant does not exists");
-    }
-  } catch (error) {
+  // Fetch First Tenant
+  const tenant = await tenantHelper.getFirstTenant();
+  if (tenant) {
+    newReq.body["tenant"] = tenant.tenant_nm;
+  } else {
     return apiResponse.ErrorResponse(res, "Unable to fetch tenant");
   }
 
@@ -240,6 +232,35 @@ exports.inviteInternalUser = async (req, res) => {
   return apiResponse.ErrorResponse(
     res,
     "Unable to add new user – please try again or report problem to the system administrator"
+  );
+};
+
+exports.sendInvite = async (req, res) => {
+  const newReq = { ...req };
+  Logger.info({ message: "sendInvite - begin" });
+
+  const provision_response = await userHelper.provisionExternalUser(
+    newReq.body
+  );
+
+  if (provision_response) {
+    const uid = newReq.body.uid;
+    const currentTime = getCurrentTime();
+    const query = `UPDATE ${schemaName}.user SET invt_sent_tm='${currentTime}' WHERE usr_id = '${uid}'`;
+    try {
+      const result = await DB.executeQuery(query);
+      return apiResponse.successResponseWithData(
+        res,
+        `An invitation has been sent to ${newReq.body.email}`,
+        currentTime
+      );
+    } catch (error) {
+      console.log("error: sendInvite user update", error);
+    }
+  }
+  return apiResponse.ErrorResponse(
+    res,
+    "Unable to inviation to user – please try again or report problem to the system administrator"
   );
 };
 
@@ -396,6 +417,8 @@ exports.deleteNewUser = async (req, res) => {
               user_type
             );
 
+            // console.log("sda Status", sda_status);
+
             if (sda_status.status !== 200 && sda_status.status !== 204) {
               return apiResponse.ErrorResponse(
                 res,
@@ -535,28 +558,212 @@ exports.getUserStudyAndRoles = async function (req, res) {
   }
 };
 
-exports.updateUserStatus = async function (req, res) {
+// exports.updateUserStatus = async function (req, res) {
+//   try {
+//     const userId = req.body.userId;
+//     const userStatus = req.body.status;
+//     const updt_tm = getCurrentTime(true);
+//     const inActiveUserQuery = `UPDATE ${schemaName}.user set usr_stat=$1, updt_tm=$2 WHERE usr_id='${userId}'`;
+//     console.log({ inActiveUserQuery });
+//     const userStudies = await DB.executeQuery(inActiveUserQuery, [
+//       userStatus,
+//       updt_tm,
+//     ]).then((response) => {
+//       return response;
+//     });
+//     return apiResponse.successResponseWithData(
+//       res,
+//       "User status updated successfully",
+//       userStudies
+//     );
+//   } catch (err) {
+//     return false;
+//   }
+
+//  const returnBool = true;
+
+//  if (user_type === "internal") {
+//    const provision_response = await userHelper.provisionInternalUser(dataObj);
+
+//    console.log("res", provision_response);
+//    if (provision_response) {
+//      if (changed_to === userHelper.CONSTANTS.INACTIVE)
+//        user_id = await userHelper.makeUserActive(user_id, user_id);
+//      else
+//        user_id = await userHelper.insertUserInDb({
+//          ...dataObj,
+//          invt_sent_tm: null,
+//          insrt_tm: getCurrentTime(),
+//          updt_tm: getCurrentTime(),
+//          status: "Active",
+//          externalId: dataObj.uid,
+//          userKey: provision_response.data,
+//        });
+//    } else {
+//      return returnBool
+//        ? false
+//        : apiResponse.ErrorResponse(
+//            res,
+//            "An error occured while provisioning internal user"
+//          );
+//    }
+//  } else {
+//    const provision_response = await userHelper.provisionExternalUser(dataObj);
+//    if (provision_response) {
+//      if (changed_to === userHelper.CONSTANTS.INACTIVE)
+//        user_id = await userHelper.makeUserActive(
+//          user_id,
+//          provision_response.data
+//        );
+//      else
+//        user_id = await userHelper.insertUserInDb({
+//          ...dataObj,
+//          invt_sent_tm: getCurrentTime(),
+//          insrt_tm: getCurrentTime(),
+//          updt_tm: getCurrentTime(),
+//          status: "Invited",
+//          uid: "",
+//          externalId: data.uid,
+//          userKey: provision_response.data,
+//        });
+//    } else {
+//      return returnBool
+//        ? false
+//        : apiResponse.ErrorResponse(
+//            res,
+//            "An error occured while provisioning external user"
+//          );
+//    }
+//  }
+// };
+
+exports.updateUserStatus = async (req, res) => {
+  const {
+    tenant_id,
+    user_type,
+    email_id,
+    user_id,
+    firstName,
+    lastName,
+    changed_to,
+    updatedBy,
+  } = req.body;
+  console.log(req.body);
+  const newReq = { ...req, returnBool: true };
+  Logger.info({ message: "changeStatus - begin" });
+
+  const userStatus = newReq.body["changed_to"];
+  newReq.body["updt_tm"] = getCurrentTime(true);
+
   try {
-    const userId = req.body.userId;
-    const userStatus = req.body.status;
-    const updt_tm = getCurrentTime(true);
-    const inActiveUserQuery = `UPDATE ${schemaName}.user set usr_stat=$1, updt_tm=$2 WHERE usr_id='${userId}'`;
-    console.log({ inActiveUserQuery });
-    const userStudies = await DB.executeQuery(inActiveUserQuery, [
-      userStatus,
-      updt_tm,
-    ]).then((response) => {
-      return response;
-    });
-    return apiResponse.successResponseWithData(
-      res,
-      "User status updated successfully",
-      userStudies
-    );
+    if (userStatus === "inactive") {
+      // Fetch First Tenant fi tenant id not present
+      if (!newReq?.body?.tenant_id) {
+        const tenant = await tenantHelper.getFirstTenant();
+        newReq.body["tenant_id"] = tenant.tenant_id;
+      }
+
+      const response = await this.deleteNewUser(newReq, res);
+    } else if (userStatus === "active") {
+      const data = {
+        uid: user_id,
+        firstName: firstName,
+        lastName: lastName,
+        emai: email_id,
+        updatedBy: updatedBy,
+        userType: user_type,
+      };
+      let returnRes = [];
+
+      const provision_response = await userHelper.provisionInternalUser(data);
+      console.log("provision_response", provision_response);
+
+      if (provision_response) {
+        await userHelper.makeUserActive(user_id, user_id);
+
+        const { rows: getStudies } = await DB.executeQuery(
+          `SELECT * from ${schemaName}.study_user WHERE usr_id='${user_id}'`
+        );
+
+        const createdOn = getCurrentTime(true);
+
+        if (getStudies) {
+          for (let prtId of getStudies.map(({ prot_id }) => prot_id)) {
+            // const studyId = getStudies.prot_id;
+
+            const studyUserId = getStudies.prot_usr_id;
+            // console.log("prtId", prtId);
+
+            const {
+              rows: [studyObj],
+            } = await DB.executeQuery(
+              `SELECT * from ${schemaName}.study WHERE prot_id='${prtId}'`
+            );
+
+            const grantStudy = await studyHelper.studyGrant(
+              studyObj.prot_nbr_stnd,
+              user_id,
+              updatedBy,
+              createdOn
+            );
+
+            if (grantStudy) {
+              const studyUpdate = await DB.executeQuery(
+                `update ${schemaName}.study_user set act_flg=1 , insrt_tm='${createdOn}' WHERE prot_id='${prtId}'`
+              );
+
+              const { rows: roleId } = await DB.executeQuery(
+                `SELECT role_id from ${schemaName}.study_user_role WHERE prot_id='${prtId}' and usr_id='${user_id}'`
+              );
+              const studyRoles = [];
+              for (let key of roleId.map(({ role_id }) => role_id)) {
+                const {
+                  rows: [roleDetails],
+                } = await DB.executeQuery(
+                  `SELECT role_id, role_nm, role_stat from ${schemaName}.role WHERE role_stat=0 and role_id='${key}'`
+                );
+
+                if (roleDetails) {
+                  roleDetails.studyId = prtId;
+                  studyRoles.push({ name: roleDetails.role_nm });
+                }
+              }
+              returnRes.push({
+                studyName: studyObj.prot_nbr_stnd,
+                inactiveRoles: studyRoles,
+              });
+            }
+
+            const auditInsert = `INSERT INTO ${schemaName}.audit_log
+                  (tbl_nm, id, attribute, old_val, new_val, rsn_for_chg, updated_by, updated_on)
+                  VALUES($1, $2, $3, $4, $5, $6, $7, $8) `;
+
+            const insert = await DB.executeQuery(auditInsert, [
+              "study_user",
+              studyUserId,
+              "act_flg",
+              0,
+              1,
+              "null",
+              updatedBy,
+              createdOn,
+            ]);
+          }
+        }
+
+        return apiResponse.successResponseWithData(
+          res,
+          "This study active successfully",
+          returnRes
+        );
+      }
+    }
   } catch (err) {
-    return false;
+    console.log({ err });
+    return apiResponse.ErrorResponse(res, "changeStatus: failed");
   }
 };
+
 exports.checkInvitedStatus = async () => {
   try {
     const statusCase = `LOWER(TRIM(usr_stat))`;
@@ -628,8 +835,6 @@ exports.updateUserAssignments = async (req, res) => {
   newReq.body["createdBy"] = newReq.body.userId;
   newReq.body["createdOn"] = getCurrentTime();
 
-  console.log(newReq.body);
-
   const assignmentResponse = AssignmentController.assignmentUpdate(
     newReq,
     res,
@@ -665,8 +870,6 @@ exports.deleteUserAssignments = async (req, res) => {
   newReq.body["createdBy"] = req.body.updatedBy;
   newReq.body["updatedBy"] = req.body.updatedBy;
   newReq.body["createdOn"] = getCurrentTime();
-
-  console.log(newReq.body);
 
   const assignmentResponse = AssignmentController.assignmentRemove(
     newReq,

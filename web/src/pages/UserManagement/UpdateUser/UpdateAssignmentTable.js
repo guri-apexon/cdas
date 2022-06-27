@@ -36,6 +36,7 @@ const UserAssignmentTable = ({
   targetUser,
   showRolePopup,
   setShowRolePopup,
+  userUpdating,
 }) => {
   const toast = useContext(MessageContext);
   const dispatch = useDispatch();
@@ -430,17 +431,32 @@ const UserAssignmentTable = ({
     );
   };
 
+  // useEffect(() => {
+  //   if (pingParent !== 0) {
+  //     AssignUser();
+  //   }
+  // }, [pingParent]);
+
+  const getUserStudyRoles = async () => {
+    const userStudy = await getUserStudyAndRoles(userId);
+    if (userStudy.status) {
+      const userSutdyRes = userStudy.data.map((e, i) => ({ ...e, index: i }));
+      console.log({ userSutdyRes });
+      setTableStudies([...userSutdyRes, getStudyObj()]);
+    }
+    setLoad(true);
+  };
+
+  useEffect(() => {
+    if (userUpdating === false) {
+      getUserStudyRoles();
+    }
+  }, [userUpdating]);
+
   useEffect(() => {
     dispatch(getStudyboardData());
     getRoles();
-    (async () => {
-      const userStudy = await getUserStudyAndRoles(userId);
-      if (userStudy.status) {
-        const userSutdyRes = userStudy.data.map((e, i) => ({ ...e, index: i }));
-        setTableStudies([...userSutdyRes, getStudyObj()]);
-      }
-      setLoad(true);
-    })();
+    getUserStudyRoles();
   }, []);
 
   const CustomButtonHeader = ({ toggleFilters }) => {
@@ -451,6 +467,7 @@ const UserAssignmentTable = ({
             size="small"
             variant="secondary"
             icon={PlusIcon}
+            disabled={userUpdating}
             onClick={() => setUserAssignmentModal(true)}
           >
             Add user assignment
@@ -829,6 +846,7 @@ const UserAssignmentTable = ({
             size="small"
             variant="secondary"
             icon={PlusIcon}
+            disabled={userUpdating}
             onClick={() => setUserAssignmentModal(true)}
           >
             Add user assignment
