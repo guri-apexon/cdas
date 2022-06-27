@@ -506,7 +506,7 @@ exports.secureApi = async (req, res) => {
 };
 
 const getUserStudyRoles = async (prot_id, userId) => {
-  const userRolesQuery = `SELECT r.role_nm AS label, r.role_id AS value from ${schemaName}.study_user_role AS sur LEFT JOIN ${schemaName}.role AS r ON sur.role_id=r.role_id WHERE sur.prot_id='${prot_id}' AND sur.usr_id='${userId}'`;
+  const userRolesQuery = `SELECT r.role_nm AS label, r.role_id AS value from ${schemaName}.study_user_role AS sur LEFT JOIN ${schemaName}.role AS r ON sur.role_id=r.role_id WHERE sur.prot_id='${prot_id}' AND sur.usr_id='${userId}' ORDER BY r.role_nm ASC`;
   return await DB.executeQuery(userRolesQuery).then((res) => res.rows);
 };
 
