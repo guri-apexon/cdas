@@ -764,14 +764,16 @@ const UserAssignmentTable = ({
         <Typography variant="body2" className="">
           At least one assignment is needed to access any CDAS product
         </Typography>
-        <Button
-          size="small"
-          variant="secondary"
-          icon={PlusIcon}
-          onClick={() => setUserAssignmentModal(true)}
-        >
-          Add user assignment
-        </Button>
+        {targetUser?.usr_stat === "Active" && (
+          <Button
+            size="small"
+            variant="secondary"
+            icon={PlusIcon}
+            onClick={() => setUserAssignmentModal(true)}
+          >
+            Add user assignment
+          </Button>
+        )}
       </>
     );
   };
