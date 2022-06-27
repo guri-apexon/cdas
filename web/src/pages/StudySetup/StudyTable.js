@@ -11,7 +11,7 @@ import Table, {
   createSelectFilterComponent,
   createStringSearchFilter,
   dateFilterV2,
-  numberSearchFilter,
+  // numberSearchFilter,
   compareDates,
   compareNumbers,
   compareStrings,
@@ -67,6 +67,21 @@ const obIcons = {
   Failed: InFailureIcon,
   "In Progress": InProgressIcon,
 };
+
+function numberSearchFilter(accessor) {
+  return function (row, filters) {
+    const rowVal = parseInt(row[accessor], 10);
+    const filterVal = parseInt(filters[accessor], 10);
+    if (!filters[accessor]) {
+      return true;
+    }
+
+    if (!row[accessor]) {
+      return false;
+    }
+    return rowVal === filterVal;
+  };
+}
 
 const SelectiveCell = ({ row, column: { accessor } }) => {
   const rowValue = row[accessor];
