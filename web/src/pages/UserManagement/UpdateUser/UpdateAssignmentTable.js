@@ -123,7 +123,6 @@ const UserAssignmentTable = ({
 
   const getStudyList = async () => {
     const data = [...studyData?.studyboardData];
-    console.log({ data });
     const filtered =
       data
         .filter((study) => {
@@ -144,7 +143,6 @@ const UserAssignmentTable = ({
       }
       return 0;
     });
-    console.log({ filtered });
     setStudyList(filtered);
     // getRoles();
   };
@@ -258,11 +256,7 @@ const UserAssignmentTable = ({
         roles: tableStudies[rowIndex].roles.map((r) => r.label),
       },
     ];
-
-    console.log(tableStudies[rowIndex]);
-
     const newFormattedRows = formattedRows.filter((e) => e.id);
-    console.log({ formattedRows, newFormattedRows });
     const insertUserStudy = {
       email,
       protocols: newFormattedRows,
@@ -472,7 +466,6 @@ const UserAssignmentTable = ({
     const email = targetUser.usr_mail_id;
     const uid = targetUser?.sAMAccountName;
     const formattedRows = rowsToUpdate.map((e) => {
-      console.log({ e });
       return {
         protocolname: e?.prot_nbr_stnd,
         id: e?.prot_id,
@@ -559,11 +552,7 @@ const UserAssignmentTable = ({
   });
 
   const UserAssignmentModal = React.memo(({ open, cancel, loading }) => {
-    const [modalTableStudies, setModalTableStudies] = useState(
-      tableStudies.map((s, i) => ({ ...s, index: i }))
-    );
-
-    const getModalStudyObj = (rowIndex) => {
+    const getModalStudyObj = (rowIndex = -1) => {
       return {
         index: rowIndex + 1,
         prot_nbr_stnd: "",
@@ -573,20 +562,25 @@ const UserAssignmentTable = ({
       };
     };
 
+    const [modalTableStudies, setModalTableStudies] = useState([
+      getModalStudyObj(),
+    ]);
+
     const editModalStudyRow = (e, value, reason, index, key) => {
-      console.log({ e, value, reason, index, key });
-      console.log({ ...getModalStudyObj(index) });
       const tempModalTableStudies = modalTableStudies.map((s) => ({
         ...s,
         alreadyExist: false,
       }));
-      const duplicateIndex = tempModalTableStudies.findIndex(
+      const duplicateIndex1 = tempModalTableStudies.findIndex(
+        (s) => s.prot_id === value.prot_id
+      );
+      const duplicateIndex2 = tableStudies.findIndex(
         (s) => s.prot_id === value.prot_id
       );
       tempModalTableStudies[index].protocolname = value.prot_nbr_stnd;
       tempModalTableStudies[index].prot_nbr_stnd = value.prot_nbr_stnd;
       tempModalTableStudies[index].prot_id = value.prot_id;
-      if (duplicateIndex > -1) {
+      if (duplicateIndex1 > -1 || duplicateIndex2 > -1) {
         tempModalTableStudies[index].alreadyExist = true;
       } else {
         tempModalTableStudies.push({
@@ -669,7 +663,6 @@ const UserAssignmentTable = ({
     };
 
     const onModalRowDelete = (index) => {
-      console.log("need to update");
       let prevTableStudies = [...modalTableStudies];
       const tableIndex = modalTableStudies.findIndex(
         (el) => el.index === index
