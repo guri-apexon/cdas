@@ -718,37 +718,64 @@ const UserAssignmentTable = ({
         customCell: DeleteModalRow,
       },
     ];
+
+    const [openCancelModal, setOpenCancelModal] = useState(false);
+
+    const openConfirmModal = () => {
+      setOpenCancelModal(true);
+    };
+
     return (
-      <Modal
-        open={open}
-        onClose={cancel}
-        className="save-confirm user-assignment-modal"
-        variant="default"
-        title="Add User Assignment"
-        buttonProps={[
-          {
-            label: "Cancel",
-            onClick: cancel,
-            disabled: loading,
-          },
-          {
-            label: "Save",
-            onClick: updateModalAssignment,
-            disabled: loading,
-          },
-        ]}
-        id="neutral2"
-      >
-        <Table
-          isLoading={!load}
-          columns={assignUserColumns}
-          rows={modalTableStudies}
-          initialSortOrder="asc"
-          rowProps={{ hover: false }}
-          hidePagination={true}
-          emptyProps={{ content: <EmptyTableContent /> }}
+      <>
+        <Modal
+          open={openCancelModal}
+          onClose={(e) => setOpenCancelModal(false)}
+          className="save-confirm"
+          disableBackdropClick="true"
+          variant="warning"
+          title="Lose your work?"
+          message="All unsaved changes will be lost."
+          buttonProps={[
+            { label: "Keep editing" },
+            {
+              label: "Leave without saving",
+              onClick: cancel,
+            },
+          ]}
+          id="neutral"
         />
-      </Modal>
+
+        <Modal
+          open={open}
+          onClose={cancel}
+          className="save-confirm user-assignment-modal"
+          variant="default"
+          title="Add User Assignment"
+          buttonProps={[
+            {
+              label: "Cancel",
+              onClick: openConfirmModal,
+              disabled: loading,
+            },
+            {
+              label: "Save",
+              onClick: updateModalAssignment,
+              disabled: loading,
+            },
+          ]}
+          id="neutral2"
+        >
+          <Table
+            isLoading={!load}
+            columns={assignUserColumns}
+            rows={modalTableStudies}
+            initialSortOrder="asc"
+            rowProps={{ hover: false }}
+            hidePagination={true}
+            emptyProps={{ content: <EmptyTableContent /> }}
+          />
+        </Modal>
+      </>
     );
   });
 
