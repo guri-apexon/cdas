@@ -499,7 +499,7 @@ const UserAssignmentTable = ({
       const response = await updateUserAssignments(payload);
       if (response.status === 1) {
         setUserAssignmentModal(false);
-        setTableStudies(rowsToUpdate);
+        setTableStudies([...tableStudies, ...rowsToUpdate]);
         toast.showSuccessMessage(response.message);
       } else {
         toast.showErrorMessage(response.message);
@@ -600,7 +600,7 @@ const UserAssignmentTable = ({
       setModalTableStudies((rows) => {
         const newRows = rows.map((row) => {
           if (row.index === index) {
-            return { ...row, [key]: value.prot_nbr_stnd };
+            return { ...row, [key]: value };
           }
           return row;
         });
