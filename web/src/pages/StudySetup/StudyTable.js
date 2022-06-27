@@ -11,7 +11,7 @@ import Table, {
   createSelectFilterComponent,
   createStringSearchFilter,
   dateFilterV2,
-  numberSearchFilter,
+  // numberSearchFilter,
   compareDates,
   compareNumbers,
   compareStrings,
@@ -32,6 +32,7 @@ import {
   IntegerFilter,
   DateFilter,
   createStringArrayIncludedFilter,
+  numberSearchFilter,
 } from "../../utils/index";
 import { updateSelectedStudy } from "../../store/actions/StudyBoardAction";
 import usePermission, {
