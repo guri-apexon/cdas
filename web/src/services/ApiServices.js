@@ -737,3 +737,25 @@ export const deleteUserAssignments = (payload) => {
     return console.log("Error", err);
   }
 };
+
+export const sendInvite = async (payload) => {
+  try {
+    return new Promise((resolve, reject) => {
+      payload.updatedBy = userId;
+      axios
+        .post(`${API_URL}/users/send-invite`, payload)
+        .then((res) => {
+          resolve(res.data);
+        })
+        .catch((err) => {
+          if (err.response?.data) {
+            resolve(err.response?.data);
+          } else {
+            resolve({ message: "Something went wrong" });
+          }
+        });
+    });
+  } catch (err) {
+    return console.log("Error", err);
+  }
+};

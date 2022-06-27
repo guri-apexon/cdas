@@ -30,6 +30,7 @@ import {
   inviteInternalUser,
   getUser,
   updateUserStatus,
+  sendInvite,
 } from "../../../services/ApiServices";
 import { debounceFunction } from "../../../utils";
 import usePermission, {
@@ -157,6 +158,7 @@ const AddUser = () => {
   const [targetUser, setTargetUser] = useState(null);
   const [breadcrumpItems, setBreadcrumpItems] = useState([]);
   const [showRolePopup, setShowRolePopup] = useState(false);
+  const [isSendingInvite, setIsSendingInvite] = useState(false);
 
   const keepEditingBtn = () => {
     dispatch(hideAlert());
@@ -282,6 +284,24 @@ const AddUser = () => {
     return userStatus?.trim()?.toLowerCase() === "invited" ? true : false;
   };
 
+  const resendInvitation = async () => {
+    setIsSendingInvite(true);
+    const payload = {
+      firstName: targetUser?.usr_fst_nm,
+      lastName: targetUser?.usr_lst_nm,
+      email: targetUser?.usr_mail_id,
+      uid: targetUser?.usr_id,
+    };
+    try {
+      const res = await sendInvite(payload);
+      const newTime = res?.data;
+      if (newTime) setTargetUser({ ...targetUser, invt_sent_tm: newTime });
+    } catch (e) {
+      console.log(e);
+    }
+    setIsSendingInvite(false);
+  };
+
   return (
     <div className="create-user-wrapper">
       {isShowAlertBox && (
@@ -356,15 +376,19 @@ const AddUser = () => {
                         <div className="light mt-2">
                           {getExpirationDateString()}
                         </div>
-                        <div className="mt-2">
-                          <Button
-                            variant="secondary"
-                            icon={<EmailIcon />}
-                            size="small"
-                          >
-                            Resend Invitation
-                          </Button>
-                        </div>
+                        {isInvitationExpired() && (
+                          <div className="mt-2">
+                            <Button
+                              variant="secondary"
+                              icon={<EmailIcon />}
+                              size="small"
+                              onClick={resendInvitation}
+                              disabled={isSendingInvite}
+                            >
+                              Resend Invitation
+                            </Button>
+                          </div>
+                        )}
                       </>
                     )}
                   </div>
@@ -373,7 +397,7 @@ const AddUser = () => {
                   Employee ID
                   <div className="ml-3">
                     <div className="user-update-font-500">
-                      {targetUser?.usr_id}
+                      {targetUser?.extrnl_emp_id}
                     </div>
                   </div>
                 </Typography>

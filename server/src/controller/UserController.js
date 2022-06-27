@@ -235,6 +235,35 @@ exports.inviteInternalUser = async (req, res) => {
   );
 };
 
+exports.sendInvite = async (req, res) => {
+  const newReq = { ...req };
+  Logger.info({ message: "sendInvite - begin" });
+
+  const provision_response = await userHelper.provisionExternalUser(
+    newReq.body
+  );
+
+  if (provision_response) {
+    const uid = newReq.body.uid;
+    const currentTime = getCurrentTime();
+    const query = `UPDATE ${schemaName}.user SET invt_sent_tm='${currentTime}' WHERE usr_id = '${uid}'`;
+    try {
+      const result = await DB.executeQuery(query);
+      return apiResponse.successResponseWithData(
+        res,
+        `An invitation has been sent to ${newReq.body.email}`,
+        currentTime
+      );
+    } catch (error) {
+      console.log("error: sendInvite user update", error);
+    }
+  }
+  return apiResponse.ErrorResponse(
+    res,
+    "Unable to inviation to user – please try again or report problem to the system administrator"
+  );
+};
+
 exports.createNewUser = async (req, res) => {
   const data = req.body;
   const { returnBool } = req;
