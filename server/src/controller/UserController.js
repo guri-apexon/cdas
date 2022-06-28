@@ -344,21 +344,31 @@ exports.deleteNewUser = async (req, res) => {
     if (tenant_id && user_type && email_id) {
       if (validateEmail(email_id)) {
         const inActiveUserQuery = ` UPDATE ${schemaName}.user set usr_stat=$1 , updt_tm=$2 WHERE usr_mail_id='${email_id}'`;
-        const studyStatusUpdateQuery = `UPDATE ${schemaName}.study_user set act_flg=0 , updt_tm='${updt_tm}' WHERE usr_id='${user_id}'`;
-        const getStudiesQuery = `SELECT * from ${schemaName}.study WHERE usr_id='${user_id}'`;
 
-        const isUserExists = await userHelper.isUserExists(email_id);
-        if (isUserExists) {
+        const userDetails = await userHelper.isUserExists(email_id);
+
+        const studyStatusUpdateQuery = `UPDATE ${schemaName}.study_user set act_flg=0 , updt_tm='${updt_tm}' WHERE usr_id='${userDetails?.usr_id}'`;
+        const studyRoleStatusUpdateQuery = `UPDATE ${schemaName}.study_user_role set act_flg=0 , updated_on='${updt_tm}' , updated_by='${updated_by}'   WHERE usr_id='${userDetails?.usr_id}'`;
+
+        const getStudiesQuery = `SELECT * from ${schemaName}.study WHERE usr_id='${userDetails?.usr_id}'`;
+
+        if (userDetails) {
           const user = await userHelper.findByEmail(email_id);
 
           // SDA
-          if (user?.isActive) {
-            const userDetails = await userHelper.getSDAuserDataById(user_id);
+          if (user?.isActive || user?.isInvited) {
+            let sdaUserDetails;
+
+            if (user_type === "external") {
+              sdaUserDetails = await userHelper.getSDAuserDataByEmail(email_id);
+            } else {
+              sdaUserDetails = await userHelper.getSDAuserDataById(user_id);
+            }
 
             const requestBody = {
               appKey: process.env.SDA_APP_KEY,
               userType: user_type,
-              roleType: userDetails?.roleType,
+              roleType: sdaUserDetails?.roleType,
               networkId: user_id,
               updatedBy: "Admin",
               email: email_id,
@@ -379,28 +389,34 @@ exports.deleteNewUser = async (req, res) => {
 
             //CDAS Assignments Update
             let studyStatusUpdate = {};
+            let studyRoleStatusUpdate = {};
+            let inActiveStatus = {};
 
             if (sda_status.status === 204 || sda_status.status === 200) {
-              studyStatusUpdate = await DB.executeQuery(studyStatusUpdateQuery);
-              if (studyStatusUpdate.rowCount === 0) {
+              try {
+                studyStatusUpdate = await DB.executeQuery(
+                  studyStatusUpdateQuery
+                );
+                studyRoleStatusUpdate = await DB.executeQuery(
+                  studyRoleStatusUpdateQuery
+                );
+
+                //CDAS User Update
+                try {
+                  inActiveStatus = await DB.executeQuery(inActiveUserQuery, [
+                    "InActive",
+                    updt_tm,
+                  ]);
+                } catch (error) {
+                  return apiResponse.ErrorResponse(
+                    res,
+                    "An error occured while updating user status"
+                  );
+                }
+              } catch (error) {
                 return apiResponse.ErrorResponse(
                   res,
                   "An error occured while updating study status"
-                );
-              }
-            }
-
-            //CDAS User Update
-            let inActiveStatus = {};
-            if (studyStatusUpdate.rowCount > 0) {
-              inActiveStatus = await DB.executeQuery(inActiveUserQuery, [
-                "InActive",
-                updt_tm,
-              ]);
-              if (inActiveStatus.rowCount === 0) {
-                return apiResponse.ErrorResponse(
-                  res,
-                  "An error occured while updating user status"
                 );
               }
             }
@@ -432,9 +448,9 @@ exports.deleteNewUser = async (req, res) => {
             if (fsr_status !== false) {
               const audit_log = await DB.executeQuery(logQuery, [
                 "user",
-                user_id,
+                userDetails?.usr_id,
                 "usr_stat",
-                "Active",
+                userDetails?.usr_stat,
                 "InActive",
                 "User Requested",
                 updated_by,

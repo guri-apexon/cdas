@@ -333,6 +333,17 @@ exports.getUsersFromAD = async (query = "") => {
     return false;
   }
 };
+
+exports.getSDAuserDataByEmail = async (email) => {
+  try {
+    const response = await axios.get(SDA_Endpoint_get_users);
+    // console.log(response);
+    return response?.data.find((e) => e?.email == email);
+  } catch (error) {
+    console.log("External user provision error", data, error);
+  }
+};
+
 exports.getSDAuserDataById = async (uid) => {
   try {
     const response = await axios.get(SDA_Endpoint_get_users);
