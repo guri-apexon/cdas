@@ -27,7 +27,7 @@ import {
 import { MessageContext } from "../../../components/Providers/MessageProvider";
 import { getStudyboardData } from "../../../store/actions/StudyBoardAction";
 import MultiSelect from "../../../components/MultiSelect";
-import { TextFieldFilter } from "../../../utils/index";
+import { getOverflowLimit, TextFieldFilter } from "../../../utils/index";
 
 const UserAssignmentTable = ({
   updateChanges,
@@ -198,6 +198,7 @@ const UserAssignmentTable = ({
 
   const RolesSelected = ({ roles }) => {
     const uRoles = roles.length ? roles.map((e) => e.label).join(", ") : "";
+    const charLimit = getOverflowLimit("50%", 80);
     return (
       <Tooltip
         variant="light"
@@ -206,7 +207,9 @@ const UserAssignmentTable = ({
         style={{ marginRight: 48 }}
       >
         <Typography variant="body2" className="">
-          {uRoles.length > 50 ? `${uRoles.substring(0, 50)} ...` : uRoles}
+          {uRoles && uRoles.length > charLimit
+            ? `${uRoles.slice(0, charLimit - 5)}[...]`
+            : uRoles}
         </Typography>
       </Tooltip>
     );
@@ -501,7 +504,7 @@ const UserAssignmentTable = ({
     {
       header: "Role",
       accessor: "roles",
-      width: "55%",
+      width: "67%",
       customCell: ViewRoles,
       filterFunction: compareStringOfArraySearchFilter("roles"),
       filterComponent: MultiSelectFilter,
@@ -509,7 +512,7 @@ const UserAssignmentTable = ({
     {
       header: "",
       accessor: "delete",
-      width: "20%",
+      width: "8%",
       customCell: DeleteViewStudy,
     },
   ];
