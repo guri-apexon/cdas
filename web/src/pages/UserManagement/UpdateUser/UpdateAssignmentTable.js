@@ -27,7 +27,7 @@ import {
 import { MessageContext } from "../../../components/Providers/MessageProvider";
 import { getStudyboardData } from "../../../store/actions/StudyBoardAction";
 import MultiSelect from "../../../components/MultiSelect";
-import { TextFieldFilter } from "../../../utils/index";
+import { getOverflowLimit, TextFieldFilter } from "../../../utils/index";
 
 const UserAssignmentTable = ({
   updateChanges,
@@ -37,6 +37,8 @@ const UserAssignmentTable = ({
   showRolePopup,
   setShowRolePopup,
   userUpdating,
+  readOnly,
+  canUpdate,
 }) => {
   const toast = useContext(MessageContext);
   const dispatch = useDispatch();
@@ -196,6 +198,7 @@ const UserAssignmentTable = ({
 
   const RolesSelected = ({ roles }) => {
     const uRoles = roles.length ? roles.map((e) => e.label).join(", ") : "";
+    const charLimit = getOverflowLimit("50%", 80);
     return (
       <Tooltip
         variant="light"
@@ -204,7 +207,9 @@ const UserAssignmentTable = ({
         style={{ marginRight: 48 }}
       >
         <Typography variant="body2" className="">
-          {uRoles.length > 50 ? `${uRoles.substring(0, 50)} ...` : uRoles}
+          {uRoles && uRoles.length > charLimit
+            ? `${uRoles.slice(0, charLimit - 5)}[...]`
+            : uRoles}
         </Typography>
       </Tooltip>
     );
@@ -327,7 +332,7 @@ const UserAssignmentTable = ({
   };
 
   const DeleteViewStudy = ({ row }) => {
-    if (targetUser?.usr_stat !== "Active") return false;
+    if (targetUser?.usr_stat !== "Active" || readOnly) return false;
     const rowIndex = tableStudies.findIndex((e) => e.prot_id === row.prot_id);
     const handleMenuClick = (label) => () => {
       if (label === "edit") {
@@ -462,7 +467,7 @@ const UserAssignmentTable = ({
   const CustomButtonHeader = ({ toggleFilters }) => {
     return (
       <div>
-        {targetUser?.usr_stat === "Active" && (
+        {targetUser?.usr_stat === "Active" && canUpdate && (
           <Button
             size="small"
             variant="secondary"
@@ -499,7 +504,7 @@ const UserAssignmentTable = ({
     {
       header: "Role",
       accessor: "roles",
-      width: "55%",
+      width: "67%",
       customCell: ViewRoles,
       filterFunction: compareStringOfArraySearchFilter("roles"),
       filterComponent: MultiSelectFilter,
@@ -507,7 +512,7 @@ const UserAssignmentTable = ({
     {
       header: "",
       accessor: "delete",
-      width: "20%",
+      width: "8%",
       customCell: DeleteViewStudy,
     },
   ];
@@ -841,7 +846,7 @@ const UserAssignmentTable = ({
         <Typography variant="body2" className="">
           At least one assignment is needed to access any CDAS product
         </Typography>
-        {targetUser?.usr_stat === "Active" && (
+        {targetUser?.usr_stat === "Active" && canUpdate && (
           <Button
             size="small"
             variant="secondary"

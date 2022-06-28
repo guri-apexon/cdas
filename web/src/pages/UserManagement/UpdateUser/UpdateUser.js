@@ -437,6 +437,8 @@ const AddUser = () => {
                 showRolePopup={showRolePopup}
                 // setShowRolePopup={setShowRolePopup}
                 userUpdating={loading}
+                readOnly={readOnly}
+                canUpdate={canUpdate}
               />
             </div>
           </Grid>
