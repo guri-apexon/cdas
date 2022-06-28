@@ -10,6 +10,11 @@ export default function MultiSelect({
   const tableIndex = tableStudies.findIndex((el) => el.index === row.index);
   const [value, setValue] = useState(tableStudies[tableIndex]?.roles || []);
   const editRow = (e, v, r) => {
+    if (r === "remove-option") {
+      const copy = [...tableStudies];
+      copy[tableIndex].roles = [...v];
+      setTableStudies(copy);
+    }
     setValue([...v]);
   };
   const updateTableStudies = (v) => {

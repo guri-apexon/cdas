@@ -47,6 +47,7 @@ exports.deProvisionUser = async (data, user_type) => {
     }
     return await axios.delete(SDA_Endpoint_Deprovision, { data: requestBody });
   } catch (error) {
+    console.log(error.data);
     return error;
   }
 };
@@ -84,6 +85,7 @@ exports.provisionInternalUser = async (data) => {
 
   try {
     const response = await axios.post(url);
+
     return response.status === 200 ? networkId : false;
   } catch (error) {
     console.log("Internal user provision error", data, error);
@@ -294,8 +296,8 @@ exports.insertUserInDb = async (userDetails) => {
     const internalQuery = `INSERT INTO ${schemaName}.user(usr_id, usr_typ, usr_fst_nm, usr_lst_nm, usr_mail_id, insrt_tm, updt_tm, usr_stat, extrnl_emp_id) VALUES(
       '${usr_id}', '${usr_typ}', '${usr_fst_nm}', '${usr_lst_nm}', '${usr_mail_id}', '${insrt_tm}', '${updt_tm}', '${usr_stat}', '${extrnl_emp_id}') RETURNING usr_id`;
 
-    const externalQuery = `INSERT INTO ${schemaName}.user( usr_typ, usr_fst_nm, usr_lst_nm, usr_mail_id, insrt_tm, updt_tm, usr_stat, extrnl_emp_id, sda_usr_key) VALUES(
-      '${usr_typ}', '${usr_fst_nm}', '${usr_lst_nm}', '${usr_mail_id}', '${insrt_tm}', '${updt_tm}', '${usr_stat}', '${extrnl_emp_id}', '${sda_usr_key}') RETURNING usr_id`;
+    const externalQuery = `INSERT INTO ${schemaName}.user( usr_typ, usr_fst_nm, usr_lst_nm, usr_mail_id, insrt_tm, updt_tm, usr_stat, extrnl_emp_id, sda_usr_key, invt_sent_tm) VALUES(
+      '${usr_typ}', '${usr_fst_nm}', '${usr_lst_nm}', '${usr_mail_id}', '${insrt_tm}', '${updt_tm}', '${usr_stat}', '${extrnl_emp_id}', '${sda_usr_key}', '${invt_sent_tm}') RETURNING usr_id`;
 
     const query = usr_typ === "internal" ? internalQuery : externalQuery;
     const response = await DB.executeQuery(query);
@@ -340,6 +342,17 @@ exports.getUsersFromAD = async (query = "") => {
     return false;
   }
 };
+
+exports.getSDAuserDataByEmail = async (email) => {
+  try {
+    const response = await axios.get(SDA_Endpoint_get_users);
+    // console.log(response);
+    return response?.data.find((e) => e?.email == email);
+  } catch (error) {
+    console.log("External user provision error", data, error);
+  }
+};
+
 exports.getSDAuserDataById = async (uid) => {
   try {
     const response = await axios.get(SDA_Endpoint_get_users);
