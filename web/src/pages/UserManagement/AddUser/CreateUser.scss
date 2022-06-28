@@ -21,6 +21,26 @@
   }
 }
 .create-user-wrapper {
+  .ml-8 {
+    margin-left: 8px;
+  }
+  .gap-8 {
+    column-gap: 8px;
+  }
+  #hidden {
+    width: auto;
+    display: inline-block;
+    visibility: hidden;
+    position: fixed;
+    overflow: auto;
+    z-index: -1;
+    white-space: pre;
+    pointer-events: none;
+    font-size: 14px;
+    padding: 8px 8px 8px 7px;
+    letter-spacing: normal;
+    font-family: "Proxima Nova", "Nunito Sans", sans-serif;
+  }
   .email-tooltip {
     position: absolute;
     right: 10px;
@@ -34,7 +54,7 @@
     background-color: #fff;
     display: flex;
     flex-direction: column;
-    padding: 16px 28px;
+    padding: 0 28px 16px;
     border-bottom: 1px solid #eeeeef;
   }
   .study-table {
@@ -59,7 +79,7 @@
   min-height: calc(100vh - 152px);
   .breadcrump {
     margin-left: 0px;
-    margin-bottom: 10px;
+    margin-bottom: 16px;
     padding-left: 0;
   }
   .product-tabs {
@@ -105,4 +125,11 @@
       display: none;
     }
   }
+}
+.MuiTableCell-root:first-child {
+  padding-right: 40px;
+  padding-left: 15px;
+}
+.MuiTableCell-root:last-child {
+  padding-right: 5px;
 }

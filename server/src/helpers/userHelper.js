@@ -6,13 +6,19 @@ const { data } = require("../config/logger");
 const { getCurrentTime, validateEmail } = require("./customFunctions");
 const Logger = require("../config/logger");
 const constants = require("../config/constants");
-const { DB_SCHEMA_NAME: schemaName, AD_CONFIG: ADConfig, FSR_API_URI, FSR_HEADERS } = require("../config/constants");
+const {
+  DB_SCHEMA_NAME: schemaName,
+  AD_CONFIG: ADConfig,
+  FSR_API_URI,
+  FSR_HEADERS,
+} = require("../config/constants");
 const e = require("express");
 
 const SDA_BASE_API_URL = `${process.env.SDA_BASE_URL}/sda-rest-api/api/external/entitlement/V1/ApplicationUsers`;
 const SDA_Endpoint = `${SDA_BASE_API_URL}?appKey=${process.env.SDA_APP_KEY}`;
 const SDA_Endpoint_Deprovision = `${SDA_BASE_API_URL}/deprovisionUserFromApplication`;
 const SDA_Endpoint_get_users = `${SDA_BASE_API_URL}/getUsersForApplication?appKey=${process.env.SDA_APP_KEY}`;
+const SDA_Endpoint_get_user_status = `${SDA_BASE_API_URL}/UserProvisioningStatus?appKey=${process.env.SDA_APP_KEY}`;
 
 exports.CONSTANTS = {
   INACTIVE: "INACTIVE",
@@ -29,21 +35,22 @@ exports.CONSTANTS = {
  * @returns
  */
 
- exports.deProvisionUser = async (data, user_type) => {
-   let requestBody;
-   try {
-     if (user_type === "internal") {
-      const {email , ...rest } = data;
-       requestBody = rest;
-     } else {
-       const { networkId, ...rest } = data;
-       requestBody = rest;
-     }
-     return await axios.delete(SDA_Endpoint_Deprovision, { data: requestBody });
-   } catch (error) {
-     return error;
-   }
- };
+exports.deProvisionUser = async (data, user_type) => {
+  let requestBody;
+  try {
+    if (user_type === "internal") {
+      const { email, ...rest } = data;
+      requestBody = rest;
+    } else {
+      const { networkId, ...rest } = data;
+      requestBody = rest;
+    }
+    return await axios.delete(SDA_Endpoint_Deprovision, { data: requestBody });
+  } catch (error) {
+    console.log(error.data);
+    return error;
+  }
+};
 /**
  * Verifies the email with SDA whether it is provisioned or not
  * @param {*} email
@@ -78,6 +85,7 @@ exports.provisionInternalUser = async (data) => {
 
   try {
     const response = await axios.post(url);
+
     return response.status === 200 ? networkId : false;
   } catch (error) {
     console.log("Internal user provision error", data, error);
@@ -282,13 +290,14 @@ exports.insertUserInDb = async (userDetails) => {
       insrt_tm,
       updt_tm,
       userType: usr_typ,
+      userKey: sda_usr_key = "",
     } = userDetails;
 
     const internalQuery = `INSERT INTO ${schemaName}.user(usr_id, usr_typ, usr_fst_nm, usr_lst_nm, usr_mail_id, insrt_tm, updt_tm, usr_stat, extrnl_emp_id) VALUES(
       '${usr_id}', '${usr_typ}', '${usr_fst_nm}', '${usr_lst_nm}', '${usr_mail_id}', '${insrt_tm}', '${updt_tm}', '${usr_stat}', '${extrnl_emp_id}') RETURNING usr_id`;
 
-    const externalQuery = `INSERT INTO ${schemaName}.user( usr_typ, usr_fst_nm, usr_lst_nm, usr_mail_id, insrt_tm, updt_tm, usr_stat, extrnl_emp_id) VALUES(
-      '${usr_typ}', '${usr_fst_nm}', '${usr_lst_nm}', '${usr_mail_id}', '${insrt_tm}', '${updt_tm}', '${usr_stat}', '${extrnl_emp_id}') RETURNING usr_id`;
+    const externalQuery = `INSERT INTO ${schemaName}.user( usr_typ, usr_fst_nm, usr_lst_nm, usr_mail_id, insrt_tm, updt_tm, usr_stat, extrnl_emp_id, sda_usr_key, invt_sent_tm) VALUES(
+      '${usr_typ}', '${usr_fst_nm}', '${usr_lst_nm}', '${usr_mail_id}', '${insrt_tm}', '${updt_tm}', '${usr_stat}', '${extrnl_emp_id}', '${sda_usr_key}', '${invt_sent_tm}') RETURNING usr_id`;
 
     const query = usr_typ === "internal" ? internalQuery : externalQuery;
     const response = await DB.executeQuery(query);
@@ -363,4 +372,37 @@ exports.revokeStudy = async (requestBody, studyList) => {
   return apiStatus === "" ? true : false;
 };
 
+exports.getSDAUsers = async () => {
+  try {
+    const response = await axios.get(SDA_Endpoint_get_users);
+    if (response && response.data) return response.data;
+    return [];
+  } catch (error) {
+    console.log("error: getSDAUsers", error);
+    return [];
+  }
+};
 
+exports.getSDAUserStatus = async (userKey, email) => {
+  if (!userKey) {
+    console.log("user key not found, cannot fetch sda user:", email);
+    return false;
+  }
+  try {
+    const response = await axios.get(
+      `${SDA_Endpoint_get_user_status}&userKey=${userKey}`
+    );
+    if (
+      response?.data?.status.trim().toLowerCase() === "provisioning successfull"
+    ) {
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.log(
+      "Internal user fetch status error",
+      error?.response?.data || error
+    );
+    return false;
+  }
+};
