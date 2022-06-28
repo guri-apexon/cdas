@@ -433,7 +433,13 @@ const ExistingUsers = () => {
     if (targetRoute === "") {
       setConfirmObj(false);
     } else {
-      history.push(targetRoute);
+      let tempRoute;
+      if (targetRoute.includes("ExistingStudyAssignment")) {
+        tempRoute = "/study-setup";
+      } else {
+        tempRoute = targetRoute;
+      }
+      history.push(tempRoute);
     }
   };
 
