@@ -441,7 +441,6 @@ const UserAssignmentTable = ({
     const userStudy = await getUserStudyAndRoles(userId);
     if (userStudy.status) {
       const userSutdyRes = userStudy.data.map((e, i) => ({ ...e, index: i }));
-      console.log({ userSutdyRes });
       setTableStudies([...userSutdyRes, getStudyObj()]);
     }
     setLoad(true);
