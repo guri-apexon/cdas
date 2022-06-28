@@ -26,12 +26,10 @@ import {
 } from "../../../services/ApiServices";
 import { MessageContext } from "../../../components/Providers/MessageProvider";
 import { getStudyboardData } from "../../../store/actions/StudyBoardAction";
-import MultiSelect from "../../../components/MultiSelect";
 import { getOverflowLimit, TextFieldFilter } from "../../../utils/index";
 
 const UserAssignmentTable = ({
   updateChanges,
-  updateUserAssign,
   userId,
   targetUser,
   showRolePopup,
@@ -153,44 +151,6 @@ const UserAssignmentTable = ({
   useEffect(() => {
     getStudyList();
   }, [studyData]);
-
-  const editRoleRow = (e, value, reason, index, key) => {
-    updateChanges();
-    let alreadyExist;
-    if (value) {
-      setInitialRender(true);
-    } else {
-      setInitialRender(false);
-    }
-    if (key === "prot_nbr_stnd" && value) {
-      alreadyExist = tableStudies.find(
-        (x) => x.prot_nbr_stnd === value.prot_nbr_stnd
-      )
-        ? true
-        : false;
-    }
-    const tableIndex = tableStudies.findIndex((el) => el.index === index);
-    setTableStudies((rows) => {
-      const newRows = rows.map((row) => {
-        if (row.index === index) {
-          if (key === "prot_nbr_stnd") {
-            return { ...row, [key]: value.prot_nbr_stnd, alreadyExist };
-          }
-          return { ...row, [key]: value.prot_nbr_stnd };
-        }
-        return row;
-      });
-      if (
-        !alreadyExist &&
-        key === "prot_nbr_stnd" &&
-        value &&
-        tableIndex + 1 === tableStudies.length
-      ) {
-        return [...newRows, getStudyObj()];
-      }
-      return newRows;
-    });
-  };
 
   const StudySelected = ({ row }) => {
     return row?.prot_nbr_stnd || "";
@@ -436,12 +396,6 @@ const UserAssignmentTable = ({
     );
   };
 
-  // useEffect(() => {
-  //   if (pingParent !== 0) {
-  //     AssignUser();
-  //   }
-  // }, [pingParent]);
-
   const getUserStudyRoles = async () => {
     const userStudy = await getUserStudyAndRoles(userId);
     if (userStudy.status) {
@@ -619,8 +573,10 @@ const UserAssignmentTable = ({
     const [modalTableStudies, setModalTableStudies] = useState([
       getModalStudyObj(),
     ]);
+    const [disableSaveBtn, setDisableSaveBtn] = useState(true);
 
     const editModalStudyRow = (e, value, reason, index, key) => {
+      setDisableSaveBtn(true);
       const tempModalTableStudies = modalTableStudies.map((s) => ({
         ...s,
         alreadyExist: false,
@@ -642,24 +598,6 @@ const UserAssignmentTable = ({
         });
       }
       setModalTableStudies([...tempModalTableStudies]);
-    };
-
-    const editModalRoleRow = (e, value, reason, index, key) => {
-      updateChanges();
-      if (value) {
-        setInitialRender(true);
-      } else {
-        setInitialRender(false);
-      }
-      setModalTableStudies((rows) => {
-        const newRows = rows.map((row) => {
-          if (row.index === index) {
-            return { ...row, [key]: value };
-          }
-          return row;
-        });
-        return newRows;
-      });
     };
 
     const EditableStudy = ({ row, column: { accessor: key } }) => {
@@ -698,19 +636,51 @@ const UserAssignmentTable = ({
     };
 
     const EditableRoles = ({ row, column: { accessor: key } }) => {
+      const tableIndex = modalTableStudies.findIndex(
+        (el) => el.index === row.index
+      );
+      const [value, setValue] = useState(
+        modalTableStudies[tableIndex]?.roles || []
+      );
       if (row.index === modalTableStudies[modalTableStudies.length - 1]?.index)
         return false;
+
+      const editModalRoleRow = (e, v, r) => {
+        if (r === "remove-option") {
+          setDisableSaveBtn(v.length ? false : true);
+          const copy = [...modalTableStudies];
+          copy[tableIndex].roles = [...v];
+          setModalTableStudies(copy);
+        }
+        setValue([...v]);
+      };
+      const updateTableStudies = (v) => {
+        const copy = [...modalTableStudies];
+        copy[tableIndex].roles = [...v];
+        setModalTableStudies(copy);
+        setDisableSaveBtn(v.length ? false : true);
+      };
       return (
         <div className="role">
-          <MultiSelect
-            roleLists={roleLists}
-            row={row}
-            rowKey={key}
-            tableStudies={modalTableStudies}
-            setTableStudies={setModalTableStudies}
-            editRow={(e, v, r, rowIndex, rowKey) =>
-              editModalRoleRow(e, v, r, rowIndex, rowKey)
-            }
+          <AutocompleteV2
+            placeholder={!value.length ? "Choose one or more roles" : ""}
+            size="small"
+            fullWidth
+            multiple
+            forcePopupIcon
+            showCheckboxes
+            chipColor="white"
+            source={roleLists}
+            limitChips={5}
+            value={value}
+            onChange={(e, v, r) => editModalRoleRow(e, v, r)}
+            onBlur={() => updateTableStudies(value)}
+            filterSelectedOptions={false}
+            blurOnSelect={false}
+            clearOnBlur={false}
+            disableCloseOnSelect
+            alwaysLimitChips
+            enableVirtualization
           />
         </div>
       );
@@ -805,6 +775,7 @@ const UserAssignmentTable = ({
           className="save-confirm user-assignment-modal"
           variant="default"
           title="Add User Assignment"
+          hideButtons={true}
           buttonProps={[
             {
               label: "Cancel",
@@ -828,6 +799,25 @@ const UserAssignmentTable = ({
             hidePagination={true}
             emptyProps={{ content: <EmptyTableContent /> }}
           />
+          <div className="flex justify-content-end w-100">
+            <Button
+              variant="secondary"
+              size="medium"
+              style={{ marginRight: 10 }}
+              onClick={openConfirmModal}
+            >
+              Cancel
+            </Button>
+            <Button
+              disabled={disableSaveBtn}
+              variant="primary"
+              size="medium"
+              style={{ marginRight: 10 }}
+              onClick={updateModalAssignment}
+            >
+              Save
+            </Button>
+          </div>
         </Modal>
       </>
     );
