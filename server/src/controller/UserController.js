@@ -639,7 +639,7 @@ exports.updateUserAssignments = async (req, res) => {
   if (assignmentResponse) {
     return apiResponse.successResponse(
       res,
-      `Assignments Updated Successfully.`
+      `Assignments updated successfully.`
     );
   }
   return apiResponse.ErrorResponse(
