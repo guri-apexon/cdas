@@ -36,6 +36,7 @@ const UserAssignmentTable = ({
   targetUser,
   showRolePopup,
   setShowRolePopup,
+  userUpdating,
 }) => {
   const toast = useContext(MessageContext);
   const dispatch = useDispatch();
@@ -216,20 +217,49 @@ const UserAssignmentTable = ({
       </div>
     );
   };
-
+  const [viewRoleLength, setViewRoleLength] = useState({});
   const ViewRoles = ({ row, column: { accessor: key } }) => {
+    const tableIndex = tableStudies.findIndex((el) => el.index === row.index);
+    const [viewRoleValue, setViewRoleValue] = useState(
+      tableStudies[tableIndex]?.roles || []
+    );
+    const editViewRow = (e, v, r) => {
+      setViewRoleLength({
+        ...viewRoleLength,
+        [tableStudies[tableIndex].prot_id]: v.length,
+      });
+      setViewRoleValue([...v]);
+    };
+    const updateTableStudies = (v) => {
+      const copy = [...tableStudies];
+      copy[tableIndex].roles = [...v];
+      setTableStudies(copy);
+    };
+
     return (
       <div className="role">
         {row.isEdit ? (
-          <MultiSelect
-            roleLists={roleLists}
-            row={row}
-            rowKey={key}
-            tableStudies={tableStudies}
-            setTableStudies={setTableStudies}
-            editRow={(e, v, r, rowIndex, rowKey) =>
-              editRoleRow(e, v, r, rowIndex, rowKey)
+          <AutocompleteV2
+            placeholder={
+              !viewRoleValue.length ? "Choose one or more roles" : ""
             }
+            size="small"
+            fullWidth
+            multiple
+            forcePopupIcon
+            showCheckboxes
+            chipColor="white"
+            source={roleLists}
+            limitChips={5}
+            value={viewRoleValue}
+            onChange={(e, v, r) => editViewRow(e, v, r)}
+            onBlur={() => updateTableStudies(viewRoleValue)}
+            filterSelectedOptions={false}
+            blurOnSelect={false}
+            clearOnBlur={false}
+            disableCloseOnSelect
+            alwaysLimitChips
+            enableVirtualization
           />
         ) : (
           <RolesSelected roles={row?.roles || []} />
@@ -318,39 +348,43 @@ const UserAssignmentTable = ({
       updateEditMode(rowIndex, false);
     };
 
-    const saveEdit = async () => {
-      const email = targetUser.usr_mail_id;
-      const uid = targetUser?.sAMAccountName;
-      const formattedRows = [
-        {
-          protocolname: tableStudies[rowIndex].prot_nbr_stnd,
-          id: tableStudies[rowIndex].prot_id,
-          roles: tableStudies[rowIndex].roles.map((r) => r.value),
-        },
-      ];
-      const newFormattedRows = formattedRows.filter((e) => e.id);
-      const insertUserStudy = {
-        email,
-        protocols: newFormattedRows,
-      };
-      let payload = {};
-      const splittedNames = targetUser?.displayName?.split(", ") || [];
-      const firstName =
-        targetUser.givenName ||
-        (splittedNames.length === 2 ? splittedNames[1] : splittedNames[0]);
-      const lastName = targetUser.sn || splittedNames[0];
-      payload = {
-        firstName,
-        lastName,
-        uid,
-        ...insertUserStudy,
-      };
-      const response = await updateUserAssignments(payload);
-      if (response.status) {
-        updateEditMode(rowIndex, false);
-        toast.showSuccessMessage(response.message || "Updated Successfully!");
+    const saveEdit = async (viewRow) => {
+      if (!viewRoleLength[viewRow.prot_id]) {
+        toast.showErrorMessage("A role is required");
       } else {
-        toast.showErrorMessage(response.message || "Error in update!");
+        const email = targetUser.usr_mail_id;
+        const uid = targetUser?.sAMAccountName;
+        const formattedRows = [
+          {
+            protocolname: tableStudies[rowIndex].prot_nbr_stnd,
+            id: tableStudies[rowIndex].prot_id,
+            roles: tableStudies[rowIndex].roles.map((r) => r.value),
+          },
+        ];
+        const newFormattedRows = formattedRows.filter((e) => e.id);
+        const insertUserStudy = {
+          email,
+          protocols: newFormattedRows,
+        };
+        let payload = {};
+        const splittedNames = targetUser?.displayName?.split(", ") || [];
+        const firstName =
+          targetUser.givenName ||
+          (splittedNames.length === 2 ? splittedNames[1] : splittedNames[0]);
+        const lastName = targetUser.sn || splittedNames[0];
+        payload = {
+          firstName,
+          lastName,
+          uid,
+          ...insertUserStudy,
+        };
+        const response = await updateUserAssignments(payload);
+        if (response.status) {
+          updateEditMode(rowIndex, false);
+          toast.showSuccessMessage(response.message || "Updated Successfully!");
+        } else {
+          toast.showErrorMessage(response.message || "Error in update!");
+        }
       }
     };
     const menuItems = [
@@ -379,7 +413,7 @@ const UserAssignmentTable = ({
               variant="primary"
               size="small"
               style={{ marginRight: 10 }}
-              onClick={() => saveEdit()}
+              onClick={() => saveEdit(row)}
             >
               Save
             </Button>
@@ -397,17 +431,32 @@ const UserAssignmentTable = ({
     );
   };
 
+  // useEffect(() => {
+  //   if (pingParent !== 0) {
+  //     AssignUser();
+  //   }
+  // }, [pingParent]);
+
+  const getUserStudyRoles = async () => {
+    const userStudy = await getUserStudyAndRoles(userId);
+    if (userStudy.status) {
+      const userSutdyRes = userStudy.data.map((e, i) => ({ ...e, index: i }));
+      console.log({ userSutdyRes });
+      setTableStudies([...userSutdyRes, getStudyObj()]);
+    }
+    setLoad(true);
+  };
+
+  useEffect(() => {
+    if (userUpdating === false) {
+      getUserStudyRoles();
+    }
+  }, [userUpdating]);
+
   useEffect(() => {
     dispatch(getStudyboardData());
     getRoles();
-    (async () => {
-      const userStudy = await getUserStudyAndRoles(userId);
-      if (userStudy.status) {
-        const userSutdyRes = userStudy.data.map((e, i) => ({ ...e, index: i }));
-        setTableStudies([...userSutdyRes, getStudyObj()]);
-      }
-      setLoad(true);
-    })();
+    getUserStudyRoles();
   }, []);
 
   const CustomButtonHeader = ({ toggleFilters }) => {
@@ -418,6 +467,7 @@ const UserAssignmentTable = ({
             size="small"
             variant="secondary"
             icon={PlusIcon}
+            disabled={userUpdating}
             onClick={() => setUserAssignmentModal(true)}
           >
             Add user assignment
@@ -796,6 +846,7 @@ const UserAssignmentTable = ({
             size="small"
             variant="secondary"
             icon={PlusIcon}
+            disabled={userUpdating}
             onClick={() => setUserAssignmentModal(true)}
           >
             Add user assignment

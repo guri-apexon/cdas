@@ -234,7 +234,7 @@ const ListUsers = () => {
       sortFunction: compareStrings,
       filterFunction: createStringSearchFilter("usr_full_nm"),
       filterComponent: TextFieldFilter,
-      width: "32%",
+      width: "35%",
     },
     {
       header: "Email",
@@ -243,7 +243,7 @@ const ListUsers = () => {
       filterFunction: createStringSearchFilter("usr_mail_id"),
       filterComponent: TextFieldFilter,
       customCell: DespCell,
-      width: "32%",
+      width: "35%",
     },
     {
       header: "Employee ID",
@@ -252,7 +252,7 @@ const ListUsers = () => {
       sortFunction: compareStrings,
       filterFunction: createStringSearchFilter("usr_id"),
       filterComponent: TextFieldFilter,
-      width: "24%",
+      width: "15%",
     },
     {
       header: "Status",
@@ -264,7 +264,7 @@ const ListUsers = () => {
         size: "small",
         multiple: true,
       }),
-      width: "12%",
+      width: "15%",
     },
   ];
 
@@ -339,8 +339,8 @@ const ListUsers = () => {
           // eslint-disable-next-line react/jsx-wrap-multilines
           <div style={{ maxWidth: 400 }}>
             <Typography variant="body2">
-              {peekContent === "roleName" && curRow.role_nm}
-              {peekContent === "roleDes" && curRow.role_desc}
+              {peekContent === "roleName" && curRow.usr_full_nm}
+              {peekContent === "roleDes" && curRow.usr_mail_id}
             </Typography>
           </div>
         }
