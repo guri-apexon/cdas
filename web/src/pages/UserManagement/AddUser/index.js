@@ -704,12 +704,14 @@ const AddUser = () => {
                         </Value>
                       </Typography>
                     )}
-                    <Typography variant="body2" className="mt-4" gutterBottom>
-                      User not in the list?&nbsp;
-                      <Link onClick={() => switchUserType(true)}>
-                        Invite new user
-                      </Link>
-                    </Typography>
+                    {!selectedUser && (
+                      <Typography variant="body2" className="mt-4" gutterBottom>
+                        User not in the list?&nbsp;
+                        <Link onClick={() => switchUserType(true)}>
+                          Invite new user
+                        </Link>
+                      </Typography>
+                    )}
                   </>
                 )}
               </div>
