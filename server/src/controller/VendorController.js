@@ -12,10 +12,15 @@ const logQuery = `INSERT INTO ${schemaName}.audit_log (tbl_nm, id, "attribute", 
 
 exports.getVendorsList = async (req, res) => {
   try {
+    let extrnl_sys_nm = req.query.extrnl_sys_nm || null;
+    let filter = "";
+    if (extrnl_sys_nm) {
+      filter = ` where v.extrnl_sys_nm = '${extrnl_sys_nm}'`;
+    }
     Logger.info({ message: "vendorList" });
 
-    let query = `select v.vend_id as "vId", vend_nm as "vName", vend_nm_stnd as "vNStd", description as "vDescription", active as "status", extrnl_sys_nm as "vESN", vc.Ven_Contact_nm as "vContactName" from ${schemaName}.vendor v 
-    left join (select vc.vend_id , string_agg(vc.contact_nm,', ') as Ven_Contact_nm from ${schemaName}.vendor_contact vc where act_flg =1 group by vc.vend_id) vc on v.vend_id =vc.vend_id`;
+    let query = `select v.vend_id as "vId", vend_nm as "vName", vend_nm_stnd as "vNStd", v.extrnl_id as "ExternalId", description as "vDescription", active as "status", extrnl_sys_nm as "vESN", vc.Ven_Contact_nm as "vContactName" from ${schemaName}.vendor v 
+    left join (select vc.vend_id , string_agg(vc.contact_nm,', ') as Ven_Contact_nm from ${schemaName}.vendor_contact vc where act_flg =1 group by vc.vend_id) vc  on v.vend_id =vc.vend_id ${filter}`;
 
     let dbQuery = await DB.executeQuery(query);
 
@@ -261,12 +266,15 @@ exports.createVendor = async (req, res) => {
       }
     }
 
+    const curDate = helpers.getCurrentTime();
+
     const insertQuery = `INSERT INTO ${schemaName}.vendor (vend_nm, vend_nm_stnd, description, active, extrnl_sys_nm, insrt_tm, updt_tm ,  created_by, updated_by , extrnl_id) VALUES($1, $2, $3, $4, $5, $6, $6, $7, $7, $8) RETURNING *`;
     const dfVendorList = `select distinct vend_id from ${schemaName}.dataflow d`;
-    const updateQuery = `UPDATE ${schemaName}.vendor SET vend_nm=$1, vend_nm_stnd=$2, description=$3, active=$4, extrnl_sys_nm=$5, updt_tm=$6, updated_by=$7 WHERE vend_id=$8 RETURNING *`;
+    let updateQuery = `UPDATE ${schemaName}.vendor SET vend_nm=$1, description=$2, active=$3, extrnl_sys_nm=$4, updt_tm=$5, updated_by=$6`;
     const contactUpdate = `UPDATE ${schemaName}.vendor_contact SET contact_nm=$1, emailid=$2, updated_by=$3, updated_on=$4, act_flg=1 WHERE vend_contact_id=$5 AND vend_id=$6 RETURNING *`;
     const selectVendor = `SELECT vend_nm, vend_nm_stnd, description, active, extrnl_sys_nm, vend_id FROM ${schemaName}.vendor where vend_id = $1`;
     const selectExVendor = `SELECT vend_nm, vend_nm_stnd, description, active, extrnl_sys_nm, vend_id FROM ${schemaName}.vendor where extrnl_id = $1`;
+    const executedDataFlowCountForVendor = `select count(1) from ${schemaName}.dataflow where data_in_cdr = 'Y' and vend_id =$1`;
 
     if (!vName || !vESName || !userId || typeof vStatus !== "number") {
       return apiResponse.validationErrorWithData(
@@ -302,7 +310,16 @@ exports.createVendor = async (req, res) => {
       vDescription,
       vStatus,
       vESName,
-      insrt_tm,
+      curDate,
+      userId,
+    ];
+
+    const UpdatePayload = [
+      vName,
+      vDescription,
+      vStatus,
+      vESName,
+      curDate,
       userId,
     ];
 
@@ -313,7 +330,11 @@ exports.createVendor = async (req, res) => {
     }
 
     if (!updatedID) {
-      const inset = await DB.executeQuery(insertQuery, [...payload, null]);
+      const inset = await DB.executeQuery(insertQuery, [
+        ...payload,
+        ExternalId || null,
+      ]);
+
       const vId = inset?.rows[0].vend_id;
       if (vContacts?.length > 0) {
         await vContacts.map((e) => {
@@ -337,7 +358,7 @@ exports.createVendor = async (req, res) => {
     } else {
       const q1 = await DB.executeQuery(dfVendorList);
       const existingInDF = q1.rows.map((e) => e.vend_id);
-      if (existingInDF.includes(updatedID.toString())) {
+      if (existingInDF.includes(updatedID.toString()) && !ExternalId) {
         return apiResponse.validationErrorWithData(
           res,
           "Operation failed",
@@ -352,13 +373,29 @@ exports.createVendor = async (req, res) => {
           );
         }
 
+        const {
+          rows: [runDataFlowCountForVendor],
+        } = await DB.executeQuery(executedDataFlowCountForVendor, [updatedID]);
+
+        let updatedVendor = {};
+
+        if (runDataFlowCountForVendor.count != 0 && ExternalId) {
+          updateQuery += `WHERE vend_id=$7 RETURNING *`;
+          updatedVendor = await DB.executeQuery(updateQuery, [
+            ...UpdatePayload, //...payload,
+            updatedID,
+          ]);
+        } else {
+          updateQuery += `,vend_nm_stnd=$8 WHERE vend_id=$7 RETURNING *`;
+          updatedVendor = await DB.executeQuery(updateQuery, [
+            ...UpdatePayload, //...payload,
+            updatedID,
+            vNameStd,
+          ]);
+        }
+
         let updatedContacts = {};
 
-        const updatedVendor = await DB.executeQuery(updateQuery, [
-          ...payload,
-          updatedID,
-        ]);
-        console.log(vContacts);
         if (vContacts?.length) {
           for (let e of vContacts) {
             if (e.isNew) {
@@ -382,16 +419,18 @@ exports.createVendor = async (req, res) => {
             }
           }
         }
-        // console.log('updatedVendor ' , updatedVendor)
-        // console.log('existingVendor ' , existingVendor)
-        // console.log('updatedContacts ' , updatedContacts)
-        if (
-          !updatedVendor?.rowCount ||
-          !existingVendor?.rowCount ||
-          !updatedContacts?.rowCount
-        ) {
-          return apiResponse.ErrorResponse(res, "Something went wrong");
-        }
+        // console.log("updatedVendor ", updatedVendor);
+        // console.log("existingVendor ", existingVendor);
+        // console.log("updatedContacts ", updatedContacts);
+        // below if condition is commended
+        // if (
+        //   !updatedVendor?.rowCount ||
+        //   !existingVendor?.rowCount ||
+        //   !updatedContacts?.rowCount
+        // ) {
+        //   console.log("line 406");
+        //   return apiResponse.ErrorResponse(res, "Something went wrong");
+        // }
 
         const vendorObj = updatedVendor?.rows[0];
         const existingObj = existingVendor?.rows[0];

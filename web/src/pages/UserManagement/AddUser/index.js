@@ -59,10 +59,10 @@ const Label = ({ children }) => {
     </span>
   );
 };
-const Value = ({ children }) => {
+const Value = ({ children, className }) => {
   return (
     <span
-      className="value flex"
+      className={`value flex ${className}`}
       variant="body2"
       style={{ wordWrap: "break-word", fontWeight: "bold" }}
     >
@@ -146,6 +146,7 @@ const AddUser = () => {
   const [fetchStatus, setFetchStatus] = useState("success");
   const [confirmInviteUser, setConfirmInviteUser] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isTextOverflow, setIsTextOverflow] = useState(false);
   const [checkUserAssignmentTableData, setCheckUserAssignmentTableData] =
     useState();
   const [showToolTip, setShowToolTip] = useState(false);
@@ -206,16 +207,29 @@ const AddUser = () => {
     }
   };
 
+  const compareInputLength = (val = "", inputWidth) => {
+    if (!val) {
+      setIsTextOverflow(false);
+      return false;
+    }
+    const div = document.getElementById("hidden");
+    div.innerHTML = val.replace(/\n+/g, " ");
+    if (div.clientWidth > inputWidth) {
+      setIsTextOverflow(true);
+    } else {
+      setIsTextOverflow(false);
+    }
+    return true;
+  };
+
   const handleChange = (e) => {
     const val = e.target.value;
     const key = e.target.id;
     updateChanges();
     setSelectedUser({ ...selectedUser, [key]: val });
-    // if (key === "usr_fst_nm") {
-    //   inputAlphaNumericWithUnderScore(e, (v) => {
-    //     setSelectedUser({ ...selectedUser, key: v });
-    //   });
-    // }
+    if (key === "usr_mail_id") {
+      compareInputLength(val, e.target.clientWidth);
+    }
   };
 
   const getRequiredErrors = (key) => {
@@ -511,6 +525,7 @@ const AddUser = () => {
                 />
               )}
               <ButtonGroup
+                className="gap-8"
                 alignItems="right"
                 buttonProps={
                   readOnly
@@ -582,7 +597,7 @@ const AddUser = () => {
                         variant="dark"
                         placement="top"
                         title={selectedUser?.usr_mail_id}
-                        open={showToolTip}
+                        open={showToolTip && isTextOverflow}
                       >
                         <div className="email-tooltip" />
                       </Tooltip>
@@ -623,7 +638,7 @@ const AddUser = () => {
                         placement="top"
                         title={getFullName()}
                         extraLabels={[{ subtitle: selectedUser?.mail }]}
-                        open={showToolTip && selectedUser}
+                        open={showToolTip && selectedUser && isTextOverflow}
                       >
                         <div className="email-tooltip top" />
                       </Tooltip>
@@ -654,22 +669,29 @@ const AddUser = () => {
                           getUserList(e.target.value);
                         }}
                         noOptionsText={
-                          // eslint-disable-next-line react/jsx-wrap-multilines
-                          <div className="flex-center flex justify-center">
-                            {fetchStatus === "loading" ? (
+                          fetchStatus === "loading" ? (
+                            <div className="flex-center flex justify-center">
                               <ApolloProgress />
-                            ) : (
-                              <>
-                                {searchQuery
-                                  ? "No user found"
-                                  : "Type a word to search"}
-                              </>
-                            )}
-                          </div>
+                            </div>
+                          ) : (
+                            <>
+                              {searchQuery ? (
+                                <div className="flex-center flex justify-center">
+                                  No user found
+                                </div>
+                              ) : (
+                                "No options"
+                              )}
+                            </>
+                          )
                         }
                         onChange={(e, v, r) => {
                           updateChanges();
                           setSelectedUser(v);
+                          compareInputLength(
+                            v?.label,
+                            e.currentTarget.clientWidth
+                          );
                         }}
                         // enableVirtualization
                       />
@@ -677,7 +699,9 @@ const AddUser = () => {
                     {selectedUser && (
                       <Typography className="mt-4">
                         <Label>Employee ID</Label>
-                        <Value>{selectedUser.sAMAccountName}</Value>
+                        <Value className="ml-8">
+                          {selectedUser.sAMAccountName}
+                        </Value>
                       </Typography>
                     )}
                     <Typography variant="body2" className="mt-4" gutterBottom>
@@ -708,6 +732,7 @@ const AddUser = () => {
               />
             </div>
           </Grid>
+          <div id="hidden"> </div>
         </Grid>
       </div>
     </div>

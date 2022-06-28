@@ -222,7 +222,7 @@ const ListUsers = () => {
               </Grid>
               <Grid item xs={9}>
                 <div className="user-assignment-wrapper">
-                  <h4>User Assignments</h4>
+                  <h4>User Assignments1</h4>
                   <Button
                     size="small"
                     icon={PlusIcon}

@@ -341,6 +341,23 @@ export const IntegerFilter = ({ accessor, filters, updateFilterValue }) => {
   );
 };
 
+// overwriting numberSearchFilter from react-apollo
+
+export const numberSearchFilter = (accessor) => {
+  return function (row, filters) {
+    const rowVal = parseInt(row[accessor], 10);
+    const filterVal = parseInt(filters[accessor], 10);
+    if (!filters[accessor]) {
+      return true;
+    }
+
+    if (!row[accessor]) {
+      return false;
+    }
+    return rowVal === filterVal;
+  };
+};
+
 export const DateFilter = ({ accessor, filters, updateFilterValue }) => {
   return (
     <div style={{ minWidth: 230 }}>

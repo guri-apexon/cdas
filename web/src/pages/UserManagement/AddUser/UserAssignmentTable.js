@@ -175,7 +175,7 @@ const UserAssignmentTable = ({
           }
           helperText={
             row.alreadyExist
-              ? "This study already has assignments. Please select a different study to continue."
+              ? "This study already has assignments."
               : !initialRender &&
                 !row[key] &&
                 row.index !== tableStudies[tableStudies.length - 1].index &&
@@ -264,7 +264,7 @@ const UserAssignmentTable = ({
     {
       header: "Role",
       accessor: "roles",
-      width: "70%",
+      width: "65.5%",
       customCell: EditableRoles,
     },
     {
