@@ -37,6 +37,8 @@ const UserAssignmentTable = ({
   showRolePopup,
   setShowRolePopup,
   userUpdating,
+  readOnly,
+  canUpdate,
 }) => {
   const toast = useContext(MessageContext);
   const dispatch = useDispatch();
@@ -327,7 +329,7 @@ const UserAssignmentTable = ({
   };
 
   const DeleteViewStudy = ({ row }) => {
-    if (targetUser?.usr_stat !== "Active") return false;
+    if (targetUser?.usr_stat !== "Active" || readOnly) return false;
     const rowIndex = tableStudies.findIndex((e) => e.prot_id === row.prot_id);
     const handleMenuClick = (label) => () => {
       if (label === "edit") {
@@ -462,7 +464,7 @@ const UserAssignmentTable = ({
   const CustomButtonHeader = ({ toggleFilters }) => {
     return (
       <div>
-        {targetUser?.usr_stat === "Active" && (
+        {targetUser?.usr_stat === "Active" && canUpdate && (
           <Button
             size="small"
             variant="secondary"
@@ -841,7 +843,7 @@ const UserAssignmentTable = ({
         <Typography variant="body2" className="">
           At least one assignment is needed to access any CDAS product
         </Typography>
-        {targetUser?.usr_stat === "Active" && (
+        {targetUser?.usr_stat === "Active" && canUpdate && (
           <Button
             size="small"
             variant="secondary"
