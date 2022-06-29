@@ -623,7 +623,7 @@ const UserAssignmentTable = ({
             }
             helperText={
               row.alreadyExist
-                ? "This study already has assignments. Please select a different study to continue."
+                ? "Study already has assignments. Select a different study"
                 : !initialRender &&
                   !row[key] &&
                   row.index !==
