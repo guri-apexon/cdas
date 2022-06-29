@@ -1,7 +1,7 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 /* eslint-disable no-useless-escape */
 
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useHistory } from "react-router";
 import { useLocation, useParams } from "react-router-dom";
@@ -9,7 +9,7 @@ import ApolloProgress from "apollo-react/components/ApolloProgress";
 import Tooltip from "apollo-react/components/Tooltip";
 import EmailIcon from "apollo-react-icons/Email";
 import Button from "apollo-react/components/Button";
-
+import ChevronLeft from "apollo-react-icons/ChevronLeft";
 import BreadcrumbsUI from "apollo-react/components/Breadcrumbs";
 import Switch from "apollo-react/components/Switch";
 import "./UpdateUser.scss";
@@ -128,6 +128,7 @@ const AddUser = () => {
   const [showRolePopup, setShowRolePopup] = useState(false);
   const [isSendingInvite, setIsSendingInvite] = useState(false);
   const [inactiveStudyRoles, setInactiveStudyRoles] = useState([]);
+  const [showEmailTooTip, setEmailTooTip] = useState(false);
 
   const keepEditingBtn = () => {
     dispatch(hideAlert());
@@ -289,6 +290,19 @@ const AddUser = () => {
     );
   };
 
+  const emailRef = useRef();
+
+  const showEmailToolTip = (action) => {
+    if (
+      action === "show" &&
+      emailRef.current.scrollWidth > emailRef.current.offsetWidth
+    ) {
+      setEmailTooTip(true);
+    } else {
+      setEmailTooTip(false);
+    }
+  };
+
   return (
     <div className="create-user-wrapper">
       {isShowAlertBox && (
@@ -348,9 +362,16 @@ const AddUser = () => {
             {`${targetUser?.usr_fst_nm} ${targetUser?.usr_lst_nm}`}
           </Typography>
           <div className="flex justify-space-between">
-            <Link onClick={(e) => goToUser(e)}>
-              {"< Back to User Management List"}
-            </Link>
+            <Typography className="b-font">
+              <Link
+                className="flex back-to-user-management"
+                onClick={(e) => goToUser(e)}
+              >
+                <ChevronLeft className="chevron-left" />
+                Back to User Management List
+              </Link>
+            </Typography>
+
             {!readOnly && targetUser?.usr_stat !== "Invited" ? (
               <Switch
                 label="Active"
@@ -372,7 +393,6 @@ const AddUser = () => {
       </div>
       <div className="padded">
         <Grid container spacing={2}>
-          {/* {console.log("save", disableSave)} */}
           <Grid item xs={3}>
             <Box>
               <div className="flex create-sidebar flexWrap">
@@ -387,9 +407,24 @@ const AddUser = () => {
                 <Typography className="mt-4 user-update-label">
                   Email address
                   <div className="ml-3">
-                    <div className="user-update-font-500 mt-2">
-                      {targetUser?.usr_mail_id}
-                    </div>
+                    <Tooltip
+                      variant="dark"
+                      title={targetUser?.usr_mail_id}
+                      placement="top"
+                      open={showEmailTooTip}
+                      style={{ marginRight: 48 }}
+                    >
+                      <Typography
+                        ref={emailRef}
+                        onMouseEnter={(e) => showEmailToolTip("show")}
+                        onMouseLeave={(e) => showEmailToolTip("hide")}
+                        gutterBottom
+                        noWrap
+                        className="user-update-font-500 mt-2"
+                      >
+                        {targetUser?.usr_mail_id}
+                      </Typography>
+                    </Tooltip>
                     {isUserInvited() && (
                       <>
                         <div className="light mt-2">
