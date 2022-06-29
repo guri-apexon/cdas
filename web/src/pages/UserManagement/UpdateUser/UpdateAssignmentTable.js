@@ -152,8 +152,8 @@ const UserAssignmentTable = ({
     getStudyList();
   }, [studyData]);
 
-  const StudySelected = ({ row }) => {
-    return row?.prot_nbr_stnd || "";
+  const StudySelected = ({ isEdit, row }) => {
+    return <div className={isEdit}>{row?.prot_nbr_stnd || ""}</div>;
   };
 
   const RolesSelected = ({ roles }) => {
@@ -161,7 +161,7 @@ const UserAssignmentTable = ({
     const charLimit = getOverflowLimit("50%", 80);
     return (
       <Tooltip
-        variant="light"
+        variant="dark"
         title={uRoles}
         placement="left"
         style={{ marginRight: 48 }}
@@ -176,9 +176,11 @@ const UserAssignmentTable = ({
   };
 
   const ViewStudy = ({ row, column: { accessor: key } }) => {
+    const isEdit = row?.isEdit ? "editable-row" : "";
+    console.log({ row });
     return (
       <div className="study">
-        <StudySelected row={row} />
+        <StudySelected isEdit={isEdit} row={row} />
       </div>
     );
   };
