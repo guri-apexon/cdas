@@ -78,7 +78,7 @@
   }
   .padded {
     padding: 0 28px;
-    margin-top: 16px;
+    margin-top: 28px;
   }
   min-height: calc(100vh - 152px);
   .breadcrump {
@@ -163,4 +163,18 @@
 }
 .chevron-left {
   font-size: 16px;
+}
+.user-update-body-part {
+  margin-top: 20px;
+}
+.user-rocket-icon {
+  font-size: 30px;
+  color: #595959;
+}
+.empty-grey {
+  color: #595959;
+}
+.user-small-plus-icon {
+  font-size: 12px;
+  margin-right: 6px;
 }

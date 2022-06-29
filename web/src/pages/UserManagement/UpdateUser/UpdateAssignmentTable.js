@@ -426,7 +426,7 @@ const UserAssignmentTable = ({
           <Button
             size="small"
             variant="secondary"
-            icon={PlusIcon}
+            icon={<PlusIcon size="small" />}
             disabled={userUpdating}
             onClick={() => setUserAssignmentModal(true)}
           >
@@ -810,23 +810,23 @@ const UserAssignmentTable = ({
   const EmptyTableContent = () => {
     return (
       <>
-        <Typography variant="body2" className="">
-          <Rocket />
+        <Typography variant="body2" className="empty-grey">
+          <Rocket className="user-rocket-icon" />
         </Typography>
-        <Typography variant="body2" className="">
+        <Typography variant="title1" className="title empty-grey">
           Nothing to See Here
         </Typography>
-        <Typography variant="body2" className="">
+        <Typography variant="body2" className="empty-grey">
           At least one assignment is needed to access any CDAS product
         </Typography>
         {targetUser?.usr_stat === "Active" && canUpdate && (
           <Button
             size="small"
             variant="secondary"
-            icon={PlusIcon}
             disabled={userUpdating}
             onClick={() => setUserAssignmentModal(true)}
           >
+            <PlusIcon className="user-small-plus-icon mr-2" />
             Add user assignment
           </Button>
         )}
