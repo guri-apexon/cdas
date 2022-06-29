@@ -370,10 +370,11 @@ const AddUser = () => {
       return `${selectedUser?.givenName} ${selectedUser?.sn}`;
     }
     const splittedNames = selectedUser?.displayName?.split(", ") || [];
+    const ln = splittedNames.length === 2 ? splittedNames[0] : "";
     const firstName =
       selectedUser?.givenName ||
       (splittedNames.length === 2 ? splittedNames[1] : splittedNames[0]);
-    const lastName = selectedUser?.sn || splittedNames[0];
+    const lastName = selectedUser?.sn || ln;
     return `${firstName} ${lastName}`;
   };
 
@@ -690,7 +691,7 @@ const AddUser = () => {
                           setSelectedUser(v);
                           compareInputLength(
                             v?.label,
-                            e.currentTarget.clientWidth
+                            e.currentTarget.clientWidth - 10
                           );
                         }}
                         // enableVirtualization
