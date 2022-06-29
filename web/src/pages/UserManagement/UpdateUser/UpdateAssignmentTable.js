@@ -776,6 +776,7 @@ const UserAssignmentTable = ({
           variant="default"
           title="Add User Assignment"
           hideButtons={true}
+          disableBackdropClick={true}
           buttonProps={[
             {
               label: "Cancel",
@@ -788,7 +789,7 @@ const UserAssignmentTable = ({
               disabled: loading,
             },
           ]}
-          id="neutral2"
+          id="user-update-assignment-modal"
         >
           <Table
             isLoading={!load}
