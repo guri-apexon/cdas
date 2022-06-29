@@ -21,6 +21,16 @@
   }
 }
 .create-user-wrapper {
+  .back-btn {
+    margin-left: -8px;
+    margin-bottom: 16px;
+  }
+  .ml-8 {
+    margin-left: 8px;
+  }
+  .gap-8 {
+    column-gap: 8px;
+  }
   .email-tooltip {
     position: absolute;
     right: 10px;
@@ -34,7 +44,7 @@
     background-color: #fff;
     display: flex;
     flex-direction: column;
-    padding: 16px 28px;
+    padding: 0 28px 16px;
     border-bottom: 1px solid #eeeeef;
   }
   .light {
@@ -81,8 +91,8 @@
   }
   min-height: calc(100vh - 152px);
   .breadcrump {
-    margin-left: 0px;
-    margin-bottom: 10px;
+    margin-left: -8px;
+    margin-bottom: 8px;
     padding-left: 0;
   }
   .product-tabs {

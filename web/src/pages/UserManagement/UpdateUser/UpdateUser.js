@@ -9,7 +9,7 @@ import ApolloProgress from "apollo-react/components/ApolloProgress";
 import Tooltip from "apollo-react/components/Tooltip";
 import EmailIcon from "apollo-react-icons/Email";
 import Button from "apollo-react/components/Button";
-
+import ChevronLeft from "apollo-react-icons/ChevronLeft";
 import BreadcrumbsUI from "apollo-react/components/Breadcrumbs";
 import Switch from "apollo-react/components/Switch";
 import "./UpdateUser.scss";
@@ -344,13 +344,16 @@ const AddUser = () => {
           {breadcrumpItems.length && (
             <BreadcrumbsUI className="breadcrump" items={breadcrumpItems} />
           )}
-          <Typography variant="title1" className="b-font title">
-            {`${targetUser?.usr_fst_nm} ${targetUser?.usr_lst_nm}`}
-          </Typography>
+
           <div className="flex justify-space-between">
-            <Link onClick={(e) => goToUser(e)}>
-              {"< Back to User Management List"}
-            </Link>
+            <Button
+              onClick={goToUser}
+              className="back-btn"
+              icon={<ChevronLeft />}
+              size="small"
+            >
+              Back to Role Management List
+            </Button>
             {!readOnly && targetUser?.usr_stat !== "Invited" ? (
               <Switch
                 label="Active"
@@ -368,6 +371,9 @@ const AddUser = () => {
               />
             )}
           </div>
+          <Typography variant="title1" className="b-font title">
+            {`${targetUser?.usr_fst_nm} ${targetUser?.usr_lst_nm}`}
+          </Typography>
         </Box>
       </div>
       <div className="padded">

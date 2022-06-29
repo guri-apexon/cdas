@@ -150,6 +150,7 @@ const AddUser = () => {
   const [checkUserAssignmentTableData, setCheckUserAssignmentTableData] =
     useState();
   const [showToolTip, setShowToolTip] = useState(false);
+  const [isInFocus, setIsInFocus] = useState(false);
 
   const breadcrumpItems = [
     { href: "", onClick: () => history.push("/launchpad") },
@@ -598,7 +599,7 @@ const AddUser = () => {
                         variant="dark"
                         placement="top"
                         title={selectedUser?.usr_mail_id}
-                        open={showToolTip && isTextOverflow}
+                        open={showToolTip && isTextOverflow && !isInFocus}
                       >
                         <div className="email-tooltip" />
                       </Tooltip>
@@ -611,7 +612,9 @@ const AddUser = () => {
                       onChange={handleChange}
                       onBlur={(e) => {
                         validateField(e);
+                        setIsInFocus(false);
                       }}
+                      onFocus={() => setIsInFocus(true)}
                       onMouseLeave={() => setShowToolTip(false)}
                       onMouseEnter={() => setShowToolTip(true)}
                       error={!!selectedUserError?.usr_mail_id?.length}
