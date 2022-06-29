@@ -775,7 +775,7 @@ const UserAssignmentTable = ({
           className="save-confirm user-assignment-modal"
           variant="default"
           title="Add User Assignment"
-          hideButtons={true}
+          hideButtons={false}
           disableBackdropClick={true}
           buttonProps={[
             {
@@ -786,7 +786,7 @@ const UserAssignmentTable = ({
             {
               label: "Save",
               onClick: updateModalAssignment,
-              disabled: loading,
+              disabled: disableSaveBtn,
             },
           ]}
           id="user-update-assignment-modal"
@@ -800,25 +800,6 @@ const UserAssignmentTable = ({
             hidePagination={true}
             emptyProps={{ content: <EmptyTableContent /> }}
           />
-          <div className="flex justify-content-end w-100">
-            <Button
-              variant="secondary"
-              size="medium"
-              style={{ marginRight: 10 }}
-              onClick={openConfirmModal}
-            >
-              Cancel
-            </Button>
-            <Button
-              disabled={disableSaveBtn}
-              variant="primary"
-              size="medium"
-              style={{ marginRight: 10 }}
-              onClick={updateModalAssignment}
-            >
-              Save
-            </Button>
-          </div>
         </Modal>
       </>
     );

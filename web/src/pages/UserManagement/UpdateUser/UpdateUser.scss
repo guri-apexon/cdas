@@ -61,12 +61,13 @@
     font-family: "Proxima Nova";
     font-size: 14px;
     letter-spacing: 0;
+    font-weight: 500;
   }
   .user-update-font-500 {
     color: #000000;
     font-family: "Proxima Nova";
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 600;
     letter-spacing: 0;
   }
   .mt-4 {
@@ -133,8 +134,10 @@
   }
 }
 .user-assignment-modal {
-  max-width: 900px;
-  width: 900px;
+  max-width: 1002px;
+  width: 1002px;
+  max-height: 586;
+  height: 586px;
 }
 .w-100 {
   width: 100%;
