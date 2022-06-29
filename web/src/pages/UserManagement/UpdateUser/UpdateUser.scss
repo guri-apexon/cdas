@@ -20,6 +20,16 @@
     }
   }
 }
+.gap-2 {
+  column-gap: 8px;
+}
+.mt-1 {
+  margin-top: 2px;
+}
+.px-32 {
+  padding-left: 32px;
+  padding-right: 32px;
+}
 .create-user-wrapper {
   .email-tooltip {
     position: absolute;
