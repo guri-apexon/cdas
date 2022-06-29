@@ -149,3 +149,18 @@
   margin-left: 16px; 
   font-weight: 600;
 }
+.back-to-user-management {
+  font-size: 14px;
+  display: flex;
+    justify-content: center;
+    align-items: center;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+}
+.back-to-user-management:hover {
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+}
+.chevron-left {
+  font-size: 16px;
+}

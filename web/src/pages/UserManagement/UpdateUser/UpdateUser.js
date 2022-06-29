@@ -9,7 +9,7 @@ import ApolloProgress from "apollo-react/components/ApolloProgress";
 import Tooltip from "apollo-react/components/Tooltip";
 import EmailIcon from "apollo-react-icons/Email";
 import Button from "apollo-react/components/Button";
-
+import ChevronLeft from "apollo-react-icons/ChevronLeft";
 import BreadcrumbsUI from "apollo-react/components/Breadcrumbs";
 import Switch from "apollo-react/components/Switch";
 import "./UpdateUser.scss";
@@ -362,9 +362,16 @@ const AddUser = () => {
             {`${targetUser?.usr_fst_nm} ${targetUser?.usr_lst_nm}`}
           </Typography>
           <div className="flex justify-space-between">
-            <Link onClick={(e) => goToUser(e)}>
-              {"< Back to User Management List"}
-            </Link>
+            <Typography className="b-font">
+              <Link
+                className="flex back-to-user-management"
+                onClick={(e) => goToUser(e)}
+              >
+                <ChevronLeft className="chevron-left" />
+                Back to User Management List
+              </Link>
+            </Typography>
+
             {!readOnly && targetUser?.usr_stat !== "Invited" ? (
               <Switch
                 label="Active"
