@@ -226,6 +226,10 @@ const UserAssignmentTable = ({
             disableCloseOnSelect
             alwaysLimitChips
             enableVirtualization
+            error={!viewRoleValue.length}
+            helperText={
+              !viewRoleValue.length ? "This study already has assignments." : ""
+            }
           />
         ) : (
           <RolesSelected roles={row?.roles || []} />
