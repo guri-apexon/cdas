@@ -177,7 +177,6 @@ const UserAssignmentTable = ({
 
   const ViewStudy = ({ row, column: { accessor: key } }) => {
     const isEdit = row?.isEdit ? "editable-row" : "";
-    console.log({ row });
     return (
       <div className="study">
         <StudySelected isEdit={isEdit} row={row} />
@@ -798,7 +797,7 @@ const UserAssignmentTable = ({
             columns={assignUserColumns}
             rows={modalTableStudies}
             initialSortOrder="asc"
-            rowProps={{ hover: false }}
+            rowProps={{ hover: false, className: "add-user-modal-row" }}
             hidePagination={true}
             emptyProps={{ content: <EmptyTableContent /> }}
           />
