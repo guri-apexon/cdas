@@ -37,6 +37,7 @@ const UserAssignmentTable = ({
   userUpdating,
   readOnly,
   canUpdate,
+  updateInProgress,
 }) => {
   const toast = useContext(MessageContext);
   const dispatch = useDispatch();
@@ -299,6 +300,7 @@ const UserAssignmentTable = ({
     const rowIndex = tableStudies.findIndex((e) => e.prot_id === row.prot_id);
     const handleMenuClick = (label) => () => {
       if (label === "edit") {
+        updateInProgress(true);
         setInitialTableRoles({
           ...initialTableRoles,
           [tableStudies[rowIndex].prot_id]: tableStudies[rowIndex].roles,
@@ -310,6 +312,7 @@ const UserAssignmentTable = ({
     };
 
     const cancelEdit = () => {
+      updateInProgress(false);
       tableStudies[rowIndex].roles =
         initialTableRoles[tableStudies[rowIndex].prot_id];
       setTableStudies([...tableStudies]);
@@ -317,6 +320,7 @@ const UserAssignmentTable = ({
     };
 
     const saveEdit = async (viewRow) => {
+      updateInProgress(false);
       if (!viewRow.roles.length) {
         toast.showErrorMessage("A role is required");
       } else {

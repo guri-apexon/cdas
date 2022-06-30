@@ -131,6 +131,8 @@ const AddUser = () => {
   const [isSendingInvite, setIsSendingInvite] = useState(false);
   const [inactiveStudyRoles, setInactiveStudyRoles] = useState([]);
   const [showEmailTooTip, setEmailTooTip] = useState(false);
+  const [isUpdateInprogress, setIsUpdateInprogress] = useState(false);
+  const [openCancelModal, setOpenCancelModal] = useState(false);
 
   const keepEditingBtn = () => {
     dispatch(hideAlert());
@@ -216,7 +218,11 @@ const AddUser = () => {
 
   const goToUser = (e) => {
     e.preventDefault();
-    history.push("/user-management/");
+    if (!isUpdateInprogress) {
+      history.push("/user-management/");
+    } else {
+      setOpenCancelModal(true);
+    }
   };
 
   useEffect(() => {
@@ -305,10 +311,33 @@ const AddUser = () => {
     }
   };
 
+  const updateInProgress = (flag) => {
+    setIsUpdateInprogress(flag);
+  };
+
   return (
     <div className="create-user-wrapper">
       {isShowAlertBox && (
         <AlertBox cancel={keepEditingBtn} submit={leavePageBtn} />
+      )}
+      {isUpdateInprogress && (
+        <Modal
+          open={openCancelModal}
+          onClose={(e) => setOpenCancelModal(false)}
+          className="save-confirm"
+          disableBackdropClick={true}
+          variant="warning"
+          title="Lose your work?"
+          message="All unsaved changes will be lost."
+          buttonProps={[
+            { label: "Keep editing" },
+            {
+              label: "Leave without saving",
+              onClick: () => history.push("/user-management/"),
+            },
+          ]}
+          id="neutral"
+        />
       )}
 
       {/* {isAnyUpdate && (
@@ -480,6 +509,7 @@ const AddUser = () => {
                 userId={userId}
                 targetUser={targetUser}
                 updateChanges={updateChanges}
+                updateInProgress={updateInProgress}
                 showRolePopup={showRolePopup}
                 // setShowRolePopup={setShowRolePopup}
                 userUpdating={loading}
