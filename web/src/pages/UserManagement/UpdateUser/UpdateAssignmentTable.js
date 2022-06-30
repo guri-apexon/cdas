@@ -392,7 +392,7 @@ const UserAssignmentTable = ({
           <div className="flex flex-end w-100">
             <Tooltip disableFocusListener>
               <IconMenuButton id="actions-2" menuItems={menuItems} size="small">
-                <EllipsisVertical />
+                <EllipsisVertical className="cursor-pointer" />
               </IconMenuButton>
             </Tooltip>
           </div>
