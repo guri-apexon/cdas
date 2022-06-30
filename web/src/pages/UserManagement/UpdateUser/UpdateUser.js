@@ -368,20 +368,16 @@ const AddUser = () => {
           {breadcrumpItems.length && (
             <BreadcrumbsUI className="breadcrump" items={breadcrumpItems} />
           )}
-          <Typography variant="title1" className="b-font title">
-            {`${targetUser?.usr_fst_nm} ${targetUser?.usr_lst_nm}`}
-          </Typography>
-          <div className="flex justify-space-between">
-            <Typography className="b-font">
-              <Link
-                className="flex back-to-user-management"
-                onClick={(e) => goToUser(e)}
-              >
-                <ChevronLeft className="chevron-left" />
-                Back to User Management List
-              </Link>
-            </Typography>
 
+          <div className="flex justify-space-between mb-16">
+            <Button
+              onClick={goToUser}
+              className="back-btn"
+              icon={<ChevronLeft />}
+              size="small"
+            >
+              Back to Role Management List
+            </Button>
             {!readOnly && targetUser?.usr_stat !== "Invited" ? (
               <Switch
                 label="Active"
@@ -399,6 +395,9 @@ const AddUser = () => {
               />
             )}
           </div>
+          <Typography variant="title1" className="b-font title">
+            {`${targetUser?.usr_fst_nm} ${targetUser?.usr_lst_nm}`}
+          </Typography>
         </Box>
       </div>
       <div className="padded">
