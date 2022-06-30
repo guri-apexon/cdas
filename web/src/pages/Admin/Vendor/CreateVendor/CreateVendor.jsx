@@ -127,7 +127,6 @@ const CreateVendor = () => {
       routerHandle.current();
     }
   };
-  useEffect(() => {});
 
   useEffect(() => {
     if (params.id) {
