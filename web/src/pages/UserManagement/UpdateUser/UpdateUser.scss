@@ -23,6 +23,9 @@
 .create-user-wrapper {
   .back-btn {
     margin-left: -8px;
+    font-weight: 600;
+  }
+  .mb-16 {
     margin-bottom: 16px;
   }
   .ml-8 {
@@ -71,12 +74,13 @@
     font-family: "Proxima Nova";
     font-size: 14px;
     letter-spacing: 0;
+    font-weight: 500;
   }
   .user-update-font-500 {
     color: #000000;
     font-family: "Proxima Nova";
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 600;
     letter-spacing: 0;
   }
   .mt-4 {
@@ -87,7 +91,7 @@
   }
   .padded {
     padding: 0 28px;
-    margin-top: 16px;
+    margin-top: 28px;
   }
   min-height: calc(100vh - 152px);
   .breadcrump {
@@ -143,9 +147,56 @@
   }
 }
 .user-assignment-modal {
-  max-width: 900px;
-  width: 900px;
+  max-width: 1002px;
+  width: 1002px;
+  max-height: 586;
+  height: 586px;
 }
 .w-100 {
   width: 100%;
+}
+.justify-content-end {
+  justify-content: end;
+}
+.editable-row {
+  margin-left: 16px;
+  font-weight: 600;
+}
+// .back-to-user-management {
+//   font-size: 14px;
+//   display: flex;
+//   justify-content: center;
+//   align-items: center;
+//   text-decoration: none;
+//   border-bottom: 1px solid transparent;
+// }
+// .back-to-user-management:hover {
+//   text-decoration: none;
+//   border-bottom: 1px solid transparent;
+// }
+.chevron-left {
+  font-size: 16px;
+}
+.user-update-body-part {
+  margin-top: 20px;
+}
+.user-rocket-icon {
+  font-size: 30px;
+  color: #595959;
+}
+.empty-grey {
+  color: #595959;
+}
+.user-small-plus-icon {
+  font-size: 12px;
+  margin-right: 6px;
+}
+#user-update-assignment-modal table {
+  height: 430px;
+}
+#user-update-assignment-modal table thead th {
+  font-weight: 700;
+}
+.add-user-modal-row {
+  height: 24px !important;
 }
