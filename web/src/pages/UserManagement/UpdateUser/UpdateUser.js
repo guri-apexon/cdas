@@ -9,8 +9,10 @@ import ApolloProgress from "apollo-react/components/ApolloProgress";
 import Tooltip from "apollo-react/components/Tooltip";
 import EmailIcon from "apollo-react-icons/Email";
 import Button from "apollo-react/components/Button";
+import InfoIcon from "apollo-react-icons/Info";
 import ChevronLeft from "apollo-react-icons/ChevronLeft";
 import BreadcrumbsUI from "apollo-react/components/Breadcrumbs";
+import * as colors from "apollo-react/colors";
 import Switch from "apollo-react/components/Switch";
 import "./UpdateUser.scss";
 import Typography from "apollo-react/components/Typography";
@@ -285,7 +287,7 @@ const AddUser = () => {
 
   const getInactiveRolesCount = () => {
     return inactiveStudyRoles?.reduce(
-      (acc, study) => acc + study.inactiveRoles.length,
+      (acc, study) => acc + study?.inactiveRoles?.length,
       0
     );
   };
@@ -322,7 +324,13 @@ const AddUser = () => {
         onClose={closeRolePopup}
         className="save-confirm"
         variant="default"
-        title="Removed assignments"
+        title={
+          // eslint-disable-next-line react/jsx-wrap-multilines
+          <div className="flex flex-center gap-2">
+            <InfoIcon style={{ color: colors.blue }} />
+            <span className="mt-1">Removed assignments</span>
+          </div>
+        }
         buttonProps={[
           {
             label: "Dismiss",
@@ -332,26 +340,28 @@ const AddUser = () => {
         ]}
         id="neutral2"
       >
-        <Typography gutterBottom>
-          {`${getInactiveRolesCount()} assignments were removed from ${
-            inactiveStudyRoles?.length
-          } studies as the Roles are now inactive:`}
-          <br />
-          <Grid container spacing={2}>
-            {inactiveStudyRoles?.map(({ studyName, inactiveRoles }) => {
-              return (
-                <>
-                  <Grid item xs={5}>
-                    {studyName}
-                  </Grid>
-                  <Grid item xs={7}>
-                    {inactiveRoles.map((r) => r.name).join(", ")}
-                  </Grid>
-                </>
-              );
-            })}
-          </Grid>
-        </Typography>
+        <div className="px-32">
+          <Typography gutterBottom>
+            {`${getInactiveRolesCount()} assignments were removed from ${
+              inactiveStudyRoles?.length
+            } studies as the Roles are now inactive:`}
+            <br />
+            <Grid container spacing={2}>
+              {inactiveStudyRoles?.map(({ studyName, inactiveRoles }) => {
+                return (
+                  <>
+                    <Grid item xs={5}>
+                      {studyName}
+                    </Grid>
+                    <Grid item xs={7}>
+                      {inactiveRoles?.map((r) => r.name).join(", ")}
+                    </Grid>
+                  </>
+                );
+              })}
+            </Grid>
+          </Typography>
+        </div>
       </Modal>
       <div className="paper">
         <Box className="top-content">
