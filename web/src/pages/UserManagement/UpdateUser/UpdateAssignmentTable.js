@@ -183,18 +183,18 @@ const UserAssignmentTable = ({
       </div>
     );
   };
-  const [viewRoleLength, setViewRoleLength] = useState({});
   const ViewRoles = ({ row, column: { accessor: key } }) => {
     const tableIndex = tableStudies.findIndex((el) => el.index === row.index);
     const [viewRoleValue, setViewRoleValue] = useState(
       tableStudies[tableIndex]?.roles || []
     );
     const editViewRow = (e, v, r) => {
-      setViewRoleLength({
-        ...viewRoleLength,
-        [tableStudies[tableIndex].prot_id]: v.length,
-      });
       setViewRoleValue([...v]);
+      if (r === "remove-option") {
+        const copy = [...tableStudies];
+        copy[tableIndex].roles = [...v];
+        setTableStudies(copy);
+      }
     };
     const updateTableStudies = (v) => {
       const copy = [...tableStudies];
@@ -227,9 +227,7 @@ const UserAssignmentTable = ({
             alwaysLimitChips
             enableVirtualization
             error={!viewRoleValue.length}
-            helperText={
-              !viewRoleValue.length ? "This study already has assignments." : ""
-            }
+            helperText={!viewRoleValue.length ? "A role is required" : ""}
           />
         ) : (
           <RolesSelected roles={row?.roles || []} />
@@ -319,7 +317,7 @@ const UserAssignmentTable = ({
     };
 
     const saveEdit = async (viewRow) => {
-      if (!viewRoleLength[viewRow.prot_id]) {
+      if (!viewRow.roles.length) {
         toast.showErrorMessage("A role is required");
       } else {
         const email = targetUser.usr_mail_id;
