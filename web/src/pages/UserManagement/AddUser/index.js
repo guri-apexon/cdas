@@ -150,6 +150,7 @@ const AddUser = () => {
   const [checkUserAssignmentTableData, setCheckUserAssignmentTableData] =
     useState();
   const [showToolTip, setShowToolTip] = useState(false);
+  const [isInFocus, setIsInFocus] = useState(false);
 
   const breadcrumpItems = [
     { href: "", onClick: () => history.push("/launchpad") },
@@ -370,10 +371,11 @@ const AddUser = () => {
       return `${selectedUser?.givenName} ${selectedUser?.sn}`;
     }
     const splittedNames = selectedUser?.displayName?.split(", ") || [];
+    const ln = splittedNames.length === 2 ? splittedNames[0] : "";
     const firstName =
       selectedUser?.givenName ||
       (splittedNames.length === 2 ? splittedNames[1] : splittedNames[0]);
-    const lastName = selectedUser?.sn || splittedNames[0];
+    const lastName = selectedUser?.sn || ln;
     return `${firstName} ${lastName}`;
   };
 
@@ -597,7 +599,7 @@ const AddUser = () => {
                         variant="dark"
                         placement="top"
                         title={selectedUser?.usr_mail_id}
-                        open={showToolTip && isTextOverflow}
+                        open={showToolTip && isTextOverflow && !isInFocus}
                       >
                         <div className="email-tooltip" />
                       </Tooltip>
@@ -610,7 +612,9 @@ const AddUser = () => {
                       onChange={handleChange}
                       onBlur={(e) => {
                         validateField(e);
+                        setIsInFocus(false);
                       }}
+                      onFocus={() => setIsInFocus(true)}
                       onMouseLeave={() => setShowToolTip(false)}
                       onMouseEnter={() => setShowToolTip(true)}
                       error={!!selectedUserError?.usr_mail_id?.length}
@@ -690,7 +694,7 @@ const AddUser = () => {
                           setSelectedUser(v);
                           compareInputLength(
                             v?.label,
-                            e.currentTarget.clientWidth
+                            e.currentTarget.clientWidth - 10
                           );
                         }}
                         // enableVirtualization

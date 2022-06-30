@@ -20,7 +20,30 @@
     }
   }
 }
+.gap-2 {
+  column-gap: 8px;
+}
+.mt-1 {
+  margin-top: 2px;
+}
+.px-32 {
+  padding-left: 32px;
+  padding-right: 32px;
+}
 .create-user-wrapper {
+  .back-btn {
+    margin-left: -8px;
+    font-weight: 600;
+  }
+  .mb-16 {
+    margin-bottom: 16px;
+  }
+  .ml-8 {
+    margin-left: 8px;
+  }
+  .gap-8 {
+    column-gap: 8px;
+  }
   .email-tooltip {
     position: absolute;
     right: 10px;
@@ -34,7 +57,7 @@
     background-color: #fff;
     display: flex;
     flex-direction: column;
-    padding: 16px 28px;
+    padding: 0 28px 16px;
     border-bottom: 1px solid #eeeeef;
   }
   .light {
@@ -82,8 +105,8 @@
   }
   min-height: calc(100vh - 152px);
   .breadcrump {
-    margin-left: 0px;
-    margin-bottom: 10px;
+    margin-left: -8px;
+    margin-bottom: 8px;
     padding-left: 0;
   }
   .product-tabs {
@@ -146,21 +169,21 @@
   justify-content: end;
 }
 .editable-row {
-  margin-left: 16px; 
+  margin-left: 16px;
   font-weight: 600;
 }
-.back-to-user-management {
-  font-size: 14px;
-  display: flex;
-    justify-content: center;
-    align-items: center;
-  text-decoration: none;
-  border-bottom: 1px solid transparent;
-}
-.back-to-user-management:hover {
-  text-decoration: none;
-  border-bottom: 1px solid transparent;
-}
+// .back-to-user-management {
+//   font-size: 14px;
+//   display: flex;
+//   justify-content: center;
+//   align-items: center;
+//   text-decoration: none;
+//   border-bottom: 1px solid transparent;
+// }
+// .back-to-user-management:hover {
+//   text-decoration: none;
+//   border-bottom: 1px solid transparent;
+// }
 .chevron-left {
   font-size: 16px;
 }
