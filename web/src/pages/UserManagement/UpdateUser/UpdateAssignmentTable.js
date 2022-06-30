@@ -320,6 +320,9 @@ const UserAssignmentTable = ({
       if (!viewRow.roles.length) {
         toast.showErrorMessage("A role is required");
       } else {
+        const removedRoles = initialTableRoles[viewRow.prot_id].filter(
+          (e) => viewRow.roles.map((r) => r.value).indexOf(e.value) === -1
+        );
         const email = targetUser.usr_mail_id;
         const uid = targetUser?.sAMAccountName;
         const formattedRows = [
@@ -327,12 +330,24 @@ const UserAssignmentTable = ({
             protocolname: tableStudies[rowIndex].prot_nbr_stnd,
             id: tableStudies[rowIndex].prot_id,
             roles: tableStudies[rowIndex].roles.map((r) => r.value),
+            roleIds: tableStudies[rowIndex].roles.map((r) => r.value),
+            isValid: true,
+          },
+        ];
+        const removedProtocols = [
+          {
+            protocolname: tableStudies[rowIndex].prot_nbr_stnd,
+            id: tableStudies[rowIndex].prot_id,
+            roles: removedRoles.map((r) => r.value),
+            roleIds: removedRoles.map((r) => r.value),
+            isValid: true,
           },
         ];
         const newFormattedRows = formattedRows.filter((e) => e.id);
         const insertUserStudy = {
           email,
           protocols: newFormattedRows,
+          removedProtocols,
         };
         let payload = {};
         const splittedNames = targetUser?.displayName?.split(", ") || [];
