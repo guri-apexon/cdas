@@ -420,7 +420,9 @@ const AddUser = () => {
                         onMouseLeave={(e) => showEmailToolTip("hide")}
                         gutterBottom
                         noWrap
-                        className="user-update-font-500 mt-2"
+                        className={`user-update-font-500 mt-2 ${
+                          showEmailTooTip && "cursor-pointer"
+                        }`}
                       >
                         {targetUser?.usr_mail_id}
                       </Typography>
