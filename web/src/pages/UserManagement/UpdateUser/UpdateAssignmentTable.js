@@ -392,7 +392,7 @@ const UserAssignmentTable = ({
           <div className="flex flex-end w-100">
             <Tooltip disableFocusListener>
               <IconMenuButton id="actions-2" menuItems={menuItems} size="small">
-                <EllipsisVertical />
+                <EllipsisVertical className="cursor-pointer" />
               </IconMenuButton>
             </Tooltip>
           </div>
@@ -581,28 +581,30 @@ const UserAssignmentTable = ({
     const [disableSaveBtn, setDisableSaveBtn] = useState(true);
 
     const editModalStudyRow = (e, value, reason, index, key) => {
-      setDisableSaveBtn(true);
-      const tempModalTableStudies = modalTableStudies.map((s) => ({
-        ...s,
-        alreadyExist: false,
-      }));
-      const duplicateIndex1 = tempModalTableStudies.findIndex(
-        (s) => s.prot_id === value.prot_id
-      );
-      const duplicateIndex2 = tableStudies.findIndex(
-        (s) => s.prot_id === value.prot_id
-      );
-      tempModalTableStudies[index].protocolname = value.prot_nbr_stnd;
-      tempModalTableStudies[index].prot_nbr_stnd = value.prot_nbr_stnd;
-      tempModalTableStudies[index].prot_id = value.prot_id;
-      if (duplicateIndex1 > -1 || duplicateIndex2 > -1) {
-        tempModalTableStudies[index].alreadyExist = true;
-      } else {
-        tempModalTableStudies.push({
-          ...getModalStudyObj(index),
-        });
+      if (value) {
+        setDisableSaveBtn(true);
+        const tempModalTableStudies = modalTableStudies.map((s) => ({
+          ...s,
+          alreadyExist: false,
+        }));
+        const duplicateIndex1 = tempModalTableStudies.findIndex(
+          (s) => s.prot_id === value?.prot_id
+        );
+        const duplicateIndex2 = tableStudies.findIndex(
+          (s) => s.prot_id === value?.prot_id
+        );
+        tempModalTableStudies[index].protocolname = value?.prot_nbr_stnd;
+        tempModalTableStudies[index].prot_nbr_stnd = value?.prot_nbr_stnd;
+        tempModalTableStudies[index].prot_id = value?.prot_id;
+        if (duplicateIndex1 > -1 || duplicateIndex2 > -1) {
+          tempModalTableStudies[index].alreadyExist = true;
+        } else {
+          tempModalTableStudies.push({
+            ...getModalStudyObj(index),
+          });
+        }
+        setModalTableStudies([...tempModalTableStudies]);
       }
-      setModalTableStudies([...tempModalTableStudies]);
     };
 
     const EditableStudy = ({ row, column: { accessor: key } }) => {
@@ -760,7 +762,7 @@ const UserAssignmentTable = ({
           open={openCancelModal}
           onClose={(e) => setOpenCancelModal(false)}
           className="save-confirm"
-          disableBackdropClick="true"
+          disableBackdropClick={true}
           variant="warning"
           title="Lose your work?"
           message="All unsaved changes will be lost."

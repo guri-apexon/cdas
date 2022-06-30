@@ -2,6 +2,7 @@ import moment from "moment";
 import React from "react";
 import AutocompleteV2 from "apollo-react/components/AutocompleteV2";
 import DateRangePickerV2 from "apollo-react/components/DateRangePickerV2";
+import DatePickerV2 from "apollo-react/components/DatePickerV2";
 import { TextField } from "apollo-react/components/TextField/TextField";
 import { IDLE_LOGOUT_TIME } from "./constants";
 
@@ -357,28 +358,57 @@ export const numberSearchFilter = (accessor) => {
     return rowVal === filterVal;
   };
 };
+export const dateFilterCustom = (accessor) => (row, filters) => {
+  if (!filters[accessor]) {
+    return true;
+  }
+  if (!row[accessor]) {
+    return false;
+  }
+  const date = moment(row[accessor]).format("DD-MMM-YYYY");
+
+  const selectDate = moment(filters[accessor]).format("DD-MMM-YYYY");
+  console.log(selectDate === date);
+  return selectDate === date;
+};
 
 export const DateFilter = ({ accessor, filters, updateFilterValue }) => {
   return (
-    <div style={{ minWidth: 230 }}>
-      <div style={{ position: "absolute", top: 0, paddingRight: 4 }}>
-        <DateRangePickerV2
-          value={filters[accessor] || [null, null]}
-          name={accessor}
-          onChange={(value) =>
-            updateFilterValue({
-              target: { name: accessor, value },
-            })
-          }
-          startLabel=""
-          endLabel=""
-          placeholder=""
-          fullWidth
-          margin="none"
-          size="small"
-        />
-      </div>
+    <div style={{ marginTop: "-21px" }}>
+      <DatePickerV2
+        value={filters[accessor]}
+        onChange={(value) => {
+          updateFilterValue({
+            target: { name: accessor, value },
+          });
+        }}
+        placeholder=""
+        label=""
+        fullWidth
+        margin=""
+        dateFormat="DD-MMM-YYYY"
+        size="small"
+      />
     </div>
+    // <div style={{ minWidth: 180 }}>
+    //   <div style={{ position: "absolute", top: 0, paddingRight: 4 }}>
+    //     {/* <DateRangePickerV2
+    //       value={filters[accessor] || [null, null]}
+    //       name={accessor}
+    //       onChange={(value) =>
+    //         updateFilterValue({
+    //           target: { name: accessor, value },
+    //         })
+    //       }
+    //       startLabel=""
+    //       endLabel=""
+    //       placeholder=""
+    //       fullWidth
+    //       margin="none"
+    //       size="small"
+    //     /> */}
+    //   </div>
+    // </div>
   );
 };
 
