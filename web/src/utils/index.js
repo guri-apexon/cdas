@@ -453,6 +453,13 @@ export const getAppUrl = (app) => {
         process.env.REACT_APP_CDI_URL ||
         `${window.location.protocol}//${window.location.hostname}:3000`;
       break;
+
+    case "CDM":
+      appUrl =
+        process.env.REACT_APP_CDM_URL ||
+        `${window.location.protocol}//${window.location.hostname}:3000`;
+      break;
+
     default:
       appUrl = `${window.location.protocol}//${window.location.hostname}:3000`;
       break;

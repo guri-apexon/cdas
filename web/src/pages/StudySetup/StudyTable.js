@@ -216,7 +216,7 @@ export default function StudyTable({ studyData, studyboardData, refreshData }) {
       }),
     },
     {
-      header: "Protocol Status",
+      header: "Study status",
       accessor: "protocolstatus",
       sortFunction: compareStrings,
       customCell: Statuscell,
