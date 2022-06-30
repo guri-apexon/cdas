@@ -183,21 +183,22 @@ exports.assignmentUpdate = async (req, res, returnBool = false) => {
   const user = await userHelper.findByEmail(email);
 
   // update database and insert logs
-  const assignmentResult = await assignmentHelper.makeAssignmentsInactive(
-    removedProtocols,
-    user,
-    createdBy,
-    createdOn
-  );
-  if (!assignmentResult) {
-    return returnBool
-      ? false
-      : apiResponse.ErrorResponse(
-          res,
-          "Assignment not found / already inactive"
-        );
+  if (removedProtocols.length) {
+    const assignmentResult = await assignmentHelper.makeAssignmentsInactive(
+      removedProtocols,
+      user,
+      createdBy,
+      createdOn
+    );
+    if (!assignmentResult) {
+      return returnBool
+        ? false
+        : apiResponse.ErrorResponse(
+            res,
+            "Assignment not found / already inactive"
+          );
+    }
   }
-
   // save it to the database
   const saveResult = await assignmentHelper.updateAssignments(
     protocols,
@@ -205,7 +206,6 @@ exports.assignmentUpdate = async (req, res, returnBool = false) => {
     createdBy,
     createdOn
   );
-
   if (!saveResult.success)
     return returnBool
       ? false

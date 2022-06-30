@@ -338,15 +338,18 @@ const UserAssignmentTable = ({
             isValid: true,
           },
         ];
-        const removedProtocols = [
-          {
-            protocolname: tableStudies[rowIndex].prot_nbr_stnd,
-            id: tableStudies[rowIndex].prot_id,
-            roles: removedRoles.map((r) => r.value),
-            roleIds: removedRoles.map((r) => r.value),
-            isValid: true,
-          },
-        ];
+        let removedProtocols = [];
+        if (removedRoles.length) {
+          removedProtocols = [
+            {
+              protocolname: tableStudies[rowIndex].prot_nbr_stnd,
+              id: tableStudies[rowIndex].prot_id,
+              roles: removedRoles.map((r) => r.value),
+              roleIds: removedRoles.map((r) => r.value),
+              isValid: true,
+            },
+          ];
+        }
         const newFormattedRows = formattedRows.filter((e) => e.id);
         const insertUserStudy = {
           email,
