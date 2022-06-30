@@ -326,7 +326,7 @@ const AddNewUserModal = ({
     <>
       <Modal
         open={openModal}
-        disableBackdropClick="true"
+        disableBackdropClick={true}
         onClose={handleClose}
         title="Add New Users"
         buttonProps={[

@@ -286,7 +286,7 @@ const AppHeader = ({ history, setLoggedIn }) => {
     return (
       <Modal
         open={showVersionModal}
-        disableBackdropClick="true"
+        disableBackdropClick={true}
         onClose={closeModal}
         message={
           <div>
