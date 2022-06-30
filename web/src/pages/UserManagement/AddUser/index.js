@@ -77,7 +77,7 @@ const ConfirmModal = React.memo(({ open, cancel, stayHere, loading }) => {
       open={open}
       onClose={stayHere}
       className="save-confirm"
-      disableBackdropClick="true"
+      disableBackdropClick={true}
       variant="warning"
       title="Lose your work?"
       message="All unsaved changes will be lost."
@@ -96,7 +96,7 @@ const InviteUserModal = ({ open, onSendInvite, stayHere, loading, email }) => {
       open={open}
       onClose={stayHere}
       className="save-confirm"
-      disableBackdropClick="true"
+      disableBackdropClick={true}
       title="Invite User?"
       id="neutral"
       buttonProps={[

@@ -82,7 +82,7 @@ const ConfirmModal = React.memo(({ confirmObj, cancel, cstmCancelBtn }) => {
     <Modal
       open={confirmObj}
       onClose={cancel}
-      disableBackdropClick="true"
+      disableBackdropClick={true}
       className="save-confirm"
       variant="warning"
       title="Lose your work?"

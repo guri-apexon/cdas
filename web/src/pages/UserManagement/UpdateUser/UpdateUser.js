@@ -92,7 +92,7 @@ const Value = ({ children }) => {
 //       open={open}
 //       onClose={stayHere}
 //       className="save-confirm"
-//       disableBackdropClick="true"
+//       disableBackdropClick={true}
 //       variant="warning"
 //       title="Lose your work?"
 //       message="All unsaved changes will be lost."

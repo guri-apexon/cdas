@@ -762,7 +762,7 @@ const UserAssignmentTable = ({
           open={openCancelModal}
           onClose={(e) => setOpenCancelModal(false)}
           className="save-confirm"
-          disableBackdropClick="true"
+          disableBackdropClick={true}
           variant="warning"
           title="Lose your work?"
           message="All unsaved changes will be lost."
