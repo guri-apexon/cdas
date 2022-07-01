@@ -57,7 +57,6 @@ exports.studyRevoke = async (studyId, userIds, createdBy, createdOn) => {
         headers: FSR_HEADERS,
       }
     );
-
     if (result?.data?.code === 200) return true;
   } catch (error) {
     Logger.error("studyHelper > studyGrant", error);
@@ -67,11 +66,9 @@ exports.studyRevoke = async (studyId, userIds, createdBy, createdOn) => {
 
 exports.studyUpdateModification = async (studyId, updatedOn) => {
   try {
-    console.log(">>>", studyId, updatedOn);
     const result = await DB.executeQuery(
       `UPDATE ${schemaName}.study SET updt_tm='${updatedOn}' WHERE  prot_id ='${studyId}'`
     );
-    console.log(">> result", result.rowCount);
     return true;
   } catch (error) {}
   return false;
