@@ -334,10 +334,9 @@ exports.updateAssignments = async (protocols, user, createdBy, createdOn) => {
   let success = true;
   for (let i = 0; i < protocols.length; i++) {
     const protocol = protocols[i];
-    // if (!protocol.roleIds || !protocol.isValid) continue;
+    if (!protocol.roleIds || !protocol.isValid) continue;
     for (let j = 0; j < protocol.roles.length; j++) {
       const roleId = protocol.roles[j];
-      console.log({ protocol, user });
       const result = await this.insertUserStudyRole(
         user.usr_id,
         protocol.id,
@@ -345,16 +344,13 @@ exports.updateAssignments = async (protocols, user, createdBy, createdOn) => {
         createdBy || "",
         createdOn || getCurrentTime()
       );
-
-      console.log({ result });
-
-      // if (result.success) {
-      //   protocolsInserted += result.protocolsInserted;
-      //   studyRolesUserInserted += result.studyRolesUserInserted;
-      // } else {
-      //   Logger.error("assignmentCreate > saveToDb > " + protocol.name);
-      //   success = false;
-      // }
+      if (result.success) {
+        protocolsInserted += result.protocolsInserted;
+        studyRolesUserInserted += result.studyRolesUserInserted;
+      } else {
+        Logger.error("assignmentCreate > saveToDb > " + protocol.name);
+        success = false;
+      }
     }
   }
   return { success, protocolsInserted, studyRolesUserInserted };

@@ -26,17 +26,18 @@ import {
 } from "../../../services/ApiServices";
 import { MessageContext } from "../../../components/Providers/MessageProvider";
 import { getStudyboardData } from "../../../store/actions/StudyBoardAction";
-import MultiSelect from "../../../components/MultiSelect";
-import { TextFieldFilter } from "../../../utils/index";
+import { getOverflowLimit, TextFieldFilter } from "../../../utils/index";
 
 const UserAssignmentTable = ({
   updateChanges,
-  updateUserAssign,
   userId,
   targetUser,
   showRolePopup,
   setShowRolePopup,
   userUpdating,
+  readOnly,
+  canUpdate,
+  updateInProgress,
 }) => {
   const toast = useContext(MessageContext);
   const dispatch = useDispatch();
@@ -152,83 +153,49 @@ const UserAssignmentTable = ({
     getStudyList();
   }, [studyData]);
 
-  const editRoleRow = (e, value, reason, index, key) => {
-    updateChanges();
-    let alreadyExist;
-    if (value) {
-      setInitialRender(true);
-    } else {
-      setInitialRender(false);
-    }
-    if (key === "prot_nbr_stnd" && value) {
-      alreadyExist = tableStudies.find(
-        (x) => x.prot_nbr_stnd === value.prot_nbr_stnd
-      )
-        ? true
-        : false;
-    }
-    const tableIndex = tableStudies.findIndex((el) => el.index === index);
-    setTableStudies((rows) => {
-      const newRows = rows.map((row) => {
-        if (row.index === index) {
-          if (key === "prot_nbr_stnd") {
-            return { ...row, [key]: value.prot_nbr_stnd, alreadyExist };
-          }
-          return { ...row, [key]: value.prot_nbr_stnd };
-        }
-        return row;
-      });
-      if (
-        !alreadyExist &&
-        key === "prot_nbr_stnd" &&
-        value &&
-        tableIndex + 1 === tableStudies.length
-      ) {
-        return [...newRows, getStudyObj()];
-      }
-      return newRows;
-    });
-  };
-
-  const StudySelected = ({ row }) => {
-    return row?.prot_nbr_stnd || "";
+  const StudySelected = ({ isEdit, row }) => {
+    return <div className={isEdit}>{row?.prot_nbr_stnd || ""}</div>;
   };
 
   const RolesSelected = ({ roles }) => {
     const uRoles = roles.length ? roles.map((e) => e.label).join(", ") : "";
+    const charLimit = getOverflowLimit("50%", 80);
     return (
       <Tooltip
-        variant="light"
+        variant="dark"
         title={uRoles}
         placement="left"
         style={{ marginRight: 48 }}
       >
         <Typography variant="body2" className="">
-          {uRoles.length > 50 ? `${uRoles.substring(0, 50)} ...` : uRoles}
+          {uRoles && uRoles.length > charLimit
+            ? `${uRoles.slice(0, charLimit - 5)}[...]`
+            : uRoles}
         </Typography>
       </Tooltip>
     );
   };
 
   const ViewStudy = ({ row, column: { accessor: key } }) => {
+    const isEdit = row?.isEdit ? "editable-row" : "";
     return (
       <div className="study">
-        <StudySelected row={row} />
+        <StudySelected isEdit={isEdit} row={row} />
       </div>
     );
   };
-  const [viewRoleLength, setViewRoleLength] = useState({});
   const ViewRoles = ({ row, column: { accessor: key } }) => {
     const tableIndex = tableStudies.findIndex((el) => el.index === row.index);
     const [viewRoleValue, setViewRoleValue] = useState(
       tableStudies[tableIndex]?.roles || []
     );
     const editViewRow = (e, v, r) => {
-      setViewRoleLength({
-        ...viewRoleLength,
-        [tableStudies[tableIndex].prot_id]: v.length,
-      });
       setViewRoleValue([...v]);
+      if (r === "remove-option") {
+        const copy = [...tableStudies];
+        copy[tableIndex].roles = [...v];
+        setTableStudies(copy);
+      }
     };
     const updateTableStudies = (v) => {
       const copy = [...tableStudies];
@@ -260,6 +227,8 @@ const UserAssignmentTable = ({
             disableCloseOnSelect
             alwaysLimitChips
             enableVirtualization
+            error={!viewRoleValue.length}
+            helperText={!viewRoleValue.length ? "A role is required" : ""}
           />
         ) : (
           <RolesSelected roles={row?.roles || []} />
@@ -327,10 +296,11 @@ const UserAssignmentTable = ({
   };
 
   const DeleteViewStudy = ({ row }) => {
-    if (targetUser?.usr_stat !== "Active") return false;
+    if (targetUser?.usr_stat !== "Active" || readOnly) return false;
     const rowIndex = tableStudies.findIndex((e) => e.prot_id === row.prot_id);
     const handleMenuClick = (label) => () => {
       if (label === "edit") {
+        updateInProgress(true);
         setInitialTableRoles({
           ...initialTableRoles,
           [tableStudies[rowIndex].prot_id]: tableStudies[rowIndex].roles,
@@ -342,6 +312,7 @@ const UserAssignmentTable = ({
     };
 
     const cancelEdit = () => {
+      updateInProgress(false);
       tableStudies[rowIndex].roles =
         initialTableRoles[tableStudies[rowIndex].prot_id];
       setTableStudies([...tableStudies]);
@@ -349,9 +320,13 @@ const UserAssignmentTable = ({
     };
 
     const saveEdit = async (viewRow) => {
-      if (!viewRoleLength[viewRow.prot_id]) {
+      updateInProgress(false);
+      if (!viewRow.roles.length) {
         toast.showErrorMessage("A role is required");
       } else {
+        const removedRoles = initialTableRoles[viewRow.prot_id].filter(
+          (e) => viewRow.roles.map((r) => r.value).indexOf(e.value) === -1
+        );
         const email = targetUser.usr_mail_id;
         const uid = targetUser?.sAMAccountName;
         const formattedRows = [
@@ -359,12 +334,27 @@ const UserAssignmentTable = ({
             protocolname: tableStudies[rowIndex].prot_nbr_stnd,
             id: tableStudies[rowIndex].prot_id,
             roles: tableStudies[rowIndex].roles.map((r) => r.value),
+            roleIds: tableStudies[rowIndex].roles.map((r) => r.value),
+            isValid: true,
           },
         ];
+        let removedProtocols = [];
+        if (removedRoles.length) {
+          removedProtocols = [
+            {
+              protocolname: tableStudies[rowIndex].prot_nbr_stnd,
+              id: tableStudies[rowIndex].prot_id,
+              roles: removedRoles.map((r) => r.value),
+              roleIds: removedRoles.map((r) => r.value),
+              isValid: true,
+            },
+          ];
+        }
         const newFormattedRows = formattedRows.filter((e) => e.id);
         const insertUserStudy = {
           email,
           protocols: newFormattedRows,
+          removedProtocols,
         };
         let payload = {};
         const splittedNames = targetUser?.displayName?.split(", ") || [];
@@ -422,7 +412,7 @@ const UserAssignmentTable = ({
           <div className="flex flex-end w-100">
             <Tooltip disableFocusListener>
               <IconMenuButton id="actions-2" menuItems={menuItems} size="small">
-                <EllipsisVertical />
+                <EllipsisVertical className="cursor-pointer" />
               </IconMenuButton>
             </Tooltip>
           </div>
@@ -431,17 +421,10 @@ const UserAssignmentTable = ({
     );
   };
 
-  // useEffect(() => {
-  //   if (pingParent !== 0) {
-  //     AssignUser();
-  //   }
-  // }, [pingParent]);
-
   const getUserStudyRoles = async () => {
     const userStudy = await getUserStudyAndRoles(userId);
     if (userStudy.status) {
       const userSutdyRes = userStudy.data.map((e, i) => ({ ...e, index: i }));
-      console.log({ userSutdyRes });
       setTableStudies([...userSutdyRes, getStudyObj()]);
     }
     setLoad(true);
@@ -462,11 +445,11 @@ const UserAssignmentTable = ({
   const CustomButtonHeader = ({ toggleFilters }) => {
     return (
       <div>
-        {targetUser?.usr_stat === "Active" && (
+        {targetUser?.usr_stat === "Active" && canUpdate && (
           <Button
             size="small"
             variant="secondary"
-            icon={PlusIcon}
+            icon={<PlusIcon size="small" />}
             disabled={userUpdating}
             onClick={() => setUserAssignmentModal(true)}
           >
@@ -499,7 +482,7 @@ const UserAssignmentTable = ({
     {
       header: "Role",
       accessor: "roles",
-      width: "55%",
+      width: "67%",
       customCell: ViewRoles,
       filterFunction: compareStringOfArraySearchFilter("roles"),
       filterComponent: MultiSelectFilter,
@@ -507,7 +490,7 @@ const UserAssignmentTable = ({
     {
       header: "",
       accessor: "delete",
-      width: "20%",
+      width: "8%",
       customCell: DeleteViewStudy,
     },
   ];
@@ -615,47 +598,33 @@ const UserAssignmentTable = ({
     const [modalTableStudies, setModalTableStudies] = useState([
       getModalStudyObj(),
     ]);
+    const [disableSaveBtn, setDisableSaveBtn] = useState(true);
 
     const editModalStudyRow = (e, value, reason, index, key) => {
-      const tempModalTableStudies = modalTableStudies.map((s) => ({
-        ...s,
-        alreadyExist: false,
-      }));
-      const duplicateIndex1 = tempModalTableStudies.findIndex(
-        (s) => s.prot_id === value.prot_id
-      );
-      const duplicateIndex2 = tableStudies.findIndex(
-        (s) => s.prot_id === value.prot_id
-      );
-      tempModalTableStudies[index].protocolname = value.prot_nbr_stnd;
-      tempModalTableStudies[index].prot_nbr_stnd = value.prot_nbr_stnd;
-      tempModalTableStudies[index].prot_id = value.prot_id;
-      if (duplicateIndex1 > -1 || duplicateIndex2 > -1) {
-        tempModalTableStudies[index].alreadyExist = true;
-      } else {
-        tempModalTableStudies.push({
-          ...getModalStudyObj(index),
-        });
-      }
-      setModalTableStudies([...tempModalTableStudies]);
-    };
-
-    const editModalRoleRow = (e, value, reason, index, key) => {
-      updateChanges();
       if (value) {
-        setInitialRender(true);
-      } else {
-        setInitialRender(false);
+        setDisableSaveBtn(true);
+        const tempModalTableStudies = modalTableStudies.map((s) => ({
+          ...s,
+          alreadyExist: false,
+        }));
+        const duplicateIndex1 = tempModalTableStudies.findIndex(
+          (s) => s.prot_id === value?.prot_id
+        );
+        const duplicateIndex2 = tableStudies.findIndex(
+          (s) => s.prot_id === value?.prot_id
+        );
+        tempModalTableStudies[index].protocolname = value?.prot_nbr_stnd;
+        tempModalTableStudies[index].prot_nbr_stnd = value?.prot_nbr_stnd;
+        tempModalTableStudies[index].prot_id = value?.prot_id;
+        if (duplicateIndex1 > -1 || duplicateIndex2 > -1) {
+          tempModalTableStudies[index].alreadyExist = true;
+        } else {
+          tempModalTableStudies.push({
+            ...getModalStudyObj(index),
+          });
+        }
+        setModalTableStudies([...tempModalTableStudies]);
       }
-      setModalTableStudies((rows) => {
-        const newRows = rows.map((row) => {
-          if (row.index === index) {
-            return { ...row, [key]: value };
-          }
-          return row;
-        });
-        return newRows;
-      });
     };
 
     const EditableStudy = ({ row, column: { accessor: key } }) => {
@@ -681,7 +650,7 @@ const UserAssignmentTable = ({
             }
             helperText={
               row.alreadyExist
-                ? "This study already has assignments. Please select a different study to continue."
+                ? "Study already has assignments. Select a different study"
                 : !initialRender &&
                   !row[key] &&
                   row.index !==
@@ -694,19 +663,51 @@ const UserAssignmentTable = ({
     };
 
     const EditableRoles = ({ row, column: { accessor: key } }) => {
+      const tableIndex = modalTableStudies.findIndex(
+        (el) => el.index === row.index
+      );
+      const [value, setValue] = useState(
+        modalTableStudies[tableIndex]?.roles || []
+      );
       if (row.index === modalTableStudies[modalTableStudies.length - 1]?.index)
         return false;
+
+      const editModalRoleRow = (e, v, r) => {
+        if (r === "remove-option") {
+          setDisableSaveBtn(v.length ? false : true);
+          const copy = [...modalTableStudies];
+          copy[tableIndex].roles = [...v];
+          setModalTableStudies(copy);
+        }
+        setValue([...v]);
+      };
+      const updateTableStudies = (v) => {
+        const copy = [...modalTableStudies];
+        copy[tableIndex].roles = [...v];
+        setModalTableStudies(copy);
+        setDisableSaveBtn(v.length ? false : true);
+      };
       return (
         <div className="role">
-          <MultiSelect
-            roleLists={roleLists}
-            row={row}
-            rowKey={key}
-            tableStudies={modalTableStudies}
-            setTableStudies={setModalTableStudies}
-            editRow={(e, v, r, rowIndex, rowKey) =>
-              editModalRoleRow(e, v, r, rowIndex, rowKey)
-            }
+          <AutocompleteV2
+            placeholder={!value.length ? "Choose one or more roles" : ""}
+            size="small"
+            fullWidth
+            multiple
+            forcePopupIcon
+            showCheckboxes
+            chipColor="white"
+            source={roleLists}
+            limitChips={5}
+            value={value}
+            onChange={(e, v, r) => editModalRoleRow(e, v, r)}
+            onBlur={() => updateTableStudies(value)}
+            filterSelectedOptions={false}
+            blurOnSelect={false}
+            clearOnBlur={false}
+            disableCloseOnSelect
+            alwaysLimitChips
+            enableVirtualization
           />
         </div>
       );
@@ -781,7 +782,7 @@ const UserAssignmentTable = ({
           open={openCancelModal}
           onClose={(e) => setOpenCancelModal(false)}
           className="save-confirm"
-          disableBackdropClick="true"
+          disableBackdropClick={true}
           variant="warning"
           title="Lose your work?"
           message="All unsaved changes will be lost."
@@ -801,6 +802,8 @@ const UserAssignmentTable = ({
           className="save-confirm user-assignment-modal"
           variant="default"
           title="Add User Assignment"
+          hideButtons={false}
+          disableBackdropClick={true}
           buttonProps={[
             {
               label: "Cancel",
@@ -810,17 +813,17 @@ const UserAssignmentTable = ({
             {
               label: "Save",
               onClick: updateModalAssignment,
-              disabled: loading,
+              disabled: disableSaveBtn,
             },
           ]}
-          id="neutral2"
+          id="user-update-assignment-modal"
         >
           <Table
             isLoading={!load}
             columns={assignUserColumns}
             rows={modalTableStudies}
             initialSortOrder="asc"
-            rowProps={{ hover: false }}
+            rowProps={{ hover: false, className: "add-user-modal-row" }}
             hidePagination={true}
             emptyProps={{ content: <EmptyTableContent /> }}
           />
@@ -832,23 +835,23 @@ const UserAssignmentTable = ({
   const EmptyTableContent = () => {
     return (
       <>
-        <Typography variant="body2" className="">
-          <Rocket />
+        <Typography variant="body2" className="empty-grey">
+          <Rocket className="user-rocket-icon" />
         </Typography>
-        <Typography variant="body2" className="">
+        <Typography variant="title1" className="title empty-grey">
           Nothing to See Here
         </Typography>
-        <Typography variant="body2" className="">
+        <Typography variant="body2" className="empty-grey">
           At least one assignment is needed to access any CDAS product
         </Typography>
-        {targetUser?.usr_stat === "Active" && (
+        {targetUser?.usr_stat === "Active" && canUpdate && (
           <Button
             size="small"
             variant="secondary"
-            icon={PlusIcon}
             disabled={userUpdating}
             onClick={() => setUserAssignmentModal(true)}
           >
+            <PlusIcon className="user-small-plus-icon mr-2" />
             Add user assignment
           </Button>
         )}

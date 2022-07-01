@@ -37,7 +37,7 @@ const ConfirmModal = React.memo(({ open, cancel, closeModal, loading }) => {
   return (
     <Modal
       open={open}
-      disableBackdropClick="true"
+      disableBackdropClick={true}
       onClose={closeModal}
       className="save-confirm"
       variant="warning"

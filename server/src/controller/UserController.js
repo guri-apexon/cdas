@@ -545,7 +545,7 @@ exports.secureApi = async (req, res) => {
 };
 
 const getUserStudyRoles = async (prot_id, userId) => {
-  const userRolesQuery = `SELECT r.role_nm AS label, r.role_id AS value from ${schemaName}.study_user_role AS sur LEFT JOIN ${schemaName}.role AS r ON sur.role_id=r.role_id WHERE sur.prot_id='${prot_id}' AND sur.usr_id='${userId}' ORDER BY r.role_nm ASC`;
+  const userRolesQuery = `SELECT r.role_nm AS label, r.role_id AS value from ${schemaName}.study_user_role AS sur LEFT JOIN ${schemaName}.role AS r ON sur.role_id=r.role_id WHERE sur.prot_id='${prot_id}' AND sur.usr_id='${userId}' AND sur.act_flg=1 ORDER BY r.role_nm ASC`;
   return await DB.executeQuery(userRolesQuery).then((res) => res.rows);
 };
 
@@ -836,7 +836,6 @@ exports.checkInvitedStatus = async () => {
 
 exports.updateUserAssignments = async (req, res) => {
   const newReq = { ...req };
-  // console.log({ newReq });
   const query = `SELECT tenant_nm FROM ${schemaName}.tenant LIMIT 1`;
   try {
     const result = await DB.executeQuery(query);
@@ -848,7 +847,7 @@ exports.updateUserAssignments = async (req, res) => {
   } catch (error) {
     return apiResponse.ErrorResponse(res, "Unable to fetch tenant");
   }
-  newReq.body["createdBy"] = newReq.body.userId;
+  newReq.body["createdBy"] = newReq.body.updatedBy;
   newReq.body["createdOn"] = getCurrentTime();
 
   const assignmentResponse = AssignmentController.assignmentUpdate(
@@ -856,11 +855,10 @@ exports.updateUserAssignments = async (req, res) => {
     res,
     true
   );
-  assignmentResponse.then((e) => console.log({ e }));
   if (assignmentResponse) {
     return apiResponse.successResponse(
       res,
-      `Assignments Updated Successfully.`
+      `Assignments updated successfully.`
     );
   }
   return apiResponse.ErrorResponse(
@@ -871,7 +869,6 @@ exports.updateUserAssignments = async (req, res) => {
 
 exports.deleteUserAssignments = async (req, res) => {
   const newReq = { ...req };
-  // console.log({ newReq });
   const query = `SELECT tenant_nm FROM ${schemaName}.tenant LIMIT 1`;
   try {
     const result = await DB.executeQuery(query);
@@ -892,7 +889,6 @@ exports.deleteUserAssignments = async (req, res) => {
     res,
     true
   );
-  assignmentResponse.then((e) => console.log({ e }));
   if (assignmentResponse) {
     return apiResponse.successResponse(
       res,

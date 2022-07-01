@@ -8,7 +8,7 @@ const Logout = () => {
     <div className="wrapper">
       <Modal
         open={true}
-        disableBackdropClick="true"
+        disableBackdropClick={true}
         variant="error"
         title="Logged out"
         message="Thank you for using the Clinical Data Analytics Suite. You are now logged out."
