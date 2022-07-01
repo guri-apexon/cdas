@@ -64,3 +64,15 @@ exports.studyRevoke = async (studyId, userIds, createdBy, createdOn) => {
   }
   return false;
 };
+
+exports.studyUpdateModification = async (studyId, updatedOn) => {
+  try {
+    console.log(">>>", studyId, updatedOn);
+    const result = await DB.executeQuery(
+      `UPDATE ${schemaName}.study SET updt_tm='${updatedOn}' WHERE  prot_id ='${studyId}'`
+    );
+    console.log(">> result", result.rowCount);
+    return true;
+  } catch (error) {}
+  return false;
+};
