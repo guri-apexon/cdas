@@ -6,7 +6,7 @@ const AlertBox = ({ cancel, submit }) => {
     <Modal
       open={true}
       onClose={cancel}
-      disableBackdropClick="true"
+      disableBackdropClick={true}
       className="save-confirm"
       variant="warning"
       title="Lose your work?"

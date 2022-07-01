@@ -99,10 +99,7 @@ exports.assignmentCreate = async (req, res) => {
 
   return returnBool
     ? false
-    : apiResponse.successResponse(
-        res,
-        "Assignment created Successfully"
-      );
+    : apiResponse.successResponse(res, "Assignment created Successfully");
 };
 
 exports.assignmentRemove = async (req, res) => {
@@ -170,10 +167,10 @@ exports.assignmentRemove = async (req, res) => {
   return apiResponse.successResponse(res, "Assignments removed successfully");
 };
 
-
 exports.assignmentUpdate = async (req, res, returnBool = false) => {
   const data = req.body;
-  const { email, protocols, createdBy, createdOn, tenant } = data;
+  const { email, protocols, removedProtocols, createdBy, createdOn, tenant } =
+    data;
 
   // validate data
   const validate = await assignmentHelper.validateAssignment(data);
@@ -184,6 +181,24 @@ exports.assignmentUpdate = async (req, res, returnBool = false) => {
 
   // validate user
   const user = await userHelper.findByEmail(email);
+
+  // update database and insert logs
+  if (removedProtocols.length) {
+    const assignmentResult = await assignmentHelper.makeAssignmentsInactive(
+      removedProtocols,
+      user,
+      createdBy,
+      createdOn
+    );
+    if (!assignmentResult) {
+      return returnBool
+        ? false
+        : apiResponse.ErrorResponse(
+            res,
+            "Assignment not found / already inactive"
+          );
+    }
+  }
   // save it to the database
   const saveResult = await assignmentHelper.updateAssignments(
     protocols,
@@ -191,9 +206,6 @@ exports.assignmentUpdate = async (req, res, returnBool = false) => {
     createdBy,
     createdOn
   );
-
-  console.log({ saveResult });
-
   if (!saveResult.success)
     return returnBool
       ? false

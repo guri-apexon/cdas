@@ -76,7 +76,7 @@ const ConfirmModal = React.memo(({ open, cancel, stayHere, loading }) => {
       open={open}
       onClose={stayHere}
       className="save-confirm"
-      disableBackdropClick="true"
+      disableBackdropClick={true}
       variant="warning"
       title="Lose your work?"
       message="All unsaved changes will be lost."
@@ -127,7 +127,6 @@ const CreateVendor = () => {
       routerHandle.current();
     }
   };
-  useEffect(() => {});
 
   useEffect(() => {
     if (params.id) {
