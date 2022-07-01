@@ -663,6 +663,7 @@ exports.updateUserStatus = async (req, res) => {
     lastName,
     changed_to,
     updatedBy,
+    employeeId,
   } = req.body;
   console.log(req.body);
   const newReq = { ...req, returnBool: true };
@@ -685,17 +686,22 @@ exports.updateUserStatus = async (req, res) => {
         uid: user_id,
         firstName: firstName,
         lastName: lastName,
-        emai: email_id,
+        email: email_id,
         updatedBy: updatedBy,
         userType: user_type,
       };
       let returnRes = [];
 
-      const provision_response = await userHelper.provisionInternalUser(data);
-      console.log("provision_response", provision_response);
+      let provision_response = null;
+      if (user_type === "internal") {
+        provision_response = await userHelper.provisionInternalUser(data);
+      } else if (user_type === "external") {
+        provision_response = await userHelper.provisionExternalUser(data);
+      }
 
       if (provision_response) {
-        await userHelper.makeUserActive(user_id, user_id);
+        const empId = user_type === "internal" ? user_id : employeeId;
+        await userHelper.makeUserActive(user_id, empId);
 
         const { rows: getStudies } = await DB.executeQuery(
           `SELECT * from ${schemaName}.study_user WHERE usr_id='${user_id}'`
@@ -715,14 +721,17 @@ exports.updateUserStatus = async (req, res) => {
             } = await DB.executeQuery(
               `SELECT * from ${schemaName}.study WHERE prot_id='${prtId}'`
             );
-
-            const grantStudy = await studyHelper.studyGrant(
-              studyObj.prot_nbr_stnd,
-              user_id,
-              updatedBy,
-              createdOn
-            );
-
+            let grantStudy = null;
+            if (user_type === "internal") {
+              grantStudy = await studyHelper.studyGrant(
+                studyObj.prot_nbr_stnd,
+                user_id,
+                updatedBy,
+                createdOn
+              );
+            } else if (user_type === "external") {
+              grantStudy = true;
+            }
             if (grantStudy) {
               const studyUpdate = await DB.executeQuery(
                 `update ${schemaName}.study_user set act_flg=1 , insrt_tm='${createdOn}' WHERE prot_id='${prtId}'`
