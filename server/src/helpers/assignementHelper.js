@@ -148,7 +148,7 @@ exports.makeUserStudyRoleInactive = async (
 ) => {
   const checkStudyUserRoleQuery = `
     SELECT * FROM ${schemaName}.study_user_role 
-    WHERE usr_id='${usr_id}' AND prot_id='${prot_id}' AND role_id='${role_id}' AND act_flg = 1
+    WHERE usr_id='${usr_id}' AND prot_id='${prot_id}' AND role_id='${role_id}' 
     LIMIT 1`;
 
   const updateQuery = `
