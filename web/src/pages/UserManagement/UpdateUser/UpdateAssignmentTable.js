@@ -37,6 +37,7 @@ const UserAssignmentTable = ({
   userUpdating,
   readOnly,
   canUpdate,
+  updateInProgress,
 }) => {
   const toast = useContext(MessageContext);
   const dispatch = useDispatch();
@@ -183,18 +184,18 @@ const UserAssignmentTable = ({
       </div>
     );
   };
-  const [viewRoleLength, setViewRoleLength] = useState({});
   const ViewRoles = ({ row, column: { accessor: key } }) => {
     const tableIndex = tableStudies.findIndex((el) => el.index === row.index);
     const [viewRoleValue, setViewRoleValue] = useState(
       tableStudies[tableIndex]?.roles || []
     );
     const editViewRow = (e, v, r) => {
-      setViewRoleLength({
-        ...viewRoleLength,
-        [tableStudies[tableIndex].prot_id]: v.length,
-      });
       setViewRoleValue([...v]);
+      if (r === "remove-option") {
+        const copy = [...tableStudies];
+        copy[tableIndex].roles = [...v];
+        setTableStudies(copy);
+      }
     };
     const updateTableStudies = (v) => {
       const copy = [...tableStudies];
@@ -227,9 +228,7 @@ const UserAssignmentTable = ({
             alwaysLimitChips
             enableVirtualization
             error={!viewRoleValue.length}
-            helperText={
-              !viewRoleValue.length ? "This study already has assignments." : ""
-            }
+            helperText={!viewRoleValue.length ? "A role is required" : ""}
           />
         ) : (
           <RolesSelected roles={row?.roles || []} />
@@ -301,6 +300,7 @@ const UserAssignmentTable = ({
     const rowIndex = tableStudies.findIndex((e) => e.prot_id === row.prot_id);
     const handleMenuClick = (label) => () => {
       if (label === "edit") {
+        updateInProgress(true);
         setInitialTableRoles({
           ...initialTableRoles,
           [tableStudies[rowIndex].prot_id]: tableStudies[rowIndex].roles,
@@ -312,6 +312,7 @@ const UserAssignmentTable = ({
     };
 
     const cancelEdit = () => {
+      updateInProgress(false);
       tableStudies[rowIndex].roles =
         initialTableRoles[tableStudies[rowIndex].prot_id];
       setTableStudies([...tableStudies]);
@@ -319,9 +320,13 @@ const UserAssignmentTable = ({
     };
 
     const saveEdit = async (viewRow) => {
-      if (!viewRoleLength[viewRow.prot_id]) {
+      updateInProgress(false);
+      if (!viewRow.roles.length) {
         toast.showErrorMessage("A role is required");
       } else {
+        const removedRoles = initialTableRoles[viewRow.prot_id].filter(
+          (e) => viewRow.roles.map((r) => r.value).indexOf(e.value) === -1
+        );
         const email = targetUser.usr_mail_id;
         const uid = targetUser?.sAMAccountName;
         const formattedRows = [
@@ -329,12 +334,27 @@ const UserAssignmentTable = ({
             protocolname: tableStudies[rowIndex].prot_nbr_stnd,
             id: tableStudies[rowIndex].prot_id,
             roles: tableStudies[rowIndex].roles.map((r) => r.value),
+            roleIds: tableStudies[rowIndex].roles.map((r) => r.value),
+            isValid: true,
           },
         ];
+        let removedProtocols = [];
+        if (removedRoles.length) {
+          removedProtocols = [
+            {
+              protocolname: tableStudies[rowIndex].prot_nbr_stnd,
+              id: tableStudies[rowIndex].prot_id,
+              roles: removedRoles.map((r) => r.value),
+              roleIds: removedRoles.map((r) => r.value),
+              isValid: true,
+            },
+          ];
+        }
         const newFormattedRows = formattedRows.filter((e) => e.id);
         const insertUserStudy = {
           email,
           protocols: newFormattedRows,
+          removedProtocols,
         };
         let payload = {};
         const splittedNames = targetUser?.displayName?.split(", ") || [];
