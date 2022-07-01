@@ -188,6 +188,7 @@ const AddUser = () => {
       user_id: targetUser.usr_id,
       firstName: targetUser.usr_fst_nm,
       lastName: targetUser.usr_lst_nm,
+      employeeId: targetUser.extrnl_emp_id,
       changed_to: checked ? "active" : "inactive",
     };
     const res = await updateUserStatus(payload);
@@ -405,7 +406,7 @@ const AddUser = () => {
               icon={<ChevronLeft />}
               size="small"
             >
-              Back to Role Management List
+              Back to User Management List
             </Button>
             {!readOnly && targetUser?.usr_stat !== "Invited" ? (
               <Switch
