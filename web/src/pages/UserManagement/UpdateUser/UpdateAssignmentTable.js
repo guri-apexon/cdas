@@ -503,6 +503,8 @@ const UserAssignmentTable = ({
         protocolname: e?.prot_nbr_stnd,
         id: e?.prot_id,
         roles: e.roles.map((r) => r.value),
+        roleIds: e.roles.map((r) => r.value),
+        isValid: true,
       };
     });
     const newFormattedRows = formattedRows.filter((e) => e.id);
@@ -594,6 +596,7 @@ const UserAssignmentTable = ({
         alreadyExist: false,
       };
     };
+    const lineRefs = React.useRef([React.createRef()]);
 
     const [modalTableStudies, setModalTableStudies] = useState([
       getModalStudyObj(),
@@ -618,12 +621,28 @@ const UserAssignmentTable = ({
         tempModalTableStudies[index].prot_id = value?.prot_id;
         if (duplicateIndex1 > -1 || duplicateIndex2 > -1) {
           tempModalTableStudies[index].alreadyExist = true;
-        } else {
+          setModalTableStudies([...tempModalTableStudies]);
+        } else if (
+          tempModalTableStudies[tempModalTableStudies.length - 1].index ===
+          index
+        ) {
           tempModalTableStudies.push({
             ...getModalStudyObj(index),
           });
+          lineRefs.current = tempModalTableStudies.map((_, i) =>
+            React.createRef()
+          );
+          setModalTableStudies([...tempModalTableStudies]);
+          setTimeout(() => {
+            lineRefs.current[
+              index
+            ].current?.childNodes[0]?.childNodes[0]?.childNodes[0]?.childNodes[1]?.childNodes[1]?.click();
+          }, 500);
+        } else {
+          lineRefs.current[
+            index
+          ].current.childNodes[0].childNodes[0].childNodes[0].childNodes[2]?.childNodes[1]?.click();
         }
-        setModalTableStudies([...tempModalTableStudies]);
       }
     };
 
@@ -690,6 +709,7 @@ const UserAssignmentTable = ({
       return (
         <div className="role">
           <AutocompleteV2
+            ref={lineRefs.current[row.index]}
             placeholder={!value.length ? "Choose one or more roles" : ""}
             size="small"
             fullWidth
