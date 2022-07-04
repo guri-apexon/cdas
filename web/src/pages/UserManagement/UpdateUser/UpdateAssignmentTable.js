@@ -652,7 +652,7 @@ const UserAssignmentTable = ({
     const EditableStudy = ({ row, column: { accessor: key } }) => {
       const editStudyRowIndex = studyList.findIndex((e) => e[key] === row[key]);
       return (
-        <div className="study">
+        <div className="study mr-4">
           <AutocompleteV2
             placeholder="Add new study and role"
             matchFrom="any"
