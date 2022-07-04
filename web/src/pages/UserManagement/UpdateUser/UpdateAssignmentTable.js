@@ -537,6 +537,10 @@ const UserAssignmentTable = ({
       const response = await updateUserAssignments(payload);
       if (response.status === 1) {
         setUserAssignmentModal(false);
+        rowsToUpdate.map((e) => ({
+          ...e,
+          roles: e.roles.sort((a, b) => a.label.localeCompare(b.label)),
+        }));
         setTableStudies([...tableStudies, ...rowsToUpdate]);
         toast.showSuccessMessage(response.message);
       } else {
