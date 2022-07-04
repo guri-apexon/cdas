@@ -483,7 +483,7 @@ const AddUser = () => {
                               icon={<EmailIcon />}
                               size="small"
                               onClick={resendInvitation}
-                              disabled={isSendingInvite}
+                              disabled={isSendingInvite || readOnly}
                             >
                               Resend Invitation
                             </Button>
