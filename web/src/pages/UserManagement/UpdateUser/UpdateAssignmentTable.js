@@ -240,6 +240,9 @@ const UserAssignmentTable = ({
   const updateEditMode = (rowIndex, editMode) => {
     const prevTableStudies = [...tableStudies];
     prevTableStudies[rowIndex].isEdit = editMode;
+    prevTableStudies[rowIndex].roles = prevTableStudies[rowIndex].roles.sort(
+      (a, b) => a.label.localeCompare(b.label)
+    );
     setTableStudies([...prevTableStudies]);
   };
 
