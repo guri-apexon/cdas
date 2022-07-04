@@ -93,24 +93,24 @@ const LaunchPad = () => {
   useEffect(() => {
     const data = checkAccess("Launchpad-Core");
     setHavingCoreAccess(data);
-    if (permissions.length > 0) {
-      if (!data) {
-        msgContext.showErrorMessage(
-          `There was an issue authorizing your login information. Please contact your Administrator.`
-        );
-      }
-    }
+    // if (permissions.length > 0) {
+    //   if (!data) {
+    //     msgContext.showErrorMessage(
+    //       `There was an issue authorizing your login information. Please contact your Administrator.`
+    //     );
+    //   }
+    // }
   }, [permissions]);
 
   return (
     <div className="lauchpad-wrapper">
       <div className="header">
         <div>
-          {havingCoreAccess && (
-            <Typography gutterBottom darkMode>
-              {`Welcome, ${titleCase(fullName)}`}
-            </Typography>
-          )}
+          {/* {havingCoreAccess && ( */}
+          <Typography gutterBottom darkMode>
+            {`Welcome, ${titleCase(fullName)}`}
+          </Typography>
+          {/* )} */}
           <h2>Harness the power of your clinical data</h2>
           {havingCoreAccess && checkAccess("Study Setup ") && (
             <>

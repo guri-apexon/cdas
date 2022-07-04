@@ -1,7 +1,7 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 /* eslint-disable no-useless-escape */
 
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useHistory } from "react-router";
 import { useLocation, useParams } from "react-router-dom";
@@ -9,8 +9,10 @@ import ApolloProgress from "apollo-react/components/ApolloProgress";
 import Tooltip from "apollo-react/components/Tooltip";
 import EmailIcon from "apollo-react-icons/Email";
 import Button from "apollo-react/components/Button";
-
+import InfoIcon from "apollo-react-icons/Info";
+import ChevronLeft from "apollo-react-icons/ChevronLeft";
 import BreadcrumbsUI from "apollo-react/components/Breadcrumbs";
+import * as colors from "apollo-react/colors";
 import Switch from "apollo-react/components/Switch";
 import "./UpdateUser.scss";
 import Typography from "apollo-react/components/Typography";
@@ -92,7 +94,7 @@ const Value = ({ children }) => {
 //       open={open}
 //       onClose={stayHere}
 //       className="save-confirm"
-//       disableBackdropClick="true"
+//       disableBackdropClick={true}
 //       variant="warning"
 //       title="Lose your work?"
 //       message="All unsaved changes will be lost."
@@ -128,6 +130,9 @@ const AddUser = () => {
   const [showRolePopup, setShowRolePopup] = useState(false);
   const [isSendingInvite, setIsSendingInvite] = useState(false);
   const [inactiveStudyRoles, setInactiveStudyRoles] = useState([]);
+  const [showEmailTooTip, setEmailTooTip] = useState(false);
+  const [isUpdateInprogress, setIsUpdateInprogress] = useState(false);
+  const [openCancelModal, setOpenCancelModal] = useState(false);
 
   const keepEditingBtn = () => {
     dispatch(hideAlert());
@@ -183,6 +188,7 @@ const AddUser = () => {
       user_id: targetUser.usr_id,
       firstName: targetUser.usr_fst_nm,
       lastName: targetUser.usr_lst_nm,
+      employeeId: targetUser.extrnl_emp_id,
       changed_to: checked ? "active" : "inactive",
     };
     const res = await updateUserStatus(payload);
@@ -213,7 +219,11 @@ const AddUser = () => {
 
   const goToUser = (e) => {
     e.preventDefault();
-    history.push("/user-management/");
+    if (!isUpdateInprogress) {
+      history.push("/user-management/");
+    } else {
+      setOpenCancelModal(true);
+    }
   };
 
   useEffect(() => {
@@ -284,15 +294,51 @@ const AddUser = () => {
 
   const getInactiveRolesCount = () => {
     return inactiveStudyRoles?.reduce(
-      (acc, study) => acc + study.inactiveRoles.length,
+      (acc, study) => acc + study?.inactiveRoles?.length,
       0
     );
+  };
+
+  const emailRef = useRef();
+
+  const showEmailToolTip = (action) => {
+    if (
+      action === "show" &&
+      emailRef.current.scrollWidth > emailRef.current.offsetWidth
+    ) {
+      setEmailTooTip(true);
+    } else {
+      setEmailTooTip(false);
+    }
+  };
+
+  const updateInProgress = (flag) => {
+    setIsUpdateInprogress(flag);
   };
 
   return (
     <div className="create-user-wrapper">
       {isShowAlertBox && (
         <AlertBox cancel={keepEditingBtn} submit={leavePageBtn} />
+      )}
+      {isUpdateInprogress && (
+        <Modal
+          open={openCancelModal}
+          onClose={(e) => setOpenCancelModal(false)}
+          className="save-confirm"
+          disableBackdropClick={true}
+          variant="warning"
+          title="Lose your work?"
+          message="All unsaved changes will be lost."
+          buttonProps={[
+            { label: "Keep editing" },
+            {
+              label: "Leave without saving",
+              onClick: () => history.push("/user-management/"),
+            },
+          ]}
+          id="neutral"
+        />
       )}
 
       {/* {isAnyUpdate && (
@@ -308,7 +354,13 @@ const AddUser = () => {
         onClose={closeRolePopup}
         className="save-confirm"
         variant="default"
-        title="Removed assignments"
+        title={
+          // eslint-disable-next-line react/jsx-wrap-multilines
+          <div className="flex flex-center gap-2">
+            <InfoIcon style={{ color: colors.blue }} />
+            <span className="mt-1">Removed assignments</span>
+          </div>
+        }
         buttonProps={[
           {
             label: "Dismiss",
@@ -318,39 +370,44 @@ const AddUser = () => {
         ]}
         id="neutral2"
       >
-        <Typography gutterBottom>
-          {`${getInactiveRolesCount()} assignments were removed from ${
-            inactiveStudyRoles?.length
-          } studies as the Roles are now inactive:`}
-          <br />
-          <Grid container spacing={2}>
-            {inactiveStudyRoles?.map(({ studyName, inactiveRoles }) => {
-              return (
-                <>
-                  <Grid item xs={5}>
-                    {studyName}
-                  </Grid>
-                  <Grid item xs={7}>
-                    {inactiveRoles.map((r) => r.name).join(", ")}
-                  </Grid>
-                </>
-              );
-            })}
-          </Grid>
-        </Typography>
+        <div className="px-32">
+          <Typography gutterBottom>
+            {`${getInactiveRolesCount()} assignments were removed from ${
+              inactiveStudyRoles?.length
+            } studies as the Roles are now inactive:`}
+            <br />
+            <Grid container spacing={2}>
+              {inactiveStudyRoles?.map(({ studyName, inactiveRoles }) => {
+                return (
+                  <>
+                    <Grid item xs={5}>
+                      {studyName}
+                    </Grid>
+                    <Grid item xs={7}>
+                      {inactiveRoles?.map((r) => r.name).join(", ")}
+                    </Grid>
+                  </>
+                );
+              })}
+            </Grid>
+          </Typography>
+        </div>
       </Modal>
       <div className="paper">
         <Box className="top-content">
           {breadcrumpItems.length && (
             <BreadcrumbsUI className="breadcrump" items={breadcrumpItems} />
           )}
-          <Typography variant="title1" className="b-font title">
-            {`${targetUser?.usr_fst_nm} ${targetUser?.usr_lst_nm}`}
-          </Typography>
-          <div className="flex justify-space-between">
-            <Link onClick={(e) => goToUser(e)}>
-              {"< Back to User Management List"}
-            </Link>
+
+          <div className="flex justify-space-between mb-16">
+            <Button
+              onClick={goToUser}
+              className="back-btn"
+              icon={<ChevronLeft />}
+              size="small"
+            >
+              Back to User Management List
+            </Button>
             {!readOnly && targetUser?.usr_stat !== "Invited" ? (
               <Switch
                 label="Active"
@@ -368,11 +425,13 @@ const AddUser = () => {
               />
             )}
           </div>
+          <Typography variant="title1" className="b-font title">
+            {`${targetUser?.usr_fst_nm} ${targetUser?.usr_lst_nm}`}
+          </Typography>
         </Box>
       </div>
       <div className="padded">
         <Grid container spacing={2}>
-          {/* {console.log("save", disableSave)} */}
           <Grid item xs={3}>
             <Box>
               <div className="flex create-sidebar flexWrap">
@@ -387,9 +446,26 @@ const AddUser = () => {
                 <Typography className="mt-4 user-update-label">
                   Email address
                   <div className="ml-3">
-                    <div className="user-update-font-500 mt-2">
-                      {targetUser?.usr_mail_id}
-                    </div>
+                    <Tooltip
+                      variant="dark"
+                      title={targetUser?.usr_mail_id}
+                      placement="top"
+                      open={showEmailTooTip}
+                      style={{ marginRight: 48 }}
+                    >
+                      <Typography
+                        ref={emailRef}
+                        onMouseEnter={(e) => showEmailToolTip("show")}
+                        onMouseLeave={(e) => showEmailToolTip("hide")}
+                        gutterBottom
+                        noWrap
+                        className={`user-update-font-500 mt-2 ${
+                          showEmailTooTip && "cursor-pointer"
+                        }`}
+                      >
+                        {targetUser?.usr_mail_id}
+                      </Typography>
+                    </Tooltip>
                     {isUserInvited() && (
                       <>
                         <div className="light mt-2">
@@ -434,9 +510,12 @@ const AddUser = () => {
                 userId={userId}
                 targetUser={targetUser}
                 updateChanges={updateChanges}
+                updateInProgress={updateInProgress}
                 showRolePopup={showRolePopup}
                 // setShowRolePopup={setShowRolePopup}
                 userUpdating={loading}
+                readOnly={readOnly}
+                canUpdate={canUpdate}
               />
             </div>
           </Grid>

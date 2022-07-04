@@ -545,7 +545,7 @@ exports.secureApi = async (req, res) => {
 };
 
 const getUserStudyRoles = async (prot_id, userId) => {
-  const userRolesQuery = `SELECT r.role_nm AS label, r.role_id AS value from ${schemaName}.study_user_role AS sur LEFT JOIN ${schemaName}.role AS r ON sur.role_id=r.role_id WHERE sur.prot_id='${prot_id}' AND sur.usr_id='${userId}' ORDER BY r.role_nm ASC`;
+  const userRolesQuery = `SELECT r.role_nm AS label, r.role_id AS value from ${schemaName}.study_user_role AS sur LEFT JOIN ${schemaName}.role AS r ON sur.role_id=r.role_id WHERE sur.prot_id='${prot_id}' AND sur.usr_id='${userId}' AND sur.act_flg=1 ORDER BY r.role_nm ASC`;
   return await DB.executeQuery(userRolesQuery).then((res) => res.rows);
 };
 
@@ -663,6 +663,7 @@ exports.updateUserStatus = async (req, res) => {
     lastName,
     changed_to,
     updatedBy,
+    employeeId,
   } = req.body;
   console.log(req.body);
   const newReq = { ...req, returnBool: true };
@@ -685,17 +686,22 @@ exports.updateUserStatus = async (req, res) => {
         uid: user_id,
         firstName: firstName,
         lastName: lastName,
-        emai: email_id,
+        email: email_id,
         updatedBy: updatedBy,
         userType: user_type,
       };
       let returnRes = [];
 
-      const provision_response = await userHelper.provisionInternalUser(data);
-      console.log("provision_response", provision_response);
+      let provision_response = null;
+      if (user_type === "internal") {
+        provision_response = await userHelper.provisionInternalUser(data);
+      } else if (user_type === "external") {
+        provision_response = await userHelper.provisionExternalUser(data);
+      }
 
       if (provision_response) {
-        await userHelper.makeUserActive(user_id, user_id);
+        const empId = user_type === "internal" ? user_id : employeeId;
+        await userHelper.makeUserActive(user_id, empId);
 
         const { rows: getStudies } = await DB.executeQuery(
           `SELECT * from ${schemaName}.study_user WHERE usr_id='${user_id}'`
@@ -715,14 +721,17 @@ exports.updateUserStatus = async (req, res) => {
             } = await DB.executeQuery(
               `SELECT * from ${schemaName}.study WHERE prot_id='${prtId}'`
             );
-
-            const grantStudy = await studyHelper.studyGrant(
-              studyObj.prot_nbr_stnd,
-              user_id,
-              updatedBy,
-              createdOn
-            );
-
+            let grantStudy = null;
+            if (user_type === "internal") {
+              grantStudy = await studyHelper.studyGrant(
+                studyObj.prot_nbr_stnd,
+                user_id,
+                updatedBy,
+                createdOn
+              );
+            } else if (user_type === "external") {
+              grantStudy = true;
+            }
             if (grantStudy) {
               const studyUpdate = await DB.executeQuery(
                 `update ${schemaName}.study_user set act_flg=1 , insrt_tm='${createdOn}' WHERE prot_id='${prtId}'`
@@ -836,7 +845,6 @@ exports.checkInvitedStatus = async () => {
 
 exports.updateUserAssignments = async (req, res) => {
   const newReq = { ...req };
-  // console.log({ newReq });
   const query = `SELECT tenant_nm FROM ${schemaName}.tenant LIMIT 1`;
   try {
     const result = await DB.executeQuery(query);
@@ -848,7 +856,7 @@ exports.updateUserAssignments = async (req, res) => {
   } catch (error) {
     return apiResponse.ErrorResponse(res, "Unable to fetch tenant");
   }
-  newReq.body["createdBy"] = newReq.body.userId;
+  newReq.body["createdBy"] = newReq.body.updatedBy;
   newReq.body["createdOn"] = getCurrentTime();
 
   const assignmentResponse = AssignmentController.assignmentUpdate(
@@ -856,11 +864,10 @@ exports.updateUserAssignments = async (req, res) => {
     res,
     true
   );
-  assignmentResponse.then((e) => console.log({ e }));
   if (assignmentResponse) {
     return apiResponse.successResponse(
       res,
-      `Assignments Updated Successfully.`
+      `Assignments updated successfully.`
     );
   }
   return apiResponse.ErrorResponse(
@@ -871,7 +878,6 @@ exports.updateUserAssignments = async (req, res) => {
 
 exports.deleteUserAssignments = async (req, res) => {
   const newReq = { ...req };
-  // console.log({ newReq });
   const query = `SELECT tenant_nm FROM ${schemaName}.tenant LIMIT 1`;
   try {
     const result = await DB.executeQuery(query);
@@ -892,7 +898,6 @@ exports.deleteUserAssignments = async (req, res) => {
     res,
     true
   );
-  assignmentResponse.then((e) => console.log({ e }));
   if (assignmentResponse) {
     return apiResponse.successResponse(
       res,
