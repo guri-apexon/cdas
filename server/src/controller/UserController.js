@@ -781,6 +781,8 @@ exports.updateUserStatus = async (req, res) => {
           "This study active successfully",
           returnRes
         );
+      } else {
+        return apiResponse.ErrorResponse(res, "Error provisioning user");
       }
     }
   } catch (err) {
