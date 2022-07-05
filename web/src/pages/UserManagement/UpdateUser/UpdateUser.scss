@@ -159,6 +159,7 @@
 .user-assignment-modal {
   max-width: 1002px;
   width: 1002px;
+  min-height: 420px;
 }
 .w-100 {
   width: 100%;
@@ -199,15 +200,17 @@
   font-size: 12px;
   margin-right: 6px;
 }
-// #user-update-assignment-modal table {
-//   height: 430px;
-// }
-// #user-update-assignment-modal table thead th {
-//   font-weight: 700;
-// }
-// .add-user-modal-row {
-//   height: 24px !important;
-// }
+#user-update-assignment-modal .MuiDialogContent-root {
+  overflow-y: hidden;
+  overflow-x: hidden;
+}
+
+#user-update-assignment-modal table thead th {
+  font-weight: 700;
+}
 .cursor-pointer {
   cursor: pointer;
+}
+.mr-4 {
+  margin-right: 16px;
 }
