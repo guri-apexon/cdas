@@ -55,7 +55,7 @@ const LaunchPad = () => {
       featureName: "Launchpad-CDM",
       haveAccess: checkAccess("Launchpad-CDM"),
       imgUrl: CDMIcon,
-      url: "cdm",
+      url: getAppUrl("CDM"),
       tooltipText:
         "Intelligent data transformation tool to harmonize study data into standardized datasets.",
     },

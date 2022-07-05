@@ -51,7 +51,6 @@ const UserAssignmentTable = ({
   const [roleLists, setroleLists] = useState([]);
 
   const [showUserAssignmentModal, setUserAssignmentModal] = useState(false);
-
   const getStudyObj = () => {
     const rowIndex = Math.max(...tableStudies.map((o) => o.index), 0) + 1;
     return {
@@ -156,23 +155,36 @@ const UserAssignmentTable = ({
   const StudySelected = ({ isEdit, row }) => {
     return <div className={isEdit}>{row?.prot_nbr_stnd || ""}</div>;
   };
-
-  const RolesSelected = ({ roles }) => {
+  const showToolTip = {};
+  const RolesSelected = ({ row, roles }) => {
     const uRoles = roles.length ? roles.map((e) => e.label).join(", ") : "";
     const charLimit = getOverflowLimit("50%", 80);
+    const showRoletooltip = (rowIndex, boolVal) => {
+      showToolTip[rowIndex] = boolVal;
+
+      console.log({ showToolTip });
+    };
     return (
-      <Tooltip
-        variant="dark"
-        title={uRoles}
-        placement="left"
-        style={{ marginRight: 48 }}
+      <div
+        onMouseEnter={() => showRoletooltip(row.index, true)}
+        onMouseLeave={() => showRoletooltip(row.index, false)}
       >
-        <Typography variant="body2" className="">
-          {uRoles && uRoles.length > charLimit
-            ? `${uRoles.slice(0, charLimit - 5)}[...]`
-            : uRoles}
-        </Typography>
-      </Tooltip>
+        {!showToolTip[row.index] && (
+          <Tooltip
+            variant="dark"
+            title={uRoles}
+            placement="left"
+            style={{ marginRight: 48 }}
+            open={uRoles && uRoles.length > charLimit && showToolTip[row.index]}
+          >
+            <Typography variant="body2" className="">
+              {uRoles && uRoles.length > charLimit
+                ? `${uRoles.slice(0, charLimit - 5)}[...]`
+                : uRoles}
+            </Typography>
+          </Tooltip>
+        )}
+      </div>
     );
   };
 
@@ -231,7 +243,7 @@ const UserAssignmentTable = ({
             helperText={!viewRoleValue.length ? "A role is required" : ""}
           />
         ) : (
-          <RolesSelected roles={row?.roles || []} />
+          <RolesSelected row={row} roles={row?.roles || []} />
         )}
       </div>
     );
@@ -240,6 +252,9 @@ const UserAssignmentTable = ({
   const updateEditMode = (rowIndex, editMode) => {
     const prevTableStudies = [...tableStudies];
     prevTableStudies[rowIndex].isEdit = editMode;
+    prevTableStudies[rowIndex].roles = prevTableStudies[rowIndex].roles.sort(
+      (a, b) => a.label.localeCompare(b.label)
+    );
     setTableStudies([...prevTableStudies]);
   };
 
@@ -503,6 +518,8 @@ const UserAssignmentTable = ({
         protocolname: e?.prot_nbr_stnd,
         id: e?.prot_id,
         roles: e.roles.map((r) => r.value),
+        roleIds: e.roles.map((r) => r.value),
+        isValid: true,
       };
     });
     const newFormattedRows = formattedRows.filter((e) => e.id);
@@ -532,6 +549,10 @@ const UserAssignmentTable = ({
       const response = await updateUserAssignments(payload);
       if (response.status === 1) {
         setUserAssignmentModal(false);
+        rowsToUpdate.map((e) => ({
+          ...e,
+          roles: e.roles.sort((a, b) => a.label.localeCompare(b.label)),
+        }));
         setTableStudies([...tableStudies, ...rowsToUpdate]);
         toast.showSuccessMessage(response.message);
       } else {
@@ -594,6 +615,7 @@ const UserAssignmentTable = ({
         alreadyExist: false,
       };
     };
+    const lineRefs = React.useRef([React.createRef()]);
 
     const [modalTableStudies, setModalTableStudies] = useState([
       getModalStudyObj(),
@@ -618,19 +640,35 @@ const UserAssignmentTable = ({
         tempModalTableStudies[index].prot_id = value?.prot_id;
         if (duplicateIndex1 > -1 || duplicateIndex2 > -1) {
           tempModalTableStudies[index].alreadyExist = true;
-        } else {
+          setModalTableStudies([...tempModalTableStudies]);
+        } else if (
+          tempModalTableStudies[tempModalTableStudies.length - 1].index ===
+          index
+        ) {
           tempModalTableStudies.push({
             ...getModalStudyObj(index),
           });
+          lineRefs.current = tempModalTableStudies.map((_, i) =>
+            React.createRef()
+          );
+          setModalTableStudies([...tempModalTableStudies]);
+          setTimeout(() => {
+            lineRefs.current[
+              index
+            ].current?.childNodes[0]?.childNodes[0]?.childNodes[0]?.childNodes[1]?.childNodes[1]?.click();
+          }, 500);
+        } else {
+          lineRefs.current[
+            index
+          ].current.childNodes[0].childNodes[0].childNodes[0].childNodes[2]?.childNodes[1]?.click();
         }
-        setModalTableStudies([...tempModalTableStudies]);
       }
     };
 
     const EditableStudy = ({ row, column: { accessor: key } }) => {
       const editStudyRowIndex = studyList.findIndex((e) => e[key] === row[key]);
       return (
-        <div className="study">
+        <div className="study mr-4">
           <AutocompleteV2
             placeholder="Add new study and role"
             matchFrom="any"
@@ -690,6 +728,7 @@ const UserAssignmentTable = ({
       return (
         <div className="role">
           <AutocompleteV2
+            ref={lineRefs.current[row.index]}
             placeholder={!value.length ? "Choose one or more roles" : ""}
             size="small"
             fullWidth
