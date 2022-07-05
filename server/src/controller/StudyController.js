@@ -10,6 +10,7 @@ const helper = require("../helpers/customFunctions");
 const CommonController = require("./CommonController");
 const { filter } = require("lodash");
 const { DB_SCHEMA_NAME: schemaName, FSR_HEADERS, FSR_API_URI } = constants;
+const userHelper = require("../helpers/userHelper");
 
 const updateStatus = async (studyId, status = "Success") => {
   try {
@@ -383,6 +384,7 @@ exports.listStudyAssign = async (req, res) => {
                         FROM ${schemaName}.study_user as t1 
                         LEFT JOIN ${schemaName}.user as t2 ON t1.usr_id = t2.usr_id 
                         where t1.prot_id =$1 and t1.act_flg =1 and t1.usr_id is NOT NULL`;
+
     const getRole = `SELECT t1.role_id,t1.prot_id,t1.usr_id,t2.role_nm ,t2.role_desc 
                       FROM ${schemaName}.study_user_role as t1
                       LEFT JOIN ${schemaName}.role as t2 ON t1.role_id = t2.role_id
@@ -451,41 +453,49 @@ exports.AddStudyAssign = async (req, res) => {
     if (data && data.length) {
       data.forEach(async (element) => {
         try {
-          const studyUserId = element.user_id?.toLowerCase() || null;
-          await DB.executeQuery(insertUserQuery, [
-            protocol,
-            studyUserId,
-            1,
-            insrt_tm,
-          ]);
+          // const studyUserId = element.user_id?.toLowerCase() || null;
+          const studyUserId = [];
 
-          element.role_id.forEach(async (roleId) => {
-            try {
-              const {
-                rows: [protUsrRoleId],
-              } = await DB.executeQuery(insertRoleQuery, [
-                roleId,
-                protocol,
-                studyUserId,
-                1,
-                loginId,
-                insrt_tm,
-              ]);
+          studyUserId.push(
+            await userHelper.getExternalUserInternalId(
+              element.user_id?.toLowerCase()
+            )
+          );
+          console.log(studyUserId + "-- 460");
+          // await DB.executeQuery(insertUserQuery, [
+          //   protocol,
+          //   studyUserId,
+          //   1,
+          //   insrt_tm,
+          // ]);
 
-              // console.log("protUsrRoleId", protUsrRoleId.prot_usr_role_id);
+          // element.role_id.forEach(async (roleId) => {
+          //   try {
+          //     const {
+          //       rows: [protUsrRoleId],
+          //     } = await DB.executeQuery(insertRoleQuery, [
+          //       roleId,
+          //       protocol,
+          //       studyUserId,
+          //       1,
+          //       loginId,
+          //       insrt_tm,
+          //     ]);
 
-              // // Study roll user audit table audit log entry
-              const studyUserAudit = CommonController.studyUserAudit(
-                protUsrRoleId.prot_usr_role_id,
-                "New Entry",
-                null,
-                null,
-                loginId
-              );
-            } catch (e) {
-              console.log(e);
-            }
-          });
+          //     // console.log("protUsrRoleId", protUsrRoleId.prot_usr_role_id);
+
+          //     // // Study roll user audit table audit log entry
+          //     const studyUserAudit = CommonController.studyUserAudit(
+          //       protUsrRoleId.prot_usr_role_id,
+          //       "New Entry",
+          //       null,
+          //       null,
+          //       loginId
+          //     );
+          //   } catch (e) {
+          //     console.log(e);
+          //   }
+          // });
         } catch (er) {
           console.log(er);
         }
