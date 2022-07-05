@@ -51,7 +51,6 @@ const UserAssignmentTable = ({
   const [roleLists, setroleLists] = useState([]);
 
   const [showUserAssignmentModal, setUserAssignmentModal] = useState(false);
-
   const getStudyObj = () => {
     const rowIndex = Math.max(...tableStudies.map((o) => o.index), 0) + 1;
     return {
@@ -156,23 +155,36 @@ const UserAssignmentTable = ({
   const StudySelected = ({ isEdit, row }) => {
     return <div className={isEdit}>{row?.prot_nbr_stnd || ""}</div>;
   };
-
-  const RolesSelected = ({ roles }) => {
+  const showToolTip = {};
+  const RolesSelected = ({ row, roles }) => {
     const uRoles = roles.length ? roles.map((e) => e.label).join(", ") : "";
     const charLimit = getOverflowLimit("50%", 80);
+    const showRoletooltip = (rowIndex, boolVal) => {
+      showToolTip[rowIndex] = boolVal;
+
+      console.log({ showToolTip });
+    };
     return (
-      <Tooltip
-        variant="dark"
-        title={uRoles}
-        placement="left"
-        style={{ marginRight: 48 }}
+      <div
+        onMouseEnter={() => showRoletooltip(row.index, true)}
+        onMouseLeave={() => showRoletooltip(row.index, false)}
       >
-        <Typography variant="body2" className="">
-          {uRoles && uRoles.length > charLimit
-            ? `${uRoles.slice(0, charLimit - 5)}[...]`
-            : uRoles}
-        </Typography>
-      </Tooltip>
+        {!showToolTip[row.index] && (
+          <Tooltip
+            variant="dark"
+            title={uRoles}
+            placement="left"
+            style={{ marginRight: 48 }}
+            open={uRoles && uRoles.length > charLimit && showToolTip[row.index]}
+          >
+            <Typography variant="body2" className="">
+              {uRoles && uRoles.length > charLimit
+                ? `${uRoles.slice(0, charLimit - 5)}[...]`
+                : uRoles}
+            </Typography>
+          </Tooltip>
+        )}
+      </div>
     );
   };
 
@@ -231,7 +243,7 @@ const UserAssignmentTable = ({
             helperText={!viewRoleValue.length ? "A role is required" : ""}
           />
         ) : (
-          <RolesSelected roles={row?.roles || []} />
+          <RolesSelected row={row} roles={row?.roles || []} />
         )}
       </div>
     );
