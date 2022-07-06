@@ -396,7 +396,7 @@ exports.getSDAUsers = async () => {
 
 exports.getSDAUserStatus = async (userKey, email) => {
   if (!userKey) {
-    console.log("user key not found, cannot fetch sda user:", email);
+    // console.log("user key not found, cannot fetch sda user:", email);
     return false;
   }
   try {
@@ -415,5 +415,31 @@ exports.getSDAUserStatus = async (userKey, email) => {
       error?.response?.data || error
     );
     return false;
+  }
+};
+
+exports.getExternalUserInternalId = async (user_id) => {
+  const query = `SELECT * from ${schemaName}.user where usr_id =$1`;
+  const externalUserQuery = `SELECT * from ${schemaName}.user where extrnl_emp_id =$1`;
+
+  try {
+    const result = await DB.executeQuery(query, [user_id]);
+    if (result?.rowCount > 0) {
+      return result?.rows[0]?.usr_id;
+    } else {
+      try {
+        const externalUserResult = await DB.executeQuery(externalUserQuery, [
+          user_id,
+        ]);
+        if (externalUserResult?.rowCount > 0) {
+          console.log(externalUserResult?.rows[0]?.usr_id);
+          return externalUserResult?.rows[0]?.usr_id;
+        }
+      } catch (error) {
+        return null;
+      }
+    }
+  } catch (error) {
+    return null;
   }
 };
