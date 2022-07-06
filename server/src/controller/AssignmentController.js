@@ -183,7 +183,7 @@ exports.assignmentUpdate = async (req, res, returnBool = false) => {
   const user = await userHelper.findByEmail(email);
 
   // update database and insert logs
-  if (removedProtocols.length) {
+  if (removedProtocols?.length) {
     const assignmentResult = await assignmentHelper.makeAssignmentsInactive(
       removedProtocols,
       user,
