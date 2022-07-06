@@ -318,7 +318,8 @@ const CreateRole = () => {
 
     return function () {
       /* eslint-disable */
-      routerHandle.current.current && routerHandle.current.current();
+      // routerHandle.current()
+      routerHandle.current();
     };
   });
   const cancelButton = () => {

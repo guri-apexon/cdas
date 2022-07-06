@@ -161,7 +161,7 @@ const ExistingUsers = () => {
       { label: "Sponsor", value: selectedStudy?.sponsorname },
       { label: "Phase", value: selectedStudy?.phase },
       { label: "Project Code", value: selectedStudy?.projectcode },
-      { label: "Protocol Status", value: selectedStudy?.protocolstatus },
+      { label: "Study status", value: selectedStudy?.protocolstatus },
       { label: "Therapeutic Area", value: selectedStudy?.therapeuticarea },
     ];
     setStateMenuItems([...updateData]);
@@ -474,7 +474,7 @@ const ExistingUsers = () => {
     return function () {
       /* eslint-disable */
       routerHandle.current = history.block(() => {});
-      routerHandle.current.current && routerHandle.current.current();
+      routerHandle.current();
     };
   });
 

@@ -484,7 +484,7 @@ const ImportWithUsers = () => {
     return function () {
       /* eslint-disable */
       routerHandle.current = history.block(() => {});
-      routerHandle.current.current && routerHandle.current.current();
+      routerHandle.current();
     };
   });
 
@@ -564,7 +564,7 @@ const ImportWithUsers = () => {
                   <Value>{selectedStudy.thptc_area}</Value>
                 </Box>
                 <Box m={2}>
-                  <Label>Protocol status</Label>
+                  <Label>Study status</Label>
                   <Value>{selectedStudy.prot_status}</Value>
                 </Box>
               </div>

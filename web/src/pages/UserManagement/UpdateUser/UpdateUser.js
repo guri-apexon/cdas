@@ -476,14 +476,14 @@ const AddUser = () => {
                         <div className="light mt-2">
                           {getExpirationDateString()}
                         </div>
-                        {isInvitationExpired() && (
+                        {(canCreate || canUpdate) && isInvitationExpired() && (
                           <div className="mt-2">
                             <Button
                               variant="secondary"
                               icon={<EmailIcon />}
                               size="small"
                               onClick={resendInvitation}
-                              disabled={isSendingInvite}
+                              disabled={isSendingInvite || readOnly}
                             >
                               Resend Invitation
                             </Button>
