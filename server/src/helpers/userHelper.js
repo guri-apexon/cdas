@@ -396,7 +396,7 @@ exports.getSDAUsers = async () => {
 
 exports.getSDAUserStatus = async (userKey, email) => {
   if (!userKey) {
-    console.log("user key not found, cannot fetch sda user:", email);
+    // console.log("user key not found, cannot fetch sda user:", email);
     return false;
   }
   try {
