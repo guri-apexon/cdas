@@ -368,10 +368,10 @@ export const updateAssignUser = async (reqBody) => {
       axios
         .post(`${baseURL}/${ASSIGN_BASE}/update`, reqBody)
         .then((res) => {
-          resolve(res.data);
+          resolve(res?.data);
         })
         .catch((err) => {
-          reject(err.response.data);
+          reject(err?.response?.data);
         });
     });
   } catch (err) {
