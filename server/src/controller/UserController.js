@@ -561,7 +561,11 @@ exports.getUserStudyAndRoles = async function (req, res) {
     await Promise.all(
       userStudies.map(async (e, i) => {
         const roles = await getUserStudyRoles(e.prot_id, userId);
-        userStudies[i].roles = roles;
+        if(roles.length){
+          userStudies[i].roles = roles;
+        }else{
+          delete userStudies[i];
+        }
       })
     );
     return apiResponse.successResponseWithData(
