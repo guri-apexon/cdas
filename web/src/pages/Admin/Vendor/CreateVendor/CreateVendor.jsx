@@ -342,8 +342,7 @@ const CreateVendor = () => {
 
     return function () {
       /* eslint-disable */
-      routerHandle.current()
-      // routerHandle.current()
+      routerHandle.current();
     };
   });
 
