@@ -9,6 +9,7 @@ const constants = require("../config/constants");
 const helper = require("../helpers/customFunctions");
 const CommonController = require("./CommonController");
 const { filter } = require("lodash");
+const { getTenantIdByNemonicNull } = require("../helpers/studyHelper");
 const { DB_SCHEMA_NAME: schemaName, FSR_HEADERS, FSR_API_URI } = constants;
 const userHelper = require("../helpers/userHelper");
 
@@ -31,7 +32,7 @@ const addOnboardedStudy = async (protNbrStnd, userId, insrt_tm) => {
       `SELECT * from ${schemaName}.mdm_study WHERE prot_nbr_stnd='${protNbrStnd}';`
     );
     const study = result.rows[0] || null;
-    if (!study) return false;
+    if (!study) return false; 
     const uniqueId = helper.createUniqueID();
     const userDesc = "mdm study import";
     const valueArr = [
@@ -55,11 +56,12 @@ const addOnboardedStudy = async (protNbrStnd, userId, insrt_tm) => {
     const result1 = await DB.executeQuery(insertQuery, valueArr);
     const insertedStudy = result1.rows[0] || null;
     if (!insertedStudy) return false;
+    const tenantId = await getTenantIdByNemonicNull();
     const sponsorValueArr = [
       uniqueId,
       study.spnsr_nm,
       study.spnsr_nm_stnd,
-      "a020E000005SwQSQA0",
+      tenantId,
       userId,
       userDesc,
       1,
@@ -70,6 +72,7 @@ const addOnboardedStudy = async (protNbrStnd, userId, insrt_tm) => {
     const result2 = await DB.executeQuery(insertSponQuery, sponsorValueArr);
     const sponsor = result2.rows[0] || sponsor;
     if (!sponsor) return false;
+
     const studySposrQuery = `INSERT INTO ${schemaName}.study_sponsor
     (prot_id, spnsr_id)
     VALUES('${insertedStudy.prot_id}', '${sponsor.spnsr_id}');
@@ -132,7 +135,7 @@ exports.onboardStudy = async function (req, res) {
       .then(async (response) => {
         const onboardStatus = response?.data?.code || null;
         let insertedStudy = null;
-        if (onboardStatus === 202) {
+        if (onboardStatus === 202 || onboardStatus === 200) {
           try {
             insertedStudy = await addOnboardedStudy(studyId, userId, insrt_tm);
             if (!insertedStudy)
