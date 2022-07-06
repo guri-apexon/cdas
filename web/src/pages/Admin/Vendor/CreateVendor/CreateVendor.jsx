@@ -342,7 +342,7 @@ const CreateVendor = () => {
 
     return function () {
       /* eslint-disable */
-      routerHandle.current.current && routerHandle.current.current();
+      routerHandle.current();
     };
   });
 

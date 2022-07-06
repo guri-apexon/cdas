@@ -484,7 +484,7 @@ const ImportWithUsers = () => {
     return function () {
       /* eslint-disable */
       routerHandle.current = history.block(() => {});
-      routerHandle.current.current && routerHandle.current.current();
+      routerHandle.current();
     };
   });
 
