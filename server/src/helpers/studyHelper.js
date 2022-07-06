@@ -73,3 +73,14 @@ exports.studyUpdateModification = async (studyId, updatedOn) => {
   } catch (error) {}
   return false;
 };
+
+exports.getTenantIdByNemonicNull = async () => {
+  const tenantQuery = `SELECT tenant_id from ${schemaName}.tenant WHERE tenant_mnemonic_nm IS null;`;
+  try {
+    const result = await DB.executeQuery(tenantQuery);
+    return result.rows[0]?.tenant_id || null;
+  } catch (error) {
+    Logger.error("studyHelper > findTenantIdByNull", error);
+  }
+  return null;
+};
