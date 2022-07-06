@@ -419,7 +419,6 @@ exports.getSDAUserStatus = async (userKey, email) => {
 };
 
 exports.getExternalUserInternalId = async (user_id) => {
-  console.log(user_id + "-- 422");
   const query = `SELECT * from ${schemaName}.user where usr_id =$1`;
   const externalUserQuery = `SELECT * from ${schemaName}.user where extrnl_emp_id =$1`;
 
@@ -432,8 +431,6 @@ exports.getExternalUserInternalId = async (user_id) => {
         const externalUserResult = await DB.executeQuery(externalUserQuery, [
           user_id,
         ]);
-        console.log(externalUserResult);
-        console.log("externalUser" + externalUserResult);
         if (externalUserResult?.rowCount > 0) {
           console.log(externalUserResult?.rows[0]?.usr_id);
           return externalUserResult?.rows[0]?.usr_id;
