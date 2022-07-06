@@ -20,16 +20,16 @@ const encrypt = (key) => {
     return "Encryption key not found";
 
   // // Sample: to be used in case of passing Iv
-  return CryptoJS.AES.encrypt(
-    key,
-    CryptoJS.enc.Utf8.parse(process.env.REACT_APP_ENCRYPTION_KEY),
-    { iv: CryptoJS.enc.Utf8.parse("appian_GDMPM_DEV") }
-  ).toString();
-
   // return CryptoJS.AES.encrypt(
   //   key,
-  //   process.env.REACT_APP_ENCRYPTION_KEY
+  //   CryptoJS.enc.Utf8.parse(process.env.REACT_APP_ENCRYPTION_KEY),
+  //   { iv: CryptoJS.enc.Utf8.parse("appian_GDMPM_DEV") }
   // ).toString();
+
+  return CryptoJS.AES.encrypt(
+    key,
+    process.env.REACT_APP_ENCRYPTION_KEY
+  ).toString();
 };
 
 axios.defaults.headers.common["api-key"] = encrypt(
