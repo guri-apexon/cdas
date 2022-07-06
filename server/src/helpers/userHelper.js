@@ -144,14 +144,6 @@ exports.findUser = async (filter) => {
     const response = await DB.executeQuery(query);
     if (response.rowCount > 0) {
       const row = response.rows[0];
-      console.log("user", {
-        ...row,
-        isActive: compareString(row.userstate, this.CONSTANTS.ACTIVE),
-        isInvited: compareString(row.userstate, this.CONSTANTS.INVITED),
-        isInactive: compareString(row.userstate, this.CONSTANTS.INACTIVE),
-        isExternal: compareString(row.usertype, this.CONSTANTS.EXTERNAL),
-        isInternal: compareString(row.usertype, this.CONSTANTS.INTERNAL),
-      });
       return {
         ...row,
         isActive: compareString(row.userstate, this.CONSTANTS.ACTIVE),
@@ -181,7 +173,7 @@ exports.findByUserId = async (userId) =>
  * @returns on success user usr_id and usr_stat (in upper case) , on error reurns false
  */
 exports.findByEmail = async (email) =>
-  await this.findUser(`UPPER(usr_mail_id) = '${email.toUpperCase()}';`);
+  await this.findUser(`UPPER(usr_mail_id) = '${email.trim().toUpperCase()}';`);
 
 /**
  * Checks that if a user exists or not
@@ -416,4 +408,47 @@ exports.getSDAUserStatus = async (userKey, email) => {
     );
     return false;
   }
+};
+
+exports.checkPermission = async (userid, feature) => {
+  const query = `select count(1) 
+      from ${schemaName}."user" u 
+      join ${schemaName}.study_user_role sur on u.usr_id = sur.usr_id 
+      join ${schemaName}."role" r on sur.role_id =r.role_id  
+      left join ${schemaName}.role_policy rp on r.role_id = rp.role_id
+      left join ${schemaName}.policy pm on pm.plcy_id = rp.plcy_id
+      left join ${schemaName}.policy_product_permission pppm on pppm.plcy_id = pm.plcy_id
+      left join ${schemaName}.product_permission pp on pp.prod_permsn_id = pppm.prod_permsn_id
+      left join ${schemaName}.product p2 on p2.prod_id = pp.prod_id
+      left join ${schemaName}.feature f2 on f2.feat_id = pp.feat_id
+      left join ${schemaName}."permission" p3 on p3.permsn_id = pp.permsn_id
+      left join ${schemaName}.category c2 on c2.ctgy_id = pp.ctgy_id
+      where p3.permsn_nm in ('Create','Update') and 
+      f2.feat_nm = '${feature}' and 
+      sur.usr_id ='${userid}' and 
+      UPPER(u.usr_stat) = 'ACTIVE' 
+      `;
+  try {
+    const result = await DB.executeQuery(query);
+    if (result && result.rowCount > 0) return result.rows[0].count !== "0";
+  } catch (error) {}
+  return false;
+};
+
+exports.findUserByEmailAndId = async (userid, email) => {
+  const query = `
+    SELECT count(1) 
+    FROM ${schemaName}.user 
+    WHERE usr_id = '${userid}' 
+    and UPPER(usr_mail_id)='${email.toUpperCase()}';`;
+
+  try {
+    const rows = await DB.executeQuery(query);
+    if (rows.rowCount > 0) {
+      return true;
+    }
+  } catch (error) {
+    Logger.error("userHelper.findUser", error);
+  }
+  return undefined;
 };
