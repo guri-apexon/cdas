@@ -1,4 +1,5 @@
 import axios from "axios";
+import CryptoJS from "crypto-js";
 import {
   API_URL,
   baseURL,
@@ -8,10 +9,37 @@ import {
   VENDOR_BASE,
   ASSIGN_BASE,
 } from "../constants";
-import { deleteAllCookies, getUserId } from "../utils";
+import { deleteAllCookies, getCookie, getUserId } from "../utils";
 
 const userId = getUserId();
 const CT = axios.CancelToken;
+const token = getCookie("user.token");
+
+const encrypt = (key) => {
+  if (!key || !process.env.REACT_APP_ENCRYPTION_KEY)
+    return "Encryption key not found";
+
+  // // Sample: to be used in case of passing Iv
+  // return CryptoJS.AES.encrypt(
+  //   key,
+  //   CryptoJS.enc.Utf8.parse(process.env.REACT_APP_ENCRYPTION_KEY),
+  //   { iv: CryptoJS.enc.Utf8.parse("appian_GDMPM_DEV") }
+  // ).toString();
+
+  return CryptoJS.AES.encrypt(
+    key,
+    process.env.REACT_APP_ENCRYPTION_KEY
+  ).toString();
+};
+
+axios.defaults.headers.common["api-key"] = encrypt(
+  process.env.REACT_APP_API_KEY
+);
+axios.defaults.headers.common["sys-name"] =
+  process.env.REACT_APP_SYS_NAME || "";
+axios.defaults.headers.common["token-type"] = "user";
+axios.defaults.headers.common["access-token"] = encrypt(userId);
+axios.defaults.headers.common.Authorization = `Bearer ${token}`;
 
 export const searchStudy = async (searchQuery = "") => {
   try {

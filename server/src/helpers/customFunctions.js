@@ -91,3 +91,14 @@ exports.formattedObj = (obj) => {
   });
   return newObj;
 };
+
+exports.getJWTokenFromHeader = (req) => {
+  let authToken = undefined;
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith("Bearer ")
+  ) {
+    authToken = req.headers.authorization.split(" ")[1];
+  }
+  return authToken;
+};
