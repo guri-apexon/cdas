@@ -287,9 +287,8 @@ exports.createNewUser = async (req, res) => {
   // provision into SDA and save
   const user = await userHelper.findByEmail(data.email);
   let usr_id = (user && user.usr_id) || "";
-  let usr_stat = (user && user.usr_stat) || "";
 
-  if (user?.isActive || user?.isInvited)
+  if (user && !user.isInactive)
     return returnBool
       ? false
       : apiResponse.ErrorResponse(res, "User already exists in the database");
@@ -297,9 +296,9 @@ exports.createNewUser = async (req, res) => {
   if (data.userType === "internal") {
     const provision_response = await userHelper.provisionInternalUser(data);
     if (provision_response) {
-      if (usr_stat === userHelper.CONSTANTS.INACTIVE)
+      if (user && user.isInactive)
         usr_id = await userHelper.makeUserActive(usr_id, usr_id);
-      else
+      else if (!user)
         usr_id = await userHelper.insertUserInDb({
           ...data,
           invt_sent_tm: null,
@@ -319,12 +318,12 @@ exports.createNewUser = async (req, res) => {
   } else {
     const provision_response = await userHelper.provisionExternalUser(data);
     if (provision_response) {
-      if (usr_stat === userHelper.CONSTANTS.INACTIVE)
+      if (user && user.isInactive)
         usr_id = await userHelper.makeUserActive(
           usr_id,
           provision_response.data
         );
-      else
+      else if (!user)
         usr_id = await userHelper.insertUserInDb({
           ...data,
           invt_sent_tm: data.invt_sent_tm || getCurrentTime(),
