@@ -5,7 +5,10 @@ const btoa = require("btoa");
 const apiResponse = require("../helpers/apiResponse");
 const Logger = require("../config/logger");
 const userController = require("./UserController");
-const {getDomainWithoutSubdomain, getCurrentTime} = require("../helpers/customFunctions");
+const {
+  getDomainWithoutSubdomain,
+  getCurrentTime,
+} = require("../helpers/customFunctions");
 
 const getToken = (code, clientId, clientSecret, callbackUrl, ssoUrl) => {
   return new Promise((resolve, reject) => {
@@ -47,7 +50,8 @@ exports.authHandler = async (req, res) => {
     const CLIENT_SECRET = process.env.SDA_CLIENT_SECRET;
     const CALLBACK_URL = process.env.SDA_CALLBACK_URL;
     const SSO_URL = process.env.SDA_SSO_URL;
-    const loginMaxMinutes = (parseInt(process.env.SESSION_EXP_TIME || 24*60)) * 60000;
+    const loginMaxMinutes =
+      parseInt(process.env.SESSION_EXP_TIME || 24 * 60) * 60000;
     // console.log("loginMaxMinutes", loginMaxMinutes, 24*60*60000);
 
     const body = await getToken(
@@ -76,23 +80,27 @@ exports.authHandler = async (req, res) => {
         updt_tm: getCurrentTime(true),
       });
     }
-    let lastLoginTime = 'first_time';
-    const last_login_tm = await userController.getLastLoginTime(resp.data.userid);
+    let lastLoginTime = "first_time";
+    const last_login_tm = await userController.getLastLoginTime(
+      resp.data.userid
+    );
 
     if (last_login_tm) {
       lastLoginTime = moment(last_login_tm).unix();
     }
     const loginDetails = {
       usrId: resp.data.userid,
-      logout_tm: moment()
-        .add(response.expires_in, "seconds")
-        .utc(),
+      logout_tm: moment().add(response.expires_in, "seconds").utc(),
     };
     await userController.addLoginActivity(loginDetails);
     // Set the cookies
     const domainUrlObj = new URL(REACT_APP_URL);
     const domainName = getDomainWithoutSubdomain(REACT_APP_URL);
-    const cookieDomainObj = {domain: domainName, maxAge: loginMaxMinutes, secure: domainUrlObj?.protocol==="https:" };
+    const cookieDomainObj = {
+      domain: domainName,
+      maxAge: loginMaxMinutes,
+      secure: domainUrlObj?.protocol === "https:",
+    };
 
     res.cookie("user.last_login_ts", lastLoginTime, cookieDomainObj);
     res.cookie("user.token", response.id_token, cookieDomainObj);
