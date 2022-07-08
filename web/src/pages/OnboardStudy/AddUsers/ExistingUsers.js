@@ -312,6 +312,7 @@ const ExistingUsers = () => {
   const onRowEdit = async (uniqueId) => {
     setEditedRoles(tableUsers[uniqueId - 1]);
     setEditedRow(tableUsers[uniqueId - 1]);
+    dispatch(formComponentActive());
     setEditMode(true);
   };
 
@@ -346,6 +347,8 @@ const ExistingUsers = () => {
     getData(protocol);
     setEditedRow({});
     setEditMode(false);
+    dispatch(hideAlert());
+    dispatch(formComponentInActive());
   };
 
   const onCancel = () => {
@@ -442,7 +445,8 @@ const ExistingUsers = () => {
   };
 
   const leavePageBtn = () => {
-    if (isEditMode) {
+    const checkVariable = alertStore?.showAlertBox !== true;
+    if (isEditMode && checkVariable) {
       if (editedRoles && editedRoles.uniqueId) {
         setTableUsers((rows) =>
           rows.map((row) => {
@@ -457,16 +461,14 @@ const ExistingUsers = () => {
       setEditedRow({});
       setEditMode(false);
       setShowAlertBox(false);
-    } else {
+      dispatch(formComponentInActive());
+      dispatch(hideAppSwitcher());
+    } else if (alertStore?.showAlertBox) {
       dispatch(hideAlert());
-      dispatch(showAppSwitcher());
       setShowAlertBox(false);
+      dispatch(showAppSwitcher());
     }
   };
-
-  useEffect(() => {
-    dispatch(formComponentActive());
-  }, []);
 
   useEffect(() => {
     if (alertStore?.showAlertBox) {
