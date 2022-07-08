@@ -549,10 +549,10 @@ const AddUser = () => {
                         {
                           label: "Save",
                           size: "small",
-                          disabled:
-                            loading ||
-                            disableSave ||
-                            checkSaveDisableCondition(),
+                          // disabled:
+                          //   loading ||
+                          //   disableSave ||
+                          //   checkSaveDisableCondition(),
                           onClick: handleSave,
                         },
                       ]
