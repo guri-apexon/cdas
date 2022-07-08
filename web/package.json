@@ -11,6 +11,7 @@
     "babel-plugin-emotion": "^11.0.0",
     "create-emotion": "^11.0.0",
     "create-emotion-styled": "^9.2.8",
+    "crypto-js": "^4.1.1",
     "emotion": "9.2.6",
     "enzyme": "^3.11.0",
     "immer": "^9.0.6",
