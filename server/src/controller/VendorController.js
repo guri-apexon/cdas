@@ -462,6 +462,9 @@ exports.createVendor = async (req, res) => {
       } else {
         return apiResponse.successResponseWithMoreData(res, {
           ExternalId,
+          // message: updatedID
+          //   ? "Vendor was updated successfully"
+          //   : "Vendor was saved successfully",
           id: updatedID,
         });
       }
