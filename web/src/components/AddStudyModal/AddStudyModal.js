@@ -173,7 +173,7 @@ const AddStudyModal = ({ open, onClose }) => {
   return (
     <>
       <Modal
-        disableBackdropClick="true"
+        disableBackdropClick={true}
         open={openModal}
         onClose={handleClose}
         title="Add New Study"
@@ -218,7 +218,7 @@ const AddStudyModal = ({ open, onClose }) => {
                   <Value>{selectedStudy.thptc_area}</Value>
                 </Box>
                 <Box m={2}>
-                  <Label>Protocol status</Label>
+                  <Label>Study status</Label>
                   <Value>{selectedStudy.prot_status}</Value>
                 </Box>
               </div>

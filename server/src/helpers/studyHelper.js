@@ -37,8 +37,9 @@ exports.studyGrant = async (studyId, userIds, createdBy, createdOn) => {
     );
 
     if (result?.data?.code === 200) return true;
-  } catch (error) {
-    Logger.error("studyHelper > studyGrant", error);
+  } catch (err) {
+    console.log(err);
+    Logger.error("studyHelper > studyGrant", err);
   }
   return false;
 };
@@ -56,10 +57,30 @@ exports.studyRevoke = async (studyId, userIds, createdBy, createdOn) => {
         headers: FSR_HEADERS,
       }
     );
-
     if (result?.data?.code === 200) return true;
   } catch (error) {
     Logger.error("studyHelper > studyGrant", error);
   }
   return false;
+};
+
+exports.studyUpdateModification = async (studyId, updatedOn) => {
+  try {
+    const result = await DB.executeQuery(
+      `UPDATE ${schemaName}.study SET updt_tm='${updatedOn}' WHERE  prot_id ='${studyId}'`
+    );
+    return true;
+  } catch (error) {}
+  return false;
+};
+
+exports.getTenantIdByNemonicNull = async () => {
+  const tenantQuery = `SELECT tenant_id from ${schemaName}.tenant WHERE tenant_mnemonic_nm IS null;`;
+  try {
+    const result = await DB.executeQuery(tenantQuery);
+    return result.rows[0]?.tenant_id || null;
+  } catch (error) {
+    Logger.error("studyHelper > findTenantIdByNull", error);
+  }
+  return null;
 };

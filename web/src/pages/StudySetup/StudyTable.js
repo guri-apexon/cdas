@@ -10,8 +10,8 @@ import { pick } from "lodash";
 import Table, {
   createSelectFilterComponent,
   createStringSearchFilter,
-  dateFilterV2,
-  numberSearchFilter,
+  // dateFilterV2,
+  // numberSearchFilter,
   compareDates,
   compareNumbers,
   compareStrings,
@@ -32,6 +32,8 @@ import {
   IntegerFilter,
   DateFilter,
   createStringArrayIncludedFilter,
+  numberSearchFilter,
+  dateFilterCustom,
 } from "../../utils/index";
 import { updateSelectedStudy } from "../../store/actions/StudyBoardAction";
 import usePermission, {
@@ -215,7 +217,7 @@ export default function StudyTable({ studyData, studyboardData, refreshData }) {
       }),
     },
     {
-      header: "Protocol Status",
+      header: "Study status",
       accessor: "protocolstatus",
       sortFunction: compareStrings,
       customCell: Statuscell,
@@ -230,7 +232,7 @@ export default function StudyTable({ studyData, studyboardData, refreshData }) {
       accessor: "dateadded",
       sortFunction: compareDates,
       customCell: DateCell,
-      filterFunction: dateFilterV2("dateadded"),
+      filterFunction: dateFilterCustom("dateadded"),
       filterComponent: DateFilter,
     },
     {
@@ -238,7 +240,7 @@ export default function StudyTable({ studyData, studyboardData, refreshData }) {
       accessor: "dateedited",
       sortFunction: compareDates,
       customCell: DateCell,
-      filterFunction: dateFilterV2("dateedited"),
+      filterFunction: dateFilterCustom("dateedited"),
       filterComponent: DateFilter,
     },
     {

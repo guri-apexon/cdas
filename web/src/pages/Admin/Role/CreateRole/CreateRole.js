@@ -318,7 +318,8 @@ const CreateRole = () => {
 
     return function () {
       /* eslint-disable */
-      routerHandle.current.current && routerHandle.current.current();
+      // routerHandle.current()
+      routerHandle.current();
     };
   });
   const cancelButton = () => {
@@ -339,7 +340,7 @@ const CreateRole = () => {
           <Modal
             open={confirmObj ? true : false}
             onClose={() => setConfirmObj(null)}
-            disableBackdropClick="true"
+            disableBackdropClick={true}
             className="save-confirm"
             variant="warning"
             title="Lose your work?"

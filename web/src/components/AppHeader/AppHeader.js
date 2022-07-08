@@ -286,7 +286,7 @@ const AppHeader = ({ history, setLoggedIn }) => {
     return (
       <Modal
         open={showVersionModal}
-        disableBackdropClick="true"
+        disableBackdropClick={true}
         onClose={closeModal}
         message={
           <div>
@@ -352,8 +352,14 @@ const AppHeader = ({ history, setLoggedIn }) => {
             // eslint-disable-next-line react/jsx-wrap-multilines
             <div className={classes.centerAligned}>
               <Button
-                onClick={() => setShowVersionModal(true)}
-                className={classes.fullNavHeight}
+                // onClick={() => setShowVersionModal(true)}
+                // className={classes.fullNavHeight}
+                onClick={() =>
+                  window.open(
+                    "https://docs.ims.io/CDAS/Core/1.1/USG/Default.htm",
+                    "_blank"
+                  )
+                }
               >
                 <Question className={classes.appIcon} />
               </Button>

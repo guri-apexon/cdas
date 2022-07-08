@@ -82,7 +82,7 @@ const ConfirmModal = React.memo(({ confirmObj, cancel, cstmCancelBtn }) => {
     <Modal
       open={confirmObj}
       onClose={cancel}
-      disableBackdropClick="true"
+      disableBackdropClick={true}
       className="save-confirm"
       variant="warning"
       title="Lose your work?"
@@ -125,7 +125,7 @@ const ExistingUsers = () => {
   const routerHandle = useRef();
   const alertStore = useSelector((state) => state.Alert);
   const [isShowAlertBox, setShowAlertBox] = useState(false);
-
+  const [isEditMode, setEditMode] = useState(false);
   const unblockRouter = () => {
     dispatch(formComponentInActive());
     dispatch(hideAlert());
@@ -161,7 +161,7 @@ const ExistingUsers = () => {
       { label: "Sponsor", value: selectedStudy?.sponsorname },
       { label: "Phase", value: selectedStudy?.phase },
       { label: "Project Code", value: selectedStudy?.projectcode },
-      { label: "Protocol Status", value: selectedStudy?.protocolstatus },
+      { label: "Study status", value: selectedStudy?.protocolstatus },
       { label: "Therapeutic Area", value: selectedStudy?.therapeuticarea },
     ];
     setStateMenuItems([...updateData]);
@@ -312,6 +312,7 @@ const ExistingUsers = () => {
   const onRowEdit = async (uniqueId) => {
     setEditedRoles(tableUsers[uniqueId - 1]);
     setEditedRow(tableUsers[uniqueId - 1]);
+    setEditMode(true);
   };
 
   const onRowSave = async () => {
@@ -344,21 +345,13 @@ const ExistingUsers = () => {
     }
     getData(protocol);
     setEditedRow({});
+    setEditMode(false);
   };
 
   const onCancel = () => {
-    if (editedRoles && editedRoles.uniqueId) {
-      setTableUsers((rows) =>
-        rows.map((row) => {
-          if (row.uniqueId === editedRoles.uniqueId) {
-            return { ...row, roles: editedRoles.roles };
-          }
-          return row;
-        })
-      );
-      setEditedRoles({});
+    if (isEditMode) {
+      setShowAlertBox(true);
     }
-    setEditedRow({});
   };
 
   const editRow = (key, value) => {
@@ -433,7 +426,13 @@ const ExistingUsers = () => {
     if (targetRoute === "") {
       setConfirmObj(false);
     } else {
-      history.push(targetRoute);
+      let tempRoute;
+      if (targetRoute.includes("ExistingStudyAssignment")) {
+        tempRoute = "/study-setup";
+      } else {
+        tempRoute = targetRoute;
+      }
+      history.push(tempRoute);
     }
   };
 
@@ -443,9 +442,26 @@ const ExistingUsers = () => {
   };
 
   const leavePageBtn = () => {
-    dispatch(hideAlert());
-    dispatch(showAppSwitcher());
-    setShowAlertBox(false);
+    if (isEditMode) {
+      if (editedRoles && editedRoles.uniqueId) {
+        setTableUsers((rows) =>
+          rows.map((row) => {
+            if (row.uniqueId === editedRoles.uniqueId) {
+              return { ...row, roles: editedRoles.roles };
+            }
+            return row;
+          })
+        );
+        setEditedRoles({});
+      }
+      setEditedRow({});
+      setEditMode(false);
+      setShowAlertBox(false);
+    } else {
+      dispatch(hideAlert());
+      dispatch(showAppSwitcher());
+      setShowAlertBox(false);
+    }
   };
 
   useEffect(() => {
@@ -459,17 +475,19 @@ const ExistingUsers = () => {
   }, [alertStore]);
 
   useEffect(() => {
-    routerHandle.current = history.block((tr) => {
-      setConfirmObj(true);
-      setTargetRoute(tr?.pathname);
-      return false;
-    });
+    if (isEditMode) {
+      routerHandle.current = history.block((tr) => {
+        setConfirmObj(true);
+        setTargetRoute(tr?.pathname);
+        return false;
+      });
 
-    return function () {
-      /* eslint-disable */
-      routerHandle.current = history.block(() => {});
-      routerHandle.current.current && routerHandle.current.current();
-    };
+      return function () {
+        /* eslint-disable */
+        routerHandle.current = history.block(() => {});
+        routerHandle.current();
+      };
+    }
   });
 
   return (

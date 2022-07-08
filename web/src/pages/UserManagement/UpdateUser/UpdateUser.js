@@ -1,7 +1,7 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 /* eslint-disable no-useless-escape */
 
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useHistory } from "react-router";
 import { useLocation, useParams } from "react-router-dom";
@@ -9,13 +9,11 @@ import ApolloProgress from "apollo-react/components/ApolloProgress";
 import Tooltip from "apollo-react/components/Tooltip";
 import EmailIcon from "apollo-react-icons/Email";
 import Button from "apollo-react/components/Button";
-
+import InfoIcon from "apollo-react-icons/Info";
+import ChevronLeft from "apollo-react-icons/ChevronLeft";
 import BreadcrumbsUI from "apollo-react/components/Breadcrumbs";
+import * as colors from "apollo-react/colors";
 import Switch from "apollo-react/components/Switch";
-import ButtonGroup from "apollo-react/components/ButtonGroup";
-import TextField from "apollo-react/components/TextField";
-import AutocompleteV2 from "apollo-react/components/AutocompleteV2";
-import SearchIcon from "apollo-react-icons/Search";
 import "./UpdateUser.scss";
 import Typography from "apollo-react/components/Typography";
 import Link from "apollo-react/components/Link";
@@ -30,6 +28,7 @@ import {
   inviteInternalUser,
   getUser,
   updateUserStatus,
+  sendInvite,
 } from "../../../services/ApiServices";
 import { debounceFunction } from "../../../utils";
 import usePermission, {
@@ -89,52 +88,24 @@ const Value = ({ children }) => {
   );
 };
 
-const ConfirmModal = React.memo(({ open, cancel, stayHere, loading }) => {
-  return (
-    <Modal
-      open={open}
-      onClose={stayHere}
-      className="save-confirm"
-      disableBackdropClick="true"
-      variant="warning"
-      title="Lose your work?"
-      message="All unsaved changes will be lost."
-      buttonProps={[
-        { label: "Keep editing", disabled: loading },
-        { label: "Leave without saving", onClick: cancel, disabled: loading },
-      ]}
-      id="neutral"
-    />
-  );
-});
-
-const InviteUserModal = ({ open, onSendInvite, stayHere, loading, email }) => {
-  return (
-    <Modal
-      open={open}
-      onClose={stayHere}
-      className="save-confirm"
-      disableBackdropClick="true"
-      title="Invite User?"
-      id="neutral"
-      buttonProps={[
-        { label: "Change email", disabled: loading },
-        { label: "Email invitation", onClick: onSendInvite, disabled: loading },
-      ]}
-    >
-      <Typography gutterBottom>
-        This new user will be sent an email invitation.
-        <br />
-        Please double check the email address.
-      </Typography>
-      <Typography gutterTop>
-        <div className="flex justify-center flex-center">
-          <span className="b-font">{email}</span>
-        </div>
-      </Typography>
-    </Modal>
-  );
-};
+// const ConfirmModal = React.memo(({ open, cancel, stayHere, loading }) => {
+//   return (
+//     <Modal
+//       open={open}
+//       onClose={stayHere}
+//       className="save-confirm"
+//       disableBackdropClick={true}
+//       variant="warning"
+//       title="Lose your work?"
+//       message="All unsaved changes will be lost."
+//       buttonProps={[
+//         { label: "Keep editing", disabled: loading },
+//         { label: "Leave without saving", onClick: cancel, disabled: loading },
+//       ]}
+//       id="neutral"
+//     />
+//   );
+// });
 
 const AddUser = () => {
   const toast = useContext(MessageContext);
@@ -157,6 +128,11 @@ const AddUser = () => {
   const [targetUser, setTargetUser] = useState(null);
   const [breadcrumpItems, setBreadcrumpItems] = useState([]);
   const [showRolePopup, setShowRolePopup] = useState(false);
+  const [isSendingInvite, setIsSendingInvite] = useState(false);
+  const [inactiveStudyRoles, setInactiveStudyRoles] = useState([]);
+  const [showEmailTooTip, setEmailTooTip] = useState(false);
+  const [isUpdateInprogress, setIsUpdateInprogress] = useState(false);
+  const [openCancelModal, setOpenCancelModal] = useState(false);
 
   const keepEditingBtn = () => {
     dispatch(hideAlert());
@@ -180,16 +156,45 @@ const AddUser = () => {
       setIsAnyUpdate(true);
     }
   };
-  const checkUserTypeAndUpdate = (checked) => {
+
+  const updateBreadcrump = (usr) => {
+    const breadcrumpArr = [
+      { href: "", onClick: () => history.push("/launchpad") },
+      {
+        title: "User Management",
+        onClick: () => history.push(userListURL),
+      },
+      {
+        title: `${usr.usr_fst_nm} ${usr.usr_lst_nm}`,
+      },
+    ];
+    setBreadcrumpItems(breadcrumpArr);
+  };
+
+  const getUserAPI = async () => {
+    const userRes = await getUser(userId);
+    setTargetUser(userRes);
+    updateBreadcrump(userRes);
+    setActive(userRes.usr_stat === "Active" ? true : false);
+  };
+
+  const checkUserTypeAndUpdate = async (checked) => {
+    setLoading(true);
     const userType = targetUser.usr_typ;
     const payload = {
       tenant_id: targetUser.tenant_id,
       user_type: targetUser.usr_typ,
       email_id: targetUser.usr_mail_id,
       user_id: targetUser.usr_id,
+      firstName: targetUser.usr_fst_nm,
+      lastName: targetUser.usr_lst_nm,
+      employeeId: targetUser.extrnl_emp_id,
       changed_to: checked ? "active" : "inactive",
     };
-    updateUserStatus(payload);
+    const res = await updateUserStatus(payload);
+    setInactiveStudyRoles(res?.data);
+    await getUserAPI();
+    setLoading(false);
     // updateUserStatus(userId, "In Active");
     // setShowRolePopup(true);
   };
@@ -214,31 +219,16 @@ const AddUser = () => {
 
   const goToUser = (e) => {
     e.preventDefault();
-    history.push("/user-management/");
-  };
-
-  const updateBreadcrump = (usr) => {
-    const breadcrumpArr = [
-      { href: "", onClick: () => history.push("/launchpad") },
-      {
-        title: "User Management",
-        onClick: () => history.push(userListURL),
-      },
-      {
-        title: `${usr.usr_fst_nm} ${usr.usr_lst_nm}`,
-      },
-    ];
-    setBreadcrumpItems(breadcrumpArr);
+    if (!isUpdateInprogress) {
+      history.push("/user-management/");
+    } else {
+      setOpenCancelModal(true);
+    }
   };
 
   useEffect(() => {
     dispatch(formComponentActive());
-    (async () => {
-      const userRes = await getUser(userId);
-      setTargetUser(userRes);
-      updateBreadcrump(userRes);
-      setActive(userRes.usr_stat === "Active" ? true : false);
-    })();
+    getUserAPI();
   }, []);
 
   function formatAMPM(date) {
@@ -280,37 +270,150 @@ const AddUser = () => {
     return userStatus?.trim()?.toLowerCase() === "invited" ? true : false;
   };
 
+  const resendInvitation = async () => {
+    setIsSendingInvite(true);
+    const payload = {
+      firstName: targetUser?.usr_fst_nm,
+      lastName: targetUser?.usr_lst_nm,
+      email: targetUser?.usr_mail_id,
+      uid: targetUser?.usr_id,
+    };
+    try {
+      const res = await sendInvite(payload);
+      const newTime = res?.data;
+      if (newTime) setTargetUser({ ...targetUser, invt_sent_tm: newTime });
+    } catch (e) {
+      console.log(e);
+    }
+    setIsSendingInvite(false);
+  };
+
+  const closeRolePopup = () => {
+    setInactiveStudyRoles([]);
+  };
+
+  const getInactiveRolesCount = () => {
+    return inactiveStudyRoles?.reduce(
+      (acc, study) => acc + study?.inactiveRoles?.length,
+      0
+    );
+  };
+
+  const emailRef = useRef();
+
+  const showEmailToolTip = (action) => {
+    if (
+      action === "show" &&
+      emailRef.current.scrollWidth > emailRef.current.offsetWidth
+    ) {
+      setEmailTooTip(true);
+    } else {
+      setEmailTooTip(false);
+    }
+  };
+
+  const updateInProgress = (flag) => {
+    setIsUpdateInprogress(flag);
+  };
+
   return (
     <div className="create-user-wrapper">
       {isShowAlertBox && (
         <AlertBox cancel={keepEditingBtn} submit={leavePageBtn} />
       )}
+      {isUpdateInprogress && (
+        <Modal
+          open={openCancelModal}
+          onClose={(e) => setOpenCancelModal(false)}
+          className="save-confirm"
+          disableBackdropClick={true}
+          variant="warning"
+          title="Lose your work?"
+          message="All unsaved changes will be lost."
+          buttonProps={[
+            { label: "Keep editing" },
+            {
+              label: "Leave without saving",
+              onClick: () => history.push("/user-management/"),
+            },
+          ]}
+          id="neutral"
+        />
+      )}
 
-      {isAnyUpdate && (
+      {/* {isAnyUpdate && (
         <ConfirmModal
           open={confirm}
           cancel={cancelEdit}
           loading={loading}
           stayHere={stayHere}
         />
-      )}
+      )} */}
+      <Modal
+        open={!!inactiveStudyRoles?.length}
+        onClose={closeRolePopup}
+        className="save-confirm"
+        variant="default"
+        title={
+          // eslint-disable-next-line react/jsx-wrap-multilines
+          <div className="flex flex-center gap-2">
+            <InfoIcon style={{ color: colors.blue }} />
+            <span className="mt-1">Removed assignments</span>
+          </div>
+        }
+        buttonProps={[
+          {
+            label: "Dismiss",
+            onClick: closeRolePopup,
+            disabled: loading,
+          },
+        ]}
+        id="neutral2"
+      >
+        <div className="px-32">
+          <Typography gutterBottom>
+            {`${getInactiveRolesCount()} assignments were removed from ${
+              inactiveStudyRoles?.length
+            } studies as the Roles are now inactive:`}
+            <br />
+            <Grid container spacing={2}>
+              {inactiveStudyRoles?.map(({ studyName, inactiveRoles }) => {
+                return (
+                  <>
+                    <Grid item xs={5}>
+                      {studyName}
+                    </Grid>
+                    <Grid item xs={7}>
+                      {inactiveRoles?.map((r) => r.name).join(", ")}
+                    </Grid>
+                  </>
+                );
+              })}
+            </Grid>
+          </Typography>
+        </div>
+      </Modal>
       <div className="paper">
         <Box className="top-content">
           {breadcrumpItems.length && (
             <BreadcrumbsUI className="breadcrump" items={breadcrumpItems} />
           )}
-          <Typography variant="title1" className="b-font title">
-            {`${targetUser?.usr_fst_nm} ${targetUser?.usr_lst_nm}`}
-          </Typography>
-          <div className="flex justify-space-between">
-            <Link onClick={(e) => goToUser(e)}>
-              {"< Back to User Management List"}
-            </Link>
+
+          <div className="flex justify-space-between mb-16">
+            <Button
+              onClick={goToUser}
+              className="back-btn"
+              icon={<ChevronLeft />}
+              size="small"
+            >
+              Back to User Management List
+            </Button>
             {!readOnly && targetUser?.usr_stat !== "Invited" ? (
               <Switch
                 label="Active"
                 className="inline-checkbox"
                 checked={active}
+                disabled={loading}
                 onChange={handleActive}
                 size="small"
               />
@@ -322,11 +425,13 @@ const AddUser = () => {
               />
             )}
           </div>
+          <Typography variant="title1" className="b-font title">
+            {`${targetUser?.usr_fst_nm} ${targetUser?.usr_lst_nm}`}
+          </Typography>
         </Box>
       </div>
       <div className="padded">
         <Grid container spacing={2}>
-          {/* {console.log("save", disableSave)} */}
           <Grid item xs={3}>
             <Box>
               <div className="flex create-sidebar flexWrap">
@@ -341,9 +446,26 @@ const AddUser = () => {
                 <Typography className="mt-4 user-update-label">
                   Email address
                   <div className="ml-3">
-                    <div className="user-update-font-500 mt-2">
-                      {targetUser?.usr_mail_id}
-                    </div>
+                    <Tooltip
+                      variant="dark"
+                      title={targetUser?.usr_mail_id}
+                      placement="top"
+                      open={showEmailTooTip}
+                      style={{ marginRight: 48 }}
+                    >
+                      <Typography
+                        ref={emailRef}
+                        onMouseEnter={(e) => showEmailToolTip("show")}
+                        onMouseLeave={(e) => showEmailToolTip("hide")}
+                        gutterBottom
+                        noWrap
+                        className={`user-update-font-500 mt-2 ${
+                          showEmailTooTip && "cursor-pointer"
+                        }`}
+                      >
+                        {targetUser?.usr_mail_id}
+                      </Typography>
+                    </Tooltip>
                     {isUserInvited() && (
                       <>
                         <div className="light mt-2">
@@ -354,15 +476,19 @@ const AddUser = () => {
                         <div className="light mt-2">
                           {getExpirationDateString()}
                         </div>
-                        <div className="mt-2">
-                          <Button
-                            variant="secondary"
-                            icon={<EmailIcon />}
-                            size="small"
-                          >
-                            Resend Invitation
-                          </Button>
-                        </div>
+                        {(canCreate || canUpdate) && isInvitationExpired() && (
+                          <div className="mt-2">
+                            <Button
+                              variant="secondary"
+                              icon={<EmailIcon />}
+                              size="small"
+                              onClick={resendInvitation}
+                              disabled={isSendingInvite || readOnly}
+                            >
+                              Resend Invitation
+                            </Button>
+                          </div>
+                        )}
                       </>
                     )}
                   </div>
@@ -371,7 +497,7 @@ const AddUser = () => {
                   Employee ID
                   <div className="ml-3">
                     <div className="user-update-font-500">
-                      {targetUser?.usr_id}
+                      {targetUser?.extrnl_emp_id}
                     </div>
                   </div>
                 </Typography>
@@ -384,8 +510,12 @@ const AddUser = () => {
                 userId={userId}
                 targetUser={targetUser}
                 updateChanges={updateChanges}
+                updateInProgress={updateInProgress}
                 showRolePopup={showRolePopup}
-                setShowRolePopup={setShowRolePopup}
+                // setShowRolePopup={setShowRolePopup}
+                userUpdating={loading}
+                readOnly={readOnly}
+                canUpdate={canUpdate}
               />
             </div>
           </Grid>

@@ -9,7 +9,9 @@ const constants = require("../config/constants");
 const helper = require("../helpers/customFunctions");
 const CommonController = require("./CommonController");
 const { filter } = require("lodash");
+const { getTenantIdByNemonicNull } = require("../helpers/studyHelper");
 const { DB_SCHEMA_NAME: schemaName, FSR_HEADERS, FSR_API_URI } = constants;
+const userHelper = require("../helpers/userHelper");
 
 const updateStatus = async (studyId, status = "Success") => {
   try {
@@ -30,7 +32,7 @@ const addOnboardedStudy = async (protNbrStnd, userId, insrt_tm) => {
       `SELECT * from ${schemaName}.mdm_study WHERE prot_nbr_stnd='${protNbrStnd}';`
     );
     const study = result.rows[0] || null;
-    if (!study) return false;
+    if (!study) return false; 
     const uniqueId = helper.createUniqueID();
     const userDesc = "mdm study import";
     const valueArr = [
@@ -54,11 +56,12 @@ const addOnboardedStudy = async (protNbrStnd, userId, insrt_tm) => {
     const result1 = await DB.executeQuery(insertQuery, valueArr);
     const insertedStudy = result1.rows[0] || null;
     if (!insertedStudy) return false;
+    const tenantId = await getTenantIdByNemonicNull();
     const sponsorValueArr = [
       uniqueId,
       study.spnsr_nm,
       study.spnsr_nm_stnd,
-      "a020E000005SwQSQA0",
+      tenantId,
       userId,
       userDesc,
       1,
@@ -69,6 +72,7 @@ const addOnboardedStudy = async (protNbrStnd, userId, insrt_tm) => {
     const result2 = await DB.executeQuery(insertSponQuery, sponsorValueArr);
     const sponsor = result2.rows[0] || sponsor;
     if (!sponsor) return false;
+
     const studySposrQuery = `INSERT INTO ${schemaName}.study_sponsor
     (prot_id, spnsr_id)
     VALUES('${insertedStudy.prot_id}', '${sponsor.spnsr_id}');
@@ -131,7 +135,7 @@ exports.onboardStudy = async function (req, res) {
       .then(async (response) => {
         const onboardStatus = response?.data?.code || null;
         let insertedStudy = null;
-        if (onboardStatus === 202) {
+        if (onboardStatus === 202 || onboardStatus === 200) {
           try {
             insertedStudy = await addOnboardedStudy(studyId, userId, insrt_tm);
             if (!insertedStudy)
@@ -383,6 +387,7 @@ exports.listStudyAssign = async (req, res) => {
                         FROM ${schemaName}.study_user as t1 
                         LEFT JOIN ${schemaName}.user as t2 ON t1.usr_id = t2.usr_id 
                         where t1.prot_id =$1 and t1.act_flg =1 and t1.usr_id is NOT NULL`;
+
     const getRole = `SELECT t1.role_id,t1.prot_id,t1.usr_id,t2.role_nm ,t2.role_desc 
                       FROM ${schemaName}.study_user_role as t1
                       LEFT JOIN ${schemaName}.role as t2 ON t1.role_id = t2.role_id
@@ -451,63 +456,100 @@ exports.AddStudyAssign = async (req, res) => {
     if (data && data.length) {
       data.forEach(async (element) => {
         try {
-          const studyUserId = element.user_id?.toLowerCase() || null;
-          await DB.executeQuery(insertUserQuery, [
-            protocol,
-            studyUserId,
-            1,
-            insrt_tm,
-          ]);
+          // const studyUserId = element.user_id?.toLowerCase() || null;
+          const studyUserId = await userHelper.getExternalUserInternalId(
+            element.user_id
+          );
 
-          element.role_id.forEach(async (roleId) => {
+          if (studyUserId) {
+            await DB.executeQuery(insertUserQuery, [
+              protocol,
+              studyUserId,
+              1,
+              insrt_tm,
+            ]);
+
+            element.role_id.forEach(async (roleId) => {
+              try {
+                const {
+                  rows: [protUsrRoleId],
+                } = await DB.executeQuery(insertRoleQuery, [
+                  roleId,
+                  protocol,
+                  studyUserId,
+                  1,
+                  loginId,
+                  insrt_tm,
+                ]);
+
+                // console.log("protUsrRoleId", protUsrRoleId.prot_usr_role_id);
+
+                // // Study roll user audit table audit log entry
+                const studyUserAudit = CommonController.studyUserAudit(
+                  protUsrRoleId.prot_usr_role_id,
+                  "New Entry",
+                  null,
+                  null,
+                  loginId
+                );
+              } catch (e) {
+                console.log(e);
+              }
+            });
+
+            await DB.executeQuery(
+              `UPDATE ${schemaName}.study set updt_tm=$1 WHERE prot_id=$2;`,
+              [insrt_tm, protocol]
+            );
+            // Study audit table audit log entry
+            const studyAudit = CommonController.studyAudit(
+              protocol,
+              "New Entry",
+              null,
+              null,
+              loginId
+            );
+
+            return apiResponse.successResponseWithData(
+              res,
+              "New user added successfully"
+            );
+          } else {
             try {
-              const {
-                rows: [protUsrRoleId],
-              } = await DB.executeQuery(insertRoleQuery, [
-                roleId,
-                protocol,
-                studyUserId,
-                1,
-                loginId,
-                insrt_tm,
-              ]);
-
-              // console.log("protUsrRoleId", protUsrRoleId.prot_usr_role_id);
-
-              // // Study roll user audit table audit log entry
-              const studyUserAudit = CommonController.studyUserAudit(
-                protUsrRoleId.prot_usr_role_id,
-                "New Entry",
-                null,
-                null,
-                loginId
+              // user_id -- is external id in this case
+              let sdaUserDetails = await userHelper.getSDAuserDataById(
+                element?.user_id
               );
-            } catch (e) {
-              console.log(e);
+              const requestBody = {
+                appKey: process.env.SDA_APP_KEY,
+                userType: "external",
+                roleType: sdaUserDetails?.roleType,
+                updatedBy: "Admin",
+                email: sdaUserDetails?.email,
+              };
+
+              let sda_status = {};
+              sda_status = await userHelper.deProvisionUser(
+                requestBody,
+                requestBody.userType
+              );
+              if (sda_status.status == 200 || sda_status.status == 204) {
+                return apiResponse.ErrorResponse(
+                  res,
+                  "User registeration incomplete"
+                );
+              }
+            } catch (error) {
+              return apiResponse.ErrorResponse(
+                res,
+                "User registeration incomplete"
+              );
             }
-          });
+          }
         } catch (er) {
-          console.log(er);
+          console.log(error);
         }
       });
-
-      await DB.executeQuery(
-        `UPDATE ${schemaName}.study set updt_tm=$1 WHERE prot_id=$2;`,
-        [insrt_tm, protocol]
-      );
-      // Study audit table audit log entry
-      const studyAudit = CommonController.studyAudit(
-        protocol,
-        "New Entry",
-        null,
-        null,
-        loginId
-      );
-
-      return apiResponse.successResponseWithData(
-        res,
-        "New user added successfully"
-      );
     }
   } catch (err) {
     console.log(err);
@@ -569,7 +611,7 @@ exports.updateStudyAssign = async (req, res) => {
 
     data.forEach(async (element) => {
       try {
-        const studyUserId = element.user_id?.toLowerCase() || null;
+        const studyUserId = element.user_id || null;
         const { rows: selectData } = await DB.executeQuery(oldDataQuery, [
           protocol,
           studyUserId,

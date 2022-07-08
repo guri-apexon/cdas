@@ -358,7 +358,7 @@ const UpdateRole = () => {
 
     return function () {
       /* eslint-disable */
-      routerHandle.current.current && routerHandle.current.current();
+      routerHandle.current();
     };
   });
   const cancelButton = () => {
@@ -377,7 +377,7 @@ const UpdateRole = () => {
         )}
         {confirmObj && (
           <Modal
-            disableBackdropClick="true"
+            disableBackdropClick={true}
             open={confirmObj ? true : false}
             onClose={() => setConfirmObj(null)}
             className="save-confirm"

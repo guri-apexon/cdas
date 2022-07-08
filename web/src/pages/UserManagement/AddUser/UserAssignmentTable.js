@@ -33,6 +33,7 @@ const UserAssignmentTable = ({
   const [roleLists, setroleLists] = useState([]);
 
   const lineRefs = React.useRef([]);
+  const lineRefs2 = React.useRef([]);
   useEffect(() => {
     if (tableStudies.length === 0) {
       setLoad(false);
@@ -48,6 +49,7 @@ const UserAssignmentTable = ({
     }
 
     lineRefs.current = tableStudies.map((_, i) => React.createRef());
+    lineRefs2.current = tableStudies.map((_, i) => React.createRef());
   }, [tableStudies]);
 
   const getStudyObj = () => {
@@ -147,8 +149,19 @@ const UserAssignmentTable = ({
         value &&
         tableIndex + 1 === tableStudies.length
       ) {
+        setTimeout(() => {
+          lineRefs2.current[
+            tableIndex
+          ].current?.childNodes[0]?.childNodes[0]?.childNodes[0]?.childNodes[1]?.childNodes[1]?.click();
+        }, 500);
         return [...newRows, getStudyObj()];
       }
+      setTimeout(() => {
+        lineRefs2.current[
+          tableIndex
+        ].current.childNodes[0].childNodes[0].childNodes[0].childNodes[2]?.childNodes[1]?.click();
+      }, 500);
+
       return newRows;
     });
   };
@@ -187,19 +200,46 @@ const UserAssignmentTable = ({
   };
 
   const EditableRoles = ({ row, column: { accessor: key } }) => {
+    const tableIndex = tableStudies.findIndex((el) => el.index === row.index);
+    const [value, setValue] = useState(tableStudies[tableIndex]?.roles || []);
     if (row.index === tableStudies[tableStudies.length - 1]?.index)
       return false;
+
+    const editRoleRow = (e, v, r) => {
+      if (r === "remove-option") {
+        const copy = [...tableStudies];
+        copy[tableIndex].roles = [...v];
+        setTableStudies(copy);
+      }
+      setValue([...v]);
+    };
+    const updateStudyRoles = (v) => {
+      const copy = [...tableStudies];
+      copy[tableIndex].roles = [...v];
+      setTableStudies(copy);
+    };
     return (
       <div className="role">
-        <MultiSelect
-          roleLists={roleLists}
-          row={row}
-          rowKey={key}
-          tableStudies={tableStudies}
-          setTableStudies={setTableStudies}
-          editRow={(e, v, r, rowIndex, rowKey) =>
-            editRow(e, v, r, rowIndex, rowKey)
-          }
+        <AutocompleteV2
+          ref={lineRefs2.current[row.index - 1]}
+          placeholder={!value.length ? "Choose one or more roles" : ""}
+          size="small"
+          fullWidth
+          multiple
+          forcePopupIcon
+          showCheckboxes
+          chipColor="white"
+          source={roleLists}
+          limitChips={5}
+          value={value}
+          onChange={(e, v, r) => editRoleRow(e, v, r)}
+          onBlur={() => updateStudyRoles(value)}
+          filterSelectedOptions={false}
+          blurOnSelect={false}
+          clearOnBlur={false}
+          disableCloseOnSelect
+          alwaysLimitChips
+          enableVirtualization
         />
       </div>
     );

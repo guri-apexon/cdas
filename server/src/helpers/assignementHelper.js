@@ -89,30 +89,27 @@ exports.insertUserStudyRole = async (
 
   const insertStudyUserQuery = `
     INSERT INTO ${schemaName}.study_user (prot_id, usr_id, act_flg,insrt_tm, updt_tm)  
-    VALUES($1,$2,$3,$4,$5)`;
+    VALUES('${prot_id}','${usr_id}',1,'${createdOn}','${createdOn}')`;
+
+  const updateStudyUserQuery = `
+    UPDATE ${schemaName}.study_user 
+    SET  act_flg=1, updt_tm='${createdOn}'
+    WHERE usr_id='${usr_id}' AND prot_id='${prot_id}' `;
 
   const insertStudyUserRole = `
     INSERT INTO ${schemaName}.study_user_role ( role_id, prot_id, usr_id, act_flg, created_by, created_on, updated_by, updated_on)   
     VALUES($1, $2, $3, $4, $5, $6, NULL, NULL) RETURNING prot_usr_role_id`;
 
-  const updateQuery = ``;
-  const auditQuery = ``;
   let protocolsInserted = 0;
   let studyRolesUserInserted = 0;
 
   let result1, result2;
   try {
     const q1 = await DB.executeQuery(checkStudyUserQuery);
-    if (!(q1 && q1.rowCount > 0)) {
-      result1 = await DB.executeQuery(insertStudyUserQuery, [
-        prot_id,
-        usr_id,
-        1,
-        createdOn,
-        createdOn,
-      ]);
-      protocolsInserted++;
-    }
+    result1 = await DB.executeQuery(
+      !(q1 && q1.rowCount > 0) ? insertStudyUserQuery : updateStudyUserQuery
+    );
+    protocolsInserted++;
 
     const q2 = await DB.executeQuery(checkStudyUserRoleQuery);
     if (!(q2 && q2.rowCount > 0)) {
@@ -151,7 +148,7 @@ exports.makeUserStudyRoleInactive = async (
 ) => {
   const checkStudyUserRoleQuery = `
     SELECT * FROM ${schemaName}.study_user_role 
-    WHERE usr_id='${usr_id}' AND prot_id='${prot_id}' AND role_id='${role_id}' AND act_flg = 1
+    WHERE usr_id='${usr_id}' AND prot_id='${prot_id}' AND role_id='${role_id}' 
     LIMIT 1`;
 
   const updateQuery = `
@@ -337,10 +334,9 @@ exports.updateAssignments = async (protocols, user, createdBy, createdOn) => {
   let success = true;
   for (let i = 0; i < protocols.length; i++) {
     const protocol = protocols[i];
-    // if (!protocol.roleIds || !protocol.isValid) continue;
+    if (!protocol.roleIds || !protocol.isValid) continue;
     for (let j = 0; j < protocol.roles.length; j++) {
       const roleId = protocol.roles[j];
-      console.log({ protocol, user });
       const result = await this.insertUserStudyRole(
         user.usr_id,
         protocol.id,
@@ -348,16 +344,13 @@ exports.updateAssignments = async (protocols, user, createdBy, createdOn) => {
         createdBy || "",
         createdOn || getCurrentTime()
       );
-
-      console.log({ result });
-
-      // if (result.success) {
-      //   protocolsInserted += result.protocolsInserted;
-      //   studyRolesUserInserted += result.studyRolesUserInserted;
-      // } else {
-      //   Logger.error("assignmentCreate > saveToDb > " + protocol.name);
-      //   success = false;
-      // }
+      if (result.success) {
+        protocolsInserted += result.protocolsInserted;
+        studyRolesUserInserted += result.studyRolesUserInserted;
+      } else {
+        Logger.error("assignmentCreate > saveToDb > " + protocol.name);
+        success = false;
+      }
     }
   }
   return { success, protocolsInserted, studyRolesUserInserted };
@@ -372,6 +365,7 @@ exports.makeAssignmentsInactive = async (
   let flag = false;
   for (let i = 0; i < protocols.length; i++) {
     const protocol = protocols[i];
+    let studyUpdateFlag = false;
     if (!protocol.roleIds || !protocol.isValid) continue;
     for (let j = 0; j < protocol.roleIds.length; j++) {
       const roleId = protocol.roleIds[j];
@@ -392,10 +386,16 @@ exports.makeAssignmentsInactive = async (
           createdOn
         );
         flag = true;
+        studyUpdateFlag = true;
       } else {
         Logger.error("assignmentCreate > saveToDb > " + protocol.protocolname);
       }
     }
+    if (studyUpdateFlag)
+      await studyHelper.studyUpdateModification(
+        protocol.id,
+        createdOn || getCurrentTime()
+      );
     const result = await this.makeUserStudyInactive(
       user.usr_id,
       protocol.id,

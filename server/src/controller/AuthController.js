@@ -43,6 +43,7 @@ const getToken = (code, clientId, clientSecret, callbackUrl, ssoUrl) => {
 exports.authHandler = async (req, res) => {
   // Get the token
   const REACT_APP_URL = process.env.REACT_APP_URL;
+  console.log(REACT_APP_URL);
   try {
     // read the code from the request
     const { code } = req.query;

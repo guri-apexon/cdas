@@ -39,7 +39,7 @@ const ConfirmModal = React.memo(({ open, cancel, closeModal, loading }) => {
     <Modal
       open={open}
       className="save-confirm"
-      disableBackdropClick="true"
+      disableBackdropClick={true}
       onClose={closeModal}
       variant="warning"
       title="Lose your work?"
@@ -293,7 +293,7 @@ const UpdatePolicy = () => {
 
     return function () {
       /* eslint-disable */
-      routerHandle.current.current && routerHandle.current.current();
+      routerHandle.current();
     };
   });
 

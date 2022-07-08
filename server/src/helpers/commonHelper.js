@@ -23,3 +23,6 @@ exports.find = async (tableName, filter, orderby, limit) => {
 
 exports.findFirst = async (tableName, filter, orderby) =>
   await this.find(tableName, filter, orderby, 1);
+
+exports.isValidDate = (dateObject) =>
+  new Date(dateObject).toString() !== "Invalid Date";
