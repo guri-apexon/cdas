@@ -125,7 +125,7 @@ const ExistingUsers = () => {
   const routerHandle = useRef();
   const alertStore = useSelector((state) => state.Alert);
   const [isShowAlertBox, setShowAlertBox] = useState(false);
-
+  const [isEditMode, setEditMode] = useState(false);
   const unblockRouter = () => {
     dispatch(formComponentInActive());
     dispatch(hideAlert());
@@ -312,6 +312,8 @@ const ExistingUsers = () => {
   const onRowEdit = async (uniqueId) => {
     setEditedRoles(tableUsers[uniqueId - 1]);
     setEditedRow(tableUsers[uniqueId - 1]);
+    dispatch(formComponentActive());
+    setEditMode(true);
   };
 
   const onRowSave = async () => {
@@ -344,21 +346,15 @@ const ExistingUsers = () => {
     }
     getData(protocol);
     setEditedRow({});
+    setEditMode(false);
+    dispatch(hideAlert());
+    dispatch(formComponentInActive());
   };
 
   const onCancel = () => {
-    if (editedRoles && editedRoles.uniqueId) {
-      setTableUsers((rows) =>
-        rows.map((row) => {
-          if (row.uniqueId === editedRoles.uniqueId) {
-            return { ...row, roles: editedRoles.roles };
-          }
-          return row;
-        })
-      );
-      setEditedRoles({});
+    if (isEditMode) {
+      setShowAlertBox(true);
     }
-    setEditedRow({});
   };
 
   const editRow = (key, value) => {
@@ -449,14 +445,30 @@ const ExistingUsers = () => {
   };
 
   const leavePageBtn = () => {
-    dispatch(hideAlert());
-    dispatch(showAppSwitcher());
-    setShowAlertBox(false);
+    const checkVariable = alertStore?.showAlertBox !== true;
+    if (isEditMode && checkVariable) {
+      if (editedRoles && editedRoles.uniqueId) {
+        setTableUsers((rows) =>
+          rows.map((row) => {
+            if (row.uniqueId === editedRoles.uniqueId) {
+              return { ...row, roles: editedRoles.roles };
+            }
+            return row;
+          })
+        );
+        setEditedRoles({});
+      }
+      setEditedRow({});
+      setEditMode(false);
+      setShowAlertBox(false);
+      dispatch(formComponentInActive());
+      dispatch(hideAppSwitcher());
+    } else if (alertStore?.showAlertBox) {
+      dispatch(hideAlert());
+      setShowAlertBox(false);
+      dispatch(showAppSwitcher());
+    }
   };
-
-  useEffect(() => {
-    dispatch(formComponentActive());
-  }, []);
 
   useEffect(() => {
     if (alertStore?.showAlertBox) {
@@ -465,17 +477,19 @@ const ExistingUsers = () => {
   }, [alertStore]);
 
   useEffect(() => {
-    routerHandle.current = history.block((tr) => {
-      setConfirmObj(true);
-      setTargetRoute(tr?.pathname);
-      return false;
-    });
+    if (isEditMode) {
+      routerHandle.current = history.block((tr) => {
+        setConfirmObj(true);
+        setTargetRoute(tr?.pathname);
+        return false;
+      });
 
-    return function () {
-      /* eslint-disable */
-      routerHandle.current = history.block(() => {});
-      routerHandle.current();
-    };
+      return function () {
+        /* eslint-disable */
+        routerHandle.current = history.block(() => {});
+        routerHandle.current();
+      };
+    }
   });
 
   return (
