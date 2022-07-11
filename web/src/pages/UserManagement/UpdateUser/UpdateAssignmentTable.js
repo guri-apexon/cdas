@@ -792,13 +792,13 @@ const UserAssignmentTable = ({
       {
         header: "Protocol Number",
         accessor: "prot_id",
-        width: "30%",
+        width: "49%",
         customCell: EditableStudy,
       },
       {
         header: "Role",
         accessor: "roles",
-        width: "70%",
+        width: "50%",
         customCell: EditableRoles,
       },
       {
@@ -862,6 +862,7 @@ const UserAssignmentTable = ({
             columns={assignUserColumns}
             rows={modalTableStudies}
             initialSortOrder="asc"
+            hasScroll={true}
             rowProps={{ hover: false, className: "add-user-modal-row" }}
             hidePagination={true}
             emptyProps={{ content: <EmptyTableContent /> }}
