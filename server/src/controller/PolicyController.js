@@ -139,7 +139,7 @@ exports.updatePolicy = async function (req, res) {
                 if (permission.updated) {
                   if (permission.id) {
                     permissionQuery += `UPDATE ${schemaName}.policy_product_permission set act_flg=${
-                      permission.value ? "1" : "null"
+                      permission.value === true ? "1" : "0"
                     } WHERE plcy_prod_permsn_id=${permission.id} RETURNING *;`;
                     permissionIds.push(permission.id);
                   } else {
@@ -405,7 +405,11 @@ exports.getPolicyList = async (req, res) => {
     Logger.info({ message: "getPolicyList" });
     if (req.method === "GET") {
       const { roleId } = req.params;
-      const query = `select distinct p.plcy_nm as "policyName", p.plcy_desc as "policyDescription", p.plcy_id as "policyId", string_agg(distinct p2.prod_nm, ', ') AS products, p.plcy_stat as "policyStatus" 
+      const query = `select distinct p.plcy_nm as "policyName", 
+      p.plcy_desc as "policyDescription",
+       p.plcy_id as "policyId", 
+       string_agg(distinct p2.prod_nm, ', ') AS products, 
+       p.plcy_stat as "policyStatus" 
       ${
         roleId
           ? `,case when rp.plcy_id is null or rp.act_flg ='0' then false else true end as "selected", rp.role_plcy_id`
@@ -448,7 +452,9 @@ exports.getPolicyList = async (req, res) => {
     const query = `select distinct p.plcy_nm as "policyName", p.plcy_desc as "policyDescription", p.plcy_id as "policyId", p2.prod_nm as "productName", p.plcy_stat as "policyStatus" from ${schemaName}."policy" p
     left join ${schemaName}.policy_product_permission ppp on (p.plcy_id=ppp.plcy_id)
     left JOIN ${schemaName}.product_permission pp ON ppp.prod_permsn_id = pp.prod_permsn_id
-    left JOIN ${schemaName}.product p2 ON p2.prod_id = pp.prod_id`;
+    left JOIN ${schemaName}.product p2 ON p2.prod_id = pp.prod_id 
+    where ppp.act_flg =1
+    `;
 
     const $q1 = await DB.executeQuery(query);
 
