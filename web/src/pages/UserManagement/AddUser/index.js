@@ -1,3 +1,5 @@
+/* eslint-disable react/jsx-wrap-multilines */
+/* eslint-disable consistent-return */
 /* eslint-disable jsx-a11y/anchor-is-valid */
 /* eslint-disable no-useless-escape */
 
@@ -283,12 +285,17 @@ const AddUser = () => {
     setSelectedUserError(currentErrors);
   };
 
-  const getUserList = async (query = "") => {
-    setSearchQuery(query);
+  const getUserList = async (e) => {
+    const query = e.type === "keyup" ? e.target.value : searchQuery;
+    console.log("query::::", query, e);
     if (!query) {
       if (userList.length) {
         setUserList([]);
       }
+      return;
+    }
+    setSearchQuery(query);
+    if (e.type === "keyup" && e.key !== "Enter" && query.length < 2) {
       return;
     }
     setFetchStatus("loading");
@@ -664,14 +671,17 @@ const AddUser = () => {
                           setSearchQuery("");
                           setUserList([]);
                         }}
-                        popupIcon={<SearchIcon fontSize="extraSmall" />}
+                        popupIcon={
+                          <SearchIcon
+                            onClick={getUserList}
+                            fontSize="extraSmall"
+                          />
+                        }
                         source={userList}
                         label="Name"
                         placeholder="Search by name or email"
                         value={selectedUser}
-                        onKeyUp={(e) => {
-                          getUserList(e.target.value);
-                        }}
+                        onKeyUp={getUserList}
                         noOptionsText={
                           fetchStatus === "loading" ? (
                             <div className="flex-center flex justify-center">
