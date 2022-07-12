@@ -358,117 +358,118 @@ exports.createVendor = async (req, res) => {
     } else {
       const q1 = await DB.executeQuery(dfVendorList);
       const existingInDF = q1.rows.map((e) => e.vend_id);
-      if (existingInDF.includes(updatedID.toString()) && !ExternalId) {
+      // if (existingInDF.includes(updatedID.toString()) && !ExternalId) {
+      //   return apiResponse.validationErrorWithData(
+      //     res,
+      //     "Operation failed",
+      //     "Vendor cannot be updated until removed from other dataflows using this vendor."
+      //   );
+      // } else {
+      if (!updatedID) {
         return apiResponse.validationErrorWithData(
           res,
           "Operation failed",
-          "Vendor cannot be updated until removed from other dataflows using this vendor."
+          mandatoryMissing
         );
+      }
+
+      const {
+        rows: [runDataFlowCountForVendor],
+      } = await DB.executeQuery(executedDataFlowCountForVendor, [updatedID]);
+
+      let updatedVendor = {};
+
+      if (runDataFlowCountForVendor.count != 0) {
+        updateQuery += `WHERE vend_id=$7 RETURNING *`;
+        updatedVendor = await DB.executeQuery(updateQuery, [
+          ...UpdatePayload, //...payload,
+          updatedID,
+        ]);
       } else {
-        if (!updatedID) {
-          return apiResponse.validationErrorWithData(
-            res,
-            "Operation failed",
-            mandatoryMissing
-          );
-        }
+        updateQuery += `,vend_nm_stnd=$8 WHERE vend_id=$7 RETURNING *`;
+        updatedVendor = await DB.executeQuery(updateQuery, [
+          ...UpdatePayload, //...payload,
+          updatedID,
+          vNameStd,
+        ]);
+      }
 
-        const {
-          rows: [runDataFlowCountForVendor],
-        } = await DB.executeQuery(executedDataFlowCountForVendor, [updatedID]);
+      let updatedContacts = {};
 
-        let updatedVendor = {};
-
-        if (runDataFlowCountForVendor.count != 0 && ExternalId) {
-          updateQuery += `WHERE vend_id=$7 RETURNING *`;
-          updatedVendor = await DB.executeQuery(updateQuery, [
-            ...UpdatePayload, //...payload,
-            updatedID,
-          ]);
-        } else {
-          updateQuery += `,vend_nm_stnd=$8 WHERE vend_id=$7 RETURNING *`;
-          updatedVendor = await DB.executeQuery(updateQuery, [
-            ...UpdatePayload, //...payload,
-            updatedID,
-            vNameStd,
-          ]);
-        }
-
-        let updatedContacts = {};
-
-        if (vContacts?.length) {
-          for (let e of vContacts) {
-            if (e.isNew) {
-              console.log("new", e);
-              updatedContacts = await DB.executeQuery(contactInsert, [
-                updatedID,
-                e.name,
-                e.email,
-                userId,
-                insrt_tm,
-              ]);
-            } else {
-              updatedContacts = await DB.executeQuery(contactUpdate, [
-                e.name,
-                e.email,
-                userId,
-                insrt_tm,
-                e.vCId.toString(),
-                updatedID,
-              ]);
-            }
+      if (vContacts?.length) {
+        for (let e of vContacts) {
+          if (e.isNew) {
+            console.log("new", e);
+            updatedContacts = await DB.executeQuery(contactInsert, [
+              updatedID,
+              e.name,
+              e.email,
+              userId,
+              insrt_tm,
+            ]);
+          } else {
+            updatedContacts = await DB.executeQuery(contactUpdate, [
+              e.name,
+              e.email,
+              userId,
+              insrt_tm,
+              e.vCId.toString(),
+              updatedID,
+            ]);
           }
         }
-        // console.log("updatedVendor ", updatedVendor);
-        // console.log("existingVendor ", existingVendor);
-        // console.log("updatedContacts ", updatedContacts);
-        // below if condition is commended
-        // if (
-        //   !updatedVendor?.rowCount ||
-        //   !existingVendor?.rowCount ||
-        //   !updatedContacts?.rowCount
-        // ) {
-        //   console.log("line 406");
-        //   return apiResponse.ErrorResponse(res, "Something went wrong");
-        // }
+      }
 
-        const vendorObj = updatedVendor?.rows[0];
-        const existingObj = existingVendor?.rows[0];
+      // below if condition is commended
+      // if (
+      //   !updatedVendor?.rowCount ||
+      //   !existingVendor?.rowCount ||
+      //   !updatedContacts?.rowCount
+      // ) {
+      //
+      //   return apiResponse.ErrorResponse(res, "Something went wrong");
+      // }
 
-        const comparisionObj = {
-          vend_nm: vendorObj.vend_nm,
-          vend_nm_stnd: vendorObj.vend_nm_stnd,
-          description: vendorObj.description,
-          active: vendorObj.active,
-          extrnl_sys_nm: vendorObj.extrnl_sys_nm,
-          vend_id: vendorObj.vend_id,
-        };
+      const vendorObj = updatedVendor?.rows[0];
+      const existingObj = existingVendor?.rows[0];
 
-        const diffObj = helpers.getdiffKeys(comparisionObj, existingObj);
+      const comparisionObj = {
+        vend_nm: vendorObj.vend_nm,
+        vend_nm_stnd: vendorObj.vend_nm_stnd,
+        description: vendorObj.description,
+        active: vendorObj.active,
+        extrnl_sys_nm: vendorObj.extrnl_sys_nm,
+        vend_id: vendorObj.vend_id,
+      };
 
-        Object.keys(diffObj).map(async (key) => {
-          await DB.executeQuery(logQuery, [
-            "vendor",
-            updatedID,
-            key,
-            existingObj[key],
-            diffObj[key],
-            "User Requested",
-            userId,
-            insrt_tm,
-          ]);
+      const diffObj = helpers.getdiffKeys(comparisionObj, existingObj);
+
+      Object.keys(diffObj).map(async (key) => {
+        await DB.executeQuery(logQuery, [
+          "vendor",
+          updatedID,
+          key,
+          existingObj[key],
+          diffObj[key],
+          "User Requested",
+          userId,
+          insrt_tm,
+        ]);
+      });
+
+      if (systemName === "CDI") {
+        return apiResponse.successResponse(res, vUpdateSuccess);
+      } else {
+        return apiResponse.successResponseWithMoreData(res, {
+          ExternalId,
+          // message: updatedID
+          //   ? "Vendor was updated successfully"
+          //   : "Vendor was saved successfully",
+          id: updatedID,
         });
-
-        if (systemName === "CDI") {
-          return apiResponse.successResponse(res, vUpdateSuccess);
-        } else {
-          return apiResponse.successResponseWithMoreData(res, {
-            ExternalId,
-            id: updatedID,
-          });
-        }
       }
     }
+    // }
   } catch (err) {
     console.log("errrrrr", err);
     //throw error in json response with status 500.

@@ -469,9 +469,15 @@ const AddUser = () => {
                     {isUserInvited() && (
                       <>
                         <div className="light mt-2">
-                          {isInvitationExpired()
-                            ? "Invitation expired:"
-                            : "Invitation sent, not yet activated Expires"}
+                          {isInvitationExpired() ? (
+                            "Invitation expired:"
+                          ) : (
+                            // eslint-disable-next-line react/jsx-wrap-multilines
+                            <>
+                              <div>Invitation sent, not yet activated</div>
+                              <span>Expires</span>
+                            </>
+                          )}
                         </div>
                         <div className="light mt-2">
                           {getExpirationDateString()}

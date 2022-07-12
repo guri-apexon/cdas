@@ -11,6 +11,8 @@ import {
 } from "../constants";
 import { deleteAllCookies, getCookie, getUserId } from "../utils";
 
+// const CryptoJS = require("crypto-js");
+
 const userId = getUserId();
 const CT = axios.CancelToken;
 const token = getCookie("user.token");
