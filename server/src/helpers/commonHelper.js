@@ -26,3 +26,5 @@ exports.findFirst = async (tableName, filter, orderby) =>
 
 exports.isValidDate = (dateObject) =>
   new Date(dateObject).toString() !== "Invalid Date";
+
+exports.isFutureDate = (dateObject) => new Date(dateObject) > new Date();
