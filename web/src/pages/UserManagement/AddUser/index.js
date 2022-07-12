@@ -287,7 +287,6 @@ const AddUser = () => {
 
   const getUserList = async (e) => {
     const query = e.type === "keyup" ? e.target.value : searchQuery;
-    console.log("query::::", query, e);
     if (!query) {
       if (userList.length) {
         setUserList([]);
