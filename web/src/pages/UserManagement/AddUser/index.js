@@ -392,9 +392,13 @@ const AddUser = () => {
     const employeeId = selectedUser?.extrnl_emp_id?.trim() || "";
 
     const formattedRows = studiesRows.map((e) => {
+      const roleIds = e.roles.map((r) => r.value);
       return {
+        id: e?.study?.prot_id,
         protocolname: e?.study?.prot_nbr_stnd,
-        roles: e.roles.map((r) => r.label),
+        roles: roleIds,
+        roleIds,
+        isValid: true,
       };
     });
 
