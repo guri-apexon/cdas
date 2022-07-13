@@ -6,6 +6,8 @@ const { data } = require("../config/logger");
 const { getCurrentTime, validateEmail } = require("./customFunctions");
 const Logger = require("../config/logger");
 const constants = require("../config/constants");
+const assert = require("assert");
+const ldap = require("ldapjs");
 const {
   DB_SCHEMA_NAME: schemaName,
   AD_CONFIG: ADConfig,
@@ -300,7 +302,7 @@ exports.insertUserInDb = async (userDetails) => {
   }
 };
 
-exports.getUsersFromAD = async (query = "") => {
+exports.getUsersFromAD_old = async (query = "") => {
   const ad = new ActiveDirectory(ADConfig);
   const mustMailFilter = `(mail=*)`;
   const userFilter = `(objectCategory=person)(objectClass=user)${mustMailFilter}`;
@@ -435,6 +437,31 @@ exports.checkPermission = async (userid, feature) => {
   return false;
 };
 
+exports.checkPermissionReadOnly = async (userid, feature) => {
+  const query = `select count(1) 
+  from ${schemaName}."user" u 
+  join ${schemaName}.study_user_role sur on u.usr_id = sur.usr_id 
+  join ${schemaName}."role" r on sur.role_id =r.role_id  
+  left join ${schemaName}.role_policy rp on r.role_id = rp.role_id
+  left join ${schemaName}.policy pm on pm.plcy_id = rp.plcy_id
+  left join ${schemaName}.policy_product_permission pppm on pppm.plcy_id = pm.plcy_id
+  left join ${schemaName}.product_permission pp on pp.prod_permsn_id = pppm.prod_permsn_id
+  left join ${schemaName}.product p2 on p2.prod_id = pp.prod_id
+  left join ${schemaName}.feature f2 on f2.feat_id = pp.feat_id
+  left join ${schemaName}."permission" p3 on p3.permsn_id = pp.permsn_id
+  left join ${schemaName}.category c2 on c2.ctgy_id = pp.ctgy_id
+  where p3.permsn_nm in ('Read') and 
+  f2.feat_nm = '${feature}' and 
+  sur.usr_id ='${userid}' and 
+  UPPER(u.usr_stat) = 'ACTIVE' 
+`;
+  try {
+    const result = await DB.executeQuery(query);
+    if (result && result.rowCount > 0) return result.rows[0].count !== "0";
+  } catch (error) {}
+  return false;
+};
+
 exports.findUserByEmailAndId = async (userid, email) => {
   const query = `
     SELECT count(1) 
@@ -477,4 +504,108 @@ exports.getExternalUserInternalId = async (user_id) => {
   } catch (error) {
     return null;
   }
+};
+
+exports.getUsersFromAD = async (query = "") => {
+  const client = ldap.createClient({
+    url: [ADConfig.url],
+  });
+
+  client.on("error", (err) => {
+    console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+    console.log(err);
+    console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+  });
+
+  client.bind(ADConfig.username, ADConfig.password, async (err) => {
+    if (err) {
+      assert.ifError(err);
+    } else {
+    }
+  });
+
+  const mustMailFilter = `(mail=*)`;
+  const idFilter = `(|(sAMAccountName=u*)(sAMAccountName=q*))`;
+  const userFilter = `(objectCategory=person)(objectClass=user)${idFilter}${mustMailFilter}`;
+  const emailFilter = `(mail=*${query}*)`;
+  const firstNameFilter = `(givenName=*${query}*)`;
+  const lastNameFilter = `(sn=*${query}*)`;
+  const displayNameFilter = `(displayName=*${query}*)`;
+  const filter = query
+    ? `(&${userFilter}(|${emailFilter}${firstNameFilter}${lastNameFilter}${displayNameFilter}))`
+    : `(&${userFilter})`;
+  const customFilter = `(&${userFilter}(|(givenName=*${query})(givenName=${query}*)))`;
+  const sizeLimit = 100;
+
+  const opts = {
+    filter,
+    scope: "sub",
+    timeLimit: 200,
+    // sizeLimit,
+    paged: {
+      pageSize: sizeLimit,
+      pagePause: true,
+    },
+    // pageLimit: -1,
+    attributes: [
+      "givenName",
+      "sn",
+      "displayName",
+      "mail",
+      "userPrincipalName",
+      "employeeID",
+      "sAMAccountName",
+    ],
+  };
+
+  console.log("*********************************************************");
+
+  const res = await new Promise((resolve, reject) => {
+    client.search(ADConfig.baseDN, opts, [], function name(e, res) {
+      console.log("----------------------------------------");
+      let messageID = null;
+      const data = [];
+      if (e) {
+        console.log("Error occurred while ldap search");
+      } else {
+        res.on("searchEntry", function (entry) {
+          // console.log("---------------------------[");
+          // console.log(entry);
+          console.log("Entry", JSON.stringify(entry.object));
+          // client.abandon(messageID);
+
+          data.push(entry.object);
+          resolve(data);
+          if (data.length == sizeLimit) {
+            // client.abandon;
+            resolve(data);
+          }
+        });
+        res.on("page", (result, cb) => {
+          // Allow the queue to flush before fetching next page
+          // console.log("page", result);
+          resolve(data);
+        });
+        // res.on("searchReference", function (referral) {
+        //   // console.log("Referral", referral);
+        // });
+        // res.on("searchRequest", function (req) {
+        //   // console.log("searchRequest", req);
+        //   messageID = req.messageID;
+        //   console.log(messageID);
+        // });
+        res.on("error", function (err) {
+          console.log("Error is", err);
+          // reject(err);
+        });
+        res.on("end", function (result) {
+          // console.log("Result is", Object.keys(result));
+          resolve(data);
+        });
+      }
+    });
+  });
+  console.log(res);
+
+  return res;
 };

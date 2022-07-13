@@ -1,3 +1,5 @@
+/* eslint-disable react/jsx-wrap-multilines */
+/* eslint-disable consistent-return */
 /* eslint-disable jsx-a11y/anchor-is-valid */
 /* eslint-disable no-useless-escape */
 
@@ -151,6 +153,7 @@ const AddUser = () => {
     useState();
   const [showToolTip, setShowToolTip] = useState(false);
   const [isInFocus, setIsInFocus] = useState(false);
+  const [emailExist, setEmailExist] = useState(false);
 
   const breadcrumpItems = [
     { href: "", onClick: () => history.push("/launchpad") },
@@ -283,12 +286,16 @@ const AddUser = () => {
     setSelectedUserError(currentErrors);
   };
 
-  const getUserList = async (query = "") => {
-    setSearchQuery(query);
+  const getUserList = async (e) => {
+    const query = e.type === "keyup" ? e.target.value : searchQuery;
     if (!query) {
       if (userList.length) {
         setUserList([]);
       }
+      return;
+    }
+    setSearchQuery(query);
+    if (e.type === "keyup" && e.key !== "Enter" && query.length < 2) {
       return;
     }
     setFetchStatus("loading");
@@ -479,6 +486,18 @@ const AddUser = () => {
     return null;
   }, [studiesRows]);
 
+  const validateUserEmail = async (email) => {
+    const res = await validateEmail(email);
+    setEmailExist(res?.data?.taken);
+  };
+
+  useEffect(() => {
+    if (selectedUser) {
+      const email = selectedUser.mail || selectedUser.userPrincipalName || null;
+      if (email) validateUserEmail(email);
+    }
+  }, [selectedUser]);
+
   return (
     <div className="create-user-wrapper">
       {isShowAlertBox && (
@@ -553,6 +572,7 @@ const AddUser = () => {
                         {
                           label: "Save",
                           size: "small",
+                          disabled: emailExist,
                           // disabled:
                           //   loading ||
                           //   disableSave ||
@@ -657,6 +677,8 @@ const AddUser = () => {
                         matchFrom="any"
                         size="small"
                         fullWidth
+                        error={emailExist}
+                        helperText={emailExist && "User already in system"}
                         forcePopupIcon
                         onMouseEnter={() => {
                           setShowToolTip(true);
@@ -668,14 +690,17 @@ const AddUser = () => {
                           setSearchQuery("");
                           setUserList([]);
                         }}
-                        popupIcon={<SearchIcon fontSize="extraSmall" />}
+                        popupIcon={
+                          <SearchIcon
+                            onClick={getUserList}
+                            fontSize="extraSmall"
+                          />
+                        }
                         source={userList}
                         label="Name"
                         placeholder="Search by name or email"
                         value={selectedUser}
-                        onKeyUp={(e) => {
-                          getUserList(e.target.value);
-                        }}
+                        onKeyUp={getUserList}
                         noOptionsText={
                           fetchStatus === "loading" ? (
                             <div className="flex-center flex justify-center">
