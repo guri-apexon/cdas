@@ -500,8 +500,8 @@ exports.getUsersFromAD = async (query = "") => {
   });
 
   const mustMailFilter = `(mail=*)`;
-  const idFilter = `()`;
-  const userFilter = `(objectCategory=person)(objectClass=user)${mustMailFilter}`;
+  const idFilter = `(|(sAMAccountName=u*)(sAMAccountName=q*))`;
+  const userFilter = `(objectCategory=person)(objectClass=user)${idFilter}${mustMailFilter}`;
   const emailFilter = `(mail=*${query}*)`;
   const firstNameFilter = `(givenName=*${query}*)`;
   const lastNameFilter = `(sn=*${query}*)`;
