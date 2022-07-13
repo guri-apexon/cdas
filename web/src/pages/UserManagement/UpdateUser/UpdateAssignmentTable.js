@@ -27,6 +27,7 @@ import {
 import { MessageContext } from "../../../components/Providers/MessageProvider";
 import { getStudyboardData } from "../../../store/actions/StudyBoardAction";
 import { getOverflowLimit, TextFieldFilter } from "../../../utils/index";
+import { studyOptions, STUDY_IDS, STUDY_LABELS } from "../helper";
 
 const UserAssignmentTable = ({
   updateChanges,
@@ -144,7 +145,7 @@ const UserAssignmentTable = ({
       }
       return 0;
     });
-    setStudyList(filtered);
+    setStudyList([...studyOptions, ...filtered]);
     // getRoles();
   };
 
@@ -153,6 +154,13 @@ const UserAssignmentTable = ({
   }, [studyData]);
 
   const StudySelected = ({ isEdit, row }) => {
+    const protId = row?.prot_id;
+    if (protId === STUDY_IDS.ALL_STUDY) {
+      return <div className={isEdit}>{STUDY_LABELS.ALL_STUDY}</div>;
+    }
+    if (protId === STUDY_IDS.NO_STUDY) {
+      return <div className={isEdit}>{STUDY_LABELS.NO_STUDY}</div>;
+    }
     return <div className={isEdit}>{row?.prot_nbr_stnd || ""}</div>;
   };
   const showToolTip = {};
@@ -196,10 +204,47 @@ const UserAssignmentTable = ({
       </div>
     );
   };
+
+  const validateAllStudyNoStudy = (currentRowData, moreStudies = []) => {
+    if (!currentRowData) {
+      return "";
+    }
+    if (currentRowData?.prot_id === STUDY_IDS.ALL_STUDY) {
+      const noStudyRowData = [...tableStudies, ...moreStudies].find(
+        (e) => e?.prot_id === STUDY_IDS.NO_STUDY
+      );
+      const commonRoles = currentRowData?.roles.filter((i) => {
+        return !!noStudyRowData?.roles.find((j) => j.value === i.value);
+      });
+      if (commonRoles?.length) {
+        return `${commonRoles
+          .map((r) => r.label)
+          .join(", ")} cannot have both All and No study Access`;
+      }
+      return "";
+    }
+    if (currentRowData?.prot_id === STUDY_IDS.NO_STUDY) {
+      const allStudyRowData = [...tableStudies, ...moreStudies].find(
+        (e) => e?.prot_id === STUDY_IDS.ALL_STUDY
+      );
+      const commonRoles = currentRowData?.roles.filter((i) => {
+        return !!allStudyRowData?.roles.find((j) => j.value === i.value);
+      });
+      if (commonRoles?.length) {
+        return `${commonRoles
+          .map((r) => r.label)
+          .join(", ")} cannot have both All and No study Access`;
+      }
+      return "";
+    }
+    return "";
+  };
+
   const ViewRoles = ({ row, column: { accessor: key } }) => {
     const tableIndex = tableStudies.findIndex((el) => el.index === row.index);
+    const currentRowData = tableStudies[tableIndex];
     const [viewRoleValue, setViewRoleValue] = useState(
-      tableStudies[tableIndex]?.roles || []
+      currentRowData?.roles || []
     );
     const editViewRow = (e, v, r) => {
       setViewRoleValue([...v]);
@@ -213,6 +258,14 @@ const UserAssignmentTable = ({
       const copy = [...tableStudies];
       copy[tableIndex].roles = [...v];
       setTableStudies(copy);
+    };
+
+    const getErrorText = () => {
+      if (!viewRoleValue.length) {
+        return "A role is required";
+      }
+
+      return validateAllStudyNoStudy(currentRowData);
     };
 
     return (
@@ -239,8 +292,8 @@ const UserAssignmentTable = ({
             disableCloseOnSelect
             alwaysLimitChips
             enableVirtualization
-            error={!viewRoleValue.length}
-            helperText={!viewRoleValue.length ? "A role is required" : ""}
+            error={getErrorText().length}
+            helperText={getErrorText()}
           />
         ) : (
           <RolesSelected row={row} roles={row?.roles || []} />
@@ -263,14 +316,24 @@ const UserAssignmentTable = ({
     const email = targetUser.usr_mail_id;
     const uid = targetUser?.sAMAccountName;
 
-    const formattedRows = [
-      {
-        protocolname: tableStudies[rowIndex].prot_nbr_stnd,
-        id: tableStudies[rowIndex].prot_id,
-        roles: tableStudies[rowIndex].roles.map((r) => r.label),
-      },
-    ];
-    const newFormattedRows = formattedRows.filter((e) => e.id);
+    // const formattedRows = [
+    //   {
+    //     protocolname: tableStudies[rowIndex].prot_nbr_stnd,
+    //     id: tableStudies[rowIndex].prot_id,
+    //     roles: tableStudies[rowIndex].roles.map((r) => r.label),
+    //   },
+    // ];
+    const formattedRows = [...tableStudies];
+    formattedRows.splice(rowIndex, 1);
+    const newFormattedRows = formattedRows
+      .map((e) => ({
+        protocolname: e.prot_nbr_stnd,
+        id: e.prot_id,
+        roles: e.roles.map((r) => r.value),
+        roleIds: e.roles.map((r) => r.value),
+        isValid: true,
+      }))
+      .filter((e) => e.id);
     const insertUserStudy = {
       email,
       protocols: newFormattedRows,
@@ -289,7 +352,7 @@ const UserAssignmentTable = ({
       tenent: "t1",
       ...insertUserStudy,
     };
-    const response = await deleteUserAssignments(payload);
+    const response = await updateUserAssignments(payload);
     if (response.status) {
       updateEditMode(rowIndex, false);
       toast.showSuccessMessage(
@@ -336,40 +399,54 @@ const UserAssignmentTable = ({
 
     const saveEdit = async (viewRow) => {
       updateInProgress(false);
+
+      const allStudyNoStudyError = validateAllStudyNoStudy(viewRow);
+
       if (!viewRow.roles.length) {
         toast.showErrorMessage("A role is required");
+      } else if (allStudyNoStudyError.length) {
+        toast.showErrorMessage(allStudyNoStudyError);
       } else {
-        const removedRoles = initialTableRoles[viewRow.prot_id].filter(
-          (e) => viewRow.roles.map((r) => r.value).indexOf(e.value) === -1
-        );
+        // const removedRoles = initialTableRoles[viewRow.prot_id].filter(
+        //   (e) => viewRow.roles.map((r) => r.value).indexOf(e.value) === -1
+        // );
         const email = targetUser.usr_mail_id;
         const uid = targetUser?.sAMAccountName;
-        const formattedRows = [
-          {
-            protocolname: tableStudies[rowIndex].prot_nbr_stnd,
-            id: tableStudies[rowIndex].prot_id,
-            roles: tableStudies[rowIndex].roles.map((r) => r.value),
-            roleIds: tableStudies[rowIndex].roles.map((r) => r.value),
+        // const formattedRows = [
+        //   {
+        //     protocolname: tableStudies[rowIndex].prot_nbr_stnd,
+        //     id: tableStudies[rowIndex].prot_id,
+        //     roles: tableStudies[rowIndex].roles.map((r) => r.value),
+        //     roleIds: tableStudies[rowIndex].roles.map((r) => r.value),
+        //     isValid: true,
+        //   },
+        // ];
+        // let removedProtocols = [];
+        // if (removedRoles.length) {
+        //   removedProtocols = [
+        //     {
+        //       protocolname: tableStudies[rowIndex].prot_nbr_stnd,
+        //       id: tableStudies[rowIndex].prot_id,
+        //       roles: removedRoles.map((r) => r.value),
+        //       roleIds: removedRoles.map((r) => r.value),
+        //       isValid: true,
+        //     },
+        //   ];
+        // }
+        // const newFormattedRows = formattedRows.filter((e) => e.id);
+        const newFormattedRows = tableStudies
+          .map((e) => ({
+            protocolname: e.prot_nbr_stnd,
+            id: e.prot_id,
+            roles: e.roles.map((r) => r.value),
+            roleIds: e.roles.map((r) => r.value),
             isValid: true,
-          },
-        ];
-        let removedProtocols = [];
-        if (removedRoles.length) {
-          removedProtocols = [
-            {
-              protocolname: tableStudies[rowIndex].prot_nbr_stnd,
-              id: tableStudies[rowIndex].prot_id,
-              roles: removedRoles.map((r) => r.value),
-              roleIds: removedRoles.map((r) => r.value),
-              isValid: true,
-            },
-          ];
-        }
-        const newFormattedRows = formattedRows.filter((e) => e.id);
+          }))
+          .filter((e) => e.id);
         const insertUserStudy = {
           email,
           protocols: newFormattedRows,
-          removedProtocols,
+          // removedProtocols,
         };
         let payload = {};
         const splittedNames = targetUser?.displayName?.split(", ") || [];
@@ -522,16 +599,28 @@ const UserAssignmentTable = ({
         isValid: true,
       };
     });
+
     const newFormattedRows = formattedRows.filter((e) => e.id);
+
     const emptyRoles = newFormattedRows.filter((x) => x.roles.length === 0);
     if (emptyRoles.length) {
       toast.showErrorMessage(
         `This assignment is incomplete. Please select a study and a role to continue.`
       );
     } else {
+      const existingRows = tableStudies
+        .map((e) => ({
+          protocolname: e.prot_nbr_stnd,
+          id: e.prot_id,
+          roles: e.roles.map((r) => r.value),
+          roleIds: e.roles.map((r) => r.value),
+          isValid: true,
+        }))
+        .filter((e) => e.id);
+
       const insertUserStudy = {
         email,
-        protocols: newFormattedRows,
+        protocols: [...existingRows, ...newFormattedRows],
       };
 
       let payload = {};
@@ -704,6 +793,12 @@ const UserAssignmentTable = ({
       const tableIndex = modalTableStudies.findIndex(
         (el) => el.index === row.index
       );
+
+      const currentRowData = modalTableStudies[tableIndex];
+      const restModalTableStudies = [...modalTableStudies];
+
+      restModalTableStudies.splice(tableIndex, 1);
+
       const [value, setValue] = useState(
         modalTableStudies[tableIndex]?.roles || []
       );
@@ -725,6 +820,11 @@ const UserAssignmentTable = ({
         setModalTableStudies(copy);
         setDisableSaveBtn(v.length ? false : true);
       };
+
+      const getErrorText = () => {
+        return validateAllStudyNoStudy(currentRowData, restModalTableStudies);
+      };
+
       return (
         <div className="role">
           <AutocompleteV2
@@ -747,6 +847,8 @@ const UserAssignmentTable = ({
             disableCloseOnSelect
             alwaysLimitChips
             enableVirtualization
+            error={getErrorText().length}
+            helperText={getErrorText()}
           />
         </div>
       );
@@ -779,6 +881,23 @@ const UserAssignmentTable = ({
     const updateModalAssignment = () => {
       setLoad(true);
       let isErorr = false;
+      const allStudies = [...tableStudies, ...modalTableStudies];
+      const noStudyRowData = allStudies?.find(
+        (e) => e?.prot_id === STUDY_IDS.NO_STUDY
+      );
+      const allStudyRowData = allStudies?.find(
+        (e) => e?.prot_id === STUDY_IDS.ALL_STUDY
+      );
+      const commonRoles = allStudyRowData?.roles.filter((i) => {
+        return !!noStudyRowData?.roles.find((j) => j.value === i.value);
+      });
+      if (commonRoles?.length) {
+        const errMsg = `${commonRoles
+          .map((r) => r.label)
+          .join(", ")} cannot have both All and No study Access`;
+        toast.showErrorMessage(errMsg);
+        isErorr = true;
+      }
       if (modalTableStudies.find((x) => x.alreadyExist)) {
         toast.showErrorMessage("Please remove duplicate values");
         isErorr = true;
