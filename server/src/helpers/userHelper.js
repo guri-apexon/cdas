@@ -6,6 +6,8 @@ const { data } = require("../config/logger");
 const { getCurrentTime, validateEmail } = require("./customFunctions");
 const Logger = require("../config/logger");
 const constants = require("../config/constants");
+const assert = require("assert");
+const ldap = require("ldapjs");
 const {
   DB_SCHEMA_NAME: schemaName,
   AD_CONFIG: ADConfig,
@@ -300,7 +302,7 @@ exports.insertUserInDb = async (userDetails) => {
   }
 };
 
-exports.getUsersFromAD = async (query = "") => {
+exports.getUsersFromAD_old = async (query = "") => {
   const ad = new ActiveDirectory(ADConfig);
   const mustMailFilter = `(mail=*)`;
   const userFilter = `(objectCategory=person)(objectClass=user)${mustMailFilter}`;
@@ -502,4 +504,108 @@ exports.getExternalUserInternalId = async (user_id) => {
   } catch (error) {
     return null;
   }
+};
+
+exports.getUsersFromAD = async (query = "") => {
+  const client = ldap.createClient({
+    url: [ADConfig.url],
+  });
+
+  client.on("error", (err) => {
+    console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+    console.log(err);
+    console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+  });
+
+  client.bind(ADConfig.username, ADConfig.password, async (err) => {
+    if (err) {
+      assert.ifError(err);
+    } else {
+    }
+  });
+
+  const mustMailFilter = `(mail=*)`;
+  const idFilter = `(|(sAMAccountName=u*)(sAMAccountName=q*))`;
+  const userFilter = `(objectCategory=person)(objectClass=user)${idFilter}${mustMailFilter}`;
+  const emailFilter = `(mail=*${query}*)`;
+  const firstNameFilter = `(givenName=*${query}*)`;
+  const lastNameFilter = `(sn=*${query}*)`;
+  const displayNameFilter = `(displayName=*${query}*)`;
+  const filter = query
+    ? `(&${userFilter}(|${emailFilter}${firstNameFilter}${lastNameFilter}${displayNameFilter}))`
+    : `(&${userFilter})`;
+  const customFilter = `(&${userFilter}(|(givenName=*${query})(givenName=${query}*)))`;
+  const sizeLimit = 100;
+
+  const opts = {
+    filter,
+    scope: "sub",
+    timeLimit: 200,
+    // sizeLimit,
+    paged: {
+      pageSize: sizeLimit,
+      pagePause: true,
+    },
+    // pageLimit: -1,
+    attributes: [
+      "givenName",
+      "sn",
+      "displayName",
+      "mail",
+      "userPrincipalName",
+      "employeeID",
+      "sAMAccountName",
+    ],
+  };
+
+  console.log("*********************************************************");
+
+  const res = await new Promise((resolve, reject) => {
+    client.search(ADConfig.baseDN, opts, [], function name(e, res) {
+      console.log("----------------------------------------");
+      let messageID = null;
+      const data = [];
+      if (e) {
+        console.log("Error occurred while ldap search");
+      } else {
+        res.on("searchEntry", function (entry) {
+          // console.log("---------------------------[");
+          // console.log(entry);
+          console.log("Entry", JSON.stringify(entry.object));
+          // client.abandon(messageID);
+
+          data.push(entry.object);
+          resolve(data);
+          if (data.length == sizeLimit) {
+            // client.abandon;
+            resolve(data);
+          }
+        });
+        res.on("page", (result, cb) => {
+          // Allow the queue to flush before fetching next page
+          // console.log("page", result);
+          resolve(data);
+        });
+        // res.on("searchReference", function (referral) {
+        //   // console.log("Referral", referral);
+        // });
+        // res.on("searchRequest", function (req) {
+        //   // console.log("searchRequest", req);
+        //   messageID = req.messageID;
+        //   console.log(messageID);
+        // });
+        res.on("error", function (err) {
+          console.log("Error is", err);
+          // reject(err);
+        });
+        res.on("end", function (result) {
+          // console.log("Result is", Object.keys(result));
+          resolve(data);
+        });
+      }
+    });
+  });
+  console.log(res);
+
+  return res;
 };

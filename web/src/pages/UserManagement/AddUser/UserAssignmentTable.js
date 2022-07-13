@@ -14,6 +14,7 @@ import { fetchRoles } from "../../../services/ApiServices";
 import { MessageContext } from "../../../components/Providers/MessageProvider";
 import { getStudyboardData } from "../../../store/actions/StudyBoardAction";
 import MultiSelect from "../../../components/MultiSelect";
+import { studyOptions, STUDY_IDS, STUDY_LABELS } from "../helper";
 
 const UserAssignmentTable = ({
   updateChanges,
@@ -103,7 +104,7 @@ const UserAssignmentTable = ({
       }
       return 0;
     });
-    setStudyList(filtered);
+    setStudyList([...studyOptions, ...filtered]);
     getRoles();
   };
 
@@ -159,7 +160,7 @@ const UserAssignmentTable = ({
       setTimeout(() => {
         lineRefs2.current[
           tableIndex
-        ].current.childNodes[0].childNodes[0].childNodes[0].childNodes[2]?.childNodes[1]?.click();
+        ].current?.childNodes[0]?.childNodes[0]?.childNodes[0]?.childNodes[2]?.childNodes[1]?.click();
       }, 500);
 
       return newRows;
@@ -199,9 +200,51 @@ const UserAssignmentTable = ({
     );
   };
 
+  const validateAllStudyNoStudy = (currentRowData, moreStudies = []) => {
+    if (!currentRowData) {
+      return "";
+    }
+    const ts = [...tableStudies].map((e) => ({
+      ...e,
+      prot_id: e?.study?.prot_id,
+    }));
+    if (currentRowData?.study?.prot_id === STUDY_IDS.ALL_STUDY) {
+      const noStudyRowData = [...ts, ...moreStudies].find(
+        (e) => e?.prot_id === STUDY_IDS.NO_STUDY
+      );
+      const commonRoles = currentRowData?.roles.filter((i) => {
+        return !!noStudyRowData?.roles.find((j) => j.value === i.value);
+      });
+      if (commonRoles?.length) {
+        return `${commonRoles
+          .map((r) => r.label)
+          .join(", ")} cannot have both All and No study Access`;
+      }
+      return "";
+    }
+    if (currentRowData?.study?.prot_id === STUDY_IDS.NO_STUDY) {
+      const allStudyRowData = [...ts, ...moreStudies].find(
+        (e) => e?.prot_id === STUDY_IDS.ALL_STUDY
+      );
+      const commonRoles = currentRowData?.roles.filter((i) => {
+        return !!allStudyRowData?.roles.find((j) => j.value === i.value);
+      });
+      if (commonRoles?.length) {
+        return `${commonRoles
+          .map((r) => r.label)
+          .join(", ")} cannot have both All and No study Access`;
+      }
+      return "";
+    }
+    return "";
+  };
+
   const EditableRoles = ({ row, column: { accessor: key } }) => {
     const tableIndex = tableStudies.findIndex((el) => el.index === row.index);
-    const [value, setValue] = useState(tableStudies[tableIndex]?.roles || []);
+
+    const currentRowData = tableStudies[tableIndex];
+
+    const [value, setValue] = useState(currentRowData?.roles || []);
     if (row.index === tableStudies[tableStudies.length - 1]?.index)
       return false;
 
@@ -217,6 +260,10 @@ const UserAssignmentTable = ({
       const copy = [...tableStudies];
       copy[tableIndex].roles = [...v];
       setTableStudies(copy);
+    };
+
+    const getErrorText = () => {
+      return validateAllStudyNoStudy(currentRowData);
     };
     return (
       <div className="role">
@@ -240,6 +287,8 @@ const UserAssignmentTable = ({
           disableCloseOnSelect
           alwaysLimitChips
           enableVirtualization
+          error={getErrorText().length}
+          helperText={getErrorText()}
         />
       </div>
     );
@@ -269,8 +318,33 @@ const UserAssignmentTable = ({
   };
 
   useEffect(() => {
+    let isError = false;
     if (pingParent !== 0) {
-      AssignUser();
+      const allStudies = [...tableStudies].map((e) => ({
+        ...e,
+        prot_id: e?.study?.prot_id,
+      }));
+      const noStudyRowData = allStudies?.find(
+        (e) => e?.prot_id === STUDY_IDS.NO_STUDY
+      );
+      const allStudyRowData = allStudies?.find(
+        (e) => e?.prot_id === STUDY_IDS.ALL_STUDY
+      );
+      const commonRoles = allStudyRowData?.roles.filter((i) => {
+        return !!noStudyRowData?.roles.find((j) => j.value === i.value);
+      });
+
+      if (commonRoles?.length) {
+        const errMsg = `${commonRoles
+          .map((r) => r.label)
+          .join(", ")} cannot have both All and No study Access`;
+        toast.showErrorMessage(errMsg);
+        isError = true;
+      }
+
+      if (!isError) {
+        AssignUser();
+      }
     }
   }, [pingParent]);
 

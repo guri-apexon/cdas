@@ -170,7 +170,9 @@ exports.assignmentRemove = async (req, res) => {
   return apiResponse.successResponse(res, "Assignments removed successfully");
 };
 
-exports.assignmentUpdate = async (req, res, returnBool = false) => {
+exports.assignmentUpdate = async (req, res) => {
+  const { returnBool } = req;
+
   const data = req.body;
   const { email, protocols, removedProtocols, createdBy, createdOn, tenant } =
     data;
@@ -185,23 +187,28 @@ exports.assignmentUpdate = async (req, res, returnBool = false) => {
   // validate user
   const user = await userHelper.findByEmail(email);
 
-  // update database and insert logs
-  if (removedProtocols?.length) {
-    const assignmentResult = await assignmentHelper.makeAssignmentsInactive(
-      removedProtocols,
-      user,
-      createdBy,
-      createdOn
-    );
-    if (!assignmentResult) {
-      return returnBool
-        ? false
-        : apiResponse.ErrorResponse(
-            res,
-            "Assignment not found / already inactive"
-          );
-    }
-  }
+  // inactive all user study assignments
+  await assignmentHelper.inactiveAllUserStudies(user.usr_id);
+
+  await assignmentHelper.assignmentCleanUpFunction(user.usr_id);
+
+  // // update database and insert logs
+  // if (removedProtocols?.length) {
+  //   const assignmentResult = await assignmentHelper.makeAssignmentsInactive(
+  //     removedProtocols,
+  //     user,
+  //     createdBy,
+  //     createdOn
+  //   );
+  //   if (!assignmentResult) {
+  //     return returnBool
+  //       ? false
+  //       : apiResponse.ErrorResponse(
+  //           res,
+  //           "Assignment not found / already inactive"
+  //         );
+  //   }
+  // }
   // save it to the database
   const saveResult = await assignmentHelper.updateAssignments(
     protocols,
@@ -209,6 +216,7 @@ exports.assignmentUpdate = async (req, res, returnBool = false) => {
     createdBy,
     createdOn
   );
+  await assignmentHelper.assignmentCleanUpFunction(user.usr_id);
   if (!saveResult.success)
     return returnBool
       ? false
