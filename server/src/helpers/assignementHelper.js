@@ -108,36 +108,38 @@ exports.insertUserStudyRole = async (
 
   const insertStudyUserRole = `
     INSERT INTO ${schemaName}.study_user_role ( role_id, prot_id, usr_id, act_flg, created_by, created_on, updated_by, updated_on)   
-    VALUES($1, $2, $3, $4, $5, $6, NULL, NULL) RETURNING prot_usr_role_id`;
+    VALUES('${role_id}', '${prot_id}', '${usr_id}', 1, '${createdBy}', '${
+    createdOn || null
+  }', NULL, NULL) RETURNING prot_usr_role_id`;
 
-  let protocolsInserted = 0;
-  let studyRolesUserInserted = 0;
+  const updateStudyUserRoleQuery = `
+    UPDATE ${schemaName}.study_user_role 
+    SET  act_flg=1, updated_on='${createdOn}', updated_by='${createdBy}'
+    WHERE usr_id='${usr_id}' AND prot_id='${prot_id}' AND role_id='${role_id}' `;
 
-  let result1, result2;
+  let changeCount = 0;
+
   try {
     const q1 = await DB.executeQuery(checkStudyUserQuery);
-    result1 = await DB.executeQuery(
-      !(q1 && q1.rowCount > 0) ? insertStudyUserQuery : updateStudyUserQuery
-    );
-    protocolsInserted++;
+    if (!(q1 && q1.rowCount > 0 && q1.rows[0].act_flg == 1)) {
+      const result = await DB.executeQuery(
+        q1 && q1.rowCount > 0 ? updateStudyUserQuery : insertStudyUserQuery
+      );
+      if (result) changeCount++;
+    }
 
     const q2 = await DB.executeQuery(checkStudyUserRoleQuery);
-    if (!(q2 && q2.rowCount > 0)) {
-      result2 = await DB.executeQuery(insertStudyUserRole, [
-        role_id,
-        prot_id,
-        usr_id,
-        1,
-        createdBy,
-        createdOn,
-      ]);
-      studyRolesUserInserted++;
+    if (!(q2 && q2.rowCount > 0 && q2.rows[0].act_flg == 1)) {
+      const result = await DB.executeQuery(
+        q2 && q2.rowCount > 0 ? updateStudyUserRoleQuery : insertStudyUserRole
+      );
+      if (result) changeCount++;
     }
-    return { success: true, studyRolesUserInserted, protocolsInserted };
+    return { success: true, changeCount };
   } catch (error) {
     console.log(">>>> error:insertUserStudyRole ", error);
   }
-  return { success: false, studyRolesUserInserted, protocolsInserted };
+  return { success: false, changeCount };
 };
 
 exports.insertUserStudyRoleAllNone = async (
@@ -262,10 +264,11 @@ exports.makeUserStudyRoleInactive = async (
 
   try {
     const isExist = await DB.executeQuery(checkStudyUserRoleQuery);
-    if (isExist && isExist.rowCount > 0) {
+    if (isExist && isExist.rowCount > 0 && isExist.rows[0].act_flg !== 0) {
       const result = await DB.executeQuery(updateQuery);
       return result.rows[0];
     }
+    return false;
   } catch (error) {
     console.log(">>>> error:insertUserStudyRole ", error);
   }
@@ -364,11 +367,13 @@ exports.protocolsStudyGrant = async (protocols, user, createdBy, createdOn) => {
         createdOn
       );
       if (!result) {
-        Logger.error("assignmentCreate > studyGrant > " + protocol.name);
+        Logger.error(
+          "assignmentCreate > studyGrant > " + protocol.protocolname
+        );
         return false;
       }
     } catch (error) {
-      Logger.error("assignmentCreate > studyGrant > " + protocol.name);
+      Logger.error("assignmentCreate > studyGrant > " + protocol.protocolname);
       return false;
     }
   }
@@ -404,9 +409,9 @@ exports.protocolsStudyRevoke = async (
 };
 
 exports.saveAssignments = async (protocols, user, createdBy, createdOn) => {
-  let protocolsInserted = 0;
-  let studyRolesUserInserted = 0;
+  let changeCount = 0;
   let success = true;
+
   for (let i = 0; i < protocols.length; i++) {
     const protocol = protocols[i];
     if (!protocol.roleIds || !protocol.isValid) continue;
@@ -421,15 +426,14 @@ exports.saveAssignments = async (protocols, user, createdBy, createdOn) => {
       );
 
       if (result.success) {
-        protocolsInserted += result.protocolsInserted;
-        studyRolesUserInserted += result.studyRolesUserInserted;
+        if (result.changeCount > 0) changeCount += result.changeCount;
       } else {
         Logger.error("assignmentCreate > saveToDb > " + protocol.name);
         success = false;
       }
     }
   }
-  return { success, protocolsInserted, studyRolesUserInserted };
+  return { success, changeCount };
 };
 
 exports.updateAssignments = async (protocols, user, createdBy, createdOn) => {
