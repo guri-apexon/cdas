@@ -14,7 +14,12 @@ import { fetchRoles } from "../../../services/ApiServices";
 import { MessageContext } from "../../../components/Providers/MessageProvider";
 import { getStudyboardData } from "../../../store/actions/StudyBoardAction";
 import MultiSelect from "../../../components/MultiSelect";
-import { studyOptions, STUDY_IDS, STUDY_LABELS } from "../helper";
+import {
+  studyOptions,
+  STUDY_IDS,
+  STUDY_LABELS,
+  ALL_NONE_STUDY_ERR_MSG,
+} from "../helper";
 
 const UserAssignmentTable = ({
   updateChanges,
@@ -218,7 +223,7 @@ const UserAssignmentTable = ({
       if (commonRoles?.length) {
         return `${commonRoles
           .map((r) => r.label)
-          .join(", ")} cannot have both All and No study Access`;
+          .join(", ")} ${ALL_NONE_STUDY_ERR_MSG}`;
       }
       return "";
     }
@@ -232,7 +237,7 @@ const UserAssignmentTable = ({
       if (commonRoles?.length) {
         return `${commonRoles
           .map((r) => r.label)
-          .join(", ")} cannot have both All and No study Access`;
+          .join(", ")} ${ALL_NONE_STUDY_ERR_MSG}`;
       }
       return "";
     }
@@ -337,7 +342,7 @@ const UserAssignmentTable = ({
       if (commonRoles?.length) {
         const errMsg = `${commonRoles
           .map((r) => r.label)
-          .join(", ")} cannot have both All and No study Access`;
+          .join(", ")} ${ALL_NONE_STUDY_ERR_MSG}`;
         toast.showErrorMessage(errMsg);
         isError = true;
       }
