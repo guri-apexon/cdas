@@ -876,6 +876,10 @@ exports.checkInvitedStatus = async () => {
 };
 
 exports.updateUserAssignments = async (req, res) => {
+  Logger.info({
+    message: "updateUserAssignments - begin",
+  });
+
   const newReq = { ...req, returnBool: true };
   const query = `SELECT tenant_nm FROM ${schemaName}.tenant LIMIT 1`;
   try {
@@ -891,7 +895,13 @@ exports.updateUserAssignments = async (req, res) => {
   newReq.body["createdBy"] = newReq.body.updatedBy;
   newReq.body["createdOn"] = getCurrentTime();
 
-  const assignmentResponse = AssignmentController.assignmentUpdate(newReq, res);
+  const assignmentResponse = await AssignmentController.assignmentUpdate(
+    newReq,
+    res
+  );
+  Logger.info({
+    message: "updateUserAssignments - end",
+  });
   if (assignmentResponse) {
     return apiResponse.successResponse(
       res,

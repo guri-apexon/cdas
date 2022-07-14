@@ -39,6 +39,7 @@ const UserAssignmentTable = ({
   readOnly,
   canUpdate,
   updateInProgress,
+  setParentLoading,
 }) => {
   const toast = useContext(MessageContext);
   const dispatch = useDispatch();
@@ -313,6 +314,7 @@ const UserAssignmentTable = ({
 
   const onVieweStudyDelete = async (rowIndex) => {
     setLoad(false);
+    setParentLoading(true);
     const email = targetUser.usr_mail_id;
     const uid = targetUser?.sAMAccountName;
 
@@ -371,9 +373,11 @@ const UserAssignmentTable = ({
       );
     }
     setLoad(true);
+    setParentLoading(false);
   };
 
   const DeleteViewStudy = ({ row }) => {
+    const [localSave, setLocalSave] = useState(false);
     if (targetUser?.usr_stat !== "Active" || readOnly) return false;
     const rowIndex = tableStudies.findIndex((e) => e.prot_id === row.prot_id);
     const handleMenuClick = (label) => () => {
@@ -399,6 +403,8 @@ const UserAssignmentTable = ({
 
     const saveEdit = async (viewRow) => {
       updateInProgress(false);
+      setParentLoading(true);
+      setLocalSave(true);
 
       const allStudyNoStudyError = validateAllStudyNoStudy(viewRow);
 
@@ -468,6 +474,9 @@ const UserAssignmentTable = ({
           toast.showErrorMessage(response.message || "Error in update!");
         }
       }
+
+      setLocalSave(false);
+      setParentLoading(false);
     };
     const menuItems = [
       {
@@ -496,6 +505,7 @@ const UserAssignmentTable = ({
               size="small"
               style={{ marginRight: 10 }}
               onClick={() => saveEdit(row)}
+              disabled={userUpdating || localSave}
             >
               Save
             </Button>
@@ -588,6 +598,7 @@ const UserAssignmentTable = ({
   ];
 
   const createUserAndAssignStudies = async (rowsToUpdate) => {
+    setParentLoading(true);
     const email = targetUser.usr_mail_id;
     const uid = targetUser?.sAMAccountName;
     const formattedRows = rowsToUpdate.map((e) => {
@@ -648,6 +659,7 @@ const UserAssignmentTable = ({
         toast.showErrorMessage(response.message);
       }
     }
+    setParentLoading(false);
   };
 
   const AssignmentInfoModal = React.memo(({ open, cancel, loading }) => {
@@ -971,7 +983,7 @@ const UserAssignmentTable = ({
             {
               label: "Save",
               onClick: updateModalAssignment,
-              disabled: disableSaveBtn,
+              disabled: disableSaveBtn || userUpdating,
             },
           ]}
           id="user-update-assignment-modal"
