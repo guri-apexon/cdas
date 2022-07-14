@@ -111,6 +111,9 @@ exports.assignmentRemove = async (req, res) => {
   if (validate.success === false)
     return apiResponse.ErrorResponse(res, validate.message);
 
+  if (!moment(updatedOn).isValid())
+    return apiResponse.ErrorResponse(res, "Invalid updatedOn date value");
+
   // validate tenant
   const tenant_id = await tenantHelper.findByName(tenant);
   if (!tenant_id)

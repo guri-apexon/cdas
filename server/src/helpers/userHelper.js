@@ -558,20 +558,20 @@ exports.getUsersFromAD = async (query = "") => {
     ],
   };
 
-  console.log("*********************************************************");
+  // console.log("*********************************************************");
 
   const res = await new Promise((resolve, reject) => {
     client.search(ADConfig.baseDN, opts, [], function name(e, res) {
-      console.log("----------------------------------------");
+      // console.log("----------------------------------------");
       let messageID = null;
       const data = [];
       if (e) {
-        console.log("Error occurred while ldap search");
+        // console.log("Error occurred while ldap search");
       } else {
         res.on("searchEntry", function (entry) {
           // console.log("---------------------------[");
           // console.log(entry);
-          console.log("Entry", JSON.stringify(entry.object));
+          // console.log("Entry", JSON.stringify(entry.object));
           // client.abandon(messageID);
 
           data.push(entry.object);
@@ -595,7 +595,7 @@ exports.getUsersFromAD = async (query = "") => {
         //   console.log(messageID);
         // });
         res.on("error", function (err) {
-          console.log("Error is", err);
+          // console.log("Error is", err);
           // reject(err);
         });
         res.on("end", function (result) {
