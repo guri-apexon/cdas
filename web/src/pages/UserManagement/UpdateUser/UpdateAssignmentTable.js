@@ -27,7 +27,12 @@ import {
 import { MessageContext } from "../../../components/Providers/MessageProvider";
 import { getStudyboardData } from "../../../store/actions/StudyBoardAction";
 import { getOverflowLimit, TextFieldFilter } from "../../../utils/index";
-import { studyOptions, STUDY_IDS, STUDY_LABELS } from "../helper";
+import {
+  studyOptions,
+  STUDY_IDS,
+  STUDY_LABELS,
+  ALL_NONE_STUDY_ERR_MSG,
+} from "../helper";
 
 const UserAssignmentTable = ({
   updateChanges,
@@ -39,6 +44,7 @@ const UserAssignmentTable = ({
   readOnly,
   canUpdate,
   updateInProgress,
+  setParentLoading,
 }) => {
   const toast = useContext(MessageContext);
   const dispatch = useDispatch();
@@ -219,7 +225,7 @@ const UserAssignmentTable = ({
       if (commonRoles?.length) {
         return `${commonRoles
           .map((r) => r.label)
-          .join(", ")} cannot have both All and No study Access`;
+          .join(", ")} ${ALL_NONE_STUDY_ERR_MSG}`;
       }
       return "";
     }
@@ -233,7 +239,7 @@ const UserAssignmentTable = ({
       if (commonRoles?.length) {
         return `${commonRoles
           .map((r) => r.label)
-          .join(", ")} cannot have both All and No study Access`;
+          .join(", ")} ${ALL_NONE_STUDY_ERR_MSG}`;
       }
       return "";
     }
@@ -313,6 +319,7 @@ const UserAssignmentTable = ({
 
   const onVieweStudyDelete = async (rowIndex) => {
     setLoad(false);
+    setParentLoading(true);
     const email = targetUser.usr_mail_id;
     const uid = targetUser?.sAMAccountName;
 
@@ -371,9 +378,11 @@ const UserAssignmentTable = ({
       );
     }
     setLoad(true);
+    setParentLoading(false);
   };
 
   const DeleteViewStudy = ({ row }) => {
+    const [localSave, setLocalSave] = useState(false);
     if (targetUser?.usr_stat !== "Active" || readOnly) return false;
     const rowIndex = tableStudies.findIndex((e) => e.prot_id === row.prot_id);
     const handleMenuClick = (label) => () => {
@@ -399,6 +408,8 @@ const UserAssignmentTable = ({
 
     const saveEdit = async (viewRow) => {
       updateInProgress(false);
+      setParentLoading(true);
+      setLocalSave(true);
 
       const allStudyNoStudyError = validateAllStudyNoStudy(viewRow);
 
@@ -468,6 +479,9 @@ const UserAssignmentTable = ({
           toast.showErrorMessage(response.message || "Error in update!");
         }
       }
+
+      setLocalSave(false);
+      setParentLoading(false);
     };
     const menuItems = [
       {
@@ -496,6 +510,7 @@ const UserAssignmentTable = ({
               size="small"
               style={{ marginRight: 10 }}
               onClick={() => saveEdit(row)}
+              disabled={userUpdating || localSave}
             >
               Save
             </Button>
@@ -588,6 +603,7 @@ const UserAssignmentTable = ({
   ];
 
   const createUserAndAssignStudies = async (rowsToUpdate) => {
+    setParentLoading(true);
     const email = targetUser.usr_mail_id;
     const uid = targetUser?.sAMAccountName;
     const formattedRows = rowsToUpdate.map((e) => {
@@ -648,6 +664,7 @@ const UserAssignmentTable = ({
         toast.showErrorMessage(response.message);
       }
     }
+    setParentLoading(false);
   };
 
   const AssignmentInfoModal = React.memo(({ open, cancel, loading }) => {
@@ -705,6 +722,7 @@ const UserAssignmentTable = ({
       };
     };
     const lineRefs = React.useRef([React.createRef()]);
+    const [lastEditedRow, setLastEditedRow] = useState();
 
     const [modalTableStudies, setModalTableStudies] = useState([
       getModalStudyObj(),
@@ -806,6 +824,7 @@ const UserAssignmentTable = ({
         return false;
 
       const editModalRoleRow = (e, v, r) => {
+        setLastEditedRow(tableIndex);
         if (r === "remove-option") {
           setDisableSaveBtn(v.length ? false : true);
           const copy = [...modalTableStudies];
@@ -824,7 +843,6 @@ const UserAssignmentTable = ({
       const getErrorText = () => {
         return validateAllStudyNoStudy(currentRowData, restModalTableStudies);
       };
-
       return (
         <div className="role">
           <AutocompleteV2
@@ -848,7 +866,7 @@ const UserAssignmentTable = ({
             alwaysLimitChips
             enableVirtualization
             error={getErrorText().length}
-            helperText={getErrorText()}
+            helperText={lastEditedRow === tableIndex ? getErrorText() : ""}
           />
         </div>
       );
@@ -894,7 +912,7 @@ const UserAssignmentTable = ({
       if (commonRoles?.length) {
         const errMsg = `${commonRoles
           .map((r) => r.label)
-          .join(", ")} cannot have both All and No study Access`;
+          .join(", ")} ${ALL_NONE_STUDY_ERR_MSG}`;
         toast.showErrorMessage(errMsg);
         isErorr = true;
       }
@@ -971,7 +989,7 @@ const UserAssignmentTable = ({
             {
               label: "Save",
               onClick: updateModalAssignment,
-              disabled: disableSaveBtn,
+              disabled: disableSaveBtn || userUpdating,
             },
           ]}
           id="user-update-assignment-modal"
