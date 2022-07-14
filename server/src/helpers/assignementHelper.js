@@ -87,6 +87,9 @@ exports.insertUserStudyRole = async (
   createdBy,
   createdOn
 ) => {
+  Logger.info({
+    message: "insertUserStudyRole - begin",
+  });
   const checkStudyUserQuery = `
     SELECT * FROM ${schemaName}.study_user
     WHERE usr_id='${usr_id}' AND prot_id='${prot_id}'
@@ -213,22 +216,35 @@ exports.insertUserStudyRoleAllNone = async (
 };
 
 exports.assignmentCleanUpFunction = async (userId) => {
+  Logger.info({
+    message: "assignmentCleanUpFunction - begin",
+  });
   try {
     // Handle All Study No Study
     const functionQuery = `select ${schemaName}.fn_study_user_role_all_studies('${userId}')`;
     const functionResult = await DB.executeQuery(functionQuery);
+    Logger.info({
+      message: "assignmentCleanUpFunction - end",
+    });
   } catch (e) {
     Logger.error("assignmentCleanUpFunction  > " + e);
   }
 };
 
 exports.inactiveAllUserStudies = async (userId) => {
+  Logger.info({
+    message: "inactiveAllUserStudies - begin",
+  });
+
   try {
     // Inactivate all User Studies
     const query = `update ${schemaName}.study_user_role set act_flg=0 where usr_id = '${userId}'`;
     const query2 = `update ${schemaName}.study_user set act_flg=0 where usr_id = '${userId}'`;
     const r = await DB.executeQuery(query);
     const r1 = await DB.executeQuery(query2);
+    Logger.info({
+      message: "inactiveAllUserStudies - end",
+    });
   } catch (e) {
     Logger.error("inactiveAllUserStudies  > " + e);
   }
@@ -433,6 +449,9 @@ exports.saveAssignments = async (protocols, user, createdBy, createdOn) => {
 };
 
 exports.updateAssignments = async (protocols, user, createdBy, createdOn) => {
+  Logger.info({
+    message: "updateAssignments - begin",
+  });
   let protocolsInserted = 0;
   let studyRolesUserInserted = 0;
   let success = true;
