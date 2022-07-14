@@ -722,6 +722,7 @@ const UserAssignmentTable = ({
       };
     };
     const lineRefs = React.useRef([React.createRef()]);
+    const [lastEditedRow, setLastEditedRow] = useState();
 
     const [modalTableStudies, setModalTableStudies] = useState([
       getModalStudyObj(),
@@ -823,6 +824,7 @@ const UserAssignmentTable = ({
         return false;
 
       const editModalRoleRow = (e, v, r) => {
+        setLastEditedRow(tableIndex);
         if (r === "remove-option") {
           setDisableSaveBtn(v.length ? false : true);
           const copy = [...modalTableStudies];
@@ -841,7 +843,6 @@ const UserAssignmentTable = ({
       const getErrorText = () => {
         return validateAllStudyNoStudy(currentRowData, restModalTableStudies);
       };
-
       return (
         <div className="role">
           <AutocompleteV2
@@ -865,7 +866,7 @@ const UserAssignmentTable = ({
             alwaysLimitChips
             enableVirtualization
             error={getErrorText().length}
-            helperText={getErrorText()}
+            helperText={lastEditedRow === tableIndex ? getErrorText() : ""}
           />
         </div>
       );

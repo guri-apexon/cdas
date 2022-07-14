@@ -37,6 +37,7 @@ const UserAssignmentTable = ({
   const [tableStudies, setTableStudies] = useState([]);
   const [initialRender, setInitialRender] = useState(true);
   const [roleLists, setroleLists] = useState([]);
+  const [lastEditedRow, setLastEditedRow] = useState();
 
   const lineRefs = React.useRef([]);
   const lineRefs2 = React.useRef([]);
@@ -254,6 +255,7 @@ const UserAssignmentTable = ({
       return false;
 
     const editRoleRow = (e, v, r) => {
+      setLastEditedRow(tableIndex);
       if (r === "remove-option") {
         const copy = [...tableStudies];
         copy[tableIndex].roles = [...v];
@@ -293,7 +295,7 @@ const UserAssignmentTable = ({
           alwaysLimitChips
           enableVirtualization
           error={getErrorText().length}
-          helperText={getErrorText()}
+          helperText={lastEditedRow === tableIndex ? getErrorText() : ""}
         />
       </div>
     );
