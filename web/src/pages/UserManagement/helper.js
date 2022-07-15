@@ -8,6 +8,8 @@ const STUDY_LABELS = {
   NO_STUDY: "None (no study access)",
 };
 
+const ALL_NONE_STUDY_ERR_MSG = "cannot have both All and No study access";
+
 const studyOptions = [
   {
     label: STUDY_LABELS.ALL_STUDY,
@@ -19,4 +21,4 @@ const studyOptions = [
   },
 ];
 
-export { studyOptions, STUDY_IDS, STUDY_LABELS };
+export { studyOptions, STUDY_IDS, STUDY_LABELS, ALL_NONE_STUDY_ERR_MSG };

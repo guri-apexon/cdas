@@ -174,6 +174,10 @@ exports.assignmentRemove = async (req, res) => {
 };
 
 exports.assignmentUpdate = async (req, res) => {
+  Logger.info({
+    message: "assignmentUpdate - begin",
+  });
+
   const { returnBool } = req;
 
   const data = req.body;
@@ -237,7 +241,7 @@ exports.assignmentUpdate = async (req, res) => {
       : apiResponse.ErrorResponse(res, "All Protocols/Roles already existed");
 
   return returnBool
-    ? false
+    ? true
     : apiResponse.successResponse(
         res,
         `An invitation has been emailed to ${email}`

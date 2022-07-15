@@ -522,6 +522,7 @@ const AddUser = () => {
                 userUpdating={loading}
                 readOnly={readOnly}
                 canUpdate={canUpdate}
+                setParentLoading={setLoading}
               />
             </div>
           </Grid>
