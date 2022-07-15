@@ -260,7 +260,7 @@ const AddUser = () => {
     const keys = list || [e?.target?.id];
     setSelectedUserError(null);
     keys.forEach(async (key) => {
-      const value = selectedUser?.[key];
+      const value = selectedUser?.[key] || "";
       if (typeof value === "string") {
         if (!value.length || value.trim() === "") {
           currentErrors[key] = getRequiredErrors(key);
@@ -477,8 +477,20 @@ const AddUser = () => {
       );
       return false;
     }
+
     if (isNewUser) {
-      setConfirmInviteUser(true);
+      if (validNewUserDataCondition()) {
+        setConfirmInviteUser(true);
+      } else {
+        const fields = ["usr_fst_nm", "usr_lst_nm", "usr_mail_id"];
+        validateField(undefined, fields);
+      }
+      // else {
+      //   const errMsg = Object.values(selectedUserError)
+      //     .filter((e) => !!e.length)
+      //     .join(", ");
+      //   toast.showErrorMessage(errMsg);
+      // }
       return true;
     }
     setLoading(true);

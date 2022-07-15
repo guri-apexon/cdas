@@ -34,9 +34,12 @@
   .back-btn {
     margin-left: -8px;
     font-weight: 600;
+    svg {
+      margin-right: 5px;
+    }
   }
-  .mb-16 {
-    margin-bottom: 16px;
+  .mb-8 {
+    margin-bottom: 8px;
   }
   .ml-8 {
     margin-left: 8px;
@@ -159,7 +162,8 @@
 .user-assignment-modal {
   max-width: 1002px;
   width: 1002px;
-  min-height: 420px;
+  // min-height: 420px;
+  max-height: 586px;
 }
 .w-100 {
   width: 100%;
@@ -203,9 +207,15 @@
 #user-update-assignment-modal .MuiDialogContent-root {
   overflow-y: hidden;
   overflow-x: hidden;
+  border: none;
   div[class*=" Table-scrollRoot-"] {
     @extend .customscroll;
     border: 1px solid #E9E9E9;
+  }
+}
+.study-table div{
+  div[class*=" Table-scrollRoot-"] {
+    @extend .customscroll;
   }
 }
 .MuiTableRow-root{
