@@ -984,7 +984,7 @@ const UserAssignmentTable = ({
           buttonProps={[
             {
               label: "Cancel",
-              onClick: openConfirmModal,
+              onClick: cancel,
               disabled: loading,
             },
             {
