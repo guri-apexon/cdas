@@ -399,7 +399,7 @@ const AddUser = () => {
             <BreadcrumbsUI className="breadcrump" items={breadcrumpItems} />
           )}
 
-          <div className="flex justify-space-between mb-16">
+          <div className="flex justify-space-between mb-8">
             <Button
               onClick={goToUser}
               className="back-btn"

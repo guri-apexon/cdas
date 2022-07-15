@@ -580,7 +580,7 @@ const UserAssignmentTable = ({
     {
       header: "Protocol Number",
       accessor: "prot_nbr_stnd",
-      width: "25%",
+      width: "30%",
       customCell: ViewStudy,
       sortFunction: compareStrings,
       filterFunction: createStringSearchFilter("prot_nbr_stnd"),
@@ -597,7 +597,7 @@ const UserAssignmentTable = ({
     {
       header: "",
       accessor: "delete",
-      width: "8%",
+      width: "3%",
       customCell: DeleteViewStudy,
     },
   ];
@@ -980,6 +980,7 @@ const UserAssignmentTable = ({
           title="Add User Assignment"
           hideButtons={false}
           disableBackdropClick={true}
+          scroll="paper"
           buttonProps={[
             {
               label: "Cancel",
@@ -1000,6 +1001,7 @@ const UserAssignmentTable = ({
             rows={modalTableStudies}
             initialSortOrder="asc"
             hasScroll={true}
+            maxHeight={440}
             rowProps={{ hover: false, className: "add-user-modal-row" }}
             hidePagination={true}
             emptyProps={{ content: <EmptyTableContent /> }}
@@ -1062,6 +1064,8 @@ const UserAssignmentTable = ({
           initialSortOrder="asc"
           rowProps={{ hover: false }}
           hidePagination={true}
+          hasScroll={true}
+          maxHeight={520}
           CustomHeader={(props) => <CustomButtonHeader {...props} />}
           emptyProps={{ content: <EmptyTableContent /> }}
         />
