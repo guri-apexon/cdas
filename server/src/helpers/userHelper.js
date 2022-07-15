@@ -306,10 +306,11 @@ exports.insertUserInDb = async (userDetails) => {
   }
 };
 
-exports.getUsersFromAD_old = async (query = "") => {
+exports.getUsersFromAD = async (query = "") => {
   const ad = new ActiveDirectory(ADConfig);
   const mustMailFilter = `(mail=*)`;
-  const userFilter = `(objectCategory=person)(objectClass=user)${mustMailFilter}`;
+  const idFilter = `(|(sAMAccountName=u*)(sAMAccountName=q*))`;
+  const userFilter = `(objectCategory=person)(objectClass=user)(!(cn=*Group*))${mustMailFilter}${idFilter}`;
   const emailFilter = `(mail=*${query}*)`;
   const firstNameFilter = `(givenName=*${query}*)`;
   const lastNameFilter = `(sn=*${query}*)`;
@@ -320,7 +321,7 @@ exports.getUsersFromAD_old = async (query = "") => {
 
   const opts = {
     filter,
-    sizeLimit: 100,
+    sizeLimit: 1000,
     attributes: [
       "givenName",
       "sn",
@@ -510,7 +511,7 @@ exports.getExternalUserInternalId = async (user_id) => {
   }
 };
 
-exports.getUsersFromAD = async (query = "") => {
+exports.getUsersFromAD_new = async (query = "") => {
   const client = ldap.createClient({
     url: [ADConfig.url],
   });
@@ -530,7 +531,7 @@ exports.getUsersFromAD = async (query = "") => {
 
   const mustMailFilter = `(mail=*)`;
   const idFilter = `(|(sAMAccountName=u*)(sAMAccountName=q*))`;
-  const userFilter = `(objectCategory=person)(objectClass=user)${idFilter}${mustMailFilter}`;
+  const userFilter = `(objectCategory=person)(objectClass=user)(!(cn=*Group*))${mustMailFilter}${idFilter}`;
   const emailFilter = `(mail=*${query}*)`;
   const firstNameFilter = `(givenName=*${query}*)`;
   const lastNameFilter = `(sn=*${query}*)`;
@@ -538,8 +539,8 @@ exports.getUsersFromAD = async (query = "") => {
   const filter = query
     ? `(&${userFilter}(|${emailFilter}${firstNameFilter}${lastNameFilter}${displayNameFilter}))`
     : `(&${userFilter})`;
-  const customFilter = `(&${userFilter}(|(givenName=*${query})(givenName=${query}*)))`;
-  const sizeLimit = 1000;
+  // const customFilter = `(&${userFilter}(|(givenName=*${query})(givenName=${query}*)))`;
+  const sizeLimit = 5000;
 
   const opts = {
     filter,
@@ -577,9 +578,9 @@ exports.getUsersFromAD = async (query = "") => {
           // console.log(entry);
           // console.log("Entry", JSON.stringify(entry.object));
           // client.abandon(messageID);
-
+          // console.log("entry.object", entry.object.displayName);
           data.push(entry.object);
-          resolve(data);
+          // resolve(data);
           if (data.length == sizeLimit) {
             // client.abandon;
             resolve(data);
@@ -588,6 +589,7 @@ exports.getUsersFromAD = async (query = "") => {
         res.on("page", (result, cb) => {
           // Allow the queue to flush before fetching next page
           // console.log("page", result);
+          console.log("Page");
           resolve(data);
         });
         // res.on("searchReference", function (referral) {
@@ -609,7 +611,8 @@ exports.getUsersFromAD = async (query = "") => {
       }
     });
   });
-  console.log(res);
+  console.log("Khatam", res.length);
+  // console.log(res);
 
   return res;
 };
