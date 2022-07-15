@@ -539,7 +539,7 @@ exports.getUsersFromAD = async (query = "") => {
     ? `(&${userFilter}(|${emailFilter}${firstNameFilter}${lastNameFilter}${displayNameFilter}))`
     : `(&${userFilter})`;
   const customFilter = `(&${userFilter}(|(givenName=*${query})(givenName=${query}*)))`;
-  const sizeLimit = 100;
+  const sizeLimit = 1000;
 
   const opts = {
     filter,
