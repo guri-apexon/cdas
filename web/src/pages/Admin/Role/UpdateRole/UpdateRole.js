@@ -293,8 +293,8 @@ const UpdateRole = () => {
         rowId="policyId"
         hasScroll
         maxHeight="calc(100vh - 360px)"
-        initialSortedColumn="policyName"
-        initialSortOrder="asc"
+        initialSortedColumn="selected"
+        initialSortOrder="desc"
         rowsPerPageOptions={[10, 50, 100, "All"]}
         tablePaginationProps={{
           labelDisplayedRows: ({ from, to, count }) =>

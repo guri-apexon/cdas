@@ -82,11 +82,11 @@ label.table-checkbox {
   flex-direction: row-reverse;
   align-items: center;
   margin-left: -11px;
-  span[class*="MuiSwitch-switchBase-"] {
+  span.MuiSwitch-switchBase {
     top: -8.5px;
     left: -8px;
   }
-  span[class^="MuiSwitch-thumb-"] {
+  span.MuiSwitch-thumb {
     color: #fff !important;
   }
   > span:last-child {
@@ -95,7 +95,7 @@ label.table-checkbox {
     margin-right: 10px;
   }
   :hover {
-    span[class^="MuiSwitch-thumb-"] {
+    span.MuiSwitch-thumb {
       color: rgba(236, 243, 255, 1) !important;
     }
   }

@@ -540,7 +540,7 @@ const AddUser = () => {
           </Typography>
           <div className="flex flex-end">
             <div className="flex top-actions">
-              {!readOnly && (
+              {/* {!readOnly && (
                 <Switch
                   label="Active"
                   className="inline-checkbox"
@@ -548,7 +548,7 @@ const AddUser = () => {
                   onChange={handleActive}
                   size="small"
                 />
-              )}
+              )} */}
               <ButtonGroup
                 className="gap-8"
                 alignItems="right"
