@@ -32,7 +32,7 @@ const addOnboardedStudy = async (protNbrStnd, userId, insrt_tm) => {
       `SELECT * from ${schemaName}.mdm_study WHERE prot_nbr_stnd='${protNbrStnd}';`
     );
     const study = result.rows[0] || null;
-    if (!study) return false; 
+    if (!study) return false;
     const uniqueId = helper.createUniqueID();
     const userDesc = "mdm study import";
     const valueArr = [
@@ -724,6 +724,7 @@ exports.deleteStudyAssign = async (req, res) => {
 
     const userDeleteQuery = `UPDATE ${schemaName}.study_user SET act_flg =0,updt_tm=$3 WHERE prot_id =$1 and usr_id = $2`;
     const roleDeleteQuery = `UPDATE ${schemaName}.study_user_role SET act_flg =0,updated_by=$3,updated_on=$4 WHERE prot_id =$1 and usr_id =$2 RETURNING *;`;
+    const studyUpdate = `UPDATE ${schemaName}.study SET updt_tm=$2 WHERE prot_id =$1`;
     Logger.info({ message: "deleteStudyAssign" });
 
     axios
@@ -751,6 +752,8 @@ exports.deleteStudyAssign = async (req, res) => {
               studyUserId,
               updt_tm,
             ]);
+
+            await DB.executeQuery(studyUpdate, [protocol, updt_tm]); // Study table timeStamp update
 
             // Study audit table audit log entry
             const studyAudit = CommonController.studyAudit(
