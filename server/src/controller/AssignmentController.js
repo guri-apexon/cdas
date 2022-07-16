@@ -2,6 +2,7 @@ const apiResponse = require("../helpers/apiResponse");
 const assignmentHelper = require("../helpers/assignementHelper");
 const userHelper = require("../helpers/userHelper");
 const tenantHelper = require("../helpers/tenantHelper");
+const commonHelper = require("../helpers/commonHelper");
 const Logger = require("../config/logger");
 const moment = require("moment");
 const constants = require("../config/constants");
@@ -44,6 +45,11 @@ exports.assignmentCreate = async (req, res) => {
       ? false
       : apiResponse.ErrorResponse(res, "Created by Id does not exists");
 
+  if (createdOn && !commonHelper.isValidDate(createdOn))
+    return returnBool
+      ? false
+      : apiResponse.ErrorResponse(res, "Created on date is not valid");
+
   protocols.forEach((p) => (p.isValid = false));
   const vpr = await assignmentHelper.validateProtocolsRoles(user, protocols);
   if (!vpr.success)
@@ -69,7 +75,7 @@ exports.assignmentCreate = async (req, res) => {
         ? false
         : apiResponse.ErrorResponse(
             res,
-            "An error occured while ganting study in the FSR"
+            "An error occured while granting study in the FSR"
           );
   }
 
@@ -89,10 +95,7 @@ exports.assignmentCreate = async (req, res) => {
           "An error occured while inserting records"
         );
 
-  if (
-    saveResult.protocolsInserted === 0 &&
-    saveResult.studyRolesUserInserted === 0
-  )
+  if (saveResult.changeCount === 0)
     return returnBool
       ? false
       : apiResponse.ErrorResponse(res, "All Protocols/Roles already existed");
@@ -112,7 +115,7 @@ exports.assignmentRemove = async (req, res) => {
     return apiResponse.ErrorResponse(res, validate.message);
 
   if (!moment(updatedOn).isValid())
-    return apiResponse.ErrorResponse(res, "Invalid updatedOn date value");
+    return apiResponse.ErrorResponse(res, "Updated on date is not valid");
 
   // validate tenant
   const tenant_id = await tenantHelper.findByName(tenant);
