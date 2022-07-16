@@ -5,6 +5,7 @@ const axios = require("axios");
 const userHelper = require("../helpers/userHelper");
 const studyHelper = require("../helpers/studyHelper");
 const tenantHelper = require("../helpers/tenantHelper");
+const commonHelper = require("../helpers/commonHelper");
 const apiResponse = require("../helpers/apiResponse");
 const constants = require("../config/constants");
 const AssignmentController = require("../controller/AssignmentController");
@@ -290,6 +291,17 @@ exports.createNewUser = async (req, res) => {
     return returnBool
       ? false
       : apiResponse.ErrorResponse(res, validate.message);
+
+  const createdById = await userHelper.findByUserId(data.createdBy);
+  if (data.createdBy && !createdById)
+    return returnBool
+      ? false
+      : apiResponse.ErrorResponse(res, "Created by Id does not exists");
+
+  if (data.createdOn && !commonHelper.isValidDate(data.createdOn))
+    return returnBool
+      ? false
+      : apiResponse.ErrorResponse(res, "Created on date is not valid");
 
   // validate tenant
   const tenant_id = await tenantHelper.findByName(data.tenant);

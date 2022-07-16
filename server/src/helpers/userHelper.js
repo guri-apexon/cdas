@@ -30,13 +30,6 @@ exports.CONSTANTS = {
   INTERNAL: "INTERNAL",
 };
 
-/**
- *
- * @param {*appKey, userType, roleType, email, updatedBy  , networkId} data
- * @param {*} user_type
- * @returns
- */
-
 exports.deProvisionUser = async (data, user_type) => {
   let requestBody;
   try {
@@ -133,26 +126,37 @@ exports.provisionExternalUser = async (data) => {
   }
 };
 
+/**
+ * Compares two strings ignoring case
+ * @param {string} val1
+ * @param {string} val2
+ * @returns
+ */
 const compareString = (val1, val2) => {
-  if (val1 && val2) {
-    val1 = val1.toUpperCase().trim().replace(" ", "");
-    val2 = val2.toUpperCase().trim().replace(" ", "");
-    return val1 === val2;
-  }
+  val1 = val1?.toUpperCase().trim().replace(" ", "");
+  val2 = val2?.toUpperCase().trim().replace(" ", "");
+  return val1 === val2;
 };
+
 exports.findUser = async (filter) => {
-  const query = `SELECT *, UPPER(usr_stat) as userState, UPPER(usr_typ) as userType  FROM ${schemaName}.user WHERE ${filter};`;
+  const query = `SELECT * FROM ${schemaName}.user WHERE ${filter};`;
   try {
     const response = await DB.executeQuery(query);
     if (response.rowCount > 0) {
       const row = response.rows[0];
+      const isActive = compareString(row.usr_stat, this.CONSTANTS.ACTIVE);
+      const isInvited = compareString(row.usr_stat, this.CONSTANTS.INVITED);
+      const isInactive = !isActive && !isInvited; // compareString(row.usr_stat, this.CONSTANTS.INACTIVE);
+      const isExternal = compareString(row.usr_typ, this.CONSTANTS.EXTERNAL);
+      const isInternal = compareString(row.usr_typ, this.CONSTANTS.INTERNAL);
+
       return {
         ...row,
-        isActive: compareString(row.userstate, this.CONSTANTS.ACTIVE),
-        isInvited: compareString(row.userstate, this.CONSTANTS.INVITED),
-        isInactive: compareString(row.userstate, this.CONSTANTS.INACTIVE),
-        isExternal: compareString(row.usertype, this.CONSTANTS.EXTERNAL),
-        isInternal: compareString(row.usertype, this.CONSTANTS.INTERNAL),
+        isActive,
+        isInvited,
+        isInactive,
+        isExternal,
+        isInternal,
       };
     }
   } catch (error) {
