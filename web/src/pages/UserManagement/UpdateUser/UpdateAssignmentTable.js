@@ -14,6 +14,7 @@ import IconMenuButton from "apollo-react/components/IconMenuButton";
 import FilterIcon from "apollo-react-icons/Filter";
 import Modal from "apollo-react/components/Modal";
 import Grid from "apollo-react/components/Grid";
+import Loader from "apollo-react/components/Loader";
 import Table, {
   createStringSearchFilter,
   compareStrings,
@@ -175,8 +176,6 @@ const UserAssignmentTable = ({
     const charLimit = getOverflowLimit("50%", 80);
     const showRoletooltip = (rowIndex, boolVal) => {
       showToolTip[rowIndex] = boolVal;
-
-      console.log({ showToolTip });
     };
     return (
       <div
@@ -569,6 +568,7 @@ const UserAssignmentTable = ({
           variant="secondary"
           icon={FilterIcon}
           onClick={toggleFilters}
+          disabled={targetUser?.usr_stat?.toLowerCase()?.trim() === "inactive"}
         >
           Filter
         </Button>
@@ -602,7 +602,7 @@ const UserAssignmentTable = ({
     },
   ];
 
-  const createUserAndAssignStudies = async (rowsToUpdate) => {
+  const createUserAndAssignStudies = async (rowsToUpdate, setIsLoading) => {
     setParentLoading(true);
     const email = targetUser.usr_mail_id;
     const uid = targetUser?.sAMAccountName;
@@ -663,6 +663,7 @@ const UserAssignmentTable = ({
       } else {
         toast.showErrorMessage(response.message);
       }
+      setIsLoading(false);
     }
     setParentLoading(false);
   };
@@ -723,6 +724,7 @@ const UserAssignmentTable = ({
     };
     const lineRefs = React.useRef([React.createRef()]);
     const [lastEditedRow, setLastEditedRow] = useState();
+    const [isLoading, setIsLoading] = useState(false);
 
     const [modalTableStudies, setModalTableStudies] = useState([
       getModalStudyObj(),
@@ -898,6 +900,7 @@ const UserAssignmentTable = ({
 
     const updateModalAssignment = () => {
       setLoad(true);
+      setIsLoading(true);
       let isErorr = false;
       const allStudies = [...tableStudies, ...modalTableStudies];
       const noStudyRowData = allStudies?.find(
@@ -921,7 +924,9 @@ const UserAssignmentTable = ({
         isErorr = true;
       }
       if (!isErorr) {
-        createUserAndAssignStudies(modalTableStudies);
+        createUserAndAssignStudies(modalTableStudies, setIsLoading);
+      } else {
+        setIsLoading(false);
       }
     };
 
@@ -984,7 +989,7 @@ const UserAssignmentTable = ({
           buttonProps={[
             {
               label: "Cancel",
-              onClick: openConfirmModal,
+              onClick: cancel,
               disabled: loading,
             },
             {
@@ -995,6 +1000,9 @@ const UserAssignmentTable = ({
           ]}
           id="user-update-assignment-modal"
         >
+          {isLoading && (
+            <Loader isInner overlayClassName="user-assignment-loader" />
+          )}
           <Table
             isLoading={!load}
             columns={assignUserColumns}
