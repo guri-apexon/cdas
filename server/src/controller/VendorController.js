@@ -187,18 +187,23 @@ exports.deleteContact = async (req, res) => {
 exports.activeStatusUpdate = async (req, res) => {
   try {
     const { vId, vStatus, userId, updt_tm } = req.body;
+    console.log("vId", vId);
     const oldValue = vStatus === 1 ? 0 : 1;
     Logger.info({ message: "activeStatusUpdate" });
-    const $q1 = `select distinct vend_id from ${schemaName}.dataflow d`;
+
+    const $q1 = `select count(1) from ${schemaName}.dataflow d where vend_id=$1`;
+
     const $query = `UPDATE ${schemaName}.vendor SET active=$1, updt_tm=$2, updated_by=$3 WHERE vend_id=$4 RETURNING *`;
 
-    const q1 = await DB.executeQuery($q1);
-    const existingInDF = q1.rows.map((e) => parseInt(e.vend_id));
-    if (existingInDF.includes(parseInt(vId))) {
+    const {
+      rows: [DataFlowCountForVendor],
+    } = await DB.executeQuery($q1, [vId]);
+
+    if (DataFlowCountForVendor.count != 0) {
       return apiResponse.validationErrorWithData(
         res,
         "Operation failed",
-        "Vendor cannot be updated until removed from other dataflows using this vendor."
+        "Vendor cannot be inactivated until removed from other dataflows using this vendor."
       );
     } else {
       const details = await DB.executeQuery($query, [
@@ -269,7 +274,7 @@ exports.createVendor = async (req, res) => {
     const curDate = helpers.getCurrentTime();
 
     const insertQuery = `INSERT INTO ${schemaName}.vendor (vend_nm, vend_nm_stnd, description, active, extrnl_sys_nm, insrt_tm, updt_tm ,  created_by, updated_by , extrnl_id) VALUES($1, $2, $3, $4, $5, $6, $6, $7, $7, $8) RETURNING *`;
-    const dfVendorList = `select distinct vend_id from ${schemaName}.dataflow d`;
+    const dfVendorList = `select count(1) from ${schemaName}.dataflow d where vend_id=$1`;
     let updateQuery = `UPDATE ${schemaName}.vendor SET vend_nm=$1, description=$2, active=$3, extrnl_sys_nm=$4, updt_tm=$5, updated_by=$6`;
     const contactUpdate = `UPDATE ${schemaName}.vendor_contact SET contact_nm=$1, emailid=$2, updated_by=$3, updated_on=$4, act_flg=1 WHERE vend_contact_id=$5 AND vend_id=$6 RETURNING *`;
     const selectVendor = `SELECT vend_nm, vend_nm_stnd, description, active, extrnl_sys_nm, vend_id FROM ${schemaName}.vendor where vend_id = $1`;
@@ -356,22 +361,27 @@ exports.createVendor = async (req, res) => {
         });
       }
     } else {
-      const q1 = await DB.executeQuery(dfVendorList);
-      const existingInDF = q1.rows.map((e) => e.vend_id);
-      // if (existingInDF.includes(updatedID.toString()) && !ExternalId) {
+      if (!vStatus) {
+        const {
+          rows: [DataFlowCountForVendor],
+        } = await DB.executeQuery(dfVendorList, [updatedID]);
+
+        if (DataFlowCountForVendor.count != 0 && !ExternalId) {
+          return apiResponse.validationErrorWithData(
+            res,
+            "Operation failed",
+            "Vendor cannot be inactivated until removed from other dataflows using this vendor."
+          );
+        }
+      }
+
+      // if (!updatedID) {
       //   return apiResponse.validationErrorWithData(
       //     res,
       //     "Operation failed",
-      //     "Vendor cannot be updated until removed from other dataflows using this vendor."
+      //     mandatoryMissing
       //   );
-      // } else {
-      if (!updatedID) {
-        return apiResponse.validationErrorWithData(
-          res,
-          "Operation failed",
-          mandatoryMissing
-        );
-      }
+      // }
 
       const {
         rows: [runDataFlowCountForVendor],
