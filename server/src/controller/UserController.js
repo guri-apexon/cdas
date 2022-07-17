@@ -118,7 +118,7 @@ exports.getUserDetail = async function (req, res) {
   const userId = req.query.userId;
   try {
     return await DB.executeQuery(
-      `SELECT u.*, ut.tenant_id from ${schemaName}.user u left join ${schemaName}.user_tenant ut on ut.usr_id = u.usr_id WHERE u.usr_id='${userId}'`
+      `SELECT u.*, ut.tenant_id, CASE WHEN LOWER(TRIM(u.usr_stat)) IN ('in active', 'inactive') THEN 'Inactive' WHEN LOWER(TRIM(u.usr_stat)) IN ('active') THEN 'Active' WHEN LOWER(TRIM(u.usr_stat)) IN ('invited') THEN 'Invited' WHEN u.usr_stat IS NULL THEN 'Active' ELSE TRIM(u.usr_stat) END AS formatted_stat from ${schemaName}.user u left join ${schemaName}.user_tenant ut on ut.usr_id = u.usr_id WHERE u.usr_id='${userId}'`
     )
       .then((response) => {
         const user = response?.rows?.[0] || {};

@@ -683,6 +683,7 @@ const UserAssignmentTable = ({
         title="Removed assignments"
         buttonProps={[
           {
+            variant: "primary",
             label: "Dismiss",
             onClick: cancel,
             disabled: loading,
