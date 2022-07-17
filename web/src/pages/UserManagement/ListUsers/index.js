@@ -179,9 +179,9 @@ const ListUsers = () => {
       if (formattedStr) {
         const prevTableRows = initialTableRows.filter(
           (row) =>
-            row.usr_full_nm.toLowerCase().includes(formattedStr) ||
-            row.usr_id.toLowerCase().includes(formattedStr) ||
-            row.usr_mail_id.toLowerCase().includes(formattedStr)
+            row?.usr_full_nm?.toLowerCase()?.includes(formattedStr) ||
+            row?.formatted_emp_id?.toLowerCase()?.includes(formattedStr) ||
+            row?.usr_mail_id?.toLowerCase()?.includes(formattedStr)
         );
         setTableRows([...prevTableRows]);
       } else {
