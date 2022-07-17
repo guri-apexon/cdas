@@ -41,6 +41,7 @@ const UserAssignmentTable = ({
 
   const lineRefs = React.useRef([]);
   const lineRefs2 = React.useRef([]);
+  const flags = {};
   useEffect(() => {
     if (tableStudies.length === 0) {
       setLoad(false);
@@ -57,6 +58,7 @@ const UserAssignmentTable = ({
 
     lineRefs.current = tableStudies.map((_, i) => React.createRef());
     lineRefs2.current = tableStudies.map((_, i) => React.createRef());
+    flags.tableStudiesUpdating = false;
   }, [tableStudies]);
 
   const getStudyObj = () => {
@@ -69,6 +71,8 @@ const UserAssignmentTable = ({
   };
 
   const addNewStudy = () => {
+    if (flags?.tableStudiesUpdating === true) return true;
+    flags.tableStudiesUpdating = true;
     if (tableStudies.find((x) => x.study == null)) {
       setInitialRender(!initialRender);
       setTableStudies([...tableStudies]);
