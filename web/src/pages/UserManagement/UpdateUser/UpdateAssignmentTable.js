@@ -823,16 +823,25 @@ const UserAssignmentTable = ({
       const [value, setValue] = useState(
         modalTableStudies[tableIndex]?.roles || []
       );
+
+      const setLastEdited = (i) => {
+        if (
+          row.prot_id === STUDY_IDS.ALL_STUDY ||
+          row.prot_id === STUDY_IDS.NO_STUDY
+        ) {
+          setLastEditedRow(i);
+        }
+      };
       if (row.index === modalTableStudies[modalTableStudies.length - 1]?.index)
         return false;
 
       const editModalRoleRow = (e, v, r) => {
-        setLastEditedRow(tableIndex);
         if (r === "remove-option") {
           setDisableSaveBtn(v.length ? false : true);
           const copy = [...modalTableStudies];
           copy[tableIndex].roles = [...v];
           setModalTableStudies(copy);
+          setLastEdited(tableIndex);
         }
         setValue([...v]);
       };
@@ -841,6 +850,7 @@ const UserAssignmentTable = ({
         copy[tableIndex].roles = [...v];
         setModalTableStudies(copy);
         setDisableSaveBtn(v.length ? false : true);
+        setLastEdited(tableIndex);
       };
 
       const getErrorText = () => {
