@@ -173,7 +173,7 @@ const UserAssignmentTable = ({
   const showToolTip = {};
   const RolesSelected = ({ row, roles }) => {
     const uRoles = roles.length ? roles.map((e) => e.label).join(", ") : "";
-    const charLimit = getOverflowLimit("50%", 80);
+    const charLimit = getOverflowLimit("45%", 80);
     const showRoletooltip = (rowIndex, boolVal) => {
       showToolTip[rowIndex] = boolVal;
     };
@@ -192,7 +192,7 @@ const UserAssignmentTable = ({
           >
             <Typography variant="body2" className="">
               {uRoles && uRoles.length > charLimit
-                ? `${uRoles.slice(0, charLimit - 5)}[...]`
+                ? `${uRoles.slice(0, charLimit - 5)} [...]`
                 : uRoles}
             </Typography>
           </Tooltip>

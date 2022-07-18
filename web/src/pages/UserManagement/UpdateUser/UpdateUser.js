@@ -183,7 +183,7 @@ const AddUser = () => {
     const userType = targetUser.usr_typ;
     const payload = {
       tenant_id: targetUser.tenant_id,
-      user_type: targetUser.usr_typ,
+      user_type: targetUser.usr_typ.toLowerCase(),
       email_id: targetUser.usr_mail_id,
       user_id: targetUser.usr_id,
       firstName: targetUser.usr_fst_nm,
@@ -363,6 +363,7 @@ const AddUser = () => {
         }
         buttonProps={[
           {
+            variant: "primary",
             label: "Dismiss",
             onClick: closeRolePopup,
             disabled: loading,
