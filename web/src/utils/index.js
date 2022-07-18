@@ -365,50 +365,57 @@ export const dateFilterCustom = (accessor) => (row, filters) => {
   if (!row[accessor]) {
     return false;
   }
-  const date = moment(row[accessor]).format("DD-MMM-YYYY");
+  const date = moment(row[accessor]);
+  const fromDate = moment(filters[accessor][0], "YYYY-MM-DD");
 
-  const selectDate = moment(filters[accessor]).format("DD-MMM-YYYY");
-  console.log(selectDate === date);
-  return selectDate === date;
+  const toDate = moment(filters[accessor][1], "YYYY-MM-DD").endOf("day");
+
+  return (
+    (!fromDate.isValid() || date.isAfter(fromDate)) &&
+    (!toDate.isValid() || date.isBefore(toDate))
+  );
+  // const selectDate = moment(filters[accessor]).format("DD-MMM-YYYY");
+  // console.log(selectDate === date);
+  // return selectDate === date;
 };
 
 export const DateFilter = ({ accessor, filters, updateFilterValue }) => {
   return (
-    <div style={{ marginTop: "-21px" }}>
-      <DatePickerV2
-        value={filters[accessor]}
-        onChange={(value) => {
-          updateFilterValue({
-            target: { name: accessor, value },
-          });
-        }}
-        placeholder=""
-        label=""
-        fullWidth
-        margin=""
-        dateFormat="DD-MMM-YYYY"
-        size="small"
-      />
-    </div>
-    // <div style={{ minWidth: 180 }}>
-    //   <div style={{ position: "absolute", top: 0, paddingRight: 4 }}>
-    //     {/* <DateRangePickerV2
-    //       value={filters[accessor] || [null, null]}
-    //       name={accessor}
-    //       onChange={(value) =>
-    //         updateFilterValue({
-    //           target: { name: accessor, value },
-    //         })
-    //       }
-    //       startLabel=""
-    //       endLabel=""
-    //       placeholder=""
-    //       fullWidth
-    //       margin="none"
-    //       size="small"
-    //     /> */}
-    //   </div>
+    // <div style={{ marginTop: "-21px" }}>
+    //   <DatePickerV2
+    //     value={filters[accessor]}
+    //     onChange={(value) => {
+    //       updateFilterValue({
+    //         target: { name: accessor, value },
+    //       });
+    //     }}
+    //     placeholder=""
+    //     label=""
+    //     fullWidth
+    //     margin=""
+    //     dateFormat="DD-MMM-YYYY"
+    //     size="small"
+    //   />
     // </div>
+    <div style={{ minWidth: 180 }}>
+      <div style={{ position: "absolute", top: 0, paddingRight: 4 }}>
+        <DateRangePickerV2
+          value={filters[accessor] || [null, null]}
+          name={accessor}
+          onChange={(value) =>
+            updateFilterValue({
+              target: { name: accessor, value },
+            })
+          }
+          startLabel=""
+          endLabel=""
+          placeholder=""
+          fullWidth
+          margin="none"
+          size="small"
+        />
+      </div>
+    </div>
   );
 };
 

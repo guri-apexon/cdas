@@ -47,7 +47,7 @@ exports.insertTenantUser = async (usr_id, tenant_id) => {
 
 exports.getFirstTenant = async () => {
   // Fetch First Tenet
-  const query = `SELECT tenant_nm FROM ${schemaName}.tenant LIMIT 1`;
+  const query = `SELECT tenant_nm, tenant_id FROM ${schemaName}.tenant LIMIT 1`;
   try {
     const result = await DB.executeQuery(query);
     if (result.rowCount > 0) {
