@@ -6,6 +6,8 @@ const { data } = require("../config/logger");
 const { getCurrentTime, validateEmail } = require("./customFunctions");
 const Logger = require("../config/logger");
 const constants = require("../config/constants");
+const assert = require("assert");
+const ldap = require("ldapjs");
 const {
   DB_SCHEMA_NAME: schemaName,
   AD_CONFIG: ADConfig,
@@ -27,13 +29,6 @@ exports.CONSTANTS = {
   EXTERNAL: "EXTERNAL",
   INTERNAL: "INTERNAL",
 };
-
-/**
- *
- * @param {*appKey, userType, roleType, email, updatedBy  , networkId} data
- * @param {*} user_type
- * @returns
- */
 
 exports.deProvisionUser = async (data, user_type) => {
   let requestBody;
@@ -131,26 +126,37 @@ exports.provisionExternalUser = async (data) => {
   }
 };
 
+/**
+ * Compares two strings ignoring case
+ * @param {string} val1
+ * @param {string} val2
+ * @returns
+ */
 const compareString = (val1, val2) => {
-  if (val1 && val2) {
-    val1 = val1.toUpperCase().trim().replace(" ", "");
-    val2 = val2.toUpperCase().trim().replace(" ", "");
-    return val1 === val2;
-  }
+  val1 = val1?.toUpperCase().trim().replace(" ", "");
+  val2 = val2?.toUpperCase().trim().replace(" ", "");
+  return val1 === val2;
 };
+
 exports.findUser = async (filter) => {
-  const query = `SELECT *, UPPER(usr_stat) as userState, UPPER(usr_typ) as userType  FROM ${schemaName}.user WHERE ${filter};`;
+  const query = `SELECT * FROM ${schemaName}.user WHERE ${filter};`;
   try {
     const response = await DB.executeQuery(query);
     if (response.rowCount > 0) {
       const row = response.rows[0];
+      const isActive = compareString(row.usr_stat, this.CONSTANTS.ACTIVE);
+      const isInvited = compareString(row.usr_stat, this.CONSTANTS.INVITED);
+      const isInactive = !isActive && !isInvited; // compareString(row.usr_stat, this.CONSTANTS.INACTIVE);
+      const isExternal = compareString(row.usr_typ, this.CONSTANTS.EXTERNAL);
+      const isInternal = compareString(row.usr_typ, this.CONSTANTS.INTERNAL);
+
       return {
         ...row,
-        isActive: compareString(row.userstate, this.CONSTANTS.ACTIVE),
-        isInvited: compareString(row.userstate, this.CONSTANTS.INVITED),
-        isInactive: compareString(row.userstate, this.CONSTANTS.INACTIVE),
-        isExternal: compareString(row.usertype, this.CONSTANTS.EXTERNAL),
-        isInternal: compareString(row.usertype, this.CONSTANTS.INTERNAL),
+        isActive,
+        isInvited,
+        isInactive,
+        isExternal,
+        isInternal,
       };
     }
   } catch (error) {
@@ -303,7 +309,8 @@ exports.insertUserInDb = async (userDetails) => {
 exports.getUsersFromAD = async (query = "") => {
   const ad = new ActiveDirectory(ADConfig);
   const mustMailFilter = `(mail=*)`;
-  const userFilter = `(objectCategory=person)(objectClass=user)${mustMailFilter}`;
+  const idFilter = `(|(sAMAccountName=u*)(sAMAccountName=q*))`;
+  const userFilter = `(objectCategory=person)(objectClass=user)(!(cn=*Group*))${mustMailFilter}${idFilter}`;
   const emailFilter = `(mail=*${query}*)`;
   const firstNameFilter = `(givenName=*${query}*)`;
   const lastNameFilter = `(sn=*${query}*)`;
@@ -314,7 +321,7 @@ exports.getUsersFromAD = async (query = "") => {
 
   const opts = {
     filter,
-    sizeLimit: 100,
+    sizeLimit: 1000,
     attributes: [
       "givenName",
       "sn",
@@ -435,6 +442,31 @@ exports.checkPermission = async (userid, feature) => {
   return false;
 };
 
+exports.checkPermissionReadOnly = async (userid, feature) => {
+  const query = `select count(1) 
+  from ${schemaName}."user" u 
+  join ${schemaName}.study_user_role sur on u.usr_id = sur.usr_id 
+  join ${schemaName}."role" r on sur.role_id =r.role_id  
+  left join ${schemaName}.role_policy rp on r.role_id = rp.role_id
+  left join ${schemaName}.policy pm on pm.plcy_id = rp.plcy_id
+  left join ${schemaName}.policy_product_permission pppm on pppm.plcy_id = pm.plcy_id
+  left join ${schemaName}.product_permission pp on pp.prod_permsn_id = pppm.prod_permsn_id
+  left join ${schemaName}.product p2 on p2.prod_id = pp.prod_id
+  left join ${schemaName}.feature f2 on f2.feat_id = pp.feat_id
+  left join ${schemaName}."permission" p3 on p3.permsn_id = pp.permsn_id
+  left join ${schemaName}.category c2 on c2.ctgy_id = pp.ctgy_id
+  where p3.permsn_nm in ('Read') and 
+  f2.feat_nm = '${feature}' and 
+  sur.usr_id ='${userid}' and 
+  UPPER(u.usr_stat) = 'ACTIVE' 
+`;
+  try {
+    const result = await DB.executeQuery(query);
+    if (result && result.rowCount > 0) return result.rows[0].count !== "0";
+  } catch (error) {}
+  return false;
+};
+
 exports.findUserByEmailAndId = async (userid, email) => {
   const query = `
     SELECT count(1) 
@@ -477,4 +509,110 @@ exports.getExternalUserInternalId = async (user_id) => {
   } catch (error) {
     return null;
   }
+};
+
+exports.getUsersFromAD_new = async (query = "") => {
+  const client = ldap.createClient({
+    url: [ADConfig.url],
+  });
+
+  client.on("error", (err) => {
+    console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+    console.log(err);
+    console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+  });
+
+  client.bind(ADConfig.username, ADConfig.password, async (err) => {
+    if (err) {
+      assert.ifError(err);
+    } else {
+    }
+  });
+
+  const mustMailFilter = `(mail=*)`;
+  const idFilter = `(|(sAMAccountName=u*)(sAMAccountName=q*))`;
+  const userFilter = `(objectCategory=person)(objectClass=user)(!(cn=*Group*))${mustMailFilter}${idFilter}`;
+  const emailFilter = `(mail=*${query}*)`;
+  const firstNameFilter = `(givenName=*${query}*)`;
+  const lastNameFilter = `(sn=*${query}*)`;
+  const displayNameFilter = `(displayName=*${query}*)`;
+  const filter = query
+    ? `(&${userFilter}(|${emailFilter}${firstNameFilter}${lastNameFilter}${displayNameFilter}))`
+    : `(&${userFilter})`;
+  // const customFilter = `(&${userFilter}(|(givenName=*${query})(givenName=${query}*)))`;
+  const sizeLimit = 5000;
+
+  const opts = {
+    filter,
+    scope: "sub",
+    timeLimit: 200,
+    // sizeLimit,
+    paged: {
+      pageSize: sizeLimit,
+      pagePause: true,
+    },
+    // pageLimit: -1,
+    attributes: [
+      "givenName",
+      "sn",
+      "displayName",
+      "mail",
+      "userPrincipalName",
+      "employeeID",
+      "sAMAccountName",
+    ],
+  };
+
+  // console.log("*********************************************************");
+
+  const res = await new Promise((resolve, reject) => {
+    client.search(ADConfig.baseDN, opts, [], function name(e, res) {
+      // console.log("----------------------------------------");
+      let messageID = null;
+      const data = [];
+      if (e) {
+        // console.log("Error occurred while ldap search");
+      } else {
+        res.on("searchEntry", function (entry) {
+          // console.log("---------------------------[");
+          // console.log(entry);
+          // console.log("Entry", JSON.stringify(entry.object));
+          // client.abandon(messageID);
+          // console.log("entry.object", entry.object.displayName);
+          data.push(entry.object);
+          // resolve(data);
+          if (data.length == sizeLimit) {
+            // client.abandon;
+            resolve(data);
+          }
+        });
+        res.on("page", (result, cb) => {
+          // Allow the queue to flush before fetching next page
+          // console.log("page", result);
+          console.log("Page");
+          resolve(data);
+        });
+        // res.on("searchReference", function (referral) {
+        //   // console.log("Referral", referral);
+        // });
+        // res.on("searchRequest", function (req) {
+        //   // console.log("searchRequest", req);
+        //   messageID = req.messageID;
+        //   console.log(messageID);
+        // });
+        res.on("error", function (err) {
+          // console.log("Error is", err);
+          // reject(err);
+        });
+        res.on("end", function (result) {
+          // console.log("Result is", Object.keys(result));
+          resolve(data);
+        });
+      }
+    });
+  });
+  console.log("Khatam", res.length);
+  // console.log(res);
+
+  return res;
 };

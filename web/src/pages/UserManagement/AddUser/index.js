@@ -1,3 +1,5 @@
+/* eslint-disable react/jsx-wrap-multilines */
+/* eslint-disable consistent-return */
 /* eslint-disable jsx-a11y/anchor-is-valid */
 /* eslint-disable no-useless-escape */
 
@@ -151,6 +153,7 @@ const AddUser = () => {
     useState();
   const [showToolTip, setShowToolTip] = useState(false);
   const [isInFocus, setIsInFocus] = useState(false);
+  const [emailExist, setEmailExist] = useState(false);
 
   const breadcrumpItems = [
     { href: "", onClick: () => history.push("/launchpad") },
@@ -257,7 +260,7 @@ const AddUser = () => {
     const keys = list || [e?.target?.id];
     setSelectedUserError(null);
     keys.forEach(async (key) => {
-      const value = selectedUser?.[key];
+      const value = selectedUser?.[key] || "";
       if (typeof value === "string") {
         if (!value.length || value.trim() === "") {
           currentErrors[key] = getRequiredErrors(key);
@@ -283,12 +286,16 @@ const AddUser = () => {
     setSelectedUserError(currentErrors);
   };
 
-  const getUserList = async (query = "") => {
-    setSearchQuery(query);
+  const getUserList = async (e) => {
+    const query = e.type === "keyup" ? e.target.value : searchQuery;
     if (!query) {
       if (userList.length) {
         setUserList([]);
       }
+      return;
+    }
+    setSearchQuery(query);
+    if (e.type === "keyup" && e.key !== "Enter" && query.length < 2) {
       return;
     }
     setFetchStatus("loading");
@@ -385,9 +392,13 @@ const AddUser = () => {
     const employeeId = selectedUser?.extrnl_emp_id?.trim() || "";
 
     const formattedRows = studiesRows.map((e) => {
+      const roleIds = e.roles.map((r) => r.value);
       return {
+        id: e?.study?.prot_id,
         protocolname: e?.study?.prot_nbr_stnd,
-        roles: e.roles.map((r) => r.label),
+        roles: roleIds,
+        roleIds,
+        isValid: true,
       };
     });
 
@@ -466,14 +477,38 @@ const AddUser = () => {
       );
       return false;
     }
+
     if (isNewUser) {
-      setConfirmInviteUser(true);
+      if (validNewUserDataCondition()) {
+        setConfirmInviteUser(true);
+      } else {
+        const fields = ["usr_fst_nm", "usr_lst_nm", "usr_mail_id"];
+        validateField(undefined, fields);
+      }
+      // else {
+      //   const errMsg = Object.values(selectedUserError)
+      //     .filter((e) => !!e.length)
+      //     .join(", ");
+      //   toast.showErrorMessage(errMsg);
+      // }
       return true;
     }
     setLoading(true);
     createUserAndAssignStudies();
     return null;
   }, [studiesRows]);
+
+  const validateUserEmail = async (email) => {
+    const res = await validateEmail(email);
+    setEmailExist(res?.data?.taken);
+  };
+
+  useEffect(() => {
+    if (selectedUser) {
+      const email = selectedUser.mail || selectedUser.userPrincipalName || null;
+      if (email) validateUserEmail(email);
+    }
+  }, [selectedUser]);
 
   return (
     <div className="create-user-wrapper">
@@ -517,7 +552,7 @@ const AddUser = () => {
           </Typography>
           <div className="flex flex-end">
             <div className="flex top-actions">
-              {!readOnly && (
+              {/* {!readOnly && (
                 <Switch
                   label="Active"
                   className="inline-checkbox"
@@ -525,7 +560,7 @@ const AddUser = () => {
                   onChange={handleActive}
                   size="small"
                 />
-              )}
+              )} */}
               <ButtonGroup
                 className="gap-8"
                 alignItems="right"
@@ -549,10 +584,11 @@ const AddUser = () => {
                         {
                           label: "Save",
                           size: "small",
-                          disabled:
-                            loading ||
-                            disableSave ||
-                            checkSaveDisableCondition(),
+                          disabled: emailExist,
+                          // disabled:
+                          //   loading ||
+                          //   disableSave ||
+                          //   checkSaveDisableCondition(),
                           onClick: handleSave,
                         },
                       ]
@@ -653,6 +689,8 @@ const AddUser = () => {
                         matchFrom="any"
                         size="small"
                         fullWidth
+                        error={emailExist}
+                        helperText={emailExist && "User already in system"}
                         forcePopupIcon
                         onMouseEnter={() => {
                           setShowToolTip(true);
@@ -664,14 +702,17 @@ const AddUser = () => {
                           setSearchQuery("");
                           setUserList([]);
                         }}
-                        popupIcon={<SearchIcon fontSize="extraSmall" />}
+                        popupIcon={
+                          <SearchIcon
+                            onClick={getUserList}
+                            fontSize="extraSmall"
+                          />
+                        }
                         source={userList}
                         label="Name"
                         placeholder="Search by name or email"
                         value={selectedUser}
-                        onKeyUp={(e) => {
-                          getUserList(e.target.value);
-                        }}
+                        onKeyUp={getUserList}
                         noOptionsText={
                           fetchStatus === "loading" ? (
                             <div className="flex-center flex justify-center">

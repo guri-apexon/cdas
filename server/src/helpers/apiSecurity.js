@@ -18,19 +18,13 @@ const securedPaths = [
     url: "/v1/api/vendor/create",
     methods: ["post"],
     feature: "Vendor Management",
-    checkPermission: true,
+    checkModificationPermission: true,
   },
   {
     url: "/v1/api/vendor/list",
     methods: ["get"],
     feature: "Vendor Management",
-    checkPermission: false,
-  },
-  {
-    url: "/v1/api/vendor/vens-list",
-    methods: ["get"],
-    feature: "Vendor Management",
-    checkPermission: false,
+    checkModificationPermission: false,
   },
 ];
 
@@ -126,11 +120,13 @@ exports.secureApi = async (req, res, next) => {
           if (!user || !user.isActive)
             return apiResponse.unauthorizedResponse(res, "User ID not found");
 
-          if (route?.checkPermission) {
-            const permission = await userHelper.checkPermission(
-              user_id,
-              route.feature
-            );
+          if (route) {
+            const permission = route.checkModificationPermission
+              ? await userHelper.checkPermission(user_id, route.feature)
+              : await userHelper.checkPermissionReadOnly(
+                  user_id,
+                  route.feature
+                );
 
             if (!permission)
               return apiResponse.unauthorizedResponse(

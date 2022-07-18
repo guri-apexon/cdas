@@ -8,6 +8,16 @@ const { result } = require("lodash");
 const { insertAuditLog } = require("./studyUserRoleHelper");
 const { DB_SCHEMA_NAME: schemaName } = constants;
 
+const STUDY_IDS = {
+  ALL_STUDY: "<all>",
+  NO_STUDY: "<none>",
+};
+
+const STUDY_LABELS = {
+  ALL_STUDY: "All (all study access)",
+  NO_STUDY: "None (no study access)",
+};
+
 /**
  * Validates data for multiple user protocol assignment
  * @param {object} data
@@ -77,14 +87,17 @@ exports.insertUserStudyRole = async (
   createdBy,
   createdOn
 ) => {
+  Logger.info({
+    message: "insertUserStudyRole - begin",
+  });
   const checkStudyUserQuery = `
     SELECT * FROM ${schemaName}.study_user
-    WHERE usr_id='${usr_id}' AND prot_id='${prot_id}'  
+    WHERE usr_id='${usr_id}' AND prot_id='${prot_id}'
     LIMIT 1`;
 
   const checkStudyUserRoleQuery = `
     SELECT * FROM ${schemaName}.study_user_role
-    WHERE usr_id='${usr_id}' AND prot_id='${prot_id}' AND role_id='${role_id}' 
+    WHERE usr_id='${usr_id}' AND prot_id='${prot_id}' AND role_id='${role_id}' AND study_asgn_typ is null
     LIMIT 1`;
 
   const insertStudyUserQuery = `
@@ -98,36 +111,145 @@ exports.insertUserStudyRole = async (
 
   const insertStudyUserRole = `
     INSERT INTO ${schemaName}.study_user_role ( role_id, prot_id, usr_id, act_flg, created_by, created_on, updated_by, updated_on)   
+    VALUES('${role_id}', '${prot_id}', '${usr_id}', 1, '${createdBy}', '${
+    createdOn || null
+  }', NULL, NULL) RETURNING prot_usr_role_id`;
+
+  const updateStudyUserRoleQuery = `
+    UPDATE ${schemaName}.study_user_role 
+    SET  act_flg=1, updated_on='${createdOn}', updated_by='${createdBy}'
+    WHERE usr_id='${usr_id}' AND prot_id='${prot_id}' AND role_id='${role_id}' `;
+
+  let changeCount = 0;
+
+  try {
+    const q1 = await DB.executeQuery(checkStudyUserQuery);
+    if (!(q1 && q1.rowCount > 0 && q1.rows[0].act_flg == 1)) {
+      const result = await DB.executeQuery(
+        q1 && q1.rowCount > 0 ? updateStudyUserQuery : insertStudyUserQuery
+      );
+      if (result) changeCount++;
+    }
+
+    const q2 = await DB.executeQuery(checkStudyUserRoleQuery);
+    if (!(q2 && q2.rowCount > 0 && q2.rows[0].act_flg == 1)) {
+      const result = await DB.executeQuery(
+        q2 && q2.rowCount > 0 ? updateStudyUserRoleQuery : insertStudyUserRole
+      );
+      if (result) changeCount++;
+    }
+    return { success: true, changeCount };
+  } catch (error) {
+    console.log(">>>> error:insertUserStudyRole ", error);
+  }
+  return { success: false, changeCount };
+};
+
+exports.insertUserStudyRoleAllNone = async (
+  usr_id,
+  prot_id,
+  role_id,
+  createdBy,
+  createdOn
+) => {
+  Logger.info({
+    message: `insertUserStudyRoleAllNone - begin`,
+  });
+
+  const study_asgn_typ =
+    prot_id === STUDY_IDS.ALL_STUDY
+      ? STUDY_LABELS.ALL_STUDY
+      : STUDY_LABELS.NO_STUDY;
+
+  const checkStudyUserQuery = `
+      SELECT * FROM ${schemaName}.study_user
+      WHERE usr_id='${usr_id}' AND prot_id is null
+      LIMIT 1`;
+
+  const checkStudyUserRoleQuery = `
+      SELECT * FROM ${schemaName}.study_user_role
+      WHERE usr_id='${usr_id}' AND prot_id is null AND role_id='${role_id}' AND study_asgn_typ='${study_asgn_typ}'
+      LIMIT 1`;
+
+  const insertStudyUserQuery = `
+    INSERT INTO ${schemaName}.study_user (usr_id, act_flg,insrt_tm, updt_tm)  
+    VALUES('${usr_id}',1,'${createdOn}','${createdOn}')`;
+
+  const updateStudyUserQuery = `
+    UPDATE ${schemaName}.study_user 
+    SET  act_flg=1, updt_tm='${createdOn}'
+    WHERE usr_id='${usr_id}' AND prot_id is null`;
+
+  const insertStudyUserRole = `
+    INSERT INTO ${schemaName}.study_user_role ( role_id, usr_id, act_flg, created_by, created_on, study_asgn_typ, updated_by, updated_on)   
     VALUES($1, $2, $3, $4, $5, $6, NULL, NULL) RETURNING prot_usr_role_id`;
 
   let protocolsInserted = 0;
   let studyRolesUserInserted = 0;
 
-  let result1, result2;
   try {
-    const q1 = await DB.executeQuery(checkStudyUserQuery);
-    result1 = await DB.executeQuery(
-      !(q1 && q1.rowCount > 0) ? insertStudyUserQuery : updateStudyUserQuery
-    );
+    if (prot_id === STUDY_IDS.ALL_STUDY) {
+      const q1 = await DB.executeQuery(checkStudyUserQuery);
+      result1 = await DB.executeQuery(
+        !(q1 && q1.rowCount > 0) ? insertStudyUserQuery : updateStudyUserQuery
+      );
+    }
+
     protocolsInserted++;
 
     const q2 = await DB.executeQuery(checkStudyUserRoleQuery);
     if (!(q2 && q2.rowCount > 0)) {
       result2 = await DB.executeQuery(insertStudyUserRole, [
         role_id,
-        prot_id,
         usr_id,
         1,
         createdBy,
         createdOn,
+        study_asgn_typ,
       ]);
       studyRolesUserInserted++;
     }
+
     return { success: true, studyRolesUserInserted, protocolsInserted };
   } catch (error) {
-    console.log(">>>> error:insertUserStudyRole ", error);
+    console.log(">>>> error:insertUserStudyRoleAllNone ", error);
   }
   return { success: false, studyRolesUserInserted, protocolsInserted };
+};
+
+exports.assignmentCleanUpFunction = async (userId) => {
+  Logger.info({
+    message: "assignmentCleanUpFunction - begin",
+  });
+  try {
+    // Handle All Study No Study
+    const functionQuery = `select ${schemaName}.fn_study_user_role_all_studies('${userId}')`;
+    const functionResult = await DB.executeQuery(functionQuery);
+    Logger.info({
+      message: "assignmentCleanUpFunction - end",
+    });
+  } catch (e) {
+    Logger.error("assignmentCleanUpFunction  > " + e);
+  }
+};
+
+exports.inactiveAllUserStudies = async (userId) => {
+  Logger.info({
+    message: "inactiveAllUserStudies - begin",
+  });
+
+  try {
+    // Inactivate all User Studies
+    const query = `update ${schemaName}.study_user_role set act_flg=0 where usr_id = '${userId}'`;
+    const query2 = `update ${schemaName}.study_user set act_flg=0 where usr_id = '${userId}'`;
+    const r = await DB.executeQuery(query);
+    const r1 = await DB.executeQuery(query2);
+    Logger.info({
+      message: "inactiveAllUserStudies - end",
+    });
+  } catch (e) {
+    Logger.error("inactiveAllUserStudies  > " + e);
+  }
 };
 
 /**
@@ -158,10 +280,11 @@ exports.makeUserStudyRoleInactive = async (
 
   try {
     const isExist = await DB.executeQuery(checkStudyUserRoleQuery);
-    if (isExist && isExist.rowCount > 0) {
+    if (isExist && isExist.rowCount > 0 && isExist.rows[0].act_flg !== 0) {
       const result = await DB.executeQuery(updateQuery);
       return result.rows[0];
     }
+    return false;
   } catch (error) {
     console.log(">>>> error:insertUserStudyRole ", error);
   }
@@ -260,11 +383,13 @@ exports.protocolsStudyGrant = async (protocols, user, createdBy, createdOn) => {
         createdOn
       );
       if (!result) {
-        Logger.error("assignmentCreate > studyGrant > " + protocol.name);
+        Logger.error(
+          "assignmentCreate > studyGrant > " + protocol.protocolname
+        );
         return false;
       }
     } catch (error) {
-      Logger.error("assignmentCreate > studyGrant > " + protocol.name);
+      Logger.error("assignmentCreate > studyGrant > " + protocol.protocolname);
       return false;
     }
   }
@@ -300,9 +425,9 @@ exports.protocolsStudyRevoke = async (
 };
 
 exports.saveAssignments = async (protocols, user, createdBy, createdOn) => {
-  let protocolsInserted = 0;
-  let studyRolesUserInserted = 0;
+  let changeCount = 0;
   let success = true;
+
   for (let i = 0; i < protocols.length; i++) {
     const protocol = protocols[i];
     if (!protocol.roleIds || !protocol.isValid) continue;
@@ -317,18 +442,20 @@ exports.saveAssignments = async (protocols, user, createdBy, createdOn) => {
       );
 
       if (result.success) {
-        protocolsInserted += result.protocolsInserted;
-        studyRolesUserInserted += result.studyRolesUserInserted;
+        if (result.changeCount > 0) changeCount += result.changeCount;
       } else {
         Logger.error("assignmentCreate > saveToDb > " + protocol.name);
         success = false;
       }
     }
   }
-  return { success, protocolsInserted, studyRolesUserInserted };
+  return { success, changeCount };
 };
 
 exports.updateAssignments = async (protocols, user, createdBy, createdOn) => {
+  Logger.info({
+    message: "updateAssignments - begin",
+  });
   let protocolsInserted = 0;
   let studyRolesUserInserted = 0;
   let success = true;
@@ -336,20 +463,40 @@ exports.updateAssignments = async (protocols, user, createdBy, createdOn) => {
     const protocol = protocols[i];
     if (!protocol.roleIds || !protocol.isValid) continue;
     for (let j = 0; j < protocol.roles.length; j++) {
-      const roleId = protocol.roles[j];
-      const result = await this.insertUserStudyRole(
-        user.usr_id,
-        protocol.id,
-        roleId,
-        createdBy || "",
-        createdOn || getCurrentTime()
-      );
-      if (result.success) {
-        protocolsInserted += result.protocolsInserted;
-        studyRolesUserInserted += result.studyRolesUserInserted;
+      if (
+        protocol.id === STUDY_IDS.ALL_STUDY ||
+        protocol.id === STUDY_IDS.NO_STUDY
+      ) {
+        const roleId = protocol.roles[j];
+        const result = await this.insertUserStudyRoleAllNone(
+          user.usr_id,
+          protocol.id,
+          roleId,
+          createdBy || "",
+          createdOn || getCurrentTime()
+        );
+        if (!result.success) {
+          Logger.error(
+            "assignmentCreate > saveToDb > AllStudyNoStudy > " +
+              JSON.stringify(protocol)
+          );
+        }
       } else {
-        Logger.error("assignmentCreate > saveToDb > " + protocol.name);
-        success = false;
+        const roleId = protocol.roles[j];
+        const result = await this.insertUserStudyRole(
+          user.usr_id,
+          protocol.id,
+          roleId,
+          createdBy || "",
+          createdOn || getCurrentTime()
+        );
+        if (result.success) {
+          protocolsInserted += result.protocolsInserted;
+          studyRolesUserInserted += result.studyRolesUserInserted;
+        } else {
+          Logger.error("assignmentCreate > saveToDb > " + protocol.name);
+          success = false;
+        }
       }
     }
   }

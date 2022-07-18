@@ -2,6 +2,7 @@ const apiResponse = require("../helpers/apiResponse");
 const assignmentHelper = require("../helpers/assignementHelper");
 const userHelper = require("../helpers/userHelper");
 const tenantHelper = require("../helpers/tenantHelper");
+const commonHelper = require("../helpers/commonHelper");
 const Logger = require("../config/logger");
 const moment = require("moment");
 const constants = require("../config/constants");
@@ -44,6 +45,11 @@ exports.assignmentCreate = async (req, res) => {
       ? false
       : apiResponse.ErrorResponse(res, "Created by Id does not exists");
 
+  if (createdOn && !commonHelper.isValidDate(createdOn))
+    return returnBool
+      ? false
+      : apiResponse.ErrorResponse(res, "Created on date is not valid");
+
   protocols.forEach((p) => (p.isValid = false));
   const vpr = await assignmentHelper.validateProtocolsRoles(user, protocols);
   if (!vpr.success)
@@ -69,7 +75,7 @@ exports.assignmentCreate = async (req, res) => {
         ? false
         : apiResponse.ErrorResponse(
             res,
-            "An error occured while ganting study in the FSR"
+            "An error occured while granting study in the FSR"
           );
   }
 
@@ -89,10 +95,7 @@ exports.assignmentCreate = async (req, res) => {
           "An error occured while inserting records"
         );
 
-  if (
-    saveResult.protocolsInserted === 0 &&
-    saveResult.studyRolesUserInserted === 0
-  )
+  if (saveResult.changeCount === 0)
     return returnBool
       ? false
       : apiResponse.ErrorResponse(res, "All Protocols/Roles already existed");
@@ -110,6 +113,9 @@ exports.assignmentRemove = async (req, res) => {
   const validate = await assignmentHelper.validateAssignment(data);
   if (validate.success === false)
     return apiResponse.ErrorResponse(res, validate.message);
+
+  if (!moment(updatedOn).isValid())
+    return apiResponse.ErrorResponse(res, "Updated on date is not valid");
 
   // validate tenant
   const tenant_id = await tenantHelper.findByName(tenant);
@@ -167,7 +173,13 @@ exports.assignmentRemove = async (req, res) => {
   return apiResponse.successResponse(res, "Assignments removed successfully");
 };
 
-exports.assignmentUpdate = async (req, res, returnBool = false) => {
+exports.assignmentUpdate = async (req, res) => {
+  Logger.info({
+    message: "assignmentUpdate - begin",
+  });
+
+  const { returnBool } = req;
+
   const data = req.body;
   const { email, protocols, removedProtocols, createdBy, createdOn, tenant } =
     data;
@@ -182,23 +194,28 @@ exports.assignmentUpdate = async (req, res, returnBool = false) => {
   // validate user
   const user = await userHelper.findByEmail(email);
 
-  // update database and insert logs
-  if (removedProtocols?.length) {
-    const assignmentResult = await assignmentHelper.makeAssignmentsInactive(
-      removedProtocols,
-      user,
-      createdBy,
-      createdOn
-    );
-    if (!assignmentResult) {
-      return returnBool
-        ? false
-        : apiResponse.ErrorResponse(
-            res,
-            "Assignment not found / already inactive"
-          );
-    }
-  }
+  // inactive all user study assignments
+  await assignmentHelper.inactiveAllUserStudies(user.usr_id);
+
+  await assignmentHelper.assignmentCleanUpFunction(user.usr_id);
+
+  // // update database and insert logs
+  // if (removedProtocols?.length) {
+  //   const assignmentResult = await assignmentHelper.makeAssignmentsInactive(
+  //     removedProtocols,
+  //     user,
+  //     createdBy,
+  //     createdOn
+  //   );
+  //   if (!assignmentResult) {
+  //     return returnBool
+  //       ? false
+  //       : apiResponse.ErrorResponse(
+  //           res,
+  //           "Assignment not found / already inactive"
+  //         );
+  //   }
+  // }
   // save it to the database
   const saveResult = await assignmentHelper.updateAssignments(
     protocols,
@@ -206,6 +223,7 @@ exports.assignmentUpdate = async (req, res, returnBool = false) => {
     createdBy,
     createdOn
   );
+  await assignmentHelper.assignmentCleanUpFunction(user.usr_id);
   if (!saveResult.success)
     return returnBool
       ? false
@@ -223,7 +241,7 @@ exports.assignmentUpdate = async (req, res, returnBool = false) => {
       : apiResponse.ErrorResponse(res, "All Protocols/Roles already existed");
 
   return returnBool
-    ? false
+    ? true
     : apiResponse.successResponse(
         res,
         `An invitation has been emailed to ${email}`

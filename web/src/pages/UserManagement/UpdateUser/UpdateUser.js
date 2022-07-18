@@ -399,7 +399,7 @@ const AddUser = () => {
             <BreadcrumbsUI className="breadcrump" items={breadcrumpItems} />
           )}
 
-          <div className="flex justify-space-between mb-16">
+          <div className="flex justify-space-between mb-8">
             <Button
               onClick={goToUser}
               className="back-btn"
@@ -469,9 +469,15 @@ const AddUser = () => {
                     {isUserInvited() && (
                       <>
                         <div className="light mt-2">
-                          {isInvitationExpired()
-                            ? "Invitation expired:"
-                            : "Invitation sent, not yet activated Expires"}
+                          {isInvitationExpired() ? (
+                            "Invitation expired:"
+                          ) : (
+                            // eslint-disable-next-line react/jsx-wrap-multilines
+                            <>
+                              <div>Invitation sent, not yet activated</div>
+                              <span>Expires</span>
+                            </>
+                          )}
                         </div>
                         <div className="light mt-2">
                           {getExpirationDateString()}
@@ -497,7 +503,7 @@ const AddUser = () => {
                   Employee ID
                   <div className="ml-3">
                     <div className="user-update-font-500">
-                      {targetUser?.extrnl_emp_id}
+                      {targetUser?.usr_id || targetUser?.extrnl_emp_id}
                     </div>
                   </div>
                 </Typography>
@@ -516,6 +522,7 @@ const AddUser = () => {
                 userUpdating={loading}
                 readOnly={readOnly}
                 canUpdate={canUpdate}
+                setParentLoading={setLoading}
               />
             </div>
           </Grid>

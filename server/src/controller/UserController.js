@@ -5,11 +5,22 @@ const axios = require("axios");
 const userHelper = require("../helpers/userHelper");
 const studyHelper = require("../helpers/studyHelper");
 const tenantHelper = require("../helpers/tenantHelper");
+const commonHelper = require("../helpers/commonHelper");
 const apiResponse = require("../helpers/apiResponse");
 const constants = require("../config/constants");
 const AssignmentController = require("../controller/AssignmentController");
 
 const { DB_SCHEMA_NAME: schemaName } = constants;
+
+const STUDY_IDS = {
+  ALL_STUDY: "<all>",
+  NO_STUDY: "<none>",
+};
+
+const STUDY_LABELS = {
+  ALL_STUDY: "All (all study access)",
+  NO_STUDY: "None (no study access)",
+};
 
 const logQuery = `INSERT INTO ${schemaName}.audit_log (tbl_nm,id,attribute,old_val,new_val,rsn_for_chg,updated_by,updated_on) values ($1, $2, $3, $4, $5, $6, $7, $8)`;
 
@@ -107,7 +118,7 @@ exports.getUserDetail = async function (req, res) {
   const userId = req.query.userId;
   try {
     return await DB.executeQuery(
-      `SELECT u.*, ut.tenant_id from ${schemaName}.user u left join ${schemaName}.user_tenant ut on ut.usr_id = u.usr_id WHERE u.usr_id='${userId}'`
+      `SELECT u.*, ut.tenant_id, CASE WHEN LOWER(TRIM(u.usr_stat)) IN ('in active', 'inactive') THEN 'Inactive' WHEN LOWER(TRIM(u.usr_stat)) IN ('active') THEN 'Active' WHEN LOWER(TRIM(u.usr_stat)) IN ('invited') THEN 'Invited' WHEN u.usr_stat IS NULL THEN 'Active' ELSE TRIM(u.usr_stat) END AS formatted_stat from ${schemaName}.user u left join ${schemaName}.user_tenant ut on ut.usr_id = u.usr_id WHERE u.usr_id='${userId}'`
     )
       .then((response) => {
         const user = response?.rows?.[0] || {};
@@ -185,7 +196,9 @@ exports.inviteExternalUser = async (req, res) => {
 
   const response = await this.createNewUser(newReq, res);
   if (response) {
-    const assignmentResponse = AssignmentController.assignmentCreate(
+    newReq.body["createdBy"] = newReq.body.updatedBy;
+    newReq.body["createdOn"] = getCurrentTime();
+    const assignmentResponse = AssignmentController.assignmentUpdate(
       newReq,
       res
     );
@@ -218,7 +231,9 @@ exports.inviteInternalUser = async (req, res) => {
 
   const response = await this.createNewUser(newReq, res);
   if (response) {
-    const assignmentResponse = AssignmentController.assignmentCreate(
+    newReq.body["createdBy"] = newReq.body.updatedBy;
+    newReq.body["createdOn"] = getCurrentTime();
+    const assignmentResponse = AssignmentController.assignmentUpdate(
       newReq,
       res
     );
@@ -276,6 +291,17 @@ exports.createNewUser = async (req, res) => {
     return returnBool
       ? false
       : apiResponse.ErrorResponse(res, validate.message);
+
+  const createdById = await userHelper.findByUserId(data.createdBy);
+  if (data.createdBy && !createdById)
+    return returnBool
+      ? false
+      : apiResponse.ErrorResponse(res, "Created by Id does not exists");
+
+  if (data.createdOn && !commonHelper.isValidDate(data.createdOn))
+    return returnBool
+      ? false
+      : apiResponse.ErrorResponse(res, "Created on date is not valid");
 
   // validate tenant
   const tenant_id = await tenantHelper.findByName(data.tenant);
@@ -543,34 +569,47 @@ exports.secureApi = async (req, res) => {
   return apiResponse.successResponse(res, "Secure Api Success");
 };
 
-const getUserStudyRoles = async (prot_id, userId) => {
-  const userRolesQuery = `SELECT r.role_nm AS label, r.role_id AS value from ${schemaName}.study_user_role AS sur LEFT JOIN ${schemaName}.role AS r ON sur.role_id=r.role_id WHERE sur.prot_id='${prot_id}' AND sur.usr_id='${userId}' AND sur.act_flg=1 ORDER BY r.role_nm ASC`;
-  return await DB.executeQuery(userRolesQuery).then((res) => res.rows);
-};
-
 exports.getUserStudyAndRoles = async function (req, res) {
   try {
     const userId = req.query.userId;
-    const userStudyQuery = `SELECT s.prot_id, s.prot_nbr_stnd from ${schemaName}.study_user AS su LEFT JOIN ${schemaName}.study AS s ON su.prot_id=s.prot_id WHERE su.usr_id='${userId}' AND act_flg=1`;
+    const userStudyQuery = `select MAIN.*, r1.role_nm, s1.prot_nbr_stnd  from ( select study_asgn_typ prot_id,usr_id,role_id
+      from ${schemaName}.study_user_role where usr_id = '${userId}' and study_asgn_typ is not null
+      group by study_asgn_typ,usr_id,role_id
+      union all
+      select prot_id,usr_id,role_id
+      from ${schemaName}.study_user_role where usr_id = '${userId}' and study_asgn_typ is null) MAIN
+      left join study s1 on s1.prot_id = MAIN.prot_id
+      left join role r1 on r1.role_id = MAIN.role_id`;
+
     const userStudies = await DB.executeQuery(userStudyQuery).then(
       (response) => {
         return response.rows;
       }
     );
-    await Promise.all(
-      userStudies.map(async (e, i) => {
-        const roles = await getUserStudyRoles(e.prot_id, userId);
-        if(roles.length){
-          userStudies[i].roles = roles;
-        }else{
-          delete userStudies[i];
-        }
-      })
-    );
+    const finalUserStudies = userStudies.reduce((acc, s) => {
+      const { role_id, role_nm, prot_id, prot_nbr_stnd } = s;
+      let protId = prot_id;
+      if (protId === STUDY_LABELS.ALL_STUDY) {
+        protId = STUDY_IDS.ALL_STUDY;
+      } else if (protId === STUDY_LABELS.NO_STUDY) {
+        protId = STUDY_IDS.NO_STUDY;
+      }
+      if (!acc[protId]) {
+        acc[protId] = {
+          prot_id: protId,
+          prot_nbr_stnd,
+          roles: [{ label: role_nm, value: role_id }],
+        };
+      } else {
+        acc[protId].roles.push({ label: role_nm, value: role_id });
+      }
+      return acc;
+    }, {});
+
     return apiResponse.successResponseWithData(
       res,
       "User Study and roles retrieved successfully",
-      userStudies
+      Object.values(finalUserStudies)
     );
   } catch (err) {
     return false;
@@ -849,7 +888,11 @@ exports.checkInvitedStatus = async () => {
 };
 
 exports.updateUserAssignments = async (req, res) => {
-  const newReq = { ...req };
+  Logger.info({
+    message: "updateUserAssignments - begin",
+  });
+
+  const newReq = { ...req, returnBool: true };
   const query = `SELECT tenant_nm FROM ${schemaName}.tenant LIMIT 1`;
   try {
     const result = await DB.executeQuery(query);
@@ -864,11 +907,13 @@ exports.updateUserAssignments = async (req, res) => {
   newReq.body["createdBy"] = newReq.body.updatedBy;
   newReq.body["createdOn"] = getCurrentTime();
 
-  const assignmentResponse = AssignmentController.assignmentUpdate(
+  const assignmentResponse = await AssignmentController.assignmentUpdate(
     newReq,
-    res,
-    true
+    res
   );
+  Logger.info({
+    message: "updateUserAssignments - end",
+  });
   if (assignmentResponse) {
     return apiResponse.successResponse(
       res,
