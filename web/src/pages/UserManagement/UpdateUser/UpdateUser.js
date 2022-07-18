@@ -175,7 +175,7 @@ const AddUser = () => {
     const userRes = await getUser(userId);
     setTargetUser(userRes);
     updateBreadcrump(userRes);
-    setActive(userRes.usr_stat === "Active" ? true : false);
+    setActive(userRes.formatted_stat === "Active" ? true : false);
   };
 
   const checkUserTypeAndUpdate = async (checked) => {
@@ -266,7 +266,7 @@ const AddUser = () => {
   };
 
   const isUserInvited = () => {
-    const userStatus = targetUser?.usr_stat;
+    const userStatus = targetUser?.formatted_stat;
     return userStatus?.trim()?.toLowerCase() === "invited" ? true : false;
   };
 
@@ -408,7 +408,7 @@ const AddUser = () => {
             >
               Back to User Management List
             </Button>
-            {!readOnly && targetUser?.usr_stat !== "Invited" ? (
+            {!readOnly && targetUser?.formatted_stat !== "Invited" ? (
               <Switch
                 label="Active"
                 className="inline-checkbox"
@@ -420,7 +420,7 @@ const AddUser = () => {
             ) : (
               <Tag
                 className="user-tag-capitalized"
-                label={`Status: ${targetUser?.usr_stat}`}
+                label={`Status: ${targetUser?.formatted_stat}`}
                 variant="purple"
               />
             )}
