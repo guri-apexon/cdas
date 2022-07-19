@@ -108,7 +108,8 @@ exports.listRoles = async function (req, res) {
     LEFT join ${dbSchema}.product_permission pp
     on pp.prod_permsn_id = ppp.prod_permsn_id
     LEFT join ${dbSchema}.product p2
-    on p2.prod_id = pp.prod_id`;
+    on p2.prod_id = pp.prod_id
+    where rp.act_flg=1 `;
     let { rows } = await DB.executeQuery(q);
     let tempRows = _.uniqBy(rows, "role_id");
     let _Products = _.uniqBy(rows, "prod_nm");
