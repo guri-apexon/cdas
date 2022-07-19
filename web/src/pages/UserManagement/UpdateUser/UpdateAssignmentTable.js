@@ -173,7 +173,7 @@ const UserAssignmentTable = ({
   const showToolTip = {};
   const RolesSelected = ({ row, roles }) => {
     const uRoles = roles.length ? roles.map((e) => e.label).join(", ") : "";
-    const charLimit = getOverflowLimit("45%", 80);
+    const charLimit = getOverflowLimit("40%", 80);
     const showRoletooltip = (rowIndex, boolVal) => {
       showToolTip[rowIndex] = boolVal;
     };
