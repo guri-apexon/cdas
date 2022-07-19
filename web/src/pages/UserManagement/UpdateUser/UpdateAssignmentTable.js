@@ -890,11 +890,24 @@ const UserAssignmentTable = ({
       const tableIndex = modalTableStudies.findIndex(
         (el) => el.index === index
       );
+      const tableDuplicateIndex = prevTableStudies.findIndex(
+        (el) =>
+          prevTableStudies[tableIndex]?.prot_id === el?.prot_id &&
+          el.index !== index
+      );
+      if (tableDuplicateIndex > -1) {
+        prevTableStudies[tableDuplicateIndex].alreadyExist = false;
+      }
       prevTableStudies.splice(tableIndex, 1);
       prevTableStudies = prevTableStudies.map((e, i) => ({
         ...e,
         index: i,
       }));
+      if (prevTableStudies.length === 1) {
+        prevTableStudies[0].prot_nbr_stnd = "";
+        prevTableStudies[0].prot_id = "";
+        prevTableStudies[0].roles = [];
+      }
       setModalTableStudies([...prevTableStudies]);
     };
 
