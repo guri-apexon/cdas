@@ -641,6 +641,9 @@ const AddUser = () => {
                       </Tooltip>
                     </div>
                     <TextField
+                      className={`email-input ${
+                        isTextOverflow && !isInFocus ? "cursor" : ""
+                      }`}
                       type="email"
                       id="usr_mail_id"
                       size="small"
@@ -683,7 +686,11 @@ const AddUser = () => {
                         <div className="email-tooltip top" />
                       </Tooltip>
                     </div>
-                    <div className="user-autocomplete">
+                    <div
+                      className={`user-autocomplete ${
+                        isTextOverflow && !isInFocus ? "cursor" : ""
+                      }`}
+                    >
                       <AutocompleteV2
                         id="highligh-autocomplete"
                         matchFrom="any"
@@ -698,9 +705,11 @@ const AddUser = () => {
                         onMouseLeave={() => {
                           setShowToolTip(false);
                         }}
+                        onFocus={() => setIsInFocus(true)}
                         onBlur={() => {
                           setSearchQuery("");
                           setUserList([]);
+                          setIsInFocus(false);
                         }}
                         popupIcon={
                           <SearchIcon
