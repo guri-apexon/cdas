@@ -1019,7 +1019,6 @@ const UserAssignmentTable = ({
             {
               label: "Save",
               onClick: updateModalAssignment,
-              disabled: disableSaveBtn || userUpdating,
             },
           ]}
           id="user-update-assignment-modal"
