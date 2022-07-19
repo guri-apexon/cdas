@@ -317,24 +317,26 @@ const UserAssignmentTable = ({
 
   const onDelete = (index) => {
     let prevTableStudies = tableStudies;
-    const tableIndex = tableStudies.findIndex((el) => el.index === index);
-    const tableDuplicateIndex = tableStudies.findIndex(
+    const tableIndex = prevTableStudies.findIndex((el) => el.index === index);
+    const tableDuplicateIndex = prevTableStudies.findIndex(
       (el) =>
-        tableStudies[tableIndex]?.study?.prot_id === el?.study?.prot_id &&
+        prevTableStudies[tableIndex]?.study?.prot_id === el?.study?.prot_id &&
         el.index !== index
     );
     if (tableDuplicateIndex > -1) {
-      tableStudies[tableDuplicateIndex].alreadyExist = false;
+      prevTableStudies[tableDuplicateIndex].alreadyExist = false;
+      if (
+        prevTableStudies[tableDuplicateIndex].index ===
+        prevTableStudies[prevTableStudies.length - 1].index
+      ) {
+        prevTableStudies.push(getStudyObj());
+      }
     }
-    setTableStudies([...tableStudies]);
     prevTableStudies.splice(tableIndex, 1);
     prevTableStudies = prevTableStudies.map((e, i) => ({
       ...e,
       index: i + 1,
     }));
-    if (prevTableStudies.length === 1) {
-      prevTableStudies[0].study = null;
-    }
     setTableStudies([...prevTableStudies]);
   };
 

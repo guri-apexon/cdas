@@ -25,6 +25,12 @@
 }
 .create-user-wrapper {
   .user-autocomplete {
+    &.cursor {
+      .a-MuiInputBase-root,
+      input {
+        cursor: pointer;
+      }
+    }
     .a-MuiAutocomplete-paper {
       background-color: white;
       margin: 8px 0 0;
@@ -42,6 +48,16 @@
       padding-right: 16px;
       justify-content: flex-start;
       -webkit-tap-highlight-color: transparent;
+    }
+  }
+  .email-input {
+    input {
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+    &.cursor input {
+      cursor: pointer;
     }
   }
   .ml-8 {

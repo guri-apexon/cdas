@@ -173,7 +173,7 @@ const UserAssignmentTable = ({
   const showToolTip = {};
   const RolesSelected = ({ row, roles }) => {
     const uRoles = roles.length ? roles.map((e) => e.label).join(", ") : "";
-    const charLimit = getOverflowLimit("45%", 80);
+    const charLimit = getOverflowLimit("40%", 80);
     const showRoletooltip = (rowIndex, boolVal) => {
       showToolTip[rowIndex] = boolVal;
     };
@@ -768,9 +768,12 @@ const UserAssignmentTable = ({
             ].current?.childNodes[0]?.childNodes[0]?.childNodes[0]?.childNodes[1]?.childNodes[1]?.click();
           }, 500);
         } else {
-          lineRefs.current[
-            index
-          ].current.childNodes[0].childNodes[0].childNodes[0].childNodes[2]?.childNodes[1]?.click();
+          setModalTableStudies([...tempModalTableStudies]);
+          setTimeout(() => {
+            lineRefs.current[
+              index
+            ].current.childNodes[0].childNodes[0].childNodes[0].childNodes[2]?.childNodes[1]?.click();
+          }, 500);
         }
       }
     };
@@ -890,6 +893,20 @@ const UserAssignmentTable = ({
       const tableIndex = modalTableStudies.findIndex(
         (el) => el.index === index
       );
+      const tableDuplicateIndex = prevTableStudies.findIndex(
+        (el) =>
+          prevTableStudies[tableIndex]?.prot_id === el?.prot_id &&
+          el.index !== index
+      );
+      if (tableDuplicateIndex > -1) {
+        prevTableStudies[tableDuplicateIndex].alreadyExist = false;
+        if (
+          prevTableStudies[tableDuplicateIndex].index ===
+          prevTableStudies[prevTableStudies.length - 1].index
+        ) {
+          prevTableStudies.push(getModalStudyObj());
+        }
+      }
       prevTableStudies.splice(tableIndex, 1);
       prevTableStudies = prevTableStudies.map((e, i) => ({
         ...e,
@@ -1006,7 +1023,6 @@ const UserAssignmentTable = ({
             {
               label: "Save",
               onClick: updateModalAssignment,
-              disabled: disableSaveBtn || userUpdating,
             },
           ]}
           id="user-update-assignment-modal"
