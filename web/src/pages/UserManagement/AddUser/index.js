@@ -730,6 +730,7 @@ const AddUser = () => {
                             </>
                           )
                         }
+                        inlineMenu
                         onChange={(e, v, r) => {
                           updateChanges();
                           setSelectedUser(v);
