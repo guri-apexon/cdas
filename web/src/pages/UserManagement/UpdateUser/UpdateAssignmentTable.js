@@ -900,17 +900,18 @@ const UserAssignmentTable = ({
       );
       if (tableDuplicateIndex > -1) {
         prevTableStudies[tableDuplicateIndex].alreadyExist = false;
+        if (
+          prevTableStudies[tableDuplicateIndex].index ===
+          prevTableStudies[prevTableStudies.length - 1].index
+        ) {
+          prevTableStudies.push(getModalStudyObj());
+        }
       }
       prevTableStudies.splice(tableIndex, 1);
       prevTableStudies = prevTableStudies.map((e, i) => ({
         ...e,
         index: i,
       }));
-      if (prevTableStudies.length === 1) {
-        prevTableStudies[0].prot_nbr_stnd = "";
-        prevTableStudies[0].prot_id = "";
-        prevTableStudies[0].roles = [];
-      }
       setModalTableStudies([...prevTableStudies]);
     };
 
