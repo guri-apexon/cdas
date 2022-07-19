@@ -795,10 +795,12 @@ exports.updateUserStatus = async (req, res) => {
                   studyRoles.push({ name: roleDetails.role_nm });
                 }
               }
-              returnRes.push({
-                studyName: studyObj.prot_nbr_stnd,
-                inactiveRoles: studyRoles,
-              });
+              if (studyRoles?.length) {
+                returnRes.push({
+                  studyName: studyObj.prot_nbr_stnd,
+                  inactiveRoles: studyRoles,
+                });
+              }
             }
 
             const auditInsert = `INSERT INTO ${schemaName}.audit_log
