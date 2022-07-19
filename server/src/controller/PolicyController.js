@@ -283,7 +283,7 @@ exports.getProducts = function (req, res) {
   try {
     const searchQuery = `select distinct p.prod_nm, p.prod_id, p.act_flg,
     case when pp.prod_id is null then 0 else 1 end as active_product from ${schemaName}.product p
-    FULL OUTER JOIN ${schemaName}.product_permission pp on (pp.prod_id=p.prod_id)
+    left JOIN ${schemaName}.product_permission pp on (pp.prod_id=p.prod_id)
     ORDER By p.prod_id ASC`;
     DB.executeQuery(searchQuery).then((response) => {
       const products = response?.rows || [];

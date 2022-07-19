@@ -496,7 +496,7 @@ exports.deleteNewUser = async (req, res) => {
             }
 
             // FSR
-            let fsr_status = {};
+            let fsr_status;
             if (inActiveStatus.rowCount > 0) {
               if (user_type == "internal") {
                 const studyData = await DB.executeQuery(getStudiesQuery);
@@ -509,7 +509,7 @@ exports.deleteNewUser = async (req, res) => {
                   fsr_requestBody,
                   studyData?.rows
                 );
-                if (fsr_status === false) {
+                if (fsr_status == false) {
                   return apiResponse.ErrorResponse(
                     res,
                     "FSR Revoke internal API Failed "
@@ -519,7 +519,7 @@ exports.deleteNewUser = async (req, res) => {
             }
 
             //CDAS Audit
-            if (fsr_status !== false) {
+            if (fsr_status == true) {
               const audit_log = await DB.executeQuery(logQuery, [
                 "user",
                 userDetails?.usr_id,
