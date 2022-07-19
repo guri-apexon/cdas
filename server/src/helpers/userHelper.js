@@ -486,7 +486,7 @@ exports.findUserByEmailAndId = async (userid, email) => {
 };
 
 exports.getExternalUserInternalId = async (user_id) => {
-  const query = `SELECT * from ${schemaName}.user where usr_id =$1`;
+  const query = `SELECT * from ${schemaName}.user where upper(usr_id) = upper($1)`;
   const externalUserQuery = `SELECT * from ${schemaName}.user where extrnl_emp_id =$1`;
 
   try {
