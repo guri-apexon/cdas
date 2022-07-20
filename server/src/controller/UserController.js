@@ -846,7 +846,7 @@ exports.checkInvitedStatus = async () => {
     if (!invitedUsers.length) return false;
 
     // Get Active Users from SDA API
-    const activeUsers = userHelper.getSDAUsers();
+    const activeUsers = await userHelper.getSDAUsers();
 
     await Promise.all(
       invitedUsers.map(async (invitedUser) => {
@@ -884,7 +884,8 @@ exports.checkInvitedStatus = async () => {
     });
 
     return true;
-  } catch {
+  } catch (err) {
+    Logger.error(err);
     return false;
   }
 };
