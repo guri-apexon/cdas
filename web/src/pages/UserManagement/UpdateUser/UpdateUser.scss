@@ -217,6 +217,9 @@
     padding: 8px;
   }
 }
+.study, .role {
+  height: 40px;
+}
 .study-table div {
   div[class*=" Table-scrollRoot-"] {
     @extend .customscroll;

@@ -204,7 +204,7 @@ const UserAssignmentTable = ({
   const ViewStudy = ({ row, column: { accessor: key } }) => {
     const isEdit = row?.isEdit ? "editable-row" : "";
     return (
-      <div className="study" style={{ height: "40px" }}>
+      <div className="study">
         <StudySelected isEdit={isEdit} row={row} />
       </div>
     );
@@ -274,7 +274,7 @@ const UserAssignmentTable = ({
     };
 
     return (
-      <div className="role" style={{ height: "40px" }}>
+      <div className="role">
         {row.isEdit ? (
           <AutocompleteV2
             placeholder={
@@ -782,7 +782,7 @@ const UserAssignmentTable = ({
     const EditableStudy = ({ row, column: { accessor: key } }) => {
       const editStudyRowIndex = studyList.findIndex((e) => e[key] === row[key]);
       return (
-        <div className="study mr-4" style={{ height: "40px" }}>
+        <div className="study mr-4">
           <AutocompleteV2
             placeholder="Add new study and role"
             matchFrom="any"
@@ -865,7 +865,7 @@ const UserAssignmentTable = ({
         return validateAllStudyNoStudy(currentRowData, restModalTableStudies);
       };
       return (
-        <div className="role" style={{ height: "40px" }}>
+        <div className="role">
           <AutocompleteV2
             ref={lineRefs.current[row.index]}
             placeholder={!value.length ? "Choose one or more roles" : ""}
