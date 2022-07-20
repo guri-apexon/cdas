@@ -311,27 +311,24 @@ const UserAssignmentTable = ({
     );
   };
 
+  const editRowFn = (rowIndex, editMode) => {
+    const prevTableStudies = [...tableStudies];
+    prevTableStudies[rowIndex].isEdit = editMode;
+    prevTableStudies[rowIndex].roles = prevTableStudies[rowIndex]?.roles?.sort(
+      (a, b) => a?.label?.localeCompare(b?.label)
+    );
+    setTableStudies([...prevTableStudies]);
+  };
+
   const updateEditMode = (rowIndex, editMode) => {
     if (typeof lastEditedRecordIndex !== "number") {
       /* eslint-disable */
       setlastEditedRecordData(rowIndex);
-      console.log(rowIndex);
       setEditMode(true);
       dispatch(formComponentActive());
-
-      const prevTableStudies = [...tableStudies];
-      prevTableStudies[rowIndex].isEdit = editMode;
-      prevTableStudies[rowIndex].roles = prevTableStudies[
-        rowIndex
-      ]?.roles?.sort((a, b) => a?.label?.localeCompare(b?.label));
-      setTableStudies([...prevTableStudies]);
+      editRowFn(rowIndex, editMode);
     } else {
-      const prevTableStudies = [...tableStudies];
-      prevTableStudies[rowIndex].isEdit = editMode;
-      prevTableStudies[rowIndex].roles = prevTableStudies[
-        rowIndex
-      ]?.roles?.sort((a, b) => a?.label?.localeCompare(b?.label));
-      setTableStudies([...prevTableStudies]);
+      editRowFn(rowIndex, editMode);
       setlastEditedRecordData(null);
     }
   };

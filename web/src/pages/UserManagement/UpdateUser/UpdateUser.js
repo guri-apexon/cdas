@@ -244,13 +244,7 @@ const AddUser = () => {
   };
 
   const goToUser = (e) => {
-    // e.preventDefault();
-    // if (!isUpdateInprogress) {
     history.push("/user-management/");
-    // }
-    //  else {
-    //   setOpenCancelModal(true);
-    // }
   };
 
   useEffect(() => {
@@ -364,26 +358,6 @@ const AddUser = () => {
       {isShowAlertBox && (
         <AlertBox cancel={keepEditingBtn} submit={leavePageBtn} />
       )}
-      {/* {isUpdateInprogress && (
-        <Modal
-          open={openCancelModal}
-          onClose={(e) => setOpenCancelModal(false)}
-          className="save-confirm"
-          disableBackdropClick={true}
-          variant="warning"
-          title="Lose your work?"
-          message="All unsaved changes will be lost."
-          buttonProps={[
-            { label: "Keep editing" },
-            {
-              label: "Leave without saving",
-              onClick: () => cancelButton(),
-            },
-          ]}
-          id="neutral"
-        />
-      )} */}
-
       {/* {isAnyUpdate && (
         <ConfirmModal
           open={confirm}
