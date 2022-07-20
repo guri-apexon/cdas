@@ -1,3 +1,4 @@
+/* eslint-disable no-await-in-loop */
 /* eslint-disable react/jsx-wrap-multilines */
 /* eslint-disable consistent-return */
 /* eslint-disable jsx-a11y/anchor-is-valid */
@@ -239,11 +240,11 @@ const AddUser = () => {
   const getRequiredErrors = (key) => {
     switch (key) {
       case "usr_fst_nm":
-        return "First name required";
+        return "First name is required";
       case "usr_lst_nm":
-        return "Last name required";
+        return "Last name is required";
       case "usr_mail_id":
-        return "Email address required";
+        return "Email is required";
       default:
         return "This Field is required";
     }
@@ -254,12 +255,13 @@ const AddUser = () => {
     return res.data.error;
   };
 
-  const validateField = (e, list) => {
+  const validateField = async (e, list) => {
     const currentErrors = { ...selectedUserError };
 
     const keys = list || [e?.target?.id];
-    setSelectedUserError(null);
-    keys.forEach(async (key) => {
+    // setSelectedUserError(null);
+    // eslint-disable-next-line no-restricted-syntax
+    for (const key of keys) {
       const value = selectedUser?.[key] || "";
       if (typeof value === "string") {
         if (!value.length || value.trim() === "") {
@@ -275,15 +277,18 @@ const AddUser = () => {
             } else {
               delete currentErrors[key];
             }
-            setSelectedUserError({ ...currentErrors });
+            // setSelectedUserError({ ...currentErrors });
           }
         } else {
-          currentErrors[key] = "";
+          delete currentErrors[key];
         }
       }
-    });
-
-    setSelectedUserError(currentErrors);
+    }
+    if (Object.keys(currentErrors).length) {
+      setSelectedUserError(currentErrors);
+    } else {
+      setSelectedUserError(null);
+    }
   };
 
   const getUserList = async (e) => {
@@ -341,6 +346,31 @@ const AddUser = () => {
     !selectedUserError?.usr_lst_nm &&
     !selectedUserError?.usr_mail_id;
 
+  const getNewUserError = () => {
+    if (!selectedUser?.usr_fst_nm?.length) {
+      return getRequiredErrors("usr_fst_nm");
+    }
+    if (selectedUserError?.usr_fst_nm) {
+      return selectedUserError?.usr_fst_nm;
+    }
+    if (!selectedUser?.usr_lst_nm?.length) {
+      return getRequiredErrors("usr_lst_nm");
+    }
+    if (selectedUserError?.usr_lst_nm) {
+      return selectedUserError?.usr_fst_nm;
+    }
+    if (!selectedUser?.usr_mail_id?.length) {
+      return getRequiredErrors("usr_mail_id");
+    }
+    if (
+      selectedUserError?.usr_mail_id &&
+      selectedUser?.usr_mail_id !== getRequiredErrors("usr_mail_id")
+    ) {
+      return selectedUserError?.usr_mail_id;
+    }
+    return "";
+  };
+
   const handleSave = async () => {
     setPingParent((oldValue) => oldValue + 1);
   };
@@ -369,7 +399,8 @@ const AddUser = () => {
   };
 
   const updateUserAssign = async (selectedStudies) => {
-    const sr = [...selectedStudies].slice(0, -1);
+    // const sr = [...selectedStudies].slice(0, -1);
+    const sr = selectedStudies.filter((s) => !!s.study);
     setStudiesRows(sr);
   };
 
@@ -448,16 +479,31 @@ const AddUser = () => {
     return null;
   };
 
-  useEffect(() => {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(async () => {
     if (!studiesRows) {
       return false;
     }
-    if (!selectedUser) {
-      toast.showErrorMessage("Select a user or create a new one");
+    if (!selectedUser && !isNewUser) {
+      toast.showErrorMessage("Name is required");
       return false;
     }
+    if (selectedUser && emailExist && !isNewUser) {
+      toast.showErrorMessage("User already in system");
+      return false;
+    }
+    if (isNewUser) {
+      const fields = ["usr_fst_nm", "usr_lst_nm", "usr_mail_id"];
+      await validateField(undefined, fields);
+      const error = getNewUserError();
+      if (error) {
+        toast.showErrorMessage(error);
+        return false;
+      }
+    }
     if (!studiesRows.length) {
-      toast.showErrorMessage("Add some studies to proceed");
+      // toast.showErrorMessage("Add some studies to proceed");
+      toast.showErrorMessage("Select a protocol");
       return false;
     }
     if (studiesRows.find((x) => x.study == null)) {
@@ -472,25 +518,18 @@ const AddUser = () => {
     }
     const emptyRoles = studiesRows.filter((x) => x.roles.length === 0);
     if (emptyRoles.length) {
-      toast.showErrorMessage(
-        `This assignment is incomplete. Please select a study and a role to continue.`
-      );
+      // toast.showErrorMessage(
+      //   `This assignment is incomplete. Please select a study and a role to continue.`
+      // );
+      toast.showErrorMessage("Select a role");
+
       return false;
     }
 
     if (isNewUser) {
       if (validNewUserDataCondition()) {
         setConfirmInviteUser(true);
-      } else {
-        const fields = ["usr_fst_nm", "usr_lst_nm", "usr_mail_id"];
-        validateField(undefined, fields);
       }
-      // else {
-      //   const errMsg = Object.values(selectedUserError)
-      //     .filter((e) => !!e.length)
-      //     .join(", ");
-      //   toast.showErrorMessage(errMsg);
-      // }
       return true;
     }
     setLoading(true);
@@ -584,7 +623,7 @@ const AddUser = () => {
                         {
                           label: "Save",
                           size: "small",
-                          disabled: emailExist,
+                          // disabled: emailExist,
                           // disabled:
                           //   loading ||
                           //   disableSave ||
