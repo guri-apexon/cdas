@@ -38,8 +38,11 @@ import usePermission, {
 import { MessageContext } from "../../../components/Providers/MessageProvider";
 import {
   formComponentActive,
+  formComponentInActive,
+  hideAppSwitcher,
   hideAlert,
   showAppSwitcher,
+  showAlert,
 } from "../../../store/actions/AlertActions";
 import AlertBox from "../../AlertBox/AlertBox";
 import UserAssignmentTable from "./UpdateAssignmentTable";
@@ -132,7 +135,20 @@ const AddUser = () => {
   const [inactiveStudyRoles, setInactiveStudyRoles] = useState([]);
   const [showEmailTooTip, setEmailTooTip] = useState(false);
   const [isUpdateInprogress, setIsUpdateInprogress] = useState(false);
-  const [openCancelModal, setOpenCancelModal] = useState(false);
+  // const [openCancelModal, setOpenCancelModal] = useState(false);
+  const [isEditMode, setEditMode] = useState();
+  const routerHandle = useRef();
+  const [targetRoute, setTargetRoute] = useState("");
+
+  const unblockRouter = () => {
+    dispatch(formComponentInActive());
+    dispatch(hideAlert());
+    dispatch(hideAppSwitcher());
+    setShowAlertBox(false);
+    if (routerHandle) {
+      routerHandle.current();
+    }
+  };
 
   const keepEditingBtn = () => {
     dispatch(hideAlert());
@@ -140,9 +156,19 @@ const AddUser = () => {
   };
 
   const leavePageBtn = () => {
-    dispatch(hideAlert());
-    dispatch(showAppSwitcher());
-    setShowAlertBox(false);
+    unblockRouter();
+    if (alertStore.showAlertBox === true) {
+      dispatch(showAppSwitcher());
+      setShowAlertBox(false);
+      dispatch(hideAlert());
+    } else {
+      /* eslint-disable */
+      if (targetRoute === "") {
+        setEditMode(false);
+      } else {
+        history.push(targetRoute);
+      }
+    }
   };
 
   useEffect(() => {
@@ -218,16 +244,16 @@ const AddUser = () => {
   };
 
   const goToUser = (e) => {
-    e.preventDefault();
-    if (!isUpdateInprogress) {
-      history.push("/user-management/");
-    } else {
-      setOpenCancelModal(true);
-    }
+    // e.preventDefault();
+    // if (!isUpdateInprogress) {
+    history.push("/user-management/");
+    // }
+    //  else {
+    //   setOpenCancelModal(true);
+    // }
   };
 
   useEffect(() => {
-    dispatch(formComponentActive());
     getUserAPI();
   }, []);
 
@@ -316,12 +342,29 @@ const AddUser = () => {
     setIsUpdateInprogress(flag);
   };
 
+  /* eslint-disable */
+  useEffect(() => {
+    if (isEditMode) {
+      routerHandle.current = history.block((tr) => {
+        setShowAlertBox(true);
+        setTargetRoute(tr?.pathname);
+        return false;
+      });
+
+      return function () {
+        /* eslint-disable */
+        routerHandle.current = history.block(() => {});
+        routerHandle.current();
+      };
+    }
+  });
+
   return (
     <div className="create-user-wrapper">
       {isShowAlertBox && (
         <AlertBox cancel={keepEditingBtn} submit={leavePageBtn} />
       )}
-      {isUpdateInprogress && (
+      {/* {isUpdateInprogress && (
         <Modal
           open={openCancelModal}
           onClose={(e) => setOpenCancelModal(false)}
@@ -334,12 +377,12 @@ const AddUser = () => {
             { label: "Keep editing" },
             {
               label: "Leave without saving",
-              onClick: () => history.push("/user-management/"),
+              onClick: () => cancelButton(),
             },
           ]}
           id="neutral"
         />
-      )}
+      )} */}
 
       {/* {isAnyUpdate && (
         <ConfirmModal
@@ -524,6 +567,8 @@ const AddUser = () => {
                 readOnly={readOnly}
                 canUpdate={canUpdate}
                 setParentLoading={setLoading}
+                setEditMode={setEditMode}
+                isEditMode={isEditMode}
               />
             </div>
           </Grid>
