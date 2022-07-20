@@ -549,7 +549,7 @@ exports.AddStudyAssign = async (req, res) => {
             }
           }
         } catch (er) {
-          console.log(error);
+          return apiResponse.ErrorResponse(res, err);
         }
       });
     }
