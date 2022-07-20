@@ -496,7 +496,7 @@ exports.deleteNewUser = async (req, res) => {
             }
 
             // FSR
-            let fsr_status = {};
+            let fsr_status;
             if (inActiveStatus.rowCount > 0) {
               if (user_type == "internal") {
                 const studyData = await DB.executeQuery(getStudiesQuery);
@@ -509,7 +509,7 @@ exports.deleteNewUser = async (req, res) => {
                   fsr_requestBody,
                   studyData?.rows
                 );
-                if (fsr_status === false) {
+                if (fsr_status == false) {
                   return apiResponse.ErrorResponse(
                     res,
                     "FSR Revoke internal API Failed "
@@ -519,7 +519,7 @@ exports.deleteNewUser = async (req, res) => {
             }
 
             //CDAS Audit
-            if (fsr_status !== false) {
+            if (fsr_status == true) {
               const audit_log = await DB.executeQuery(logQuery, [
                 "user",
                 userDetails?.usr_id,
@@ -795,10 +795,12 @@ exports.updateUserStatus = async (req, res) => {
                   studyRoles.push({ name: roleDetails.role_nm });
                 }
               }
-              returnRes.push({
-                studyName: studyObj.prot_nbr_stnd,
-                inactiveRoles: studyRoles,
-              });
+              if (studyRoles?.length) {
+                returnRes.push({
+                  studyName: studyObj.prot_nbr_stnd,
+                  inactiveRoles: studyRoles,
+                });
+              }
             }
 
             const auditInsert = `INSERT INTO ${schemaName}.audit_log
@@ -844,7 +846,7 @@ exports.checkInvitedStatus = async () => {
     if (!invitedUsers.length) return false;
 
     // Get Active Users from SDA API
-    const activeUsers = userHelper.getSDAUsers();
+    const activeUsers = await userHelper.getSDAUsers();
 
     await Promise.all(
       invitedUsers.map(async (invitedUser) => {
@@ -882,7 +884,8 @@ exports.checkInvitedStatus = async () => {
     });
 
     return true;
-  } catch {
+  } catch (err) {
+    Logger.error(err);
     return false;
   }
 };

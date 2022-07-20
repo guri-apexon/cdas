@@ -173,7 +173,7 @@ const UserAssignmentTable = ({
   const showToolTip = {};
   const RolesSelected = ({ row, roles }) => {
     const uRoles = roles.length ? roles.map((e) => e.label).join(", ") : "";
-    const charLimit = getOverflowLimit("45%", 80);
+    const charLimit = getOverflowLimit("40%", 80);
     const showRoletooltip = (rowIndex, boolVal) => {
       showToolTip[rowIndex] = boolVal;
     };
@@ -204,7 +204,7 @@ const UserAssignmentTable = ({
   const ViewStudy = ({ row, column: { accessor: key } }) => {
     const isEdit = row?.isEdit ? "editable-row" : "";
     return (
-      <div className="study">
+      <div className="study" style={{ height: "40px" }}>
         <StudySelected isEdit={isEdit} row={row} />
       </div>
     );
@@ -274,7 +274,7 @@ const UserAssignmentTable = ({
     };
 
     return (
-      <div className="role">
+      <div className="role" style={{ height: "40px" }}>
         {row.isEdit ? (
           <AutocompleteV2
             placeholder={
@@ -545,7 +545,7 @@ const UserAssignmentTable = ({
   useEffect(() => {
     dispatch(getStudyboardData());
     getRoles();
-    getUserStudyRoles();
+    // getUserStudyRoles();
   }, []);
 
   const CustomButtonHeader = ({ toggleFilters }) => {
@@ -620,6 +620,7 @@ const UserAssignmentTable = ({
 
     const emptyRoles = newFormattedRows.filter((x) => x.roles.length === 0);
     if (emptyRoles.length) {
+      setIsLoading(false);
       toast.showErrorMessage(
         `This assignment is incomplete. Please select a study and a role to continue.`
       );
@@ -781,7 +782,7 @@ const UserAssignmentTable = ({
     const EditableStudy = ({ row, column: { accessor: key } }) => {
       const editStudyRowIndex = studyList.findIndex((e) => e[key] === row[key]);
       return (
-        <div className="study mr-4">
+        <div className="study mr-4" style={{ height: "40px" }}>
           <AutocompleteV2
             placeholder="Add new study and role"
             matchFrom="any"
@@ -843,8 +844,12 @@ const UserAssignmentTable = ({
           setDisableSaveBtn(v.length ? false : true);
           const copy = [...modalTableStudies];
           copy[tableIndex].roles = [...v];
+          if (!v.length) {
+            copy[tableIndex].roleError = true;
+          }
           setModalTableStudies(copy);
           setLastEdited(tableIndex);
+          setLastEditedRow(v.length);
         }
         setValue([...v]);
       };
@@ -860,7 +865,7 @@ const UserAssignmentTable = ({
         return validateAllStudyNoStudy(currentRowData, restModalTableStudies);
       };
       return (
-        <div className="role">
+        <div className="role" style={{ height: "40px" }}>
           <AutocompleteV2
             ref={lineRefs.current[row.index]}
             placeholder={!value.length ? "Choose one or more roles" : ""}
@@ -881,8 +886,12 @@ const UserAssignmentTable = ({
             disableCloseOnSelect
             alwaysLimitChips
             enableVirtualization
-            error={getErrorText().length}
-            helperText={lastEditedRow === tableIndex ? getErrorText() : ""}
+            error={row.roleError && row.roles.length === 0}
+            helperText={
+              row.roleError && row.roles.length === 0
+                ? getErrorText() || "Select a role"
+                : ""
+            }
           />
         </div>
       );
