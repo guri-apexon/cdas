@@ -545,7 +545,7 @@ const UserAssignmentTable = ({
   useEffect(() => {
     dispatch(getStudyboardData());
     getRoles();
-    getUserStudyRoles();
+    // getUserStudyRoles();
   }, []);
 
   const CustomButtonHeader = ({ toggleFilters }) => {
