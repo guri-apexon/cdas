@@ -1,5 +1,5 @@
 /* eslint-disable no-debugger */
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import AutocompleteV2 from "apollo-react/components/AutocompleteV2";
 import IconButton from "apollo-react/components/IconButton";
@@ -34,6 +34,7 @@ import {
   STUDY_LABELS,
   ALL_NONE_STUDY_ERR_MSG,
 } from "../helper";
+import { formComponentActive } from "../../../store/actions/AlertActions";
 
 const UserAssignmentTable = ({
   updateChanges,
@@ -46,6 +47,8 @@ const UserAssignmentTable = ({
   canUpdate,
   updateInProgress,
   setParentLoading,
+  setEditMode,
+  isEditMode,
 }) => {
   const toast = useContext(MessageContext);
   const dispatch = useDispatch();
@@ -57,6 +60,7 @@ const UserAssignmentTable = ({
   const [initialTableRoles, setInitialTableRoles] = useState({});
   const [initialRender, setInitialRender] = useState(true);
   const [roleLists, setroleLists] = useState([]);
+  const [lastEditedRecordIndex, setlastEditedRecordData] = useState(null);
 
   const [showUserAssignmentModal, setUserAssignmentModal] = useState(false);
   const getStudyObj = () => {
@@ -307,14 +311,35 @@ const UserAssignmentTable = ({
     );
   };
 
-  const updateEditMode = (rowIndex, editMode) => {
+  const editRowFn = (rowIndex, editMode) => {
     const prevTableStudies = [...tableStudies];
     prevTableStudies[rowIndex].isEdit = editMode;
-    prevTableStudies[rowIndex].roles = prevTableStudies[rowIndex].roles.sort(
-      (a, b) => a.label.localeCompare(b.label)
+    prevTableStudies[rowIndex].roles = prevTableStudies[rowIndex]?.roles?.sort(
+      (a, b) => a?.label?.localeCompare(b?.label)
     );
     setTableStudies([...prevTableStudies]);
   };
+
+  const updateEditMode = (rowIndex, editMode) => {
+    if (typeof lastEditedRecordIndex !== "number") {
+      /* eslint-disable */
+      setlastEditedRecordData(rowIndex);
+      setEditMode(true);
+      dispatch(formComponentActive());
+      editRowFn(rowIndex, editMode);
+    } else {
+      editRowFn(rowIndex, editMode);
+      setlastEditedRecordData(null);
+    }
+  };
+
+  useEffect(() => {
+    console.log(isEditMode);
+    if (isEditMode === false) {
+      console.log(lastEditedRecordIndex);
+      updateEditMode(lastEditedRecordIndex, false);
+    }
+  }, [isEditMode]);
 
   const onVieweStudyDelete = async (rowIndex) => {
     setLoad(false);
@@ -492,6 +517,7 @@ const UserAssignmentTable = ({
         onClick: handleMenuClick("remove"),
       },
     ];
+
     return (
       <>
         {row.isEdit ? (
@@ -979,15 +1005,15 @@ const UserAssignmentTable = ({
       },
     ];
 
-    const [openCancelModal, setOpenCancelModal] = useState(false);
+    // const [openCancelModal, setOpenCancelModal] = useState(false);
 
-    const openConfirmModal = () => {
-      setOpenCancelModal(true);
-    };
+    // const openConfirmModal = () => {
+    //   setOpenCancelModal(true);
+    // };
 
     return (
       <>
-        <Modal
+        {/* <Modal
           open={openCancelModal}
           onClose={(e) => setOpenCancelModal(false)}
           className="save-confirm"
@@ -1003,7 +1029,7 @@ const UserAssignmentTable = ({
             },
           ]}
           id="neutral"
-        />
+        /> */}
 
         <Modal
           open={open}
