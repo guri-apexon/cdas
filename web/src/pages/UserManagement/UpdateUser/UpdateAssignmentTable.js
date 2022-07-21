@@ -558,7 +558,7 @@ const UserAssignmentTable = ({
     const userStudy = await getUserStudyAndRoles(userId);
     if (userStudy.status) {
       const userSutdyRes = userStudy.data.map((e, i) => ({ ...e, index: i }));
-      const allUsersRolesFlat = [];
+      let allUsersRolesFlat = [];
       userSutdyRes.map((e) => {
         e.roles.map((r) => {
           allUsersRolesFlat.push(r);
@@ -566,6 +566,12 @@ const UserAssignmentTable = ({
         });
         return e;
       });
+
+      allUsersRolesFlat = allUsersRolesFlat.filter(
+        (value, index, self) =>
+          index === self.findIndex((t) => t.value === value.value)
+      );
+
       setroleLists(allUsersRolesFlat);
       setTableStudies([...userSutdyRes, getStudyObj()]);
     }
