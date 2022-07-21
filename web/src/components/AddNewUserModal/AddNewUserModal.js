@@ -119,6 +119,12 @@ const AddNewUserModal = ({
     setTableUsers((rows) => {
       const newRows = rows.filter((row) => row.index !== index);
       const tableIndex = tableUsers.findIndex((el) => el.index === index);
+
+      const isAlreadyExistRows = newRows.filter((r) => r.alreadyExist);
+      if (isAlreadyExistRows.length === 1) {
+        const isAlreadyExistRowsIndex = newRows.indexOf(isAlreadyExistRows[0]);
+        newRows[isAlreadyExistRowsIndex].alreadyExist = false;
+      }
       if (tableIndex + 1 === tableUsers.length) {
         return [...newRows, getUserObj()];
       }

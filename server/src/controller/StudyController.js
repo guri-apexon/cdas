@@ -276,11 +276,18 @@ exports.noOnboardedStat = function (req, res) {
 
 exports.getStudyList = async (req, res) => {
   try {
-    const query = `SELECT s.prot_id, prot_nbr as protocolnumber, s.prot_nbr_stnd, phase, prot_stat as protocolstatus, spnsr_nm as sponsorname, s.insrt_tm as dateadded, s.updt_tm as dateedited, ob_stat as onboardingprogress, s.usr_descr as assignmentcount, thptc_area as therapeuticarea, proj_cd as projectcode FROM ${schemaName}.study s 
-    left join ${schemaName}.study_sponsor ss on s.prot_id = ss.prot_id 
-    left JOIN ${schemaName}.sponsor cs2 ON cs2.spnsr_id = ss.spnsr_id ORDER BY s.insrt_tm desc`;
+    const query = `   SELECT  s.prot_id, max(prot_nbr) as protocolnumber, max(s.prot_nbr_stnd) as prot_nbr_stnd, max(phase) as phase, 
+    max(prot_stat) as protocolstatus,max(spnsr_nm) as sponsorname, max(s.insrt_tm) as dateadded, max(s.updt_tm) as dateedited, 
+    max(ob_stat) as onboardingprogress, max(s.usr_descr) as assignmentcount, max(thptc_area) as therapeuticarea,
+   max(proj_cd) as projectcode,  count(DISTINCT su.usr_id) usr_cnt
+FROM  ${schemaName}.study s 
+INNER join  ${schemaName}.study_sponsor ss on s.prot_id = ss.prot_id 
+INNER JOIN  ${schemaName}.sponsor cs2 ON cs2.spnsr_id = ss.spnsr_id 
+left join  ${schemaName}.study_user su on s.prot_id = su.prot_id and su.act_flg =1
+group by s.prot_id 
+ORDER BY s.insrt_tm desc
+`;
 
-    const query2 = `SELECT prot_id, COUNT(DISTINCT usr_id) FROM ${schemaName}.study_user where act_flg=1 GROUP BY prot_id`;
     const query3 = `SELECT DISTINCT phase FROM ${schemaName}.study`;
     const query4 = `SELECT DISTINCT prot_stat as protocolstatus FROM ${schemaName}.study`;
     const query5 = `SELECT DISTINCT ob_stat as onboardingprogress FROM ${schemaName}.study`;
@@ -289,16 +296,12 @@ exports.getStudyList = async (req, res) => {
     Logger.info({ message: "getStudyList" });
 
     const $q1 = await DB.executeQuery(query);
-    const $q2 = await DB.executeQuery(query2);
     const $q3 = await DB.executeQuery(query3);
     const $q4 = await DB.executeQuery(query4);
     const $q5 = await DB.executeQuery(query5);
     const $q6 = await DB.executeQuery(query6);
-    const formatDateValues = await $q1.rows.map((e, i) => {
-      let acc = $q2.rows.filter((d) => d.prot_id === e.prot_id);
-      let newObj = acc[0] ? acc[0] : { count: "0" };
-      let { count } = newObj;
-      // let newData = _.omit(e, ["prot_id"]);
+
+    const formatDateValues = $q1.rows.map((e, i) => {
       if (!e.protocolstatus) {
         e.protocolstatus = "Blank";
       }
@@ -308,10 +311,9 @@ exports.getStudyList = async (req, res) => {
       return {
         ...e,
         studyIndex: i + 1,
-        assignmentcount: count,
+        assignmentcount: e.usr_cnt,
       };
     });
-
     let uniquePhase = $q3.rows
       .map((e) => Object.values(e))
       .flat()
@@ -547,7 +549,7 @@ exports.AddStudyAssign = async (req, res) => {
             }
           }
         } catch (er) {
-          console.log(error);
+          return apiResponse.ErrorResponse(res, err);
         }
       });
     }

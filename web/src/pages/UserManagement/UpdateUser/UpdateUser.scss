@@ -85,14 +85,14 @@
   }
   .user-update-label {
     color: #444444;
-    font-family: "Proxima Nova";
+    font-family: "Proxima Nova" , sans-serif;
     font-size: 14px;
     letter-spacing: 0;
     font-weight: 500;
   }
   .user-update-font-500 {
     color: #000000;
-    font-family: "Proxima Nova";
+    font-family: "Proxima Nova" , sans-serif;
     font-size: 14px;
     font-weight: 600;
     letter-spacing: 0;
@@ -211,19 +211,26 @@
   border: none;
   div[class*=" Table-scrollRoot-"] {
     @extend .customscroll;
-    border: 1px solid #E9E9E9;
+    border: 1px solid #e9e9e9;
+  }
+  tr td {
+    padding: 8px;
   }
 }
-.study-table div{
+.study-table div {
   div[class*=" Table-scrollRoot-"] {
     @extend .customscroll;
   }
 }
-.MuiTableRow-root{
+.MuiTableRow-root {
   border: none;
 }
-#user-update-assignment-modal table thead th {
-  font-weight: 700;
+#user-update-assignment-modal {
+  z-index: 999 !important;
+
+  table thead th {
+    font-weight: 700;
+  }
 }
 .cursor-pointer {
   cursor: pointer;
@@ -231,6 +238,6 @@
 .mr-4 {
   margin-right: 16px;
 }
-.user-assignment-loader{
+.user-assignment-loader {
   background: transparent;
 }

@@ -20,7 +20,46 @@
     }
   }
 }
+.MuiTooltip-tooltip {
+  max-width: 100%;
+}
 .create-user-wrapper {
+  .user-autocomplete {
+    &.cursor {
+      .a-MuiInputBase-root,
+      input {
+        cursor: pointer;
+      }
+    }
+    .a-MuiAutocomplete-paper {
+      background-color: white;
+      margin: 8px 0 0;
+      border: 1px solid #d9d9d9 !important;
+      box-shadow: 0 8px 20px 0 rgb(0 0 0 / 8%) !important;
+      border-radius: 4px;
+    }
+    .a-MuiAutocomplete-option {
+      cursor: pointer;
+      display: flex;
+      outline: 0;
+      box-sizing: border-box;
+      align-items: center;
+      padding-left: 16px;
+      padding-right: 16px;
+      justify-content: flex-start;
+      -webkit-tap-highlight-color: transparent;
+    }
+  }
+  .email-input {
+    input {
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+    &.cursor input {
+      cursor: pointer;
+    }
+  }
   .ml-8 {
     margin-left: 8px;
   }
@@ -127,7 +166,7 @@
   }
 }
 
-.MuiTableRow-root{
+.MuiTableRow-root {
   border: none;
 }
 .MuiTableCell-root:first-child {

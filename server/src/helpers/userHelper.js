@@ -42,6 +42,10 @@ exports.deProvisionUser = async (data, user_type) => {
     }
     return await axios.delete(SDA_Endpoint_Deprovision, { data: requestBody });
   } catch (error) {
+    // Return true status manually if user already not present in the SDA
+    if (error?.response?.data?.code === "ENTITY_NOT_FOUND") {
+      return { status: 200 };
+    }
     console.log(error.data);
     return error;
   }
@@ -487,7 +491,7 @@ exports.findUserByEmailAndId = async (userid, email) => {
 };
 
 exports.getExternalUserInternalId = async (user_id) => {
-  const query = `SELECT * from ${schemaName}.user where usr_id =$1`;
+  const query = `SELECT * from ${schemaName}.user where upper(usr_id) = upper($1)`;
   const externalUserQuery = `SELECT * from ${schemaName}.user where extrnl_emp_id =$1`;
 
   try {

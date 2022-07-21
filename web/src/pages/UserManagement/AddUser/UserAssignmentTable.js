@@ -41,6 +41,7 @@ const UserAssignmentTable = ({
 
   const lineRefs = React.useRef([]);
   const lineRefs2 = React.useRef([]);
+  const flags = {};
   useEffect(() => {
     if (tableStudies.length === 0) {
       setLoad(false);
@@ -57,6 +58,7 @@ const UserAssignmentTable = ({
 
     lineRefs.current = tableStudies.map((_, i) => React.createRef());
     lineRefs2.current = tableStudies.map((_, i) => React.createRef());
+    flags.tableStudiesUpdating = false;
   }, [tableStudies]);
 
   const getStudyObj = () => {
@@ -69,6 +71,8 @@ const UserAssignmentTable = ({
   };
 
   const addNewStudy = () => {
+    if (flags?.tableStudiesUpdating === true) return true;
+    flags.tableStudiesUpdating = true;
     if (tableStudies.find((x) => x.study == null)) {
       setInitialRender(!initialRender);
       setTableStudies([...tableStudies]);
@@ -313,9 +317,26 @@ const UserAssignmentTable = ({
 
   const onDelete = (index) => {
     let prevTableStudies = tableStudies;
-    const tableIndex = tableStudies.findIndex((el) => el.index === index);
+    const tableIndex = prevTableStudies.findIndex((el) => el.index === index);
+    const tableDuplicateIndex = prevTableStudies.findIndex(
+      (el) =>
+        prevTableStudies[tableIndex]?.study?.prot_id === el?.study?.prot_id &&
+        el.index !== index
+    );
+    if (tableDuplicateIndex > -1) {
+      prevTableStudies[tableDuplicateIndex].alreadyExist = false;
+      if (
+        prevTableStudies[tableDuplicateIndex].index ===
+        prevTableStudies[prevTableStudies.length - 1].index
+      ) {
+        prevTableStudies.push(getStudyObj());
+      }
+    }
     prevTableStudies.splice(tableIndex, 1);
-    prevTableStudies = prevTableStudies.map((e, i) => ({ ...e, index: i + 1 }));
+    prevTableStudies = prevTableStudies.map((e, i) => ({
+      ...e,
+      index: i + 1,
+    }));
     setTableStudies([...prevTableStudies]);
   };
 
