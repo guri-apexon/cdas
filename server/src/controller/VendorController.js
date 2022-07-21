@@ -454,7 +454,7 @@ exports.createVendor = async (req, res) => {
 
       const diffObj = helpers.getdiffKeys(comparisionObj, existingObj);
 
-      Object.keys(diffObj).map(async (key) => {
+      Object.keys(diffObj).forEach(async (key) => {
         await DB.executeQuery(logQuery, [
           "vendor",
           updatedID,
