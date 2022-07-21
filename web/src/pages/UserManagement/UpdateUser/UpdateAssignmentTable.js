@@ -57,6 +57,7 @@ const UserAssignmentTable = ({
   const [initialTableRoles, setInitialTableRoles] = useState({});
   const [initialRender, setInitialRender] = useState(true);
   const [roleLists, setroleLists] = useState([]);
+  const [initialFilterRole, setInitialFilterRole] = useState([]);
 
   const [showUserAssignmentModal, setUserAssignmentModal] = useState(false);
   const getStudyObj = () => {
@@ -70,17 +71,20 @@ const UserAssignmentTable = ({
   };
 
   const MultiSelectFilter = ({ accessor, filters, updateFilterValue }) => {
-    const [filterRole, setFilterRole] = useState([]);
+    const [filterRole, setFilterRole] = useState(initialFilterRole);
     const updateTableStudies = (e) => {
-      filters.roles = filterRole.map((r) => r.label);
+      setInitialFilterRole([...filterRole]);
+      // filters.roles = filterRole.map((r) => r.label);
       updateFilterValue(e);
     };
     const editRow = (e, v, r) => {
       setFilterRole([...v]);
-      if (r === "remove-option") {
-        filters.roles = v.map((ve) => ve.label);
-        updateFilterValue(e);
-      }
+      // if (r === "remove-option") {
+      //   filters.roles = v.map((ve) => ve.label);
+      //   updateFilterValue(e);
+      // }
+      filters.roles = v.map((ve) => ve.label);
+      updateFilterValue(e);
     };
     return (
       <AutocompleteV2
@@ -121,13 +125,11 @@ const UserAssignmentTable = ({
       const filterVal = filters.roles
         ? filters.roles.map((e) => e.toUpperCase())
         : [];
-      return filterVal.every((e) => rowArray.includes(e));
+      if (filterVal.length) {
+        return filterVal.some((e) => rowArray.includes(e));
+      }
+      return true;
     };
-  };
-
-  const getRoles = async () => {
-    const result = await fetchRoles();
-    setroleLists(result || []);
   };
 
   const getStudyList = async () => {
@@ -153,7 +155,6 @@ const UserAssignmentTable = ({
       return 0;
     });
     setStudyList([...studyOptions, ...filtered]);
-    // getRoles();
   };
 
   useEffect(() => {
@@ -531,6 +532,15 @@ const UserAssignmentTable = ({
     const userStudy = await getUserStudyAndRoles(userId);
     if (userStudy.status) {
       const userSutdyRes = userStudy.data.map((e, i) => ({ ...e, index: i }));
+      const allUsersRolesFlat = [];
+      userSutdyRes.map((e) => {
+        e.roles.map((r) => {
+          allUsersRolesFlat.push(r);
+          return r;
+        });
+        return e;
+      });
+      setroleLists(allUsersRolesFlat);
       setTableStudies([...userSutdyRes, getStudyObj()]);
     }
     setLoad(true);
@@ -544,8 +554,6 @@ const UserAssignmentTable = ({
 
   useEffect(() => {
     dispatch(getStudyboardData());
-    getRoles();
-    // getUserStudyRoles();
   }, []);
 
   const CustomButtonHeader = ({ toggleFilters }) => {
@@ -1122,6 +1130,7 @@ const UserAssignmentTable = ({
       showUserAssignmentModal,
       targetUser,
       studyList,
+      initialFilterRole,
     ]
   );
   return getUserAssignmentTable;
