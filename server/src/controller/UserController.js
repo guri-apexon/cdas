@@ -579,7 +579,7 @@ exports.getUserStudyAndRoles = async function (req, res) {
       select prot_id,usr_id,role_id
       from ${schemaName}.study_user_role where usr_id = '${userId}' and study_asgn_typ is null) MAIN
       left join study s1 on s1.prot_id = MAIN.prot_id
-      left join role r1 on r1.role_id = MAIN.role_id`;
+      left join role r1 on r1.role_id = MAIN.role_id WHERE r1.role_stat = 1`;
 
     const userStudies = await DB.executeQuery(userStudyQuery).then(
       (response) => {
