@@ -92,14 +92,38 @@ exports.addLoginActivity = async (loginDetails) => {
 
 exports.listUsers = async function (req, res) {
   try {
-    return await DB.executeQuery(
-      `SELECT *, CASE WHEN LOWER(TRIM(usr_stat)) IN ('in active', 'inactive') THEN 'Inactive' WHEN LOWER(TRIM(usr_stat)) IN ('active') THEN 'Active' WHEN LOWER(TRIM(usr_stat)) IN ('invited') THEN 'Invited' WHEN usr_stat IS NULL THEN 'Active' ELSE TRIM(usr_stat) END AS formatted_stat, TRIM(usr_stat) AS trimed_usr_stat,  CONCAT(TRIM(usr_fst_nm),' ',TRIM(usr_lst_nm)) AS usr_full_nm, CASE WHEN LOWER(usr_typ)='internal' THEN usr_id ELSE extrnl_emp_id END AS formatted_emp_id from ${schemaName}.user`
-    )
+    return await DB.executeQuery(`SELECT * from ${schemaName}.user`)
       .then((response) => {
+        const responseData = response?.rows?.map((e) => {
+          let user_Type =
+            e?.usr_typ?.toLowerCase() == "internal"
+              ? e?.usr_id
+              : e?.extrnl_emp_id;
+          let status;
+          if (e?.usr_stat == "in active" || e?.usr_stat == "inactive") {
+            status = "Inactive";
+          } else if (e?.usr_stat == "active") {
+            status = "Active";
+          } else if (e?.usr_stat == "invited") {
+            status = "Invited";
+          } else if (e?.usr_stat == null) {
+            status = "Active";
+          } else {
+            status = e?.usr_stat;
+          }
+          return {
+            ...e,
+            usr_stat: status,
+            formatted_stat: status,
+            usr_full_nm: `${e?.usr_fst_nm?.trim()} ${e?.usr_lst_nm?.trim()}`,
+            usr_typ: user_Type,
+            formatted_emp_id: user_Type,
+          };
+        });
         return apiResponse.successResponseWithData(
           res,
           "User retrieved successfully",
-          response
+          { ...response, rows: responseData }
         );
       })
       .catch((err) => {
@@ -579,7 +603,7 @@ exports.getUserStudyAndRoles = async function (req, res) {
       select prot_id,usr_id,role_id
       from ${schemaName}.study_user_role where usr_id = '${userId}' and study_asgn_typ is null) MAIN
       left join study s1 on s1.prot_id = MAIN.prot_id
-      left join role r1 on r1.role_id = MAIN.role_id`;
+      left join role r1 on r1.role_id = MAIN.role_id WHERE r1.role_stat = 1`;
 
     const userStudies = await DB.executeQuery(userStudyQuery).then(
       (response) => {
@@ -846,7 +870,7 @@ exports.checkInvitedStatus = async () => {
     if (!invitedUsers.length) return false;
 
     // Get Active Users from SDA API
-    const activeUsers = userHelper.getSDAUsers();
+    const activeUsers = await userHelper.getSDAUsers();
 
     await Promise.all(
       invitedUsers.map(async (invitedUser) => {
@@ -884,7 +908,8 @@ exports.checkInvitedStatus = async () => {
     });
 
     return true;
-  } catch {
+  } catch (err) {
+    Logger.error(err);
     return false;
   }
 };
