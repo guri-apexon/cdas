@@ -240,19 +240,19 @@ const AddUser = () => {
     }
   };
 
-  const checkEmailExists = async () => {
-    const res = await validateEmail(selectedUser.usr_mail_id);
+  const checkEmailExists = async (value) => {
+    const res = await validateEmail(value);
     return res.data.error;
   };
 
   const validateField = async (e, list, v) => {
     const currentErrors = { ...selectedUserError };
-
     const keys = list || [e?.target?.id];
     // setSelectedUserError(null);
     // eslint-disable-next-line no-restricted-syntax
     for (const key of keys) {
-      const value = v || selectedUser?.[key] || "";
+      const latestValue = typeof v === "string" ? v : selectedUser?.[key];
+      const value = latestValue || "";
       if (typeof value === "string") {
         if (!value.length || value.trim() === "") {
           const errMsg = getRequiredErrors(key);
@@ -264,9 +264,9 @@ const AddUser = () => {
           if (!isValid) {
             currentErrors[key] = "Invalid email address format";
           } else {
-            const emailStatus = await checkEmailExists();
+            const emailStatus = await checkEmailExists(value);
             if (emailStatus) {
-              currentErrors[key] = await checkEmailExists();
+              currentErrors[key] = emailStatus;
             } else {
               delete currentErrors[key];
             }
@@ -288,7 +288,9 @@ const AddUser = () => {
     const val = e.target.value;
     const key = e.target.id;
     updateChanges();
+    // if (key !== "usr_mail_id") {
     validateField(e, undefined, val);
+    // }
     setSelectedUser({ ...selectedUser, [key]: val });
     if (key === "usr_mail_id") {
       compareInputLength(val, e.target.clientWidth);
