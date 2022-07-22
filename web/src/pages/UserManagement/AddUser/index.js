@@ -656,6 +656,7 @@ const AddUser = () => {
                       inputProps={{
                         maxLength: 100,
                       }}
+                      onBlur={validateField}
                       error={!!selectedUserError?.usr_fst_nm?.length}
                       helperText={selectedUserError?.usr_fst_nm}
                       onChange={handleChange}
@@ -667,6 +668,7 @@ const AddUser = () => {
                       inputProps={{
                         maxLength: 100,
                       }}
+                      onBlur={validateField}
                       error={!!selectedUserError?.usr_lst_nm?.length}
                       helperText={selectedUserError?.usr_lst_nm}
                       onChange={handleChange}
@@ -690,7 +692,8 @@ const AddUser = () => {
                       size="small"
                       label="Email"
                       onChange={handleChange}
-                      onBlur={() => {
+                      onBlur={(e) => {
+                        validateField(e);
                         setIsInFocus(false);
                       }}
                       onFocus={() => setIsInFocus(true)}

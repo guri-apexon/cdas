@@ -33,10 +33,9 @@ const addOnboardedStudy = async (protNbrStnd, userId, insrt_tm) => {
     );
     const study = result.rows[0] || null;
     if (!study) return false;
-    const uniqueId = helper.createUniqueID();
+    // const uniqueId = helper.createUniqueID();
     const userDesc = "mdm study import";
     const valueArr = [
-      uniqueId,
       study.prot_nbr,
       study.prot_nbr_stnd,
       study.proj_cd,
@@ -51,14 +50,13 @@ const addOnboardedStudy = async (protNbrStnd, userId, insrt_tm) => {
       insrt_tm,
     ];
     const insertQuery = `INSERT INTO ${schemaName}.study
-    (prot_id, prot_nbr, prot_nbr_stnd, proj_cd, phase, prot_stat, ob_stat, usr_id, usr_descr, active, thptc_area, insrt_tm, updt_tm, prot_mnemonic_nm)
-    VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $3) RETURNING *;`;
+    (prot_nbr, prot_nbr_stnd, proj_cd, phase, prot_stat, ob_stat, usr_id, usr_descr, active, thptc_area, insrt_tm, updt_tm, prot_mnemonic_nm)
+    VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $2) RETURNING *;`;
     const result1 = await DB.executeQuery(insertQuery, valueArr);
     const insertedStudy = result1.rows[0] || null;
     if (!insertedStudy) return false;
     const tenantId = await getTenantIdByNemonicNull();
     const sponsorValueArr = [
-      uniqueId,
       study.spnsr_nm,
       study.spnsr_nm_stnd,
       tenantId,
@@ -68,7 +66,8 @@ const addOnboardedStudy = async (protNbrStnd, userId, insrt_tm) => {
       insrt_tm,
       insrt_tm,
     ];
-    const insertSponQuery = `INSERT INTO ${schemaName}.sponsor (spnsr_id, spnsr_nm, spnsr_nm_stnd, tenant_id, usr_id, usr_descr, active, insrt_tm, updt_tm, spnsr_mnemonic_nm) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $3) ON CONFLICT (spnsr_nm) DO UPDATE SET spnsr_nm=EXCLUDED.spnsr_nm returning *;`;
+    const insertSponQuery = `INSERT INTO ${schemaName}.sponsor (spnsr_nm, spnsr_nm_stnd, tenant_id, usr_id, usr_descr, active, insrt_tm, updt_tm, spnsr_mnemonic_nm) 
+    VALUES($1, $2, $3, $4, $5, $6, $7, $8, $2) ON CONFLICT (spnsr_nm_stnd) DO UPDATE SET spnsr_nm=EXCLUDED.spnsr_nm returning *;`;
     const result2 = await DB.executeQuery(insertSponQuery, sponsorValueArr);
     const sponsor = result2.rows[0] || sponsor;
     if (!sponsor) return false;
