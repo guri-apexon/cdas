@@ -227,16 +227,6 @@ const AddUser = () => {
     return true;
   };
 
-  const handleChange = (e) => {
-    const val = e.target.value;
-    const key = e.target.id;
-    updateChanges();
-    setSelectedUser({ ...selectedUser, [key]: val });
-    if (key === "usr_mail_id") {
-      compareInputLength(val, e.target.clientWidth);
-    }
-  };
-
   const getRequiredErrors = (key) => {
     switch (key) {
       case "usr_fst_nm":
@@ -246,7 +236,7 @@ const AddUser = () => {
       case "usr_mail_id":
         return "Email is required";
       default:
-        return "This Field is required";
+        return "";
     }
   };
 
@@ -255,17 +245,20 @@ const AddUser = () => {
     return res.data.error;
   };
 
-  const validateField = async (e, list) => {
+  const validateField = async (e, list, v) => {
     const currentErrors = { ...selectedUserError };
 
     const keys = list || [e?.target?.id];
     // setSelectedUserError(null);
     // eslint-disable-next-line no-restricted-syntax
     for (const key of keys) {
-      const value = selectedUser?.[key] || "";
+      const value = v || selectedUser?.[key] || "";
       if (typeof value === "string") {
         if (!value.length || value.trim() === "") {
-          currentErrors[key] = getRequiredErrors(key);
+          const errMsg = getRequiredErrors(key);
+          if (errMsg.length) {
+            currentErrors[key] = errMsg;
+          }
         } else if (key === "usr_mail_id") {
           const isValid = emailRegex.test(value);
           if (!isValid) {
@@ -288,6 +281,17 @@ const AddUser = () => {
       setSelectedUserError(currentErrors);
     } else {
       setSelectedUserError(null);
+    }
+  };
+
+  const handleChange = (e) => {
+    const val = e.target.value;
+    const key = e.target.id;
+    updateChanges();
+    validateField(e, undefined, val);
+    setSelectedUser({ ...selectedUser, [key]: val });
+    if (key === "usr_mail_id") {
+      compareInputLength(val, e.target.clientWidth);
     }
   };
 
@@ -652,7 +656,6 @@ const AddUser = () => {
                       inputProps={{
                         maxLength: 100,
                       }}
-                      onBlur={(e) => validateField(e)}
                       error={!!selectedUserError?.usr_fst_nm?.length}
                       helperText={selectedUserError?.usr_fst_nm}
                       onChange={handleChange}
@@ -664,7 +667,6 @@ const AddUser = () => {
                       inputProps={{
                         maxLength: 100,
                       }}
-                      onBlur={(e) => validateField(e)}
                       error={!!selectedUserError?.usr_lst_nm?.length}
                       helperText={selectedUserError?.usr_lst_nm}
                       onChange={handleChange}
@@ -688,8 +690,7 @@ const AddUser = () => {
                       size="small"
                       label="Email"
                       onChange={handleChange}
-                      onBlur={(e) => {
-                        validateField(e);
+                      onBlur={() => {
                         setIsInFocus(false);
                       }}
                       onFocus={() => setIsInFocus(true)}
