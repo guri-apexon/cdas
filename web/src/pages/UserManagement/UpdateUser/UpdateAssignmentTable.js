@@ -34,7 +34,11 @@ import {
   STUDY_LABELS,
   ALL_NONE_STUDY_ERR_MSG,
 } from "../helper";
-import { formComponentActive } from "../../../store/actions/AlertActions";
+import {
+  formComponentActive,
+  formComponentInActive,
+  hideAppSwitcher,
+} from "../../../store/actions/AlertActions";
 
 const UserAssignmentTable = ({
   updateChanges,
@@ -330,6 +334,8 @@ const UserAssignmentTable = ({
     } else {
       editRowFn(rowIndex, editMode);
       setlastEditedRecordData(null);
+      dispatch(formComponentInActive());
+      dispatch(hideAppSwitcher());
     }
   };
 
@@ -497,6 +503,9 @@ const UserAssignmentTable = ({
         };
         const response = await updateUserAssignments(payload);
         if (response.status) {
+          setEditMode(false);
+          dispatch(formComponentInActive());
+          dispatch(hideAppSwitcher());
           updateEditMode(rowIndex, false);
           toast.showSuccessMessage(response.message || "Updated Successfully!");
         } else {
