@@ -324,6 +324,7 @@ exports.getUsersFromAD = async (query = "") => {
     : `(&${userFilter})`;
 
   const opts = {
+    paged: true,
     filter,
     sizeLimit: 1000,
     attributes: [
