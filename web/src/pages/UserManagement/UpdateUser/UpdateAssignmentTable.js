@@ -617,7 +617,7 @@ const UserAssignmentTable = ({
           variant="secondary"
           icon={FilterIcon}
           onClick={toggleFilters}
-          disabled={targetUser?.usr_stat?.toLowerCase()?.trim() === "inactive"}
+          disabled={targetUser?.usr_stat === "InActive"}
         >
           Filter
         </Button>
