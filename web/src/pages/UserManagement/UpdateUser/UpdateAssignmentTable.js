@@ -64,6 +64,7 @@ const UserAssignmentTable = ({
   const [initialTableRoles, setInitialTableRoles] = useState({});
   const [initialRender, setInitialRender] = useState(true);
   const [roleLists, setroleLists] = useState([]);
+  const [allRoleLists, setAllRoleLists] = useState([]);
   const [initialFilterRole, setInitialFilterRole] = useState([]);
   const [lastEditedRecordIndex, setlastEditedRecordData] = useState(null);
 
@@ -138,6 +139,11 @@ const UserAssignmentTable = ({
       }
       return true;
     };
+  };
+
+  const getRoles = async () => {
+    const result = await fetchRoles();
+    setAllRoleLists(result || []);
   };
 
   const getStudyList = async () => {
@@ -295,7 +301,7 @@ const UserAssignmentTable = ({
             forcePopupIcon
             showCheckboxes
             chipColor="white"
-            source={roleLists}
+            source={allRoleLists}
             limitChips={5}
             value={viewRoleValue}
             onChange={(e, v, r) => editViewRow(e, v, r)}
@@ -604,6 +610,7 @@ const UserAssignmentTable = ({
 
   useEffect(() => {
     dispatch(getStudyboardData());
+    getRoles();
   }, []);
 
   const CustomButtonHeader = ({ toggleFilters }) => {
@@ -933,7 +940,7 @@ const UserAssignmentTable = ({
             forcePopupIcon
             showCheckboxes
             chipColor="white"
-            source={roleLists}
+            source={allRoleLists}
             limitChips={5}
             value={value}
             onChange={(e, v, r) => editModalRoleRow(e, v, r)}
