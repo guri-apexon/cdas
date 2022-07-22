@@ -571,6 +571,15 @@ const UserAssignmentTable = ({
         (value, index, self) =>
           index === self.findIndex((t) => t.value === value.value)
       );
+      allUsersRolesFlat = allUsersRolesFlat.sort(function (a, b) {
+        if (a.label?.toLowerCase() < b.label?.toLowerCase()) {
+          return -1;
+        }
+        if (a.label?.toLowerCase() > b.label?.toLowerCase()) {
+          return 1;
+        }
+        return 0;
+      });
 
       setroleLists(allUsersRolesFlat);
       setTableStudies([...userSutdyRes, getStudyObj()]);
