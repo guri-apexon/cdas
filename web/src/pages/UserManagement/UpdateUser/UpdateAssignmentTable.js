@@ -53,6 +53,7 @@ const UserAssignmentTable = ({
   setParentLoading,
   setEditMode,
   isEditMode,
+  unblockRouter,
 }) => {
   const toast = useContext(MessageContext);
   const dispatch = useDispatch();
@@ -334,8 +335,10 @@ const UserAssignmentTable = ({
     } else {
       editRowFn(rowIndex, editMode);
       setlastEditedRecordData(null);
-      dispatch(formComponentInActive());
-      dispatch(hideAppSwitcher());
+      setEditMode(undefined);
+      unblockRouter();
+      // dispatch(formComponentInActive());
+      // dispatch(hideAppSwitcher());
     }
   };
 

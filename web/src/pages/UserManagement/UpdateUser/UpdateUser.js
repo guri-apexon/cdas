@@ -543,6 +543,7 @@ const AddUser = () => {
                 setParentLoading={setLoading}
                 setEditMode={setEditMode}
                 isEditMode={isEditMode}
+                unblockRouter={unblockRouter}
               />
             </div>
           </Grid>
