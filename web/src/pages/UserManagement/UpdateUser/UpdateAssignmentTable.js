@@ -301,7 +301,7 @@ const UserAssignmentTable = ({
             forcePopupIcon
             showCheckboxes
             chipColor="white"
-            source={roleLists}
+            source={allRoleLists}
             limitChips={5}
             value={viewRoleValue}
             onChange={(e, v, r) => editViewRow(e, v, r)}
