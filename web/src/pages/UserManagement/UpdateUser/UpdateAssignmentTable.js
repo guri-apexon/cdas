@@ -67,6 +67,7 @@ const UserAssignmentTable = ({
   const [allRoleLists, setAllRoleLists] = useState([]);
   const [initialFilterRole, setInitialFilterRole] = useState([]);
   const [lastEditedRecordIndex, setlastEditedRecordData] = useState(null);
+  const [showEmptyTable, setShowEmptyTable] = useState(false);
 
   const [showUserAssignmentModal, setUserAssignmentModal] = useState(false);
   const getStudyObj = () => {
@@ -202,7 +203,8 @@ const UserAssignmentTable = ({
             variant="dark"
             title={uRoles}
             placement="left"
-            style={{ marginRight: 48 }}
+            className="role-elipsis"
+            // style={{ marginRight: 48 }}
             open={uRoles && uRoles.length > charLimit && showToolTip[row.index]}
           >
             <Typography variant="body2" className="">
@@ -1113,6 +1115,7 @@ const UserAssignmentTable = ({
             maxHeight={440}
             rowProps={{ hover: false, className: "add-user-modal-row" }}
             hidePagination={true}
+            onToggleFilters={(showFilters) => setShowEmptyTable(showFilters)}
             emptyProps={{ content: <EmptyTableContent /> }}
           />
         </Modal>
@@ -1121,7 +1124,12 @@ const UserAssignmentTable = ({
   });
 
   const EmptyTableContent = () => {
-    return (
+    
+    return showEmptyTable ? (
+      <>
+        <div>No data to display</div>
+      </>
+    ) : (
       <>
         <Typography variant="body2" className="empty-grey">
           <Rocket className="user-rocket-icon" />
@@ -1175,6 +1183,7 @@ const UserAssignmentTable = ({
           hidePagination={true}
           hasScroll={true}
           maxHeight={520}
+          onToggleFilters={(showFilters) => setShowEmptyTable(showFilters)}
           CustomHeader={(props) => <CustomButtonHeader {...props} />}
           emptyProps={{ content: <EmptyTableContent /> }}
         />
@@ -1188,6 +1197,7 @@ const UserAssignmentTable = ({
       targetUser,
       studyList,
       initialFilterRole,
+      showEmptyTable,
     ]
   );
   return getUserAssignmentTable;
