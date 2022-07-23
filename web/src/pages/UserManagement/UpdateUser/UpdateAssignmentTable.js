@@ -393,7 +393,6 @@ const UserAssignmentTable = ({
       firstName,
       lastName,
       uid,
-      tenent: "t1",
       ...insertUserStudy,
     };
     const response = await updateUserAssignments(payload);
