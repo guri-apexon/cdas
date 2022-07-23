@@ -67,6 +67,7 @@ const UserAssignmentTable = ({
   const [allRoleLists, setAllRoleLists] = useState([]);
   const [initialFilterRole, setInitialFilterRole] = useState([]);
   const [lastEditedRecordIndex, setlastEditedRecordData] = useState(null);
+  const [showEmptyTable, setShowEmptyTable] = useState(false);
 
   const [showUserAssignmentModal, setUserAssignmentModal] = useState(false);
   const tableRef = useRef(null);
@@ -187,9 +188,13 @@ const UserAssignmentTable = ({
     return <div className={isEdit}>{row?.prot_nbr_stnd || ""}</div>;
   };
   const showToolTip = {};
-
-  const RolesSelected = ({ row, roles, column }) => {
-    const uRoles = roles.length ? roles.map((e) => e.label).join(", ") : "";
+  const RolesSelected = ({ row, roles }) => {
+    const uRoles = roles.length
+      ? roles
+          .map((e) => e.label)
+          .sort()
+          .join(", ")
+      : "";
     const charLimit = getInnerElOverflLimit(
       tableRef.current ? tableRef.current.offsetWidth : 0,
       "65%"
@@ -207,6 +212,8 @@ const UserAssignmentTable = ({
             variant="dark"
             title={uRoles}
             placement="left"
+            className="role-elipsis"
+            // style={{ marginRight: 48 }}
             open={uRoles && uRoles.length > charLimit && showToolTip[row.index]}
           >
             <Typography variant="body2" className="">
@@ -223,7 +230,7 @@ const UserAssignmentTable = ({
   const ViewStudy = ({ row, column: { accessor: key } }) => {
     const isEdit = row?.isEdit ? "editable-row" : "";
     return (
-      <div className="study" style={{ height: "40px" }}>
+      <div className="study">
         <StudySelected isEdit={isEdit} row={row} />
       </div>
     );
@@ -293,7 +300,7 @@ const UserAssignmentTable = ({
     };
 
     return (
-      <div className="role" style={{ height: "40px" }}>
+      <div className="role">
         {row.isEdit ? (
           <AutocompleteV2
             placeholder={
@@ -397,7 +404,6 @@ const UserAssignmentTable = ({
       firstName,
       lastName,
       uid,
-      tenent: "t1",
       ...insertUserStudy,
     };
     const response = await updateUserAssignments(payload);
@@ -688,7 +694,7 @@ const UserAssignmentTable = ({
     const newFormattedRows = formattedRows.filter((e) => e.id);
 
     const emptyRoles = newFormattedRows.filter((x) => x.roles.length === 0);
-    if (emptyRoles.length) {
+    if (!newFormattedRows.length || emptyRoles.length) {
       setIsLoading(false);
       toast.showErrorMessage(
         `This assignment is incomplete. Please select a study and a role to continue.`
@@ -851,7 +857,7 @@ const UserAssignmentTable = ({
     const EditableStudy = ({ row, column: { accessor: key } }) => {
       const editStudyRowIndex = studyList.findIndex((e) => e[key] === row[key]);
       return (
-        <div className="study mr-4" style={{ height: "40px" }}>
+        <div className="study mr-4">
           <AutocompleteV2
             placeholder="Add new study and role"
             matchFrom="any"
@@ -934,7 +940,7 @@ const UserAssignmentTable = ({
         return validateAllStudyNoStudy(currentRowData, restModalTableStudies);
       };
       return (
-        <div className="role" style={{ height: "40px" }}>
+        <div className="role">
           <AutocompleteV2
             ref={lineRefs.current[row.index]}
             placeholder={!value.length ? "Choose one or more roles" : ""}
@@ -1117,6 +1123,7 @@ const UserAssignmentTable = ({
             maxHeight={440}
             rowProps={{ hover: false, className: "add-user-modal-row" }}
             hidePagination={true}
+            onToggleFilters={(showFilters) => setShowEmptyTable(showFilters)}
             emptyProps={{ content: <EmptyTableContent /> }}
           />
         </Modal>
@@ -1125,7 +1132,12 @@ const UserAssignmentTable = ({
   });
 
   const EmptyTableContent = () => {
-    return (
+    
+    return showEmptyTable ? (
+      <>
+        <div>No data to display</div>
+      </>
+    ) : (
       <>
         <Typography variant="body2" className="empty-grey">
           <Rocket className="user-rocket-icon" />
@@ -1179,6 +1191,7 @@ const UserAssignmentTable = ({
           hidePagination={true}
           hasScroll={true}
           maxHeight={520}
+          onToggleFilters={(showFilters) => setShowEmptyTable(showFilters)}
           CustomHeader={(props) => <CustomButtonHeader {...props} />}
           emptyProps={{ content: <EmptyTableContent /> }}
         />
@@ -1192,6 +1205,7 @@ const UserAssignmentTable = ({
       targetUser,
       studyList,
       initialFilterRole,
+      showEmptyTable,
     ]
   );
   return getUserAssignmentTable;
