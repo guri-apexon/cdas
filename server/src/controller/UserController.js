@@ -100,13 +100,14 @@ exports.listUsers = async function (req, res) {
               ? e?.usr_id
               : e?.extrnl_emp_id;
           let status;
-          if (e?.usr_stat == "in active" || e?.usr_stat == "inactive") {
-            status = "Inactive";
-          } else if (e?.usr_stat == "active") {
-            status = "Active";
-          } else if (e?.usr_stat == "invited") {
-            status = "Invited";
-          } else if (e?.usr_stat == null) {
+          // if (e?.usr_stat == "InActive") {
+          //   status = "InActive";
+          // } else if (e?.usr_stat == "active") {
+          //   status = "Active";
+          // } else if (e?.usr_stat == "Invited") {
+          //   status = "Invited";
+          // } else
+          if (e?.usr_stat == null) {
             status = "Active";
           } else {
             status = e?.usr_stat;
@@ -142,7 +143,15 @@ exports.getUserDetail = async function (req, res) {
   const userId = req.query.userId;
   try {
     return await DB.executeQuery(
-      `SELECT u.*, ut.tenant_id, CASE WHEN LOWER(TRIM(u.usr_stat)) IN ('in active', 'inactive') THEN 'Inactive' WHEN LOWER(TRIM(u.usr_stat)) IN ('active') THEN 'Active' WHEN LOWER(TRIM(u.usr_stat)) IN ('invited') THEN 'Invited' WHEN u.usr_stat IS NULL THEN 'Active' ELSE TRIM(u.usr_stat) END AS formatted_stat from ${schemaName}.user u left join ${schemaName}.user_tenant ut on ut.usr_id = u.usr_id WHERE u.usr_id='${userId}'`
+      // `SELECT u.*, ut.tenant_id, CASE WHEN LOWER(TRIM(u.usr_stat)) IN ('in active', 'inactive')
+      // THEN 'Inactive' WHEN LOWER(TRIM(u.usr_stat)) IN ('active') THEN 'Active'
+      // WHEN LOWER(TRIM(u.usr_stat)) IN ('invited') THEN 'Invited'
+      // WHEN u.usr_stat IS NULL THEN 'Active'
+      // ELSE TRIM(u.usr_stat) END AS formatted_stat from
+      //  ${schemaName}.user u left join ${schemaName}.
+      // user_tenant ut on ut.usr_id = u.usr_id WHERE u.usr_id='${userId}'`
+      `select u.*, ut.tenant_id, u.usr_stat as formatted_stat from ${schemaName}.user u 
+      left join ${schemaName}.user_tenant ut on ut.usr_id = u.usr_id where u.usr_id = '${userId}'`
     )
       .then((response) => {
         const user = response?.rows?.[0] || {};
@@ -739,7 +748,7 @@ exports.updateUserStatus = async (req, res) => {
   newReq.body["updt_tm"] = getCurrentTime(true);
 
   try {
-    if (userStatus === "inactive") {
+    if (userStatus === "InActive") {
       // Fetch First Tenant fi tenant id not present
       if (!newReq?.body?.tenant_id) {
         const tenant = await tenantHelper.getFirstTenant();
@@ -747,7 +756,7 @@ exports.updateUserStatus = async (req, res) => {
       }
 
       const response = await this.deleteNewUser(newReq, res);
-    } else if (userStatus === "active") {
+    } else if (userStatus === "Active") {
       const data = {
         uid: user_id,
         firstName: firstName,
@@ -862,8 +871,11 @@ exports.updateUserStatus = async (req, res) => {
 
 exports.checkInvitedStatus = async () => {
   try {
-    const statusCase = `LOWER(TRIM(usr_stat))`;
-    const query = `SELECT usr_id as uid, usr_mail_id as email, extrnl_emp_id as employee_id, usr_typ as user_type, sda_usr_key as user_key, ${statusCase} as status from ${schemaName}.user where (${statusCase} = 'invited')`;
+    // const statusCase = `LOWER(TRIM())`;
+    const query = `SELECT usr_id as uid, usr_mail_id as email, 
+    extrnl_emp_id as employee_id, 
+    usr_typ as user_type, sda_usr_key as user_key, 
+    usr_stat as status from ${schemaName}.user where (usr_stat = 'invited')`;
     const result = await DB.executeQuery(query);
     if (!result) return false;
 
@@ -882,8 +894,9 @@ exports.checkInvitedStatus = async () => {
           employee_id: employeeId = "",
           uid,
         } = invitedUser;
+        console.log(invitedUser);
 
-        if (status === "invited") {
+        if (status === "Invited") {
           const SDAStatus = await userHelper.getSDAUserStatus(userKey, email);
           if (SDAStatus) {
             console.log(`*mariking invited ${email} as active`);

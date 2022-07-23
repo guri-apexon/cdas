@@ -53,6 +53,7 @@ const UserAssignmentTable = ({
   setParentLoading,
   setEditMode,
   isEditMode,
+  unblockRouter,
 }) => {
   const toast = useContext(MessageContext);
   const dispatch = useDispatch();
@@ -352,8 +353,10 @@ const UserAssignmentTable = ({
     } else {
       editRowFn(rowIndex, editMode);
       setlastEditedRecordData(null);
-      dispatch(formComponentInActive());
-      dispatch(hideAppSwitcher());
+      setEditMode(undefined);
+      unblockRouter();
+      // dispatch(formComponentInActive());
+      // dispatch(hideAppSwitcher());
     }
   };
 
@@ -643,7 +646,7 @@ const UserAssignmentTable = ({
           variant="secondary"
           icon={FilterIcon}
           onClick={toggleFilters}
-          disabled={targetUser?.usr_stat?.toLowerCase()?.trim() === "inactive"}
+          disabled={targetUser?.usr_stat === "InActive"}
         >
           Filter
         </Button>
