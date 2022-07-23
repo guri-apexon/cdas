@@ -27,7 +27,7 @@ import {
 } from "../../../services/ApiServices";
 import { MessageContext } from "../../../components/Providers/MessageProvider";
 import { getStudyboardData } from "../../../store/actions/StudyBoardAction";
-import { getOverflowLimit, TextFieldFilter } from "../../../utils/index";
+import { getInnerElOverflLimit, TextFieldFilter } from "../../../utils/index";
 import {
   studyOptions,
   STUDY_IDS,
@@ -69,6 +69,7 @@ const UserAssignmentTable = ({
   const [lastEditedRecordIndex, setlastEditedRecordData] = useState(null);
 
   const [showUserAssignmentModal, setUserAssignmentModal] = useState(false);
+  const tableRef = useRef(null);
   const getStudyObj = () => {
     const rowIndex = Math.max(...tableStudies.map((o) => o.index), 0) + 1;
     return {
@@ -186,9 +187,13 @@ const UserAssignmentTable = ({
     return <div className={isEdit}>{row?.prot_nbr_stnd || ""}</div>;
   };
   const showToolTip = {};
-  const RolesSelected = ({ row, roles }) => {
+
+  const RolesSelected = ({ row, roles, column }) => {
     const uRoles = roles.length ? roles.map((e) => e.label).join(", ") : "";
-    const charLimit = getOverflowLimit("40%", 80);
+    const charLimit = getInnerElOverflLimit(
+      tableRef.current ? tableRef.current.offsetWidth : 0,
+      "65%"
+    );
     const showRoletooltip = (rowIndex, boolVal) => {
       showToolTip[rowIndex] = boolVal;
     };
@@ -202,12 +207,11 @@ const UserAssignmentTable = ({
             variant="dark"
             title={uRoles}
             placement="left"
-            style={{ marginRight: 48 }}
             open={uRoles && uRoles.length > charLimit && showToolTip[row.index]}
           >
             <Typography variant="body2" className="">
               {uRoles && uRoles.length > charLimit
-                ? `${uRoles.slice(0, charLimit - 5)} [...]`
+                ? `${uRoles.slice(0, charLimit)} [...]`
                 : uRoles}
             </Typography>
           </Tooltip>
@@ -260,7 +264,7 @@ const UserAssignmentTable = ({
     return "";
   };
 
-  const ViewRoles = ({ row, column: { accessor: key } }) => {
+  const ViewRoles = ({ row, column }) => {
     const tableIndex = tableStudies.findIndex((el) => el.index === row.index);
     const currentRowData = tableStudies[tableIndex];
     const [viewRoleValue, setViewRoleValue] = useState(
@@ -316,7 +320,7 @@ const UserAssignmentTable = ({
             helperText={getErrorText()}
           />
         ) : (
-          <RolesSelected row={row} roles={row?.roles || []} />
+          <RolesSelected row={row} column={column} roles={row?.roles || []} />
         )}
       </div>
     );
@@ -1149,7 +1153,7 @@ const UserAssignmentTable = ({
 
   const getUserAssignmentTable = React.useMemo(
     () => (
-      <>
+      <div className="study-table" ref={tableRef}>
         {showRolePopup && (
           <AssignmentInfoModal
             open={true}
@@ -1178,7 +1182,7 @@ const UserAssignmentTable = ({
           CustomHeader={(props) => <CustomButtonHeader {...props} />}
           emptyProps={{ content: <EmptyTableContent /> }}
         />
-      </>
+      </div>
     ),
     [
       tableStudies,

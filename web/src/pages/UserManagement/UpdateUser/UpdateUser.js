@@ -529,7 +529,6 @@ const AddUser = () => {
             </Box>
           </Grid>
           <Grid item xs={9} className="contacts-wrapper">
-            <div className="study-table">
               <UserAssignmentTable
                 userId={userId}
                 targetUser={targetUser}
@@ -544,7 +543,6 @@ const AddUser = () => {
                 setEditMode={setEditMode}
                 isEditMode={isEditMode}
               />
-            </div>
           </Grid>
         </Grid>
       </div>

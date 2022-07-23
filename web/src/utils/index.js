@@ -41,14 +41,28 @@ export function getPathnameAndSearch(path) {
     search: `?${arr[1]}`,
   };
 }
+export const getColumnPxWidth = (
+  tableWidth = window.innerWidth,
+  columnWidth = "50%"
+) => {
+  if (!String(columnWidth).includes("%")) {
+    return columnWidth;
+  }
+  const percentage = Number(columnWidth.replace("%", ""));
+  return (tableWidth * percentage) / 100;
+};
 export const getOverflowLimit = (width, pageSpace = 0, fontSize = 14) => {
-  if (width.includes("%")) {
+  if (String(width).includes("%")) {
     width =
       ((window.innerWidth - Number(pageSpace)) *
         Number(width.replace("%", ""))) /
       100;
   }
   return Math.round((Number(width) * 1.91) / fontSize);
+};
+export const getInnerElOverflLimit = (tableWidth, columnWidth) => {
+  const width = getColumnPxWidth(tableWidth, columnWidth);
+  return getOverflowLimit(width);
 };
 
 export function getLastLogin() {
