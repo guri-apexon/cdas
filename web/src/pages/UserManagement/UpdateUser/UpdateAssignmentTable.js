@@ -188,7 +188,12 @@ const UserAssignmentTable = ({
   };
   const showToolTip = {};
   const RolesSelected = ({ row, roles }) => {
-    const uRoles = roles.length ? roles.map((e) => e.label).join(", ") : "";
+    const uRoles = roles.length
+      ? roles
+          .map((e) => e.label)
+          .sort()
+          .join(", ")
+      : "";
     const charLimit = getOverflowLimit("40%", 80);
     const showRoletooltip = (rowIndex, boolVal) => {
       showToolTip[rowIndex] = boolVal;
@@ -395,7 +400,6 @@ const UserAssignmentTable = ({
       firstName,
       lastName,
       uid,
-      tenent: "t1",
       ...insertUserStudy,
     };
     const response = await updateUserAssignments(payload);
