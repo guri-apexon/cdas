@@ -73,6 +73,15 @@
   }
   .study-table {
     background-color: #fff;
+    height: 600px;
+    td button {
+      border: none;
+      box-shadow: none;
+      margin-top:10px;
+    }
+    td button:hover {
+      border: 1px solid #d9d9d9;
+    }
     tbody:before {
       content: "-";
       display: block;
@@ -217,9 +226,13 @@
     padding: 8px;
   }
 }
+.study, .role {
+  height: 40px;
+}
 .study-table div {
   div[class*=" Table-scrollRoot-"] {
     @extend .customscroll;
+    overflow-x:hidden;
   }
 }
 .MuiTableRow-root {
@@ -241,6 +254,7 @@
 .user-assignment-loader {
   background: transparent;
 }
-.study-table {
-  height: 600px;
+.role .role-elipsis {
+  margin-right: 48px;
+  cursor: pointer;
 }
