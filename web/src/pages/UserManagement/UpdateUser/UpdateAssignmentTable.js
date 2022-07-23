@@ -686,7 +686,7 @@ const UserAssignmentTable = ({
     const newFormattedRows = formattedRows.filter((e) => e.id);
 
     const emptyRoles = newFormattedRows.filter((x) => x.roles.length === 0);
-    if (emptyRoles.length) {
+    if (!newFormattedRows.length || emptyRoles.length) {
       setIsLoading(false);
       toast.showErrorMessage(
         `This assignment is incomplete. Please select a study and a role to continue.`
