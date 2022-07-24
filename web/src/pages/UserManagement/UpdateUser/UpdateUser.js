@@ -215,7 +215,7 @@ const AddUser = () => {
       firstName: targetUser.usr_fst_nm,
       lastName: targetUser.usr_lst_nm,
       employeeId: targetUser.extrnl_emp_id,
-      changed_to: checked ? "active" : "inactive",
+      changed_to: checked ? "Active" : "InActive",
     };
     const res = await updateUserStatus(payload);
     setInactiveStudyRoles(res?.data);
@@ -230,7 +230,7 @@ const AddUser = () => {
     checkUserTypeAndUpdate(checked);
     setTargetUser({
       ...targetUser,
-      usr_stat: checked ? "Active" : "In Active",
+      usr_stat: checked ? "Active" : "InActive",
     });
   };
   const cancelEdit = () => {
@@ -287,7 +287,7 @@ const AddUser = () => {
 
   const isUserInvited = () => {
     const userStatus = targetUser?.formatted_stat;
-    return userStatus?.trim()?.toLowerCase() === "invited" ? true : false;
+    return userStatus === "Invited" ? true : false;
   };
 
   const resendInvitation = async () => {
@@ -529,7 +529,6 @@ const AddUser = () => {
             </Box>
           </Grid>
           <Grid item xs={9} className="contacts-wrapper">
-            <div className="study-table">
               <UserAssignmentTable
                 userId={userId}
                 targetUser={targetUser}
@@ -543,8 +542,8 @@ const AddUser = () => {
                 setParentLoading={setLoading}
                 setEditMode={setEditMode}
                 isEditMode={isEditMode}
+                unblockRouter={unblockRouter}
               />
-            </div>
           </Grid>
         </Grid>
       </div>

@@ -47,7 +47,7 @@ const ProductsCell = ({ row, column: { accessor } }) => {
   return <>{rowValue}</>;
 };
 
-const statusList = ["Active", "Inactive", "Invited"];
+const statusList = ["Active", "InActive", "Invited"];
 
 const ListUsers = () => {
   const history = useHistory();
@@ -115,12 +115,12 @@ const ListUsers = () => {
 
   const StatusCell = ({ row, column: { accessor } }) => {
     const btnVariant = {
-      active: "green",
-      inactive: "grey",
-      invited: "purple",
+      Active: "green",
+      InActive: "grey",
+      Invited: "purple",
     };
-    let variantKey = row?.formatted_stat || "";
-    variantKey = variantKey.replaceAll(" ", "").trim().toLowerCase();
+    const variantKey = row?.formatted_stat || "";
+    // variantKey = variantKey;
     return (
       <div>
         {row.formatted_stat && (
