@@ -1157,6 +1157,7 @@ const UserAssignmentTable = ({
             variant="secondary"
             disabled={userUpdating}
             onClick={() => setUserAssignmentModal(true)}
+            className="add-user-assignment-btn"
           >
             <PlusIcon className="user-small-plus-icon mr-2" />
             Add user assignment
