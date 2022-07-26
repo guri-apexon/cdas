@@ -654,13 +654,35 @@ const UserAssignmentTable = ({
     );
   };
 
+  const customProtocolSortFunction = (accessor, sortOrder) => {
+    const POINTS = {
+      [STUDY_IDS.ALL_STUDY]: "000000001",
+      [STUDY_IDS.NO_STUDY]: "000000002",
+    };
+    return (rowA, rowB) => {
+      let result;
+      const stringA = rowA[accessor]?.toLowerCase() || POINTS[rowA["prot_id"]];
+      const stringB = rowB[accessor]?.toLowerCase() || POINTS[rowB["prot_id"]];
+
+      if (stringA < stringB) {
+        result = -1;
+      } else if (stringA > stringB) {
+        result = 1;
+      } else {
+        return 0;
+      }
+
+      return sortOrder === "asc" ? result : -result;
+    };
+  };
+
   const columns = [
     {
       header: "Protocol Number",
       accessor: "prot_nbr_stnd",
       width: "30%",
       customCell: ViewStudy,
-      sortFunction: compareStrings,
+      sortFunction: customProtocolSortFunction,
       filterFunction: createStringSearchFilter("prot_nbr_stnd"),
       filterComponent: TextFieldFilter,
     },
@@ -1135,7 +1157,6 @@ const UserAssignmentTable = ({
   });
 
   const EmptyTableContent = () => {
-    
     return showEmptyTable ? (
       <>
         <div>No data to display</div>
