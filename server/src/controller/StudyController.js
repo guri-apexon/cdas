@@ -210,7 +210,7 @@ exports.onboardStudy = async function (req, res) {
 
 exports.studyList = function (req, res) {
   try {
-    const searchParam = req.params.query.toLowerCase();
+    const searchParam = req?.params?.query?.toLowerCase();
     const searchQuery = `SELECT ms.prot_nbr, ms.prot_nbr_stnd, ms.spnsr_nm, ms.spnsr_nm_stnd, ms.proj_cd, ms.phase, ms.prot_status, ms.thptc_area, s.ob_stat from ${schemaName}.mdm_study ms
     FULL OUTER JOIN ${schemaName}.study s ON ms.prot_nbr = s.prot_nbr
     WHERE (LOWER(ms.prot_nbr) LIKE '%${searchParam}%' OR 
@@ -222,8 +222,8 @@ exports.studyList = function (req, res) {
     Logger.info({ message: "studyList" });
 
     DB.executeQuery(searchQuery).then((response) => {
-      const studies = response.rows || [];
-      if (studies.length > 0) {
+      const studies = response?.rows || [];
+      if (studies?.length > 0) {
         return apiResponse.successResponseWithData(
           res,
           "Operation success",
