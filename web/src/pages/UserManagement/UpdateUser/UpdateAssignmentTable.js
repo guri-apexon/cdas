@@ -571,7 +571,7 @@ const UserAssignmentTable = ({
           </div>
         ) : (
           <div className="flex flex-end w-100">
-            <Tooltip disableFocusListener>
+            <Tooltip title="Actions" disableFocusListener>
               <IconMenuButton id="actions-2" menuItems={menuItems} size="small">
                 <EllipsisVertical className="cursor-pointer" />
               </IconMenuButton>
@@ -1174,6 +1174,7 @@ const UserAssignmentTable = ({
         </Typography>
         {targetUser?.usr_stat === "Active" && canUpdate && (
           <Button
+          className="empty-user-assignment-btn"
             size="small"
             variant="secondary"
             disabled={userUpdating}
