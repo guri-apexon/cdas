@@ -986,11 +986,12 @@ const UserAssignmentTable = ({
             disableCloseOnSelect
             alwaysLimitChips
             enableVirtualization
-            error={row.roleError && row.roles.length === 0}
+            error={
+              (row.roleError && row.roles.length === 0) || getErrorText().length
+            }
             helperText={
-              row.roleError && row.roles.length === 0
-                ? getErrorText() || "Select a role"
-                : ""
+              (row.roleError && row.roles.length === 0 && "Select a role") ||
+              (lastEditedRow === tableIndex ? getErrorText() : "")
             }
           />
         </div>
@@ -1174,7 +1175,7 @@ const UserAssignmentTable = ({
         </Typography>
         {targetUser?.usr_stat === "Active" && canUpdate && (
           <Button
-          className="empty-user-assignment-btn"
+            className="empty-user-assignment-btn"
             size="small"
             variant="secondary"
             disabled={userUpdating}
