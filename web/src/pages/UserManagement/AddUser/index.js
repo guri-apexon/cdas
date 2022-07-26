@@ -756,6 +756,9 @@ const AddUser = () => {
                           setUserList([]);
                           setIsInFocus(false);
                         }}
+                        onInputChange={(e, v) => {
+                          if (v === "") setEmailExist(false);
+                        }}
                         popupIcon={
                           <SearchIcon
                             onClick={getUserList}
