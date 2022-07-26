@@ -74,13 +74,12 @@
   .study-table {
     background-color: #fff;
     height: 600px;
-    td .empty-user-assignment-btn {
-      border: none;
+    .add-user-assignment-btn {
       box-shadow: none;
-      margin-top:10px;
+      margin-top: 10px;
     }
-    td button:hover {
-      border: 1px solid #d9d9d9;
+    .add-user-assignment-btn:hover {
+      border: 1px solid;
     }
     tbody:before {
       content: "-";
@@ -94,14 +93,14 @@
   }
   .user-update-label {
     color: #444444;
-    font-family: "Proxima Nova" , sans-serif;
+    font-family: "Proxima Nova", sans-serif;
     font-size: 14px;
     letter-spacing: 0;
     font-weight: 500;
   }
   .user-update-font-500 {
     color: #000000;
-    font-family: "Proxima Nova" , sans-serif;
+    font-family: "Proxima Nova", sans-serif;
     font-size: 14px;
     font-weight: 600;
     letter-spacing: 0;
@@ -226,13 +225,14 @@
     padding: 8px;
   }
 }
-.study, .role {
+.study,
+.role {
   height: 40px;
 }
 .study-table div {
   div[class*=" Table-scrollRoot-"] {
     @extend .customscroll;
-    overflow-x:hidden;
+    overflow-x: hidden;
   }
 }
 .MuiTableRow-root {

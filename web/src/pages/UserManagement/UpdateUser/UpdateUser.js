@@ -521,7 +521,7 @@ const AddUser = () => {
                   Employee ID
                   <div className="ml-3">
                     <div className="user-update-font-500">
-                      {targetUser?.usr_id || targetUser?.extrnl_emp_id}
+                      { targetUser?.usr_typ === "internal" ? targetUser?.usr_id : targetUser?.extrnl_emp_id}
                     </div>
                   </div>
                 </Typography>
