@@ -61,10 +61,18 @@ const ActionCell = ({ row }) => {
   ];
   return editMode ? (
     <div style={{ marginTop: 8, whiteSpace: "nowrap" }}>
-      <Button size="small" style={{ marginRight: 8 }} onClick={onCancel}>
+      <Button
+        size="small"
+        style={{ marginRight: 8 }}
+        onClick={() => onCancel(uniqueId)}
+      >
         Cancel
       </Button>
-      <Button size="small" variant="primary" onClick={onRowSave}>
+      <Button
+        size="small"
+        variant="primary"
+        onClick={() => onRowSave(uniqueId)}
+      >
         Save
       </Button>
     </div>
@@ -108,7 +116,6 @@ const ExistingUsers = () => {
   const userInfo = getUserInfo();
   const toast = useContext(MessageContext);
   const [tableUsers, setTableUsers] = useState([]);
-  const [editedRow, setEditedRow] = useState({});
   const [loading, setLoading] = useState(true);
   const [roleLists, setroleLists] = useState([]);
   const [userList, setUserList] = useState([]);
@@ -116,7 +123,6 @@ const ExistingUsers = () => {
   const [stateMenuItems, setStateMenuItems] = useState([]);
   const studyData = useSelector((state) => state.studyBoard);
   const [addStudyOpen, setAddStudyOpen] = useState(false);
-  const [editedRoles, setEditedRoles] = useState({});
   const [peekData, setPeekData] = useState(null);
   const { selectedStudy } = studyData;
   const { prot_id: protocol, prot_nbr_stnd: studyId } = selectedStudy;
@@ -125,7 +131,8 @@ const ExistingUsers = () => {
   const routerHandle = useRef();
   const alertStore = useSelector((state) => state.Alert);
   const [isShowAlertBox, setShowAlertBox] = useState(false);
-  const [isEditMode, setEditMode] = useState(false);
+  const [rowsBeingEdited, setRowsBeingEdited] = useState([]);
+  const [editedRowBeingCancelled, setEditedRowBeingCancelled] = useState(null);
   const unblockRouter = () => {
     dispatch(formComponentInActive());
     dispatch(hideAlert());
@@ -310,21 +317,21 @@ const ExistingUsers = () => {
   };
 
   const onRowEdit = async (uniqueId) => {
-    setEditedRoles(tableUsers[uniqueId - 1]);
-    setEditedRow(tableUsers[uniqueId - 1]);
+    const rbe = [...rowsBeingEdited];
+    rbe.push(tableUsers[uniqueId - 1]);
+    setRowsBeingEdited(rbe);
     dispatch(formComponentActive());
-    setEditMode(true);
   };
 
-  const onRowSave = async () => {
+  const onRowSave = async (uniqueId) => {
     const updateData = tableUsers.find(
-      (e) => e.uniqueId === editedRow.uniqueId
+      // (e) => e.uniqueId === editedRow.uniqueId
+      (e) => e.uniqueId === uniqueId
     );
     if (updateData && updateData.roles && updateData.roles.length === 0) {
       toast.showErrorMessage(`Please fill roles for ${updateData.email}`);
       return false;
     }
-    setEditedRoles({});
     const response = await updateAssignUser({
       studyId,
       protocol,
@@ -342,24 +349,27 @@ const ExistingUsers = () => {
     }
     if (response.status === "OK") {
       toast.showSuccessMessage(response.message, 0);
-      history.push("/study-setup");
+      // history.push("/study-setup");
     }
+    removeFromRowsBeingEdited(uniqueId);
+
     getData(protocol);
-    setEditedRow({});
-    setEditMode(false);
     dispatch(hideAlert());
     dispatch(formComponentInActive());
   };
 
-  const onCancel = () => {
-    if (isEditMode) {
+  const onCancel = (uniqueId) => {
+    if (rowsBeingEdited.length) {
+      setEditedRowBeingCancelled(
+        rowsBeingEdited.find(({ uniqueId: uid }) => uniqueId === uid)
+      );
       setShowAlertBox(true);
     }
   };
 
-  const editRow = (key, value) => {
-    setEditedRow({ ...editedRow, [key]: value });
-  };
+  // const editRow = (key, value) => {
+  //   setEditedRow({ ...editedRow, [key]: value });
+  // };
 
   const columns = [
     {
@@ -444,22 +454,31 @@ const ExistingUsers = () => {
     setShowAlertBox(false);
   };
 
+  const removeFromRowsBeingEdited = (uniqueId) => {
+    const rbe = [...rowsBeingEdited];
+    const index = rbe.findIndex(({ uniqueId: uid }) => uid === uniqueId);
+    rbe.splice(index, 1);
+    setRowsBeingEdited(rbe);
+  };
+
   const leavePageBtn = () => {
     const checkVariable = alertStore?.showAlertBox !== true;
-    if (isEditMode && checkVariable) {
-      if (editedRoles && editedRoles.uniqueId) {
+    if (editedRowBeingCancelled && checkVariable) {
+      if (editedRowBeingCancelled?.roles) {
         setTableUsers((rows) =>
           rows.map((row) => {
-            if (row.uniqueId === editedRoles.uniqueId) {
-              return { ...row, roles: editedRoles.roles };
+            if (row.uniqueId === editedRowBeingCancelled?.uniqueId) {
+              return {
+                ...row,
+                roles: editedRowBeingCancelled.roles,
+              };
             }
             return row;
           })
         );
-        setEditedRoles({});
+        removeFromRowsBeingEdited(editedRowBeingCancelled?.uniqueId);
+        setEditedRowBeingCancelled(null);
       }
-      setEditedRow({});
-      setEditMode(false);
       setShowAlertBox(false);
       dispatch(formComponentInActive());
       dispatch(hideAppSwitcher());
@@ -477,7 +496,7 @@ const ExistingUsers = () => {
   }, [alertStore]);
 
   useEffect(() => {
-    if (isEditMode) {
+    if (rowsBeingEdited.length) {
       routerHandle.current = history.block((tr) => {
         setConfirmObj(true);
         setTargetRoute(tr?.pathname);
@@ -553,9 +572,10 @@ const ExistingUsers = () => {
                   onRowDelete,
                   onRowSave,
                   onCancel,
-                  editRow,
-                  editMode: editedRow.uniqueId === row.uniqueId,
-                  editedRow,
+                  // editMode: editedRow.uniqueId === row.uniqueId,
+                  editMode: rowsBeingEdited?.some(
+                    ({ uniqueId: uid }) => uid === row?.uniqueId
+                  ),
                 }))}
                 initialSortedColumn="user"
                 initialSortOrder="asc"

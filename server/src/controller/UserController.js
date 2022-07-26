@@ -797,16 +797,17 @@ exports.updateUserStatus = async (req, res) => {
               `SELECT * from ${schemaName}.study WHERE prot_id='${prtId}'`
             );
             let grantStudy = null;
-            if (user_type === "internal") {
-              grantStudy = await studyHelper.studyGrant(
-                studyObj.prot_nbr_stnd,
-                user_id,
-                updatedBy,
-                createdOn
-              );
-            } else if (user_type === "external") {
-              grantStudy = true;
-            }
+            // if (user_type === "internal") {
+            //   grantStudy = await studyHelper.studyGrant(
+            //     studyObj.prot_nbr_stnd,
+            //     user_id,
+            //     updatedBy,
+            //     createdOn
+            //   );
+            // } else if (user_type === "external") {
+            //   grantStudy = true;
+            // }
+            grantStudy = true;
             if (grantStudy) {
               const studyUpdate = await DB.executeQuery(
                 `update ${schemaName}.study_user set act_flg=1 , insrt_tm='${createdOn}' WHERE prot_id='${prtId}'`

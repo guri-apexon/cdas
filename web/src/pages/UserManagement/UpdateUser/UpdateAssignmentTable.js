@@ -27,7 +27,7 @@ import {
 } from "../../../services/ApiServices";
 import { MessageContext } from "../../../components/Providers/MessageProvider";
 import { getStudyboardData } from "../../../store/actions/StudyBoardAction";
-import { getOverflowLimit, TextFieldFilter } from "../../../utils/index";
+import { getInnerElOverflLimit, TextFieldFilter } from "../../../utils/index";
 import {
   studyOptions,
   STUDY_IDS,
@@ -68,8 +68,10 @@ const UserAssignmentTable = ({
   const [allRoleLists, setAllRoleLists] = useState([]);
   const [initialFilterRole, setInitialFilterRole] = useState([]);
   const [lastEditedRecordIndex, setlastEditedRecordData] = useState(null);
+  const [showEmptyTable, setShowEmptyTable] = useState(false);
 
   const [showUserAssignmentModal, setUserAssignmentModal] = useState(false);
+  const tableRef = useRef(null);
   const getStudyObj = () => {
     const rowIndex = Math.max(...tableStudies.map((o) => o.index), 0) + 1;
     return {
@@ -188,8 +190,16 @@ const UserAssignmentTable = ({
   };
   const showToolTip = {};
   const RolesSelected = ({ row, roles }) => {
-    const uRoles = roles.length ? roles.map((e) => e.label).join(", ") : "";
-    const charLimit = getOverflowLimit("40%", 80);
+    const uRoles = roles.length
+      ? roles
+          .map((e) => e.label)
+          .sort()
+          .join(", ")
+      : "";
+    const charLimit = getInnerElOverflLimit(
+      tableRef.current ? tableRef.current.offsetWidth : 0,
+      "65%"
+    );
     const showRoletooltip = (rowIndex, boolVal) => {
       showToolTip[rowIndex] = boolVal;
     };
@@ -203,12 +213,13 @@ const UserAssignmentTable = ({
             variant="dark"
             title={uRoles}
             placement="left"
-            style={{ marginRight: 48 }}
+            className="role-elipsis"
+            // style={{ marginRight: 48 }}
             open={uRoles && uRoles.length > charLimit && showToolTip[row.index]}
           >
             <Typography variant="body2" className="">
               {uRoles && uRoles.length > charLimit
-                ? `${uRoles.slice(0, charLimit - 5)} [...]`
+                ? `${uRoles.slice(0, charLimit)} [...]`
                 : uRoles}
             </Typography>
           </Tooltip>
@@ -220,7 +231,7 @@ const UserAssignmentTable = ({
   const ViewStudy = ({ row, column: { accessor: key } }) => {
     const isEdit = row?.isEdit ? "editable-row" : "";
     return (
-      <div className="study" style={{ height: "40px" }}>
+      <div className="study">
         <StudySelected isEdit={isEdit} row={row} />
       </div>
     );
@@ -261,7 +272,7 @@ const UserAssignmentTable = ({
     return "";
   };
 
-  const ViewRoles = ({ row, column: { accessor: key } }) => {
+  const ViewRoles = ({ row, column }) => {
     const tableIndex = tableStudies.findIndex((el) => el.index === row.index);
     const currentRowData = tableStudies[tableIndex];
     const [viewRoleValue, setViewRoleValue] = useState(
@@ -290,7 +301,7 @@ const UserAssignmentTable = ({
     };
 
     return (
-      <div className="role" style={{ height: "40px" }}>
+      <div className="role">
         {row.isEdit ? (
           <AutocompleteV2
             placeholder={
@@ -317,7 +328,7 @@ const UserAssignmentTable = ({
             helperText={getErrorText()}
           />
         ) : (
-          <RolesSelected row={row} roles={row?.roles || []} />
+          <RolesSelected row={row} column={column} roles={row?.roles || []} />
         )}
       </div>
     );
@@ -396,7 +407,6 @@ const UserAssignmentTable = ({
       firstName,
       lastName,
       uid,
-      tenent: "t1",
       ...insertUserStudy,
     };
     const response = await updateUserAssignments(payload);
@@ -687,7 +697,7 @@ const UserAssignmentTable = ({
     const newFormattedRows = formattedRows.filter((e) => e.id);
 
     const emptyRoles = newFormattedRows.filter((x) => x.roles.length === 0);
-    if (emptyRoles.length) {
+    if (!newFormattedRows.length || emptyRoles.length) {
       setIsLoading(false);
       toast.showErrorMessage(
         `This assignment is incomplete. Please select a study and a role to continue.`
@@ -850,7 +860,7 @@ const UserAssignmentTable = ({
     const EditableStudy = ({ row, column: { accessor: key } }) => {
       const editStudyRowIndex = studyList.findIndex((e) => e[key] === row[key]);
       return (
-        <div className="study mr-4" style={{ height: "40px" }}>
+        <div className="study mr-4">
           <AutocompleteV2
             placeholder="Add new study and role"
             matchFrom="any"
@@ -933,7 +943,7 @@ const UserAssignmentTable = ({
         return validateAllStudyNoStudy(currentRowData, restModalTableStudies);
       };
       return (
-        <div className="role" style={{ height: "40px" }}>
+        <div className="role">
           <AutocompleteV2
             ref={lineRefs.current[row.index]}
             placeholder={!value.length ? "Choose one or more roles" : ""}
@@ -1116,6 +1126,7 @@ const UserAssignmentTable = ({
             maxHeight={440}
             rowProps={{ hover: false, className: "add-user-modal-row" }}
             hidePagination={true}
+            onToggleFilters={(showFilters) => setShowEmptyTable(showFilters)}
             emptyProps={{ content: <EmptyTableContent /> }}
           />
         </Modal>
@@ -1124,7 +1135,12 @@ const UserAssignmentTable = ({
   });
 
   const EmptyTableContent = () => {
-    return (
+    
+    return showEmptyTable ? (
+      <>
+        <div>No data to display</div>
+      </>
+    ) : (
       <>
         <Typography variant="body2" className="empty-grey">
           <Rocket className="user-rocket-icon" />
@@ -1152,7 +1168,7 @@ const UserAssignmentTable = ({
 
   const getUserAssignmentTable = React.useMemo(
     () => (
-      <>
+      <div className="study-table" ref={tableRef}>
         {showRolePopup && (
           <AssignmentInfoModal
             open={true}
@@ -1178,10 +1194,11 @@ const UserAssignmentTable = ({
           hidePagination={true}
           hasScroll={true}
           maxHeight={520}
+          onToggleFilters={(showFilters) => setShowEmptyTable(showFilters)}
           CustomHeader={(props) => <CustomButtonHeader {...props} />}
           emptyProps={{ content: <EmptyTableContent /> }}
         />
-      </>
+      </div>
     ),
     [
       tableStudies,
@@ -1191,6 +1208,7 @@ const UserAssignmentTable = ({
       targetUser,
       studyList,
       initialFilterRole,
+      showEmptyTable,
     ]
   );
   return getUserAssignmentTable;
