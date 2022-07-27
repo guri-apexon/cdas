@@ -753,7 +753,7 @@ export const deleteUserAssignments = (payload) => {
     return new Promise((resolve, reject) => {
       payload.updatedBy = userId;
       axios
-        .delete(`${API_URL}/assignment/remove`, { data: payload })
+        .delete(`${API_URL}/users/delete-user-assignments`, { data: payload })
         .then((res) => {
           resolve(res.data);
         })
