@@ -296,7 +296,11 @@ const AddUser = () => {
       compareInputLength(val, e.target.clientWidth);
     }
   };
-
+  const handleEmailChange = (e) => {
+    if (e.target.value && selectedUserError?.usr_mail_id) {
+      setSelectedUserError({ ...selectedUserError, usr_mail_id: "" });
+    }
+  };
   const getUserList = async (e) => {
     const query = e.type === "keyup" ? e.target.value : searchQuery;
     if (!query) {
@@ -693,11 +697,12 @@ const AddUser = () => {
                       id="usr_mail_id"
                       size="small"
                       label="Email"
-                      onChange={handleChange}
-                      onBlur={(e) => {
-                        validateField(e);
-                        setIsInFocus(false);
-                      }}
+                      onBlur={handleChange}
+                      onChange={handleEmailChange}
+                      // onBlur={(e) => {
+                      //   validateField(e);
+                      //   setIsInFocus(false);
+                      // }}
                       onFocus={() => setIsInFocus(true)}
                       onMouseLeave={() => setShowToolTip(false)}
                       onMouseEnter={() => setShowToolTip(true)}
@@ -755,6 +760,9 @@ const AddUser = () => {
                           setSearchQuery("");
                           setUserList([]);
                           setIsInFocus(false);
+                        }}
+                        onInputChange={(e, v) => {
+                          if (v === "") setEmailExist(false);
                         }}
                         popupIcon={
                           <SearchIcon
