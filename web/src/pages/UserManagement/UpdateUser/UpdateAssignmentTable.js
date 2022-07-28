@@ -369,8 +369,6 @@ const UserAssignmentTable = ({
   }, [isEditMode]);
 
   const onVieweStudyDelete = async (rowIndex) => {
-    setLoad(false);
-    setParentLoading(true);
     const email = targetUser.usr_mail_id;
     const uid = targetUser?.sAMAccountName;
 
@@ -381,6 +379,7 @@ const UserAssignmentTable = ({
     //     roles: tableStudies[rowIndex].roles.map((r) => r.label),
     //   },
     // ];
+    // const newFormattedRows = formattedRows.find((e) => e.id);
     const formattedRows = [...tableStudies];
     formattedRows.splice(rowIndex, 1);
     const newFormattedRows = formattedRows
@@ -392,6 +391,17 @@ const UserAssignmentTable = ({
         isValid: true,
       }))
       .filter((e) => e.id);
+
+    if (!newFormattedRows?.length) {
+      toast.showErrorMessage(
+        "At least one assignment is required. Add a new assignment before deleting."
+      );
+      return;
+    }
+
+    setLoad(false);
+    setParentLoading(true);
+
     const insertUserStudy = {
       email,
       protocols: newFormattedRows,
@@ -409,12 +419,13 @@ const UserAssignmentTable = ({
       uid,
       ...insertUserStudy,
     };
+
     const response = await updateUserAssignments(payload);
+
+    // const response = await deleteUserAssignments(payload);
     if (response.status) {
       updateEditMode(rowIndex, false);
-      toast.showSuccessMessage(
-        response.message || "Assignment Deleted Successfully!"
-      );
+      toast.showSuccessMessage("Assignment removed successfully.");
       const prevTableStudies = [...tableStudies];
       prevTableStudies.splice(rowIndex, 1);
       const updatedTableStudies = prevTableStudies.map((e, i) => ({
@@ -1179,11 +1190,12 @@ const UserAssignmentTable = ({
         </Typography>
         {targetUser?.usr_stat === "Active" && canUpdate && (
           <Button
-            className="empty-user-assignment-btn"
+            // className="empty-user-assignment-btn"
             size="small"
             variant="secondary"
             disabled={userUpdating}
             onClick={() => setUserAssignmentModal(true)}
+            className="add-user-assignment-btn"
           >
             <PlusIcon className="user-small-plus-icon mr-2" />
             Add user assignment

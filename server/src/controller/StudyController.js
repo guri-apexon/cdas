@@ -66,11 +66,38 @@ const addOnboardedStudy = async (protNbrStnd, userId, insrt_tm) => {
       insrt_tm,
       insrt_tm,
     ];
-    const insertSponQuery = `INSERT INTO ${schemaName}.sponsor (spnsr_nm, spnsr_nm_stnd, tenant_id, usr_id, usr_descr, active, insrt_tm, updt_tm, spnsr_mnemonic_nm) 
-    VALUES($1, $2, $3, $4, $5, $6, $7, $8, $2) ON CONFLICT (spnsr_nm_stnd) DO UPDATE SET spnsr_nm=EXCLUDED.spnsr_nm returning *;`;
-    const result2 = await DB.executeQuery(insertSponQuery, sponsorValueArr);
-    const sponsor = result2.rows[0] || sponsor;
-    if (!sponsor) return false;
+    // const insertSponQuery = `INSERT INTO ${schemaName}.sponsor (spnsr_nm, spnsr_nm_stnd, tenant_id, usr_id, usr_descr, active, insrt_tm, updt_tm, spnsr_mnemonic_nm)
+    // VALUES($1, $2, $3, $4, $5, $6, $7, $8, $2) ON CONFLICT (spnsr_mnemonic_nm)
+    //  DO UPDATE SET spnsr_nm=EXCLUDED.spnsr_nm,spnsr_nm_stnd=EXCLUDED.spnsr_nm_stnd, usr_id =EXCLUDED.usr_id , updt_tm=EXCLUDED.updt_tm  returning *;`;
+
+    const query_get_sponsor = `SELECT * from ${schemaName}.sponsor where spnsr_mnemonic_nm ='${study.spnsr_nm_stnd}' `;
+    const sponsor_exists = await DB.executeQuery(query_get_sponsor);
+
+    let sponsor_query;
+    let dataArray = [];
+    if (sponsor_exists.rowCount > 0) {
+      if (
+        sponsor_exists?.rows[0]?.spnsr_nm !== study.spnsr_nm ||
+        sponsor_exists?.rows[0]?.spnsr_nm_stnd !== study.spnsr_nm_stnd
+      ) {
+        // 4 , 8
+        sponsor_query = `UPDATE ${schemaName}.sponsor SET spnsr_nm=$1,spnsr_nm_stnd=$2,usr_id=$3,updt_tm=$4  returning * `;
+        dataArray = [study.spnsr_nm, study.spnsr_nm_stnd, userId, insrt_tm];
+      }
+    } else {
+      sponsor_query = ` INSERT INTO ${schemaName}.sponsor (spnsr_nm, spnsr_nm_stnd, tenant_id, usr_id, usr_descr, active, insrt_tm, updt_tm, spnsr_mnemonic_nm) 
+     VALUES($1, $2, $3, $4, $5, $6, $7, $8, $2) returning *`;
+      dataArray = [...sponsorValueArr];
+    }
+
+    let sponsor;
+    if (sponsor_query) {
+      const result2 = await DB.executeQuery(sponsor_query, dataArray);
+      sponsor = result2?.rows[0] || sponsor;
+      if (!sponsor) return false;
+    } else {
+      sponsor = sponsor_exists?.rows[0];
+    }
 
     const studySposrQuery = `INSERT INTO ${schemaName}.study_sponsor
     (prot_id, spnsr_id)
@@ -120,6 +147,16 @@ exports.onboardStudy = async function (req, res) {
     } = req.body;
     Logger.info({ message: "onboardStudy" });
     console.log(">>> onboard", req.body);
+
+    const checkStudyExistsQuery = `select * from ${schemaName}.study where prot_nbr_stnd = '${studyId}'`;
+    const checkStudyExists = await DB.executeQuery(checkStudyExistsQuery);
+    if (checkStudyExists?.rows?.length) {
+      return apiResponse.ErrorResponse(
+        res,
+        "Study Onboarding request already created for the given StudyId"
+      );
+    }
+
     axios
       .post(
         `${FSR_API_URI}/study/onboard`,
@@ -210,9 +247,9 @@ exports.onboardStudy = async function (req, res) {
 
 exports.studyList = function (req, res) {
   try {
-    const searchParam = req.params.query.toLowerCase();
-    const searchQuery = `SELECT ms.prot_nbr, ms.prot_nbr_stnd, ms.spnsr_nm, ms.spnsr_nm_stnd, ms.proj_cd, ms.phase, ms.prot_status, ms.thptc_area, s.ob_stat from ${schemaName}.mdm_study ms
-    FULL OUTER JOIN ${schemaName}.study s ON ms.prot_nbr = s.prot_nbr
+    const searchParam = req?.params?.query?.toLowerCase();
+    const searchQuery = `SELECT s.prot_id, ms.prot_nbr, ms.prot_nbr_stnd, ms.spnsr_nm, ms.spnsr_nm_stnd, ms.proj_cd, ms.phase, ms.prot_status, ms.thptc_area, s.ob_stat from ${schemaName}.mdm_study ms
+    FULL OUTER JOIN ${schemaName}.study s ON ms.prot_nbr_stnd = s.prot_nbr_stnd
     WHERE (LOWER(ms.prot_nbr) LIKE '%${searchParam}%' OR 
     LOWER(ms.spnsr_nm) LIKE '%${searchParam}%' OR 
     LOWER(ms.proj_cd) LIKE '%${searchParam}%')
@@ -222,8 +259,8 @@ exports.studyList = function (req, res) {
     Logger.info({ message: "studyList" });
 
     DB.executeQuery(searchQuery).then((response) => {
-      const studies = response.rows || [];
-      if (studies.length > 0) {
+      const studies = response?.rows || [];
+      if (studies?.length > 0) {
         return apiResponse.successResponseWithData(
           res,
           "Operation success",

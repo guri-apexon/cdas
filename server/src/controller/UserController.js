@@ -5,6 +5,7 @@ const axios = require("axios");
 const userHelper = require("../helpers/userHelper");
 const studyHelper = require("../helpers/studyHelper");
 const tenantHelper = require("../helpers/tenantHelper");
+const assignmentHelper = require("../helpers/assignementHelper");
 const commonHelper = require("../helpers/commonHelper");
 const apiResponse = require("../helpers/apiResponse");
 const constants = require("../config/constants");
@@ -768,18 +769,26 @@ exports.updateUserStatus = async (req, res) => {
       let returnRes = [];
 
       let provision_response = null;
+      const handleDuplicateEntity = true;
       if (user_type === "internal") {
-        provision_response = await userHelper.provisionInternalUser(data);
+        provision_response = await userHelper.provisionInternalUser(
+          data,
+          handleDuplicateEntity
+        );
       } else if (user_type === "external") {
-        provision_response = await userHelper.provisionExternalUser(data);
+        provision_response = await userHelper.provisionExternalUser(
+          data,
+          handleDuplicateEntity
+        );
       }
 
-      if (provision_response) {
+      // Due to DB data mismatch this error may come provision_response === "DUPLICATE_ENTITY"
+      if (provision_response || provision_response === "DUPLICATE_ENTITY") {
         const empId = user_type === "internal" ? user_id : employeeId;
         await userHelper.makeUserActive(user_id, empId);
 
         const { rows: getStudies } = await DB.executeQuery(
-          `SELECT * from ${schemaName}.study_user WHERE usr_id='${user_id}'`
+          `select distinct prot_id from ${schemaName}.study_user_role where usr_id = '${user_id}'`
         );
 
         const createdOn = getCurrentTime(true);
@@ -968,35 +977,95 @@ exports.updateUserAssignments = async (req, res) => {
 };
 
 exports.deleteUserAssignments = async (req, res) => {
-  const newReq = { ...req };
-  const query = `SELECT tenant_nm FROM ${schemaName}.tenant LIMIT 1`;
+  Logger.info({
+    message: "deleteUserAssignments - begin",
+  });
   try {
-    const result = await DB.executeQuery(query);
-    if (result.rowCount > 0) {
-      newReq.body["tenant"] = result.rows[0].tenant_nm;
-    } else {
-      return apiResponse.ErrorResponse(res, "Tenant does not exists");
-    }
-  } catch (error) {
-    return apiResponse.ErrorResponse(res, "Unable to fetch tenant");
-  }
-  newReq.body["createdBy"] = req.body.updatedBy;
-  newReq.body["updatedBy"] = req.body.updatedBy;
-  newReq.body["createdOn"] = getCurrentTime();
+    const newReq = { ...req, returnBool: true };
+    newReq.body["createdBy"] = newReq.body.updatedBy;
+    newReq.body["createdOn"] = getCurrentTime();
 
-  const assignmentResponse = AssignmentController.assignmentRemove(
-    newReq,
-    res,
-    true
-  );
-  if (assignmentResponse) {
-    return apiResponse.successResponse(
+    const {
+      protocol: { id: protId } = {},
+      createdBy,
+      createdOn,
+      email,
+    } = newReq.body;
+
+    const query = `SELECT tenant_nm FROM ${schemaName}.tenant LIMIT 1`;
+
+    if (!protId) {
+      return apiResponse.ErrorResponse(res, "Protocol is required");
+    }
+
+    try {
+      const result = await DB.executeQuery(query);
+      if (result.rowCount > 0) {
+        newReq.body["tenant"] = result.rows[0].tenant_nm;
+      } else {
+        return apiResponse.ErrorResponse(res, "Tenant does not exists");
+      }
+    } catch (error) {
+      return apiResponse.ErrorResponse(res, "Unable to fetch tenant");
+    }
+
+    // validate user
+    const user = await userHelper.findByEmail(email);
+    if (!user) return apiResponse.ErrorResponse(res, "User does not exists");
+
+    await assignmentHelper.inactiveAllUserStudies(
+      user.usr_id,
+      protId,
+      createdBy,
+      createdOn
+    );
+
+    await assignmentHelper.assignmentCleanUpFunction(user.usr_id);
+
+    Logger.info({
+      message: "deleteUserAssignments - end",
+    });
+    return apiResponse.successResponse(res, `Assignment removed successfully.`);
+  } catch (e) {
+    Logger.error("catch: deleteUserAssignments");
+    Logger.error(e);
+    return apiResponse.ErrorResponse(
       res,
-      `Assignments Updated Successfully.`
+      "Unable to remove assignments – please try again or report problem to the system administrator"
     );
   }
-  return apiResponse.ErrorResponse(
-    res,
-    "Unable to add upate assignments – please try again or report problem to the system administrator"
-  );
 };
+
+// exports.deleteUserAssignments = async (req, res) => {
+//   const newReq = { ...req };
+//   const query = `SELECT tenant_nm FROM ${schemaName}.tenant LIMIT 1`;
+//   try {
+//     const result = await DB.executeQuery(query);
+//     if (result.rowCount > 0) {
+//       newReq.body["tenant"] = result.rows[0].tenant_nm;
+//     } else {
+//       return apiResponse.ErrorResponse(res, "Tenant does not exists");
+//     }
+//   } catch (error) {
+//     return apiResponse.ErrorResponse(res, "Unable to fetch tenant");
+//   }
+//   newReq.body["createdBy"] = req.body.updatedBy;
+//   newReq.body["updatedBy"] = req.body.updatedBy;
+//   newReq.body["createdOn"] = getCurrentTime();
+
+//   const assignmentResponse = AssignmentController.assignmentRemove(
+//     newReq,
+//     res,
+//     true
+//   );
+//   if (assignmentResponse) {
+//     return apiResponse.successResponse(
+//       res,
+//       `Assignments Updated Successfully.`
+//     );
+//   }
+//   return apiResponse.ErrorResponse(
+//     res,
+//     "Unable to add upate assignments – please try again or report problem to the system administrator"
+//   );
+// };

@@ -45,8 +45,11 @@ axios.defaults.headers.common.Authorization = `Bearer ${token}`;
 
 export const searchStudy = async (searchQuery = "") => {
   try {
-    const res = await axios.get(`${baseURL}/${STUDYSEARCH}/${searchQuery}`);
-    return res.data?.data || [];
+    const url = searchQuery
+      ? `${baseURL}/${STUDYSEARCH}/${searchQuery}`
+      : `${baseURL}/${STUDYSEARCH}`;
+    const res = await axios.get(url);
+    return res?.data?.data || [];
   } catch (err) {
     return console.log("Error", err);
   }
@@ -750,7 +753,7 @@ export const deleteUserAssignments = (payload) => {
     return new Promise((resolve, reject) => {
       payload.updatedBy = userId;
       axios
-        .delete(`${API_URL}/assignment/remove`, { data: payload })
+        .delete(`${API_URL}/users/delete-user-assignments`, { data: payload })
         .then((res) => {
           resolve(res.data);
         })
