@@ -76,7 +76,7 @@ exports.isUserAlreadyProvisioned = async (email) => {
  * @param {object} uid, updatedBy
  * @returns uid on success false otherwise
  */
-exports.provisionInternalUser = async (data) => {
+exports.provisionInternalUser = async (data, handleDuplicateEntity) => {
   const { uid: networkId, updatedBy } = data;
   const userType = "internal";
   const roleType = "Reader";
@@ -88,6 +88,12 @@ exports.provisionInternalUser = async (data) => {
     return response.status === 200 ? networkId : false;
   } catch (error) {
     console.log("Internal user provision error", data, error);
+    if (
+      handleDuplicateEntity &&
+      error?.response?.data?.code === "DUPLICATE_ENTITY"
+    ) {
+      return error?.response?.data?.code;
+    }
     return false;
   }
 };
@@ -97,7 +103,7 @@ exports.provisionInternalUser = async (data) => {
  * @param {object} data = { firstName, lastName, email, status, updatedBy }
  * @returns uid on success false otherwise
  */
-exports.provisionExternalUser = async (data) => {
+exports.provisionExternalUser = async (data, handleDuplicateEntity) => {
   const { firstName, lastName, email, status, updatedBy } = data;
   const userType = "external";
 
@@ -126,6 +132,12 @@ exports.provisionExternalUser = async (data) => {
     return response;
   } catch (error) {
     console.log("error: provisionExternalUser", body, error);
+    if (
+      handleDuplicateEntity &&
+      error?.response?.data?.code === "DUPLICATE_ENTITY"
+    ) {
+      return error?.response?.data?.code;
+    }
     return null;
   }
 };

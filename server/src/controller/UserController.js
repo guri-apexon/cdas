@@ -769,18 +769,26 @@ exports.updateUserStatus = async (req, res) => {
       let returnRes = [];
 
       let provision_response = null;
+      const handleDuplicateEntity = true;
       if (user_type === "internal") {
-        provision_response = await userHelper.provisionInternalUser(data);
+        provision_response = await userHelper.provisionInternalUser(
+          data,
+          handleDuplicateEntity
+        );
       } else if (user_type === "external") {
-        provision_response = await userHelper.provisionExternalUser(data);
+        provision_response = await userHelper.provisionExternalUser(
+          data,
+          handleDuplicateEntity
+        );
       }
 
-      if (provision_response) {
+      // Due to DB data mismatch this error may come provision_response === "DUPLICATE_ENTITY"
+      if (provision_response || provision_response === "DUPLICATE_ENTITY") {
         const empId = user_type === "internal" ? user_id : employeeId;
         await userHelper.makeUserActive(user_id, empId);
 
         const { rows: getStudies } = await DB.executeQuery(
-          `SELECT * from ${schemaName}.study_user WHERE usr_id='${user_id}'`
+          `select distinct prot_id from ${schemaName}.study_user_role where usr_id = '${user_id}'`
         );
 
         const createdOn = getCurrentTime(true);
