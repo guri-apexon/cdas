@@ -13,7 +13,7 @@ router.get("/get-user-study-and-roles", UserController.getUserStudyAndRoles);
 // router.post("/update-user-status", UserController.updateUserStatus);
 router.post("/update-status", UserController.updateUserStatus);
 router.post("/update-user-assignments", UserController.updateUserAssignments);
-router.post("/delete-user-assignments", UserController.deleteUserAssignments);
+router.delete("/delete-user-assignments", UserController.deleteUserAssignments);
 router.post("/send-invite", UserController.sendInvite);
 
 module.exports = router;

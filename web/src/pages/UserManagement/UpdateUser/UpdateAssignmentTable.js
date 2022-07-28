@@ -372,44 +372,32 @@ const UserAssignmentTable = ({
     setLoad(false);
     setParentLoading(true);
     const email = targetUser.usr_mail_id;
-    const uid = targetUser?.sAMAccountName;
 
-    // const formattedRows = [
-    //   {
-    //     protocolname: tableStudies[rowIndex].prot_nbr_stnd,
-    //     id: tableStudies[rowIndex].prot_id,
-    //     roles: tableStudies[rowIndex].roles.map((r) => r.label),
-    //   },
-    // ];
-    const formattedRows = [...tableStudies];
-    formattedRows.splice(rowIndex, 1);
-    const newFormattedRows = formattedRows
-      .map((e) => ({
-        protocolname: e.prot_nbr_stnd,
-        id: e.prot_id,
-        roles: e.roles.map((r) => r.value),
-        roleIds: e.roles.map((r) => r.value),
-        isValid: true,
-      }))
-      .filter((e) => e.id);
-    const insertUserStudy = {
+    const formattedRows = [
+      {
+        protocolname: tableStudies[rowIndex].prot_nbr_stnd,
+        id: tableStudies[rowIndex].prot_id,
+        roles: tableStudies[rowIndex].roles.map((r) => r.label),
+      },
+    ];
+    const newFormattedRows = formattedRows.find((e) => e.id);
+    // const formattedRows = [...tableStudies];
+    // formattedRows.splice(rowIndex, 1);
+    // const newFormattedRows = formattedRows
+    //   .map((e) => ({
+    //     protocolname: e.prot_nbr_stnd,
+    //     id: e.prot_id,
+    //     roles: e.roles.map((r) => r.value),
+    //     roleIds: e.roles.map((r) => r.value),
+    //     isValid: true,
+    //   }))
+    //   .filter((e) => e.id);
+    const payload = {
       email,
-      protocols: newFormattedRows,
+      protocol: newFormattedRows,
     };
 
-    let payload = {};
-    const splittedNames = targetUser?.displayName?.split(", ") || [];
-    const firstName =
-      targetUser.givenName ||
-      (splittedNames.length === 2 ? splittedNames[1] : splittedNames[0]);
-    const lastName = targetUser.sn || splittedNames[0];
-    payload = {
-      firstName,
-      lastName,
-      uid,
-      ...insertUserStudy,
-    };
-    const response = await updateUserAssignments(payload);
+    const response = await deleteUserAssignments(payload);
     if (response.status) {
       updateEditMode(rowIndex, false);
       toast.showSuccessMessage(
