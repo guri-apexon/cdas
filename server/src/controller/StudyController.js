@@ -147,6 +147,16 @@ exports.onboardStudy = async function (req, res) {
     } = req.body;
     Logger.info({ message: "onboardStudy" });
     console.log(">>> onboard", req.body);
+
+    const checkStudyExistsQuery = `select * from ${schemaName}.study where prot_nbr_stnd = '${studyId}'`;
+    const checkStudyExists = await DB.executeQuery(checkStudyExistsQuery);
+    if (checkStudyExists?.rows?.length) {
+      return apiResponse.ErrorResponse(
+        res,
+        "Study Onboarding request already created for the given StudyId"
+      );
+    }
+
     axios
       .post(
         `${FSR_API_URI}/study/onboard`,
