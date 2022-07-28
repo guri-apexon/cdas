@@ -641,26 +641,30 @@ const UserAssignmentTable = ({
     return (
       <div>
         {targetUser?.usr_stat === "Active" && canUpdate && (
-          <Button
-            size="small"
-            variant="secondary"
-            icon={<PlusIcon size="small" />}
-            disabled={userUpdating}
-            onClick={() => setUserAssignmentModal(true)}
-          >
-            Add user assignment
-          </Button>
+          <>
+            <Button
+              size="small"
+              variant="secondary"
+              icon={<PlusIcon size="small" />}
+              disabled={userUpdating}
+              onClick={() => setUserAssignmentModal(true)}
+            >
+              Add user assignment
+            </Button>
+
+            <Button
+              size="small"
+              className="ml-3"
+              variant="secondary"
+              icon={FilterIcon}
+              onClick={toggleFilters}
+              // disabled={targetUser?.usr_stat === "InActive"}
+              disabled={userUpdating}
+            >
+              Filter
+            </Button>
+          </>
         )}
-        <Button
-          size="small"
-          className="ml-3"
-          variant="secondary"
-          icon={FilterIcon}
-          onClick={toggleFilters}
-          disabled={targetUser?.usr_stat === "InActive"}
-        >
-          Filter
-        </Button>
       </div>
     );
   };
@@ -1186,7 +1190,7 @@ const UserAssignmentTable = ({
         </Typography>
         {targetUser?.usr_stat === "Active" && canUpdate && (
           <Button
-            className="empty-user-assignment-btn"
+            // className="empty-user-assignment-btn"
             size="small"
             variant="secondary"
             disabled={userUpdating}

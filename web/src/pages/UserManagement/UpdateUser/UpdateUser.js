@@ -20,6 +20,7 @@ import Link from "apollo-react/components/Link";
 import Grid from "apollo-react/components/Grid";
 import Modal from "apollo-react/components/Modal";
 import Tag from "apollo-react/components/Tag";
+import Loader from "apollo-react/components/Loader";
 
 import {
   validateEmail,
@@ -357,6 +358,9 @@ const AddUser = () => {
     <div className="create-user-wrapper">
       {isShowAlertBox && (
         <AlertBox cancel={keepEditingBtn} submit={leavePageBtn} />
+      )}
+      {loading && (
+        <Loader isInner overlayClassName="user-assignment-loader" />
       )}
       {/* {isAnyUpdate && (
         <ConfirmModal
