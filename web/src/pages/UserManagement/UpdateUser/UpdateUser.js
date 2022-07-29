@@ -140,6 +140,7 @@ const AddUser = () => {
   const [isEditMode, setEditMode] = useState();
   const routerHandle = useRef();
   const [targetRoute, setTargetRoute] = useState("");
+  const [toggleStatus, setToggleStatus] = useState(false);
 
   const unblockRouter = () => {
     dispatch(formComponentInActive());
@@ -206,6 +207,7 @@ const AddUser = () => {
   };
 
   const checkUserTypeAndUpdate = async (checked) => {
+    setToggleStatus(true);
     setLoading(true);
     const userType = targetUser.usr_typ;
     const payload = {
@@ -222,6 +224,7 @@ const AddUser = () => {
     setInactiveStudyRoles(res?.data);
     await getUserAPI();
     setLoading(false);
+    setToggleStatus(false);
     // updateUserStatus(userId, "In Active");
     // setShowRolePopup(true);
   };
@@ -359,7 +362,7 @@ const AddUser = () => {
       {isShowAlertBox && (
         <AlertBox cancel={keepEditingBtn} submit={leavePageBtn} />
       )}
-      {loading && (
+      {toggleStatus && (
         <Loader isInner overlayClassName="user-assignment-loader" />
       )}
       {/* {isAnyUpdate && (
@@ -525,7 +528,7 @@ const AddUser = () => {
                   Employee ID
                   <div className="ml-3">
                     <div className="user-update-font-500">
-                      { targetUser?.usr_typ === "internal" ? targetUser?.usr_id : targetUser?.extrnl_emp_id}
+                      { targetUser?.usr_typ?.toLowerCase() === "internal" ? targetUser?.usr_id : targetUser?.extrnl_emp_id}
                     </div>
                   </div>
                 </Typography>
