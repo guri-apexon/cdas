@@ -245,7 +245,7 @@ const AddUser = () => {
     return res.data.error;
   };
 
-  const validateField = async (e, list, v) => {
+  const validateField = async (e, list, v, isvalidEmail) => {
     const currentErrors = { ...selectedUserError };
     const keys = list || [e?.target?.id];
     // setSelectedUserError(null);
@@ -262,7 +262,8 @@ const AddUser = () => {
         } else if (key === "usr_mail_id") {
           const isValid = emailRegex.test(value);
           if (!isValid) {
-            currentErrors[key] = "Invalid email address format";
+            if (isvalidEmail)
+              currentErrors[key] = "Invalid email address format";
           } else {
             const emailStatus = await checkEmailExists(value);
             if (emailStatus) {
@@ -297,6 +298,7 @@ const AddUser = () => {
     }
   };
   const handleEmailChange = (e) => {
+    handleChange(e);
     if (e.target.value && selectedUserError?.usr_mail_id) {
       setSelectedUserError({ ...selectedUserError, usr_mail_id: "" });
     }
@@ -697,12 +699,12 @@ const AddUser = () => {
                       id="usr_mail_id"
                       size="small"
                       label="Email"
-                      onBlur={handleChange}
+                      // onBlur={handleChange}
                       onChange={handleEmailChange}
-                      // onBlur={(e) => {
-                      //   validateField(e);
-                      //   setIsInFocus(false);
-                      // }}
+                      onBlur={(e) => {
+                        validateField(e, undefined, e.target.value, true);
+                        setIsInFocus(false);
+                      }}
                       onFocus={() => setIsInFocus(true)}
                       onMouseLeave={() => setShowToolTip(false)}
                       onMouseEnter={() => setShowToolTip(true)}

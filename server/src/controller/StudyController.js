@@ -147,6 +147,16 @@ exports.onboardStudy = async function (req, res) {
     } = req.body;
     Logger.info({ message: "onboardStudy" });
     console.log(">>> onboard", req.body);
+
+    const checkStudyExistsQuery = `select * from ${schemaName}.study where prot_nbr_stnd = '${studyId}'`;
+    const checkStudyExists = await DB.executeQuery(checkStudyExistsQuery);
+    if (checkStudyExists?.rows?.length) {
+      return apiResponse.ErrorResponse(
+        res,
+        "Study Onboarding request already created for the given StudyId"
+      );
+    }
+
     axios
       .post(
         `${FSR_API_URI}/study/onboard`,
@@ -238,7 +248,7 @@ exports.onboardStudy = async function (req, res) {
 exports.studyList = function (req, res) {
   try {
     const searchParam = req?.params?.query?.toLowerCase();
-    const searchQuery = `SELECT ms.prot_nbr, ms.prot_nbr_stnd, ms.spnsr_nm, ms.spnsr_nm_stnd, ms.proj_cd, ms.phase, ms.prot_status, ms.thptc_area, s.ob_stat from ${schemaName}.mdm_study ms
+    const searchQuery = `SELECT s.prot_id, ms.prot_nbr, ms.prot_nbr_stnd, ms.spnsr_nm, ms.spnsr_nm_stnd, ms.proj_cd, ms.phase, ms.prot_status, ms.thptc_area, s.ob_stat from ${schemaName}.mdm_study ms
     FULL OUTER JOIN ${schemaName}.study s ON ms.prot_nbr_stnd = s.prot_nbr_stnd
     WHERE (LOWER(ms.prot_nbr) LIKE '%${searchParam}%' OR 
     LOWER(ms.spnsr_nm) LIKE '%${searchParam}%' OR 
