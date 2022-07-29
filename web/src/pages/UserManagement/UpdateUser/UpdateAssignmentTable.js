@@ -344,7 +344,6 @@ const UserAssignmentTable = ({
   };
 
   const updateEditMode = (rowIndex, editMode, isDelete) => {
-    console.log(rowIndex, editMode);
     if (isDelete === true) {
       editRowFn(rowIndex, editMode);
     } else if (typeof lastEditedRecordIndex !== "number") {
