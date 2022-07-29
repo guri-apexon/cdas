@@ -343,8 +343,11 @@ const UserAssignmentTable = ({
     setTableStudies([...prevTableStudies]);
   };
 
-  const updateEditMode = (rowIndex, editMode) => {
-    if (typeof lastEditedRecordIndex !== "number") {
+  const updateEditMode = (rowIndex, editMode, isDelete) => {
+    console.log(rowIndex, editMode);
+    if (isDelete === true) {
+      editRowFn(rowIndex, editMode);
+    } else if (typeof lastEditedRecordIndex !== "number") {
       /* eslint-disable */
       setlastEditedRecordData(rowIndex);
       setEditMode(true);
@@ -399,7 +402,7 @@ const UserAssignmentTable = ({
 
     const response = await deleteUserAssignments(payload);
     if (response.status) {
-      updateEditMode(rowIndex, false);
+      updateEditMode(rowIndex, false, true);
       toast.showSuccessMessage(
         response.message || "Assignment Deleted Successfully!"
       );
