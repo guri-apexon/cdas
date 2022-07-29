@@ -363,7 +363,6 @@ const UserAssignmentTable = ({
   };
 
   useEffect(() => {
-    console.log(isEditMode);
     if (isEditMode === false) {
       updateEditMode(lastEditedRecordIndex, false);
     }
