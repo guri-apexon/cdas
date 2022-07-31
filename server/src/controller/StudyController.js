@@ -155,13 +155,13 @@ exports.onboardStudy = async function (req, res) {
         "Study Onboarding request already created for the given StudyId"
       );
     }
-
     axios
       .post(
         `${FSR_API_URI}/study/onboard`,
         {
           sponsorName,
           studyId,
+          rwUsers: process.env.FSR_RW_USERS_KEY,
         },
         {
           headers: FSR_HEADERS,
