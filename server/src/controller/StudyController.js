@@ -171,6 +171,11 @@ exports.onboardStudy = async function (req, res) {
         const onboardStatus = response?.data?.code || null;
         let insertedStudy = null;
         if (onboardStatus === 202 || onboardStatus === 200) {
+          const responseData = {
+            ...response?.data,
+            message: 'Study onboarding initiated successfully. Please wait for 3 hour(s) to check the status and get the required access reflected in the corresponding environment.',
+          };
+          
           try {
             insertedStudy = await addOnboardedStudy(studyId, userId, insrt_tm);
             if (!insertedStudy)
@@ -205,7 +210,7 @@ exports.onboardStudy = async function (req, res) {
                 return apiResponse.successResponseWithData(
                   res,
                   "Operation success",
-                  response?.data
+                  responseData
                 );
               })
               .catch((err) => {
@@ -225,7 +230,7 @@ exports.onboardStudy = async function (req, res) {
             return apiResponse.successResponseWithData(
               res,
               "Onboarding successfull",
-              response?.data
+              responseData
             );
           }
         } else {
