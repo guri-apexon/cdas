@@ -800,7 +800,7 @@ exports.updateUserStatus = async (req, res) => {
             }
             if (grantStudy) {
               const studyUpdate = await DB.executeQuery(
-                `update ${schemaName}.study_user set act_flg=1 , insrt_tm='${createdOn}' WHERE prot_id='${prtId}'`
+                `update ${schemaName}.study_user set act_flg=1 , insrt_tm='${createdOn}' WHERE prot_id='${prtId}' and usr_id='${user_id}'`
               );
 
               const { rows: roleId } = await DB.executeQuery(
