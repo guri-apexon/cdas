@@ -608,15 +608,18 @@ exports.secureApi = async (req, res) => {
 exports.getUserStudyAndRoles = async function (req, res) {
   try {
     const userId = req.query.userId;
-    const userStudyQuery = `select MAIN.*, r1.role_nm, s1.prot_nbr_stnd  from ( select study_asgn_typ prot_id,usr_id,role_id
+    const userStudyQuery = `select MAIN.prot_id,MAIN.usr_id,MAIN.role_id, r1.role_nm, s1.prot_nbr_stnd from ( select study_asgn_typ prot_id,usr_id,role_id,act_flg
       from ${schemaName}.study_user_role where usr_id = '${userId}' and study_asgn_typ is not null
-      group by study_asgn_typ,usr_id,role_id
+      group by study_asgn_typ,usr_id,role_id,act_flg
       union all
-      select prot_id,usr_id,role_id
-      from ${schemaName}.study_user_role where usr_id = '${userId}' and study_asgn_typ is null) MAIN
+      select prot_id,usr_id,role_id,act_flg
+      from ${schemaName}.study_user_role where usr_id = '${userId}'
+      and study_asgn_typ is null
+      ) MAIN
       left join study s1 on s1.prot_id = MAIN.prot_id
-      left join "user" u on (u.usr_id=main.usr_id)
-      left join role r1 on r1.role_id = MAIN.role_id WHERE (u.usr_stat ='Active' and r1.role_stat = 1) or (u.usr_stat !='Active');`;
+      join "user" u on (main.usr_id=u.usr_id)
+      left join role r1 on r1.role_id = MAIN.role_id
+      WHERE (u.usr_stat ='Active' and r1.role_stat = 1 and main.act_flg=1) or (u.usr_stat !='Active');`;
 
     const userStudies = await DB.executeQuery(userStudyQuery).then(
       (response) => {
