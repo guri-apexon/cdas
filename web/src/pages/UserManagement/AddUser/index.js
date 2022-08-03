@@ -303,51 +303,65 @@ const AddUser = () => {
       setSelectedUserError({ ...selectedUserError, usr_mail_id: "" });
     }
   };
-  const getUserList = async (e) => {
-    const query = e.type === "keyup" ? e.target.value : searchQuery;
-    if (!query) {
-      if (userList.length) {
-        setUserList([]);
-      }
-      return;
-    }
-    setSearchQuery(query);
-    if (e.type === "keyup" && e.key !== "Enter" && query.length < 2) {
-      return;
-    }
+
+  const getUserList = () => {
     setFetchStatus("loading");
-    debounceFunction(() => {
-      fetchADUsers(query).then((result) => {
-        const filtered =
-          result?.data?.map((u) => {
-            const { givenName, sn, displayName, mail } = u;
-            return {
-              ...u,
-              label: `${
-                givenName && sn ? `${givenName} ${sn}` : displayName
-              }\n\t(${mail})`,
-            };
-          }) || [];
-        filtered.sort(function (a, b) {
-          const conditionA = a.givenName || a.displayName;
-          const conditionB = b.givenName || b.displayName;
-          if (conditionA < conditionB) {
-            return -1;
-          }
-          if (conditionA > conditionB) {
-            return 1;
-          }
-          return 0;
-        });
-        if (result.status === 1) {
-          setUserList(filtered);
+    // debounceFunction(() => {
+
+    fetchADUsers(searchQuery).then((result) => {
+      const filtered =
+        result?.data?.map((u) => {
+          const { givenName, sn, displayName, mail } = u;
+          return {
+            ...u,
+            label: `${
+              givenName && sn ? `${givenName} ${sn}` : displayName
+            }\n\t(${mail})`,
+          };
+        }) || [];
+      filtered.sort(function (a, b) {
+        const conditionA = a.givenName || a.displayName;
+        const conditionB = b.givenName || b.displayName;
+        if (conditionA < conditionB) {
+          return -1;
         }
-        setLoading(false);
-        if (result.status !== -1) {
-          setFetchStatus("success");
+        if (conditionA > conditionB) {
+          return 1;
         }
+        return 0;
       });
-    }, 500);
+      if (result.status === 1) {
+        console.log("testing");
+        // setTimeout(() => {
+        setUserList([...filtered]);
+        console.log("teszt");
+        // }, 60000);
+      }
+      setLoading(false);
+      if (result.status !== -1) {
+        setFetchStatus("success");
+      }
+    });
+
+    // }, 500);
+  };
+  const searchUserInfo = (e) => {
+    console.log(e);
+    if (e) {
+      getUserList();
+    }
+  };
+
+  const handleInput = (e) => {
+    console.log(e);
+    const query = e?.target?.value;
+    if (e?.keyCode === 13) {
+      searchUserInfo(true);
+    } else if (query) {
+      setSearchQuery(query);
+    } else if (query === "") {
+      setEmailExist(false);
+    }
   };
 
   const validNewUserDataCondition = () =>
@@ -758,25 +772,24 @@ const AddUser = () => {
                           setShowToolTip(false);
                         }}
                         onFocus={() => setIsInFocus(true)}
-                        onBlur={() => {
-                          setSearchQuery("");
-                          setUserList([]);
-                          setIsInFocus(false);
-                        }}
-                        onInputChange={(e, v) => {
-                          if (v === "") setEmailExist(false);
-                        }}
+                        // onBlur={() => {
+                        //   setSearchQuery("");
+                        //   setUserList([]);
+                        //   setIsInFocus(false);
+                        // }}
                         popupIcon={
                           <SearchIcon
-                            onClick={getUserList}
+                            onClick={(e) => searchUserInfo(true)}
                             fontSize="extraSmall"
                           />
                         }
                         source={userList}
                         label="Name"
-                        placeholder="Search by name or email"
+                        placeholder="Search by UID or QID"
                         value={selectedUser}
-                        onKeyUp={getUserList}
+                        onKeyUp={(e) => {
+                          handleInput(e);
+                        }}
                         noOptionsText={
                           fetchStatus === "loading" ? (
                             <div className="flex-center flex justify-center">
@@ -807,12 +820,25 @@ const AddUser = () => {
                       />
                     </div>
                     {selectedUser && (
-                      <Typography className="mt-4">
-                        <Label>Employee ID</Label>
-                        <Value className="ml-8">
-                          {selectedUser.sAMAccountName}
-                        </Value>
-                      </Typography>
+                      <div>
+                        <Typography className="mt-4">
+                          <Label>Name</Label>
+                          <Value className="ml-8">
+                            {`${selectedUser?.givenName} ${selectedUser?.sn}`}
+                          </Value>
+                        </Typography>
+
+                        <Typography className="mt-4">
+                          <Label>Email</Label>
+                          <Value className="ml-8">{selectedUser?.mail}</Value>
+                        </Typography>
+                        <Typography className="mt-4">
+                          <Label>Employee ID</Label>
+                          <Value className="ml-8">
+                            {selectedUser?.sAMAccountName}
+                          </Value>
+                        </Typography>
+                      </div>
                     )}
                     {!selectedUser && (
                       <Typography variant="body2" className="mt-4" gutterBottom>
