@@ -148,9 +148,8 @@ exports.onboardStudy = async function (req, res) {
     Logger.info({ message: "onboardStudy" });
     console.log(">>> onboard", req.body);
 
-    const checkStudyExistsQuery = `select * from ${schemaName}.study where prot_nbr_stnd = '${studyId}'`;
-    const checkStudyExists = await DB.executeQuery(checkStudyExistsQuery);
-    if (checkStudyExists?.rows?.length) {
+    const studyExists = await DB.executeQuery(`select * from ${schemaName}.study where prot_nbr_stnd = '${studyId}';`);
+    if (studyExists?.rows?.length) {
       return apiResponse.ErrorResponse(
         res,
         "Study Onboarding request already created for the given StudyId"
