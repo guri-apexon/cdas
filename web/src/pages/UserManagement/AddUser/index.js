@@ -21,7 +21,7 @@ import Typography from "apollo-react/components/Typography";
 import Link from "apollo-react/components/Link";
 import Grid from "apollo-react/components/Grid";
 import Modal from "apollo-react/components/Modal";
-
+import Close from "apollo-react-icons/Close";
 import {
   validateEmail,
   inviteExternalUser,
@@ -304,7 +304,7 @@ const AddUser = () => {
     }
   };
 
-  const getUserList = () => {
+  const getUserList = async () => {
     setFetchStatus("loading");
     // debounceFunction(() => {
 
@@ -314,9 +314,10 @@ const AddUser = () => {
           const { givenName, sn, displayName, mail } = u;
           return {
             ...u,
-            label: `${
-              givenName && sn ? `${givenName} ${sn}` : displayName
-            }\n\t(${mail})`,
+            // value: u.sAMAccountName,
+            label: `${givenName && sn ? `${givenName} ${sn}` : displayName}-${
+              u.sAMAccountName
+            }\n\t(${mail})  `,
           };
         }) || [];
       filtered.sort(function (a, b) {
@@ -332,17 +333,13 @@ const AddUser = () => {
       });
       if (result.status === 1) {
         console.log("testing");
-        // setTimeout(() => {
         setUserList([...filtered]);
-        console.log("teszt");
-        // }, 60000);
       }
       setLoading(false);
       if (result.status !== -1) {
         setFetchStatus("success");
       }
     });
-
     // }, 500);
   };
   const searchUserInfo = (e) => {
@@ -362,6 +359,13 @@ const AddUser = () => {
     } else if (query === "") {
       setEmailExist(false);
     }
+  };
+
+  const cancelSelectedUser = () => {
+    setSearchQuery("");
+    setEmailExist(false);
+    setSelectedUser(null);
+    setUserList([]);
   };
 
   const validNewUserDataCondition = () =>
@@ -772,16 +776,23 @@ const AddUser = () => {
                           setShowToolTip(false);
                         }}
                         onFocus={() => setIsInFocus(true)}
-                        // onBlur={() => {
-                        //   setSearchQuery("");
-                        //   setUserList([]);
-                        //   setIsInFocus(false);
-                        // }}
+                        onBlur={() => {
+                          setSearchQuery("");
+                          setUserList([]);
+                          setIsInFocus(false);
+                        }}
                         popupIcon={
-                          <SearchIcon
-                            onClick={(e) => searchUserInfo(true)}
-                            fontSize="extraSmall"
-                          />
+                          selectedUser ? (
+                            <Close
+                              onClick={cancelSelectedUser}
+                              fontSize="extraSmall"
+                            />
+                          ) : (
+                            <SearchIcon
+                              onClick={(e) => searchUserInfo(true)}
+                              fontSize="extraSmall"
+                            />
+                          )
                         }
                         source={userList}
                         label="Name"
@@ -797,7 +808,7 @@ const AddUser = () => {
                             </div>
                           ) : (
                             <>
-                              {searchQuery ? (
+                              {searchQuery && userList?.length === 0 ? (
                                 <div className="flex-center flex justify-center">
                                   No user found
                                 </div>
@@ -816,8 +827,9 @@ const AddUser = () => {
                             e.currentTarget.clientWidth - 10
                           );
                         }}
-                        // enableVirtualization
+                        enableVirtualization
                       />
+                      <span className="Text-Enter">Press Enter to search</span>
                     </div>
                     {selectedUser && (
                       <div>
