@@ -21,7 +21,7 @@ import Typography from "apollo-react/components/Typography";
 import Link from "apollo-react/components/Link";
 import Grid from "apollo-react/components/Grid";
 import Modal from "apollo-react/components/Modal";
-
+import Close from "apollo-react-icons/Close";
 import {
   validateEmail,
   inviteExternalUser,
@@ -303,51 +303,69 @@ const AddUser = () => {
       setSelectedUserError({ ...selectedUserError, usr_mail_id: "" });
     }
   };
-  const getUserList = async (e) => {
-    const query = e.type === "keyup" ? e.target.value : searchQuery;
-    if (!query) {
-      if (userList.length) {
-        setUserList([]);
-      }
-      return;
-    }
-    setSearchQuery(query);
-    if (e.type === "keyup" && e.key !== "Enter" && query.length < 2) {
-      return;
-    }
+
+  const getUserList = async () => {
     setFetchStatus("loading");
-    debounceFunction(() => {
-      fetchADUsers(query).then((result) => {
-        const filtered =
-          result?.data?.map((u) => {
-            const { givenName, sn, displayName, mail } = u;
-            return {
-              ...u,
-              label: `${
-                givenName && sn ? `${givenName} ${sn}` : displayName
-              }\n\t(${mail})`,
-            };
-          }) || [];
-        filtered.sort(function (a, b) {
-          const conditionA = a.givenName || a.displayName;
-          const conditionB = b.givenName || b.displayName;
-          if (conditionA < conditionB) {
-            return -1;
-          }
-          if (conditionA > conditionB) {
-            return 1;
-          }
-          return 0;
-        });
-        if (result.status === 1) {
-          setUserList(filtered);
+    // debounceFunction(() => {
+
+    fetchADUsers(searchQuery).then((result) => {
+      const filtered =
+        result?.data?.map((u) => {
+          const { givenName, sn, displayName, mail } = u;
+          return {
+            ...u,
+            // value: u.sAMAccountName,
+            label: `${givenName && sn ? `${givenName} ${sn}` : displayName}-${
+              u.sAMAccountName
+            }\n\t(${mail})  `,
+          };
+        }) || [];
+      filtered.sort(function (a, b) {
+        const conditionA = a.givenName || a.displayName;
+        const conditionB = b.givenName || b.displayName;
+        if (conditionA < conditionB) {
+          return -1;
         }
-        setLoading(false);
-        if (result.status !== -1) {
-          setFetchStatus("success");
+        if (conditionA > conditionB) {
+          return 1;
         }
+        return 0;
       });
-    }, 500);
+      if (result.status === 1) {
+        console.log("testing");
+        setUserList([...filtered]);
+      }
+      setLoading(false);
+      if (result.status !== -1) {
+        setFetchStatus("success");
+      }
+    });
+    // }, 500);
+  };
+  const searchUserInfo = (e) => {
+    console.log(e);
+    if (e) {
+      getUserList();
+    }
+  };
+
+  const handleInput = (e) => {
+    console.log(e);
+    const query = e?.target?.value;
+    if (e?.keyCode === 13) {
+      searchUserInfo(true);
+    } else if (query) {
+      setSearchQuery(query);
+    } else if (query === "") {
+      setEmailExist(false);
+    }
+  };
+
+  const cancelSelectedUser = () => {
+    setSearchQuery("");
+    setEmailExist(false);
+    setSelectedUser(null);
+    setUserList([]);
   };
 
   const validNewUserDataCondition = () =>
@@ -763,20 +781,26 @@ const AddUser = () => {
                           setUserList([]);
                           setIsInFocus(false);
                         }}
-                        onInputChange={(e, v) => {
-                          if (v === "") setEmailExist(false);
-                        }}
                         popupIcon={
-                          <SearchIcon
-                            onClick={getUserList}
-                            fontSize="extraSmall"
-                          />
+                          selectedUser ? (
+                            <Close
+                              onClick={cancelSelectedUser}
+                              fontSize="extraSmall"
+                            />
+                          ) : (
+                            <SearchIcon
+                              onClick={(e) => searchUserInfo(true)}
+                              fontSize="extraSmall"
+                            />
+                          )
                         }
                         source={userList}
                         label="Name"
-                        placeholder="Search by name or email"
+                        placeholder="Search by UID or QID"
                         value={selectedUser}
-                        onKeyUp={getUserList}
+                        onKeyUp={(e) => {
+                          handleInput(e);
+                        }}
                         noOptionsText={
                           fetchStatus === "loading" ? (
                             <div className="flex-center flex justify-center">
@@ -784,7 +808,7 @@ const AddUser = () => {
                             </div>
                           ) : (
                             <>
-                              {searchQuery ? (
+                              {searchQuery && userList?.length === 0 ? (
                                 <div className="flex-center flex justify-center">
                                   No user found
                                 </div>
@@ -803,16 +827,30 @@ const AddUser = () => {
                             e.currentTarget.clientWidth - 10
                           );
                         }}
-                        // enableVirtualization
+                        enableVirtualization
                       />
+                      <span className="Text-Enter">Press Enter to search</span>
                     </div>
                     {selectedUser && (
-                      <Typography className="mt-4">
-                        <Label>Employee ID</Label>
-                        <Value className="ml-8">
-                          {selectedUser.sAMAccountName}
-                        </Value>
-                      </Typography>
+                      <div>
+                        <Typography className="mt-4">
+                          <Label>Name</Label>
+                          <Value className="ml-8">
+                            {`${selectedUser?.givenName} ${selectedUser?.sn}`}
+                          </Value>
+                        </Typography>
+
+                        <Typography className="mt-4">
+                          <Label>Email</Label>
+                          <Value className="ml-8">{selectedUser?.mail}</Value>
+                        </Typography>
+                        <Typography className="mt-4">
+                          <Label>Employee ID</Label>
+                          <Value className="ml-8">
+                            {selectedUser?.sAMAccountName}
+                          </Value>
+                        </Typography>
+                      </div>
                     )}
                     {!selectedUser && (
                       <Typography variant="body2" className="mt-4" gutterBottom>

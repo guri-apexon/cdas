@@ -324,16 +324,17 @@ exports.insertUserInDb = async (userDetails) => {
 
 exports.getUsersFromAD = async (query = "") => {
   const ad = new ActiveDirectory(ADConfig);
-  const mustMailFilter = `(mail=*)`;
-  const idFilter = `(|(sAMAccountName=u*)(sAMAccountName=q*))`;
-  const userFilter = `(objectCategory=person)(objectClass=user)(!(cn=*Group*))${mustMailFilter}${idFilter}`;
-  const emailFilter = `(mail=*${query}*)`;
-  const firstNameFilter = `(givenName=*${query}*)`;
-  const lastNameFilter = `(sn=*${query}*)`;
-  const displayNameFilter = `(displayName=*${query}*)`;
-  const filter = query
-    ? `(&${userFilter}(|${emailFilter}${firstNameFilter}${lastNameFilter}${displayNameFilter}))`
-    : `(&${userFilter})`;
+  const filter = `(sAMAccountName=${query})`;
+  // const mustMailFilter = `(mail=*)`;
+  // const idFilter = `(|(sAMAccountName=u*)(sAMAccountName=q*))`;
+  // const userFilter = `(objectCategory=person)(objectClass=user)(!(cn=*Group*))${mustMailFilter}${idFilter}`;
+  // const emailFilter = `(mail=*${query}*)`;
+  // const firstNameFilter = `(givenName=*${query}*)`;
+  // const lastNameFilter = `(sn=*${query}*)`;
+  // const displayNameFilter = `(displayName=*${query}*)`;
+  // const filter = query
+  //   ? `(&${userFilter}(|${emailFilter}${firstNameFilter}${lastNameFilter}${displayNameFilter}))`
+  //   : `(&${userFilter})`;
 
   const opts = {
     paged: true,
@@ -357,7 +358,7 @@ exports.getUsersFromAD = async (query = "") => {
     console.log("error: getUsersFromAD", err);
     return false;
   }
-};
+};;
 
 exports.getSDAuserDataByEmail = async (email) => {
   try {
