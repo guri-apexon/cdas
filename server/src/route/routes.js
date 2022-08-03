@@ -41,10 +41,10 @@ router.get("/v1/api/study/select-roles", RoleController.getBasicList);
 router.post("/v1/api/fsr-connect", CommonController.fsrConnect);
 router.get("/v1/api/get-sdk-users", CommonController.getSdkUsers);
 
-cron.schedule("0 */58 * * * *", () => {
-  StudyController.cronUpdateStatus();
-  console.log("running a task every 60 minute");
-});
+// cron.schedule("0 */58 * * * *", () => {
+//   StudyController.cronUpdateStatus();
+//   console.log("running a task every 60 minute");
+// });
 
 cron.schedule("0 */15 * * * *", () => {
   UserController.checkInvitedStatus();

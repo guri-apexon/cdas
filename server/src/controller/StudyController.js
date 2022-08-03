@@ -13,17 +13,17 @@ const { getTenantIdByNemonicNull } = require("../helpers/studyHelper");
 const { DB_SCHEMA_NAME: schemaName, FSR_HEADERS, FSR_API_URI } = constants;
 const userHelper = require("../helpers/userHelper");
 
-const updateStatus = async (studyId, status = "Success") => {
-  try {
-    if (!studyId) return false;
-    const query = `UPDATE ${schemaName}.study set ob_stat='${status}' WHERE prot_id='${studyId}';`;
-    const updated = await DB.executeQuery(query);
-    if (!updated) return false;
-    return true;
-  } catch (err) {
-    return false;
-  }
-};
+// const updateStatus = async (studyId, status = "Success") => {
+//   try {
+//     if (!studyId) return false;
+//     const query = `UPDATE ${schemaName}.study set ob_stat='${status}' WHERE prot_id='${studyId}';`;
+//     const updated = await DB.executeQuery(query);
+//     if (!updated) return false;
+//     return true;
+//   } catch (err) {
+//     return false;
+//   }
+// };
 
 const addOnboardedStudy = async (protNbrStnd, userId, insrt_tm) => {
   try {
@@ -111,29 +111,29 @@ const addOnboardedStudy = async (protNbrStnd, userId, insrt_tm) => {
   }
 };
 
-exports.cronUpdateStatus = async () => {
-  try {
-    const query = `SELECT prot_nbr_stnd, prot_id from study WHERE ob_stat='In Progress'`;
-    const result = await DB.executeQuery(query);
-    if (!result) return false;
-    const studies = result.rows || [];
-    if (!studies.length) return false;
+// exports.cronUpdateStatus = async () => {
+//   try {
+//     const query = `SELECT prot_nbr_stnd, prot_id from study WHERE ob_stat='In Progress'`;
+//     const result = await DB.executeQuery(query);
+//     if (!result) return false;
+//     const studies = result.rows || [];
+//     if (!studies.length) return false;
 
-    await Promise.all(
-      studies.map(async (study) => {
-        const { prot_id, prot_nbr_stnd } = study;
-        const status = await CommonController.fsrStudyStatus(prot_nbr_stnd);
-        await updateStatus(prot_id);
-      })
-    );
-    Logger.info({
-      message: "cronFinished",
-    });
-    return true;
-  } catch {
-    return false;
-  }
-};
+//     await Promise.all(
+//       studies.map(async (study) => {
+//         const { prot_id, prot_nbr_stnd } = study;
+//         const status = await CommonController.fsrStudyStatus(prot_nbr_stnd);
+//         await updateStatus(prot_id);
+//       })
+//     );
+//     Logger.info({
+//       message: "cronFinished",
+//     });
+//     return true;
+//   } catch {
+//     return false;
+//   }
+// };
 
 exports.onboardStudy = async function (req, res) {
   try {
