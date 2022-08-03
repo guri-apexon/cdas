@@ -644,9 +644,9 @@ const UserAssignmentTable = ({
   const CustomButtonHeader = ({ toggleFilters }) => {
     return (
       <div>
-        {targetUser?.usr_stat === "Active" && canUpdate && (
+        {(
           <>
-            <Button
+            {targetUser?.usr_stat === "Active" && canUpdate && <Button
               size="small"
               variant="secondary"
               icon={<PlusIcon size="small" />}
@@ -654,7 +654,7 @@ const UserAssignmentTable = ({
               onClick={() => setUserAssignmentModal(true)}
             >
               Add user assignment
-            </Button>
+            </Button>}
 
             <Button
               size="small"
