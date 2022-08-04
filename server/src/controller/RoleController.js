@@ -109,7 +109,7 @@ exports.listRoles = async function (req, res) {
     on pp.prod_permsn_id = ppp.prod_permsn_id
     LEFT join ${dbSchema}.product p2
     on p2.prod_id = pp.prod_id
-    where rp.act_flg=1 AND ppp.act_flg =1 `;
+    where coalesce(rp.act_flg,1)=1 AND  coalesce(ppp.act_flg,1)=1 `;
     let { rows } = await DB.executeQuery(q);
     let tempRows = _.uniqBy(rows, "role_id");
     let _Products = _.uniqBy(rows, "prod_nm");
