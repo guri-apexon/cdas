@@ -73,6 +73,14 @@
   }
   .study-table {
     background-color: #fff;
+    height: 600px;
+    .add-user-assignment-btn {
+      box-shadow: none;
+      margin-top: 10px;
+    }
+    .add-user-assignment-btn:hover {
+      border: 1px solid;
+    }
     tbody:before {
       content: "-";
       display: block;
@@ -85,14 +93,14 @@
   }
   .user-update-label {
     color: #444444;
-    font-family: "Proxima Nova" , sans-serif;
+    font-family: "Proxima Nova", sans-serif;
     font-size: 14px;
     letter-spacing: 0;
     font-weight: 500;
   }
   .user-update-font-500 {
     color: #000000;
-    font-family: "Proxima Nova" , sans-serif;
+    font-family: "Proxima Nova", sans-serif;
     font-size: 14px;
     font-weight: 600;
     letter-spacing: 0;
@@ -217,9 +225,14 @@
     padding: 8px;
   }
 }
+.study,
+.role {
+  height: 40px;
+}
 .study-table div {
   div[class*=" Table-scrollRoot-"] {
     @extend .customscroll;
+    overflow-x: hidden;
   }
 }
 .MuiTableRow-root {
@@ -240,4 +253,7 @@
 }
 .user-assignment-loader {
   background: transparent;
+}
+.role .role-elipsis {
+  cursor: pointer;
 }

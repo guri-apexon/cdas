@@ -20,6 +20,7 @@ import Link from "apollo-react/components/Link";
 import Grid from "apollo-react/components/Grid";
 import Modal from "apollo-react/components/Modal";
 import Tag from "apollo-react/components/Tag";
+import Loader from "apollo-react/components/Loader";
 
 import {
   validateEmail,
@@ -139,6 +140,7 @@ const AddUser = () => {
   const [isEditMode, setEditMode] = useState();
   const routerHandle = useRef();
   const [targetRoute, setTargetRoute] = useState("");
+  const [toggleStatus, setToggleStatus] = useState(false);
 
   const unblockRouter = () => {
     dispatch(formComponentInActive());
@@ -205,6 +207,7 @@ const AddUser = () => {
   };
 
   const checkUserTypeAndUpdate = async (checked) => {
+    setToggleStatus(true);
     setLoading(true);
     const userType = targetUser.usr_typ;
     const payload = {
@@ -215,12 +218,13 @@ const AddUser = () => {
       firstName: targetUser.usr_fst_nm,
       lastName: targetUser.usr_lst_nm,
       employeeId: targetUser.extrnl_emp_id,
-      changed_to: checked ? "active" : "inactive",
+      changed_to: checked ? "Active" : "InActive",
     };
     const res = await updateUserStatus(payload);
     setInactiveStudyRoles(res?.data);
     await getUserAPI();
     setLoading(false);
+    setToggleStatus(false);
     // updateUserStatus(userId, "In Active");
     // setShowRolePopup(true);
   };
@@ -230,7 +234,7 @@ const AddUser = () => {
     checkUserTypeAndUpdate(checked);
     setTargetUser({
       ...targetUser,
-      usr_stat: checked ? "Active" : "In Active",
+      usr_stat: checked ? "Active" : "InActive",
     });
   };
   const cancelEdit = () => {
@@ -287,7 +291,7 @@ const AddUser = () => {
 
   const isUserInvited = () => {
     const userStatus = targetUser?.formatted_stat;
-    return userStatus?.trim()?.toLowerCase() === "invited" ? true : false;
+    return userStatus === "Invited" ? true : false;
   };
 
   const resendInvitation = async () => {
@@ -357,6 +361,9 @@ const AddUser = () => {
     <div className="create-user-wrapper">
       {isShowAlertBox && (
         <AlertBox cancel={keepEditingBtn} submit={leavePageBtn} />
+      )}
+      {toggleStatus && (
+        <Loader isInner overlayClassName="user-assignment-loader" />
       )}
       {/* {isAnyUpdate && (
         <ConfirmModal
@@ -521,7 +528,7 @@ const AddUser = () => {
                   Employee ID
                   <div className="ml-3">
                     <div className="user-update-font-500">
-                      {targetUser?.usr_id || targetUser?.extrnl_emp_id}
+                      { targetUser?.usr_typ?.toLowerCase() === "internal" ? targetUser?.usr_id : targetUser?.extrnl_emp_id}
                     </div>
                   </div>
                 </Typography>
@@ -529,7 +536,6 @@ const AddUser = () => {
             </Box>
           </Grid>
           <Grid item xs={9} className="contacts-wrapper">
-            <div className="study-table">
               <UserAssignmentTable
                 userId={userId}
                 targetUser={targetUser}
@@ -543,8 +549,8 @@ const AddUser = () => {
                 setParentLoading={setLoading}
                 setEditMode={setEditMode}
                 isEditMode={isEditMode}
+                unblockRouter={unblockRouter}
               />
-            </div>
           </Grid>
         </Grid>
       </div>

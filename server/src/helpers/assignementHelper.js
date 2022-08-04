@@ -175,6 +175,7 @@ exports.insertUserStudyRoleAllNone = async (
     INSERT INTO ${schemaName}.study_user (usr_id, act_flg,insrt_tm, updt_tm)  
     VALUES('${usr_id}',1,'${createdOn}','${createdOn}')`;
 
+  // TODO: prot id should not be null in study_user. for all study mark all as active?
   const updateStudyUserQuery = `
     UPDATE ${schemaName}.study_user 
     SET  act_flg=1, updt_tm='${createdOn}'
@@ -233,22 +234,76 @@ exports.assignmentCleanUpFunction = async (userId) => {
   }
 };
 
-exports.inactiveAllUserStudies = async (userId) => {
+exports.inactiveAllUserStudies = async (
+  userId,
+  protId,
+  createdBy,
+  createdOn
+) => {
   Logger.info({
-    message: "inactiveAllUserStudies - begin",
+    message: `inactiveAllUserStudies ${
+      protId ? `with protId:${protId} ` : ""
+    }- begin`,
   });
 
   try {
+    let where = "";
+    if (protId) {
+      if (protId === STUDY_IDS.ALL_STUDY) {
+        where = `and study_asgn_typ = '${STUDY_LABELS.ALL_STUDY}'`;
+      } else if (protId === STUDY_IDS.NO_STUDY) {
+        where = `and study_asgn_typ = '${STUDY_LABELS.NO_STUDY}'`;
+      } else {
+        where = `and prot_id = '${protId}'`;
+      }
+    }
     // Inactivate all User Studies
-    const query = `update ${schemaName}.study_user_role set act_flg=0 where usr_id = '${userId}'`;
-    const query2 = `update ${schemaName}.study_user set act_flg=0 where usr_id = '${userId}'`;
-    const r = await DB.executeQuery(query);
-    const r1 = await DB.executeQuery(query2);
+    const query = `update ${schemaName}.study_user_role set act_flg=0 where usr_id = '${userId}' ${where} RETURNING *`;
+    let query2 = `update ${schemaName}.study_user set act_flg=0 where usr_id = '${userId}' ${where}`;
+    const r1 = await DB.executeQuery(query);
+
+    if (protId !== STUDY_IDS.NO_STUDY) {
+      if (protId === STUDY_IDS.ALL_STUDY) {
+        // Don't delete study_user record for normal studies
+        const separateStudiesQuery = `select * from ${schemaName}.study_user_role where usr_id = '${userId}' and study_asgn_typ is null`;
+        const separateStudies = await DB.executeQuery(separateStudiesQuery);
+
+        if (separateStudies.rows.length) {
+          query2 = `update ${schemaName}.study_user set act_flg=0 where usr_id = '${userId}' and prot_id not in (${separateStudies.rows
+            .map((data) => `'${data.prot_id}'`)
+            .join(", ")})`;
+        } else {
+          query2 = `update ${schemaName}.study_user set act_flg=0 where usr_id = '${userId}'`;
+        }
+      }
+
+      const r2 = await DB.executeQuery(query2);
+    }
+
+    if (
+      protId &&
+      !Object.values(STUDY_IDS).includes(protId) &&
+      r1?.rows[0]?.prot_usr_role_id
+    ) {
+      await insertAuditLog(
+        r1?.rows[0].prot_usr_role_id,
+        "act_flg",
+        1,
+        0,
+        createdBy,
+        createdOn
+      );
+    }
+
     Logger.info({
-      message: "inactiveAllUserStudies - end",
+      message: `inactiveAllUserStudies ${
+        protId ? `with protId:${protId} ` : ""
+      }- end`,
     });
   } catch (e) {
-    Logger.error("inactiveAllUserStudies  > " + e);
+    Logger.error(
+      `inactiveAllUserStudies ${protId ? `with protId:${protId} ` : ""} > ` + e
+    );
   }
 };
 
@@ -475,7 +530,10 @@ exports.updateAssignments = async (protocols, user, createdBy, createdOn) => {
           createdBy || "",
           createdOn || getCurrentTime()
         );
-        if (!result.success) {
+        if (result.success) {
+          protocolsInserted += result.protocolsInserted;
+          studyRolesUserInserted += result.studyRolesUserInserted;
+        } else {
           Logger.error(
             "assignmentCreate > saveToDb > AllStudyNoStudy > " +
               JSON.stringify(protocol)
@@ -491,8 +549,7 @@ exports.updateAssignments = async (protocols, user, createdBy, createdOn) => {
           createdOn || getCurrentTime()
         );
         if (result.success) {
-          protocolsInserted += result.protocolsInserted;
-          studyRolesUserInserted += result.studyRolesUserInserted;
+          protocolsInserted += result?.changeCount;
         } else {
           Logger.error("assignmentCreate > saveToDb > " + protocol.name);
           success = false;

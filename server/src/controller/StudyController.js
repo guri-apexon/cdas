@@ -13,17 +13,17 @@ const { getTenantIdByNemonicNull } = require("../helpers/studyHelper");
 const { DB_SCHEMA_NAME: schemaName, FSR_HEADERS, FSR_API_URI } = constants;
 const userHelper = require("../helpers/userHelper");
 
-const updateStatus = async (studyId, status = "Success") => {
-  try {
-    if (!studyId) return false;
-    const query = `UPDATE ${schemaName}.study set ob_stat='${status}' WHERE prot_id='${studyId}';`;
-    const updated = await DB.executeQuery(query);
-    if (!updated) return false;
-    return true;
-  } catch (err) {
-    return false;
-  }
-};
+// const updateStatus = async (studyId, status = "Success") => {
+//   try {
+//     if (!studyId) return false;
+//     const query = `UPDATE ${schemaName}.study set ob_stat='${status}' WHERE prot_id='${studyId}';`;
+//     const updated = await DB.executeQuery(query);
+//     if (!updated) return false;
+//     return true;
+//   } catch (err) {
+//     return false;
+//   }
+// };
 
 const addOnboardedStudy = async (protNbrStnd, userId, insrt_tm) => {
   try {
@@ -33,10 +33,9 @@ const addOnboardedStudy = async (protNbrStnd, userId, insrt_tm) => {
     );
     const study = result.rows[0] || null;
     if (!study) return false;
-    const uniqueId = helper.createUniqueID();
+    // const uniqueId = helper.createUniqueID();
     const userDesc = "mdm study import";
     const valueArr = [
-      uniqueId,
       study.prot_nbr,
       study.prot_nbr_stnd,
       study.proj_cd,
@@ -51,14 +50,13 @@ const addOnboardedStudy = async (protNbrStnd, userId, insrt_tm) => {
       insrt_tm,
     ];
     const insertQuery = `INSERT INTO ${schemaName}.study
-    (prot_id, prot_nbr, prot_nbr_stnd, proj_cd, phase, prot_stat, ob_stat, usr_id, usr_descr, active, thptc_area, insrt_tm, updt_tm, prot_mnemonic_nm)
-    VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $3) RETURNING *;`;
+    (prot_nbr, prot_nbr_stnd, proj_cd, phase, prot_stat, ob_stat, usr_id, usr_descr, active, thptc_area, insrt_tm, updt_tm, prot_mnemonic_nm)
+    VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $2) RETURNING *;`;
     const result1 = await DB.executeQuery(insertQuery, valueArr);
     const insertedStudy = result1.rows[0] || null;
     if (!insertedStudy) return false;
     const tenantId = await getTenantIdByNemonicNull();
     const sponsorValueArr = [
-      uniqueId,
       study.spnsr_nm,
       study.spnsr_nm_stnd,
       tenantId,
@@ -68,10 +66,38 @@ const addOnboardedStudy = async (protNbrStnd, userId, insrt_tm) => {
       insrt_tm,
       insrt_tm,
     ];
-    const insertSponQuery = `INSERT INTO ${schemaName}.sponsor (spnsr_id, spnsr_nm, spnsr_nm_stnd, tenant_id, usr_id, usr_descr, active, insrt_tm, updt_tm, spnsr_mnemonic_nm) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $3) ON CONFLICT (spnsr_nm) DO UPDATE SET spnsr_nm=EXCLUDED.spnsr_nm returning *;`;
-    const result2 = await DB.executeQuery(insertSponQuery, sponsorValueArr);
-    const sponsor = result2.rows[0] || sponsor;
-    if (!sponsor) return false;
+    // const insertSponQuery = `INSERT INTO ${schemaName}.sponsor (spnsr_nm, spnsr_nm_stnd, tenant_id, usr_id, usr_descr, active, insrt_tm, updt_tm, spnsr_mnemonic_nm)
+    // VALUES($1, $2, $3, $4, $5, $6, $7, $8, $2) ON CONFLICT (spnsr_mnemonic_nm)
+    //  DO UPDATE SET spnsr_nm=EXCLUDED.spnsr_nm,spnsr_nm_stnd=EXCLUDED.spnsr_nm_stnd, usr_id =EXCLUDED.usr_id , updt_tm=EXCLUDED.updt_tm  returning *;`;
+
+    const query_get_sponsor = `SELECT * from ${schemaName}.sponsor where spnsr_mnemonic_nm ='${study.spnsr_nm_stnd}' `;
+    const sponsor_exists = await DB.executeQuery(query_get_sponsor);
+
+    let sponsor_query;
+    let dataArray = [];
+    if (sponsor_exists.rowCount > 0) {
+      if (
+        sponsor_exists?.rows[0]?.spnsr_nm !== study.spnsr_nm ||
+        sponsor_exists?.rows[0]?.spnsr_nm_stnd !== study.spnsr_nm_stnd
+      ) {
+        // 4 , 8
+        sponsor_query = `UPDATE ${schemaName}.sponsor SET spnsr_nm=$1,spnsr_nm_stnd=$2,usr_id=$3,updt_tm=$4  returning * `;
+        dataArray = [study.spnsr_nm, study.spnsr_nm_stnd, userId, insrt_tm];
+      }
+    } else {
+      sponsor_query = ` INSERT INTO ${schemaName}.sponsor (spnsr_nm, spnsr_nm_stnd, tenant_id, usr_id, usr_descr, active, insrt_tm, updt_tm, spnsr_mnemonic_nm) 
+     VALUES($1, $2, $3, $4, $5, $6, $7, $8, $2) returning *`;
+      dataArray = [...sponsorValueArr];
+    }
+
+    let sponsor;
+    if (sponsor_query) {
+      const result2 = await DB.executeQuery(sponsor_query, dataArray);
+      sponsor = result2?.rows[0] || sponsor;
+      if (!sponsor) return false;
+    } else {
+      sponsor = sponsor_exists?.rows[0];
+    }
 
     const studySposrQuery = `INSERT INTO ${schemaName}.study_sponsor
     (prot_id, spnsr_id)
@@ -85,29 +111,29 @@ const addOnboardedStudy = async (protNbrStnd, userId, insrt_tm) => {
   }
 };
 
-exports.cronUpdateStatus = async () => {
-  try {
-    const query = `SELECT prot_nbr_stnd, prot_id from study WHERE ob_stat='In Progress'`;
-    const result = await DB.executeQuery(query);
-    if (!result) return false;
-    const studies = result.rows || [];
-    if (!studies.length) return false;
+// exports.cronUpdateStatus = async () => {
+//   try {
+//     const query = `SELECT prot_nbr_stnd, prot_id from study WHERE ob_stat='In Progress'`;
+//     const result = await DB.executeQuery(query);
+//     if (!result) return false;
+//     const studies = result.rows || [];
+//     if (!studies.length) return false;
 
-    await Promise.all(
-      studies.map(async (study) => {
-        const { prot_id, prot_nbr_stnd } = study;
-        const status = await CommonController.fsrStudyStatus(prot_nbr_stnd);
-        await updateStatus(prot_id);
-      })
-    );
-    Logger.info({
-      message: "cronFinished",
-    });
-    return true;
-  } catch {
-    return false;
-  }
-};
+//     await Promise.all(
+//       studies.map(async (study) => {
+//         const { prot_id, prot_nbr_stnd } = study;
+//         const status = await CommonController.fsrStudyStatus(prot_nbr_stnd);
+//         await updateStatus(prot_id);
+//       })
+//     );
+//     Logger.info({
+//       message: "cronFinished",
+//     });
+//     return true;
+//   } catch {
+//     return false;
+//   }
+// };
 
 exports.onboardStudy = async function (req, res) {
   try {
@@ -121,12 +147,23 @@ exports.onboardStudy = async function (req, res) {
     } = req.body;
     Logger.info({ message: "onboardStudy" });
     console.log(">>> onboard", req.body);
+
+    const studyExists = await DB.executeQuery(
+      `select * from ${schemaName}.study where prot_nbr_stnd = '${studyId}';`
+    );
+    if (studyExists?.rows?.length) {
+      return apiResponse.ErrorResponse(
+        res,
+        "Study Onboarding request already created for the given StudyId"
+      );
+    }
     axios
       .post(
         `${FSR_API_URI}/study/onboard`,
         {
           sponsorName,
           studyId,
+          rwUsers: process.env.FSR_RW_USERS_KEY,
         },
         {
           headers: FSR_HEADERS,
@@ -136,6 +173,12 @@ exports.onboardStudy = async function (req, res) {
         const onboardStatus = response?.data?.code || null;
         let insertedStudy = null;
         if (onboardStatus === 202 || onboardStatus === 200) {
+          const responseData = {
+            ...response?.data,
+            message:
+              "Study onboarding initiated successfully. Please wait for 3 hour(s) to check the status and get the required access reflected in the corresponding environment.",
+          };
+
           try {
             insertedStudy = await addOnboardedStudy(studyId, userId, insrt_tm);
             if (!insertedStudy)
@@ -170,7 +213,7 @@ exports.onboardStudy = async function (req, res) {
                 return apiResponse.successResponseWithData(
                   res,
                   "Operation success",
-                  response?.data
+                  responseData
                 );
               })
               .catch((err) => {
@@ -190,7 +233,7 @@ exports.onboardStudy = async function (req, res) {
             return apiResponse.successResponseWithData(
               res,
               "Onboarding successfull",
-              response?.data
+              responseData
             );
           }
         } else {
@@ -211,10 +254,10 @@ exports.onboardStudy = async function (req, res) {
 
 exports.studyList = function (req, res) {
   try {
-    const searchParam = req.params.query.toLowerCase();
-    const searchQuery = `SELECT ms.prot_nbr, ms.prot_nbr_stnd, ms.spnsr_nm, ms.spnsr_nm_stnd, ms.proj_cd, ms.phase, ms.prot_status, ms.thptc_area, s.ob_stat from ${schemaName}.mdm_study ms
-    FULL OUTER JOIN ${schemaName}.study s ON ms.prot_nbr = s.prot_nbr
-    WHERE  ob_stat !='Failed' and (LOWER(ms.prot_nbr) LIKE '%${searchParam}%' OR 
+    const searchParam = req?.params?.query?.toLowerCase();
+    const searchQuery = `SELECT s.prot_id, ms.prot_nbr, ms.prot_nbr_stnd, ms.spnsr_nm, ms.spnsr_nm_stnd, ms.proj_cd, ms.phase, ms.prot_status, ms.thptc_area, s.ob_stat from ${schemaName}.mdm_study ms
+    FULL OUTER JOIN ${schemaName}.study s ON ms.prot_nbr_stnd = s.prot_nbr_stnd
+    WHERE ob_stat !='Failed' and (LOWER(ms.prot_nbr) LIKE '%${searchParam}%' OR 
     LOWER(ms.spnsr_nm) LIKE '%${searchParam}%' OR 
     LOWER(ms.proj_cd) LIKE '%${searchParam}%')
     AND ms.spnsr_nm_stnd !='' AND ms.prot_nbr_stnd !=''
@@ -223,8 +266,8 @@ exports.studyList = function (req, res) {
     Logger.info({ message: "studyList" });
 
     DB.executeQuery(searchQuery).then((response) => {
-      const studies = response.rows || [];
-      if (studies.length > 0) {
+      const studies = response?.rows || [];
+      if (studies?.length > 0) {
         return apiResponse.successResponseWithData(
           res,
           "Operation success",

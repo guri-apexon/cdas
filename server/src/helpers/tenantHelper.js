@@ -9,7 +9,8 @@ const { DB_SCHEMA_NAME: schemaName } = constants;
  * @returns returns tenant_id, false otherwise
  */
 exports.findByName = async (tenant_nm) => {
-  const query = `SELECT tenant_id FROM ${schemaName}.tenant WHERE tenant_nm = '${tenant_nm}' LIMIT 1`;
+  // const query = `SELECT tenant_id FROM ${schemaName}.tenant WHERE tenant_nm = '${tenant_nm}' LIMIT 1`;
+  const query = `select * from ${schemaName}.tenant t where tenant_mnemonic_nm is null or tenant_mnemonic_nm ='' LIMIT 1`;
   try {
     const result = await DB.executeQuery(query);
     if (result.rowCount > 0) return result.rows[0].tenant_id;
@@ -47,7 +48,8 @@ exports.insertTenantUser = async (usr_id, tenant_id) => {
 
 exports.getFirstTenant = async () => {
   // Fetch First Tenet
-  const query = `SELECT tenant_nm, tenant_id FROM ${schemaName}.tenant LIMIT 1`;
+  // const query = `SELECT tenant_nm, tenant_id FROM ${schemaName}.tenant LIMIT 1`;
+  const query = `SELECT tenant_nm, tenant_id FROM ${schemaName}.tenant WHERE tenant_mnemonic_nm is null LIMIT 1`;
   try {
     const result = await DB.executeQuery(query);
     if (result.rowCount > 0) {

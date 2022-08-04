@@ -5,6 +5,7 @@ const axios = require("axios");
 const userHelper = require("../helpers/userHelper");
 const studyHelper = require("../helpers/studyHelper");
 const tenantHelper = require("../helpers/tenantHelper");
+const assignmentHelper = require("../helpers/assignementHelper");
 const commonHelper = require("../helpers/commonHelper");
 const apiResponse = require("../helpers/apiResponse");
 const constants = require("../config/constants");
@@ -100,13 +101,14 @@ exports.listUsers = async function (req, res) {
               ? e?.usr_id
               : e?.extrnl_emp_id;
           let status;
-          if (e?.usr_stat == "in active" || e?.usr_stat == "inactive") {
-            status = "Inactive";
-          } else if (e?.usr_stat == "active") {
-            status = "Active";
-          } else if (e?.usr_stat == "invited") {
-            status = "Invited";
-          } else if (e?.usr_stat == null) {
+          // if (e?.usr_stat == "InActive") {
+          //   status = "InActive";
+          // } else if (e?.usr_stat == "active") {
+          //   status = "Active";
+          // } else if (e?.usr_stat == "Invited") {
+          //   status = "Invited";
+          // } else
+          if (e?.usr_stat == null) {
             status = "Active";
           } else {
             status = e?.usr_stat;
@@ -142,7 +144,15 @@ exports.getUserDetail = async function (req, res) {
   const userId = req.query.userId;
   try {
     return await DB.executeQuery(
-      `SELECT u.*, ut.tenant_id, CASE WHEN LOWER(TRIM(u.usr_stat)) IN ('in active', 'inactive') THEN 'Inactive' WHEN LOWER(TRIM(u.usr_stat)) IN ('active') THEN 'Active' WHEN LOWER(TRIM(u.usr_stat)) IN ('invited') THEN 'Invited' WHEN u.usr_stat IS NULL THEN 'Active' ELSE TRIM(u.usr_stat) END AS formatted_stat from ${schemaName}.user u left join ${schemaName}.user_tenant ut on ut.usr_id = u.usr_id WHERE u.usr_id='${userId}'`
+      // `SELECT u.*, ut.tenant_id, CASE WHEN LOWER(TRIM(u.usr_stat)) IN ('in active', 'inactive')
+      // THEN 'Inactive' WHEN LOWER(TRIM(u.usr_stat)) IN ('active') THEN 'Active'
+      // WHEN LOWER(TRIM(u.usr_stat)) IN ('invited') THEN 'Invited'
+      // WHEN u.usr_stat IS NULL THEN 'Active'
+      // ELSE TRIM(u.usr_stat) END AS formatted_stat from
+      //  ${schemaName}.user u left join ${schemaName}.
+      // user_tenant ut on ut.usr_id = u.usr_id WHERE u.usr_id='${userId}'`
+      `select u.*, ut.tenant_id, u.usr_stat as formatted_stat from ${schemaName}.user u 
+      left join ${schemaName}.user_tenant ut on ut.usr_id = u.usr_id where u.usr_id = '${userId}'`
     )
       .then((response) => {
         const user = response?.rows?.[0] || {};
@@ -539,6 +549,8 @@ exports.deleteNewUser = async (req, res) => {
                     "FSR Revoke internal API Failed "
                   );
                 }
+              } else { 
+                fsr_status  = true;
               }
             }
 
@@ -596,14 +608,18 @@ exports.secureApi = async (req, res) => {
 exports.getUserStudyAndRoles = async function (req, res) {
   try {
     const userId = req.query.userId;
-    const userStudyQuery = `select MAIN.*, r1.role_nm, s1.prot_nbr_stnd  from ( select study_asgn_typ prot_id,usr_id,role_id
+    const userStudyQuery = `select MAIN.prot_id,MAIN.usr_id,MAIN.role_id, r1.role_nm, s1.prot_nbr_stnd from ( select study_asgn_typ prot_id,usr_id,role_id,act_flg
       from ${schemaName}.study_user_role where usr_id = '${userId}' and study_asgn_typ is not null
-      group by study_asgn_typ,usr_id,role_id
+      group by study_asgn_typ,usr_id,role_id,act_flg
       union all
-      select prot_id,usr_id,role_id
-      from ${schemaName}.study_user_role where usr_id = '${userId}' and study_asgn_typ is null) MAIN
+      select prot_id,usr_id,role_id,act_flg
+      from ${schemaName}.study_user_role where usr_id = '${userId}'
+      and study_asgn_typ is null
+      ) MAIN
       left join study s1 on s1.prot_id = MAIN.prot_id
-      left join role r1 on r1.role_id = MAIN.role_id WHERE r1.role_stat = 1`;
+      join "user" u on (main.usr_id=u.usr_id)
+      left join role r1 on r1.role_id = MAIN.role_id
+      WHERE (u.usr_stat ='Active' and r1.role_stat = 1 and main.act_flg=1) or (u.usr_stat !='Active');`;
 
     const userStudies = await DB.executeQuery(userStudyQuery).then(
       (response) => {
@@ -739,7 +755,7 @@ exports.updateUserStatus = async (req, res) => {
   newReq.body["updt_tm"] = getCurrentTime(true);
 
   try {
-    if (userStatus === "inactive") {
+    if (userStatus === "InActive") {
       // Fetch First Tenant fi tenant id not present
       if (!newReq?.body?.tenant_id) {
         const tenant = await tenantHelper.getFirstTenant();
@@ -747,7 +763,7 @@ exports.updateUserStatus = async (req, res) => {
       }
 
       const response = await this.deleteNewUser(newReq, res);
-    } else if (userStatus === "active") {
+    } else if (userStatus === "Active") {
       const data = {
         uid: user_id,
         firstName: firstName,
@@ -759,18 +775,26 @@ exports.updateUserStatus = async (req, res) => {
       let returnRes = [];
 
       let provision_response = null;
+      const handleDuplicateEntity = true;
       if (user_type === "internal") {
-        provision_response = await userHelper.provisionInternalUser(data);
+        provision_response = await userHelper.provisionInternalUser(
+          data,
+          handleDuplicateEntity
+        );
       } else if (user_type === "external") {
-        provision_response = await userHelper.provisionExternalUser(data);
+        provision_response = await userHelper.provisionExternalUser(
+          data,
+          handleDuplicateEntity
+        );
       }
 
-      if (provision_response) {
+      // Due to DB data mismatch this error may come provision_response === "DUPLICATE_ENTITY"
+      if (provision_response || provision_response === "DUPLICATE_ENTITY") {
         const empId = user_type === "internal" ? user_id : employeeId;
         await userHelper.makeUserActive(user_id, empId);
 
         const { rows: getStudies } = await DB.executeQuery(
-          `SELECT * from ${schemaName}.study_user WHERE usr_id='${user_id}'`
+          `select distinct prot_id from ${schemaName}.study_user_role where usr_id = '${user_id}'`
         );
 
         const createdOn = getCurrentTime(true);
@@ -788,16 +812,17 @@ exports.updateUserStatus = async (req, res) => {
               `SELECT * from ${schemaName}.study WHERE prot_id='${prtId}'`
             );
             let grantStudy = null;
-            if (user_type === "internal") {
-              grantStudy = await studyHelper.studyGrant(
-                studyObj.prot_nbr_stnd,
-                user_id,
-                updatedBy,
-                createdOn
-              );
-            } else if (user_type === "external") {
-              grantStudy = true;
-            }
+            // if (user_type === "internal") {
+            //   grantStudy = await studyHelper.studyGrant(
+            //     studyObj.prot_nbr_stnd,
+            //     user_id,
+            //     updatedBy,
+            //     createdOn
+            //   );
+            // } else if (user_type === "external") {
+            //   grantStudy = true;
+            // }
+            grantStudy = true;
             if (grantStudy) {
               const studyUpdate = await DB.executeQuery(
                 `update ${schemaName}.study_user set act_flg=1 , insrt_tm='${createdOn}' WHERE prot_id='${prtId}' and usr_id='${user_id}'`
@@ -861,8 +886,11 @@ exports.updateUserStatus = async (req, res) => {
 
 exports.checkInvitedStatus = async () => {
   try {
-    const statusCase = `LOWER(TRIM(usr_stat))`;
-    const query = `SELECT usr_id as uid, usr_mail_id as email, extrnl_emp_id as employee_id, usr_typ as user_type, sda_usr_key as user_key, ${statusCase} as status from ${schemaName}.user where (${statusCase} = 'invited')`;
+    // const statusCase = `LOWER(TRIM())`;
+    const query = `SELECT usr_id as uid, usr_mail_id as email, 
+    extrnl_emp_id as employee_id, 
+    usr_typ as user_type, sda_usr_key as user_key, 
+    usr_stat as status from ${schemaName}.user where (usr_stat = 'invited')`;
     const result = await DB.executeQuery(query);
     if (!result) return false;
 
@@ -881,8 +909,9 @@ exports.checkInvitedStatus = async () => {
           employee_id: employeeId = "",
           uid,
         } = invitedUser;
+        console.log(invitedUser);
 
-        if (status === "invited") {
+        if (status === "Invited") {
           const SDAStatus = await userHelper.getSDAUserStatus(userKey, email);
           if (SDAStatus) {
             console.log(`*mariking invited ${email} as active`);
@@ -954,35 +983,95 @@ exports.updateUserAssignments = async (req, res) => {
 };
 
 exports.deleteUserAssignments = async (req, res) => {
-  const newReq = { ...req };
-  const query = `SELECT tenant_nm FROM ${schemaName}.tenant LIMIT 1`;
+  Logger.info({
+    message: "deleteUserAssignments - begin",
+  });
   try {
-    const result = await DB.executeQuery(query);
-    if (result.rowCount > 0) {
-      newReq.body["tenant"] = result.rows[0].tenant_nm;
-    } else {
-      return apiResponse.ErrorResponse(res, "Tenant does not exists");
-    }
-  } catch (error) {
-    return apiResponse.ErrorResponse(res, "Unable to fetch tenant");
-  }
-  newReq.body["createdBy"] = req.body.updatedBy;
-  newReq.body["updatedBy"] = req.body.updatedBy;
-  newReq.body["createdOn"] = getCurrentTime();
+    const newReq = { ...req, returnBool: true };
+    newReq.body["createdBy"] = newReq.body.updatedBy;
+    newReq.body["createdOn"] = getCurrentTime();
 
-  const assignmentResponse = AssignmentController.assignmentRemove(
-    newReq,
-    res,
-    true
-  );
-  if (assignmentResponse) {
-    return apiResponse.successResponse(
+    const {
+      protocol: { id: protId } = {},
+      createdBy,
+      createdOn,
+      email,
+    } = newReq.body;
+
+    const query = `SELECT tenant_nm FROM ${schemaName}.tenant LIMIT 1`;
+
+    if (!protId) {
+      return apiResponse.ErrorResponse(res, "Protocol is required");
+    }
+
+    try {
+      const result = await DB.executeQuery(query);
+      if (result.rowCount > 0) {
+        newReq.body["tenant"] = result.rows[0].tenant_nm;
+      } else {
+        return apiResponse.ErrorResponse(res, "Tenant does not exists");
+      }
+    } catch (error) {
+      return apiResponse.ErrorResponse(res, "Unable to fetch tenant");
+    }
+
+    // validate user
+    const user = await userHelper.findByEmail(email);
+    if (!user) return apiResponse.ErrorResponse(res, "User does not exists");
+
+    await assignmentHelper.inactiveAllUserStudies(
+      user.usr_id,
+      protId,
+      createdBy,
+      createdOn
+    );
+
+    await assignmentHelper.assignmentCleanUpFunction(user.usr_id);
+
+    Logger.info({
+      message: "deleteUserAssignments - end",
+    });
+    return apiResponse.successResponse(res, `Assignment removed successfully.`);
+  } catch (e) {
+    Logger.error("catch: deleteUserAssignments");
+    Logger.error(e);
+    return apiResponse.ErrorResponse(
       res,
-      `Assignments Updated Successfully.`
+      "Unable to remove assignments – please try again or report problem to the system administrator"
     );
   }
-  return apiResponse.ErrorResponse(
-    res,
-    "Unable to add upate assignments – please try again or report problem to the system administrator"
-  );
 };
+
+// exports.deleteUserAssignments = async (req, res) => {
+//   const newReq = { ...req };
+//   const query = `SELECT tenant_nm FROM ${schemaName}.tenant LIMIT 1`;
+//   try {
+//     const result = await DB.executeQuery(query);
+//     if (result.rowCount > 0) {
+//       newReq.body["tenant"] = result.rows[0].tenant_nm;
+//     } else {
+//       return apiResponse.ErrorResponse(res, "Tenant does not exists");
+//     }
+//   } catch (error) {
+//     return apiResponse.ErrorResponse(res, "Unable to fetch tenant");
+//   }
+//   newReq.body["createdBy"] = req.body.updatedBy;
+//   newReq.body["updatedBy"] = req.body.updatedBy;
+//   newReq.body["createdOn"] = getCurrentTime();
+
+//   const assignmentResponse = AssignmentController.assignmentRemove(
+//     newReq,
+//     res,
+//     true
+//   );
+//   if (assignmentResponse) {
+//     return apiResponse.successResponse(
+//       res,
+//       `Assignments Updated Successfully.`
+//     );
+//   }
+//   return apiResponse.ErrorResponse(
+//     res,
+//     "Unable to add upate assignments – please try again or report problem to the system administrator"
+//   );
+// };

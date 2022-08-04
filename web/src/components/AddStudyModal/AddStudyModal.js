@@ -160,7 +160,14 @@ const AddStudyModal = ({ open, onClose }) => {
     debounceFunction(async () => {
       setLoading(true);
       const newStudies = await searchStudy(newValue);
-      setStudies(newStudies);
+      setStudies(
+        newStudies
+          ? newStudies.map((ns) => ({
+              ...ns,
+              uuid: `${ns.prot_id}-${ns.prot_nbr_stnd}`,
+            }))
+          : []
+      );
       setLoading(false);
     }, 1000);
   };
@@ -237,7 +244,7 @@ const AddStudyModal = ({ open, onClose }) => {
                 isLoading={loading}
                 columns={columns}
                 rows={studies}
-                rowId="employeeId"
+                rowId="uuid"
                 hidePagination
                 maxHeight="40vh"
                 emptyProps={{

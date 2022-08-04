@@ -76,7 +76,7 @@ exports.isUserAlreadyProvisioned = async (email) => {
  * @param {object} uid, updatedBy
  * @returns uid on success false otherwise
  */
-exports.provisionInternalUser = async (data) => {
+exports.provisionInternalUser = async (data, handleDuplicateEntity) => {
   const { uid: networkId, updatedBy } = data;
   const userType = "internal";
   const roleType = "Reader";
@@ -88,6 +88,12 @@ exports.provisionInternalUser = async (data) => {
     return response.status === 200 ? networkId : false;
   } catch (error) {
     console.log("Internal user provision error", data, error);
+    if (
+      handleDuplicateEntity &&
+      error?.response?.data?.code === "DUPLICATE_ENTITY"
+    ) {
+      return error?.response?.data?.code;
+    }
     return false;
   }
 };
@@ -97,7 +103,7 @@ exports.provisionInternalUser = async (data) => {
  * @param {object} data = { firstName, lastName, email, status, updatedBy }
  * @returns uid on success false otherwise
  */
-exports.provisionExternalUser = async (data) => {
+exports.provisionExternalUser = async (data, handleDuplicateEntity) => {
   const { firstName, lastName, email, status, updatedBy } = data;
   const userType = "external";
 
@@ -126,6 +132,12 @@ exports.provisionExternalUser = async (data) => {
     return response;
   } catch (error) {
     console.log("error: provisionExternalUser", body, error);
+    if (
+      handleDuplicateEntity &&
+      error?.response?.data?.code === "DUPLICATE_ENTITY"
+    ) {
+      return error?.response?.data?.code;
+    }
     return null;
   }
 };
@@ -312,16 +324,17 @@ exports.insertUserInDb = async (userDetails) => {
 
 exports.getUsersFromAD = async (query = "") => {
   const ad = new ActiveDirectory(ADConfig);
-  const mustMailFilter = `(mail=*)`;
-  const idFilter = `(|(sAMAccountName=u*)(sAMAccountName=q*))`;
-  const userFilter = `(objectCategory=person)(objectClass=user)(!(cn=*Group*))${mustMailFilter}${idFilter}`;
-  const emailFilter = `(mail=*${query}*)`;
-  const firstNameFilter = `(givenName=*${query}*)`;
-  const lastNameFilter = `(sn=*${query}*)`;
-  const displayNameFilter = `(displayName=*${query}*)`;
-  const filter = query
-    ? `(&${userFilter}(|${emailFilter}${firstNameFilter}${lastNameFilter}${displayNameFilter}))`
-    : `(&${userFilter})`;
+  const filter = `(sAMAccountName=${query})`;
+  // const mustMailFilter = `(mail=*)`;
+  // const idFilter = `(|(sAMAccountName=u*)(sAMAccountName=q*))`;
+  // const userFilter = `(objectCategory=person)(objectClass=user)(!(cn=*Group*))${mustMailFilter}${idFilter}`;
+  // const emailFilter = `(mail=*${query}*)`;
+  // const firstNameFilter = `(givenName=*${query}*)`;
+  // const lastNameFilter = `(sn=*${query}*)`;
+  // const displayNameFilter = `(displayName=*${query}*)`;
+  // const filter = query
+  //   ? `(&${userFilter}(|${emailFilter}${firstNameFilter}${lastNameFilter}${displayNameFilter}))`
+  //   : `(&${userFilter})`;
 
   const opts = {
     paged: true,
@@ -345,7 +358,7 @@ exports.getUsersFromAD = async (query = "") => {
     console.log("error: getUsersFromAD", err);
     return false;
   }
-};
+};;
 
 exports.getSDAuserDataByEmail = async (email) => {
   try {
