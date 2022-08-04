@@ -159,7 +159,11 @@ exports.getUserDetail = async function (req, res) {
         return apiResponse.successResponseWithData(
           res,
           "User retrieved successfully",
-          user
+          {
+            ...user,
+            usr_stat: user?.usr_stat === null ? "Active" : user?.usr_stat,
+            formatted_stat: user?.usr_stat === null ? "Active" : user?.usr_stat,
+          }
         );
       })
       .catch((err) => {
@@ -365,7 +369,7 @@ exports.createNewUser = async (req, res) => {
           insrt_tm: data.insrt_tm || getCurrentTime(),
           updt_tm: data.updt_tm || getCurrentTime(),
           status: "Active",
-          externalId: data.uid,
+          externalId: null,
         });
     } else {
       return returnBool
