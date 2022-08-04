@@ -795,7 +795,7 @@ const AddUser = () => {
                           )
                         }
                         source={userList}
-                        label="Name"
+                        label="Employee ID"
                         placeholder="Search by UID or QID"
                         value={selectedUser}
                         onKeyUp={(e) => {
@@ -829,7 +829,6 @@ const AddUser = () => {
                         }}
                         enableVirtualization
                       />
-                      <span className="Text-Enter">Press Enter to search</span>
                     </div>
                     {selectedUser && (
                       <div>
