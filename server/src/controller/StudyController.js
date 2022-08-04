@@ -214,7 +214,7 @@ exports.studyList = function (req, res) {
     const searchParam = req.params.query.toLowerCase();
     const searchQuery = `SELECT ms.prot_nbr, ms.prot_nbr_stnd, ms.spnsr_nm, ms.spnsr_nm_stnd, ms.proj_cd, ms.phase, ms.prot_status, ms.thptc_area, s.ob_stat from ${schemaName}.mdm_study ms
     FULL OUTER JOIN ${schemaName}.study s ON ms.prot_nbr = s.prot_nbr
-    WHERE (LOWER(ms.prot_nbr) LIKE '%${searchParam}%' OR 
+    WHERE  ob_stat !='Failed' and (LOWER(ms.prot_nbr) LIKE '%${searchParam}%' OR 
     LOWER(ms.spnsr_nm) LIKE '%${searchParam}%' OR 
     LOWER(ms.proj_cd) LIKE '%${searchParam}%')
     AND ms.spnsr_nm_stnd !='' AND ms.prot_nbr_stnd !=''
