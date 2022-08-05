@@ -148,7 +148,9 @@ exports.onboardStudy = async function (req, res) {
     Logger.info({ message: "onboardStudy" });
     console.log(">>> onboard", req.body);
 
-    const studyExists = await DB.executeQuery(`select * from ${schemaName}.study where prot_nbr_stnd = '${studyId}';`);
+    const studyExists = await DB.executeQuery(
+      `select * from ${schemaName}.study where prot_nbr_stnd = '${studyId}';`
+    );
     if (studyExists?.rows?.length) {
       return apiResponse.ErrorResponse(
         res,
@@ -173,9 +175,10 @@ exports.onboardStudy = async function (req, res) {
         if (onboardStatus === 202 || onboardStatus === 200) {
           const responseData = {
             ...response?.data,
-            message: 'Study onboarding initiated successfully. Please wait for 3 hour(s) to check the status and get the required access reflected in the corresponding environment.',
+            message:
+              "Study onboarding initiated successfully. Please wait for 3 hour(s) to check the status and get the required access reflected in the corresponding environment.",
           };
-          
+
           try {
             insertedStudy = await addOnboardedStudy(studyId, userId, insrt_tm);
             if (!insertedStudy)
@@ -252,13 +255,12 @@ exports.onboardStudy = async function (req, res) {
 exports.studyList = function (req, res) {
   try {
     const searchParam = req?.params?.query?.toLowerCase();
-    const searchQuery = `SELECT s.prot_id, ms.prot_nbr, ms.prot_nbr_stnd, ms.spnsr_nm, ms.spnsr_nm_stnd, ms.proj_cd, ms.phase, ms.prot_status, ms.thptc_area, s.ob_stat from ${schemaName}.mdm_study ms
-    FULL OUTER JOIN ${schemaName}.study s ON ms.prot_nbr_stnd = s.prot_nbr_stnd
-    WHERE (LOWER(ms.prot_nbr) LIKE '%${searchParam}%' OR 
-    LOWER(ms.spnsr_nm) LIKE '%${searchParam}%' OR 
-    LOWER(ms.proj_cd) LIKE '%${searchParam}%')
-    AND ms.spnsr_nm_stnd !='' AND ms.prot_nbr_stnd !=''
-        LIMIT 60
+    const searchQuery = `SELECT s.prot_id, ms.prot_nbr, ms.prot_nbr_stnd, ms.spnsr_nm, ms.spnsr_nm_stnd, ms.proj_cd,
+    ms.phase, ms.prot_status, ms.thptc_area, s.ob_stat from ${schemaName}.mdm_study ms
+    left JOIN ${schemaName}.study s ON ms.prot_nbr_stnd = s.prot_nbr_stnd 
+    WHERE (LOWER(ms.prot_nbr) LIKE '%${searchParam}%' OR LOWER(ms.spnsr_nm) LIKE '%${searchParam}%' OR LOWER(ms.proj_cd) LIKE '%${searchParam}%')
+    AND ms.spnsr_nm_stnd !='' AND ms.prot_nbr_stnd !='' LIMIT 60;
+    
         `;
     Logger.info({ message: "studyList" });
 
