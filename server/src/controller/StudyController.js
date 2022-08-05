@@ -148,7 +148,9 @@ exports.onboardStudy = async function (req, res) {
     Logger.info({ message: "onboardStudy" });
     console.log(">>> onboard", req.body);
 
-    const studyExists = await DB.executeQuery(`select * from ${schemaName}.study where prot_nbr_stnd = '${studyId}';`);
+    const studyExists = await DB.executeQuery(
+      `select * from ${schemaName}.study where prot_nbr_stnd = '${studyId}';`
+    );
     if (studyExists?.rows?.length) {
       return apiResponse.ErrorResponse(
         res,
@@ -173,9 +175,10 @@ exports.onboardStudy = async function (req, res) {
         if (onboardStatus === 202 || onboardStatus === 200) {
           const responseData = {
             ...response?.data,
-            message: 'Study onboarding initiated successfully. Please wait for 3 hour(s) to check the status and get the required access reflected in the corresponding environment.',
+            message:
+              "Study onboarding initiated successfully. Please wait for 3 hour(s) to check the status and get the required access reflected in the corresponding environment.",
           };
-          
+
           try {
             insertedStudy = await addOnboardedStudy(studyId, userId, insrt_tm);
             if (!insertedStudy)
