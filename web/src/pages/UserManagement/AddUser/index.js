@@ -21,7 +21,7 @@ import Typography from "apollo-react/components/Typography";
 import Link from "apollo-react/components/Link";
 import Grid from "apollo-react/components/Grid";
 import Modal from "apollo-react/components/Modal";
-import Close from "apollo-react-icons/Close";
+import Search from "apollo-react/components/Search";
 import {
   validateEmail,
   inviteExternalUser,
@@ -155,6 +155,9 @@ const AddUser = () => {
   const [showToolTip, setShowToolTip] = useState(false);
   const [isInFocus, setIsInFocus] = useState(false);
   const [emailExist, setEmailExist] = useState(false);
+  const [isUserNotExists, setUserNotExists] = useState(false);
+  const [isuserAlreadyExists, setUserAlreadyExists] = useState(false);
+  const [showEmailTooTip, setEmailTooTip] = useState(false);
 
   const breadcrumpItems = [
     { href: "", onClick: () => history.push("/launchpad") },
@@ -309,31 +312,36 @@ const AddUser = () => {
     // debounceFunction(() => {
 
     fetchADUsers(searchQuery).then((result) => {
-      const filtered =
-        result?.data?.map((u) => {
-          const { givenName, sn, displayName, mail } = u;
-          return {
-            ...u,
-            // value: u.sAMAccountName,
-            label: `${givenName && sn ? `${givenName} ${sn}` : displayName}-${
-              u.sAMAccountName
-            }\n\t(${mail})  `,
-          };
-        }) || [];
-      filtered.sort(function (a, b) {
-        const conditionA = a.givenName || a.displayName;
-        const conditionB = b.givenName || b.displayName;
-        if (conditionA < conditionB) {
-          return -1;
-        }
-        if (conditionA > conditionB) {
-          return 1;
-        }
-        return 0;
-      });
+      // const filtered =
+      //   result?.data?.map((u) => {
+      //     const { givenName, sn, displayName, mail } = u;
+      //     return {
+      //       ...u,
+      //       // value: u.sAMAccountName,
+      //       label: `${givenName && sn ? `${givenName} ${sn}` : displayName}-${
+      //         u.sAMAccountName
+      //       }\n\t(${mail})  `,
+      //     };
+      //   }) || [];
+      // filtered.sort(function (a, b) {
+      //   const conditionA = a.givenName || a.displayName;
+      //   const conditionB = b.givenName || b.displayName;
+      //   if (conditionA < conditionB) {
+      //     return -1;
+      //   }
+      //   if (conditionA > conditionB) {
+      //     return 1;
+      //   }
+      //   return 0;
+      // });
       if (result.status === 1) {
         console.log("testing");
-        setUserList([...filtered]);
+        if (result?.data?.length === 0) {
+          setUserNotExists(true);
+        } else if (result?.data?.length > 0) {
+          setSelectedUser(result?.data?.[0]);
+          setUserAlreadyExists(true);
+        }
       }
       setLoading(false);
       if (result.status !== -1) {
@@ -350,7 +358,7 @@ const AddUser = () => {
   };
 
   const handleInput = (e) => {
-    console.log(e);
+    console.log(e?.target?.value);
     const query = e?.target?.value;
     if (e?.keyCode === 13) {
       searchUserInfo(true);
@@ -361,11 +369,16 @@ const AddUser = () => {
     }
   };
 
-  const cancelSelectedUser = () => {
-    setSearchQuery("");
-    setEmailExist(false);
-    setSelectedUser(null);
-    setUserList([]);
+  const clearSearchInput = (e) => {
+    console.log(e.target.value);
+    if (e?.target?.value === "") {
+      setSearchQuery("");
+      setEmailExist(false);
+      setSelectedUser(null);
+      // setUserList([]);
+      setUserNotExists(false);
+      setUserAlreadyExists(false);
+    }
   };
 
   const validNewUserDataCondition = () =>
@@ -761,7 +774,26 @@ const AddUser = () => {
                         isTextOverflow && !isInFocus ? "cursor" : ""
                       }`}
                     >
-                      <AutocompleteV2
+                      <Search
+                        id="search-employee"
+                        label="Employee ID"
+                        className="search-box-employee"
+                        placeholder="Search by Employee ID"
+                        attribute="Search by Employee ID"
+                        error={isUserNotExists || isuserAlreadyExists}
+                        helperText={
+                          isUserNotExists
+                            ? "User not found"
+                            : isuserAlreadyExists && "User already in system"
+                        }
+                        onKeyUp={(e) => {
+                          handleInput(e);
+                        }}
+                        onChange={(e) => {
+                          clearSearchInput(e);
+                        }}
+                      />
+                      {/* <AutocompleteV2
                         id="highligh-autocomplete"
                         matchFrom="any"
                         size="small"
@@ -828,7 +860,7 @@ const AddUser = () => {
                           );
                         }}
                         enableVirtualization
-                      />
+                      /> */}
                     </div>
                     {selectedUser && (
                       <div>
@@ -840,9 +872,30 @@ const AddUser = () => {
                         </Typography>
 
                         <Typography className="mt-4">
-                          <Label>Email</Label>
-                          <Value className="ml-8">{selectedUser?.mail}</Value>
+                          <Label>Email address</Label>
+
+                          <div className="ml-3">
+                            <Tooltip
+                              variant="dark"
+                              title={selectedUser?.mail}
+                              placement="top"
+                              open={showEmailTooTip}
+                              style={{ marginRight: 48 }}
+                            >
+                              <Typography
+                                onMouseEnter={(e) => setEmailTooTip(true)}
+                                onMouseLeave={(e) => setEmailTooTip(false)}
+                                gutterBottom
+                                noWrap
+                              >
+                                <Value className="ml-8 text-over-flow">
+                                  {selectedUser?.mail}
+                                </Value>
+                              </Typography>
+                            </Tooltip>
+                          </div>
                         </Typography>
+
                         <Typography className="mt-4">
                           <Label>Employee ID</Label>
                           <Value className="ml-8">
@@ -851,7 +904,7 @@ const AddUser = () => {
                         </Typography>
                       </div>
                     )}
-                    {!selectedUser && (
+                    {!searchQuery && (
                       <Typography variant="body2" className="mt-4" gutterBottom>
                         User not in the list?&nbsp;
                         <Link onClick={() => switchUserType(true)}>
