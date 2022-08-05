@@ -176,4 +176,12 @@
 .MuiTableCell-root:last-child {
   padding-right: 5px;
 }
-
+.search-box-employee{
+  width: 240px;
+}
+.text-over-flow{
+    display: block;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
