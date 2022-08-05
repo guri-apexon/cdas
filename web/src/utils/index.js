@@ -64,6 +64,11 @@ export const getInnerElOverflLimit = (tableWidth, columnWidth) => {
   const width = getColumnPxWidth(tableWidth, columnWidth);
   return getOverflowLimit(width);
 };
+export const matchAppUrl = () => {
+  let appUrl = getCookie("user.app_url");
+  if (appUrl) appUrl = decodeURIComponent(appUrl);
+  return window.location.origin === appUrl;
+};
 
 export function getLastLogin() {
   const currentLogin = getCookie("user.last_login_ts");
