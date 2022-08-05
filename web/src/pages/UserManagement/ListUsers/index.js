@@ -278,16 +278,16 @@ const ListUsers = () => {
       <Paper>
         <div className="user-list-header">
           <Typography variant="h3">User Management</Typography>
-          {/* {canCreate && ( */}
-          <Button
-            variant="primary"
-            icon={<PlusIcon />}
-            size="small"
-            onClick={handleAddUser}
-          >
-            Add new user
-          </Button>
-          {/* )} */}
+          {canCreate && (
+            <Button
+              variant="primary"
+              icon={<PlusIcon />}
+              size="small"
+              onClick={handleAddUser}
+            >
+              Add new user
+            </Button>
+          )}
         </div>
       </Paper>
     );
