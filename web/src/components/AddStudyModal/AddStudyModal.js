@@ -102,7 +102,9 @@ const AddStudyModal = ({ open, onClose }) => {
   };
 
   const FormatCell = ({ row, column: { accessor } }) => {
-    const greyedOut = ["In Progress", "Success"].includes(row.ob_stat);
+    const greyedOut = ["In Progress", "Success", "Failed"].includes(
+      row.ob_stat
+    );
     const innerEl = (
       // eslint-disable-next-line jsx-a11y/click-events-have-key-events
       <div
