@@ -110,6 +110,7 @@ exports.authHandler = async (req, res) => {
     res.cookie("user.last_name", resp.data.family_name, cookieDomainObj);
     res.cookie("user.email", resp.data.email, cookieDomainObj);
     res.cookie("user.current_login_ts", moment().unix(), cookieDomainObj);
+    res.cookie("user.app_url", REACT_APP_URL, cookieDomainObj);
 
     // Prepare for an Upsert
     const userDetails = {

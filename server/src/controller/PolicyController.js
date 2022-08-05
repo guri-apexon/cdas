@@ -418,13 +418,13 @@ exports.getPolicyList = async (req, res) => {
       from ${schemaName}."policy" p
       ${
         roleId
-          ? `left outer join cdascfg.role_policy rp on rp.plcy_id = p.plcy_id and rp.role_id =${roleId}`
+          ? `left outer join ${schemaName}.role_policy rp on rp.plcy_id = p.plcy_id and rp.role_id =${roleId}`
           : ""
       }
       inner join ${schemaName}.policy_product_permission ppp on (p.plcy_id=ppp.plcy_id)
       inner JOIN ${schemaName}.product_permission pp ON ppp.prod_permsn_id = pp.prod_permsn_id
       inner JOIN ${schemaName}.product p2 ON p2.prod_id = pp.prod_id
-      where ppp.act_flg =1
+      where coalesce(ppp.act_flg,1)=1
       GROUP  BY p.plcy_id${roleId ? `, rp.plcy_id, rp.role_plcy_id` : ""};`;
       const $q1 = await DB.executeQuery(query);
       const products = [];
@@ -453,7 +453,7 @@ exports.getPolicyList = async (req, res) => {
     left join ${schemaName}.policy_product_permission ppp on (p.plcy_id=ppp.plcy_id)
     left JOIN ${schemaName}.product_permission pp ON ppp.prod_permsn_id = pp.prod_permsn_id
     left JOIN ${schemaName}.product p2 ON p2.prod_id = pp.prod_id 
-    where ppp.act_flg =1
+    where coalesce(ppp.act_flg,1)=1
     `;
 
     const $q1 = await DB.executeQuery(query);

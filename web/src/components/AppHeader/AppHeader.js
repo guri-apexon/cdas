@@ -1,3 +1,4 @@
+/* eslint-disable consistent-return */
 /* eslint-disable no-use-before-define */
 /* eslint-disable react/jsx-wrap-multilines */
 /* eslint-disable react/jsx-one-expression-per-line */
@@ -21,7 +22,7 @@ import Button from "apollo-react/components/Button";
 import NavigationPanel from "./NavigationPanel/NavigationPanel";
 
 // eslint-disable-next-line import/named
-import { getUserInfo } from "../../utils/index";
+import { getUserInfo, matchAppUrl } from "../../utils/index";
 // eslint-disable-next-line import/named
 import { userLogOut, getRolesPermissions } from "../../services/ApiServices";
 import { MessageContext } from "../Providers/MessageProvider";
@@ -113,9 +114,17 @@ const AppHeader = ({ history, setLoggedIn }) => {
   };
 
   const getPermisions = async () => {
+    if (!matchAppUrl()) {
+      LogOut();
+      return false;
+    }
     if (permissions.length === 0) {
       let uniquePermissions = [];
       const data = await getRolesPermissions();
+      if (data.status === 401) {
+        LogOut();
+        return false;
+      }
       console.log(">>> all permissions", data);
       if (data.message === "Something went wrong") {
         messageContext.showErrorMessage(
