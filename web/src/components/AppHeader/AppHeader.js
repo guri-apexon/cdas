@@ -1,3 +1,4 @@
+/* eslint-disable consistent-return */
 /* eslint-disable no-use-before-define */
 /* eslint-disable react/jsx-wrap-multilines */
 /* eslint-disable react/jsx-one-expression-per-line */
@@ -116,6 +117,10 @@ const AppHeader = ({ history, setLoggedIn }) => {
     if (permissions.length === 0) {
       let uniquePermissions = [];
       const data = await getRolesPermissions();
+      if (data.status === 401) {
+        LogOut();
+        return false;
+      }
       console.log(">>> all permissions", data);
       if (data.message === "Something went wrong") {
         messageContext.showErrorMessage(

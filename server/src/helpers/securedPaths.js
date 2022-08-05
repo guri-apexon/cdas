@@ -11,5 +11,12 @@ const securedPaths = [
     feature: "Vendor Management",
     checkModificationPermission: false,
   },
+  {
+    url: "/v1/api/role/getuserrolespermissions",
+    methods: ["post"],
+    feature: "Get Permissions",
+    checkModificationPermission: false,
+    skipPermission: true,
+  },
 ];
 exports.securedPaths = securedPaths;
