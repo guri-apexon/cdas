@@ -312,34 +312,12 @@ const AddUser = () => {
     // debounceFunction(() => {
 
     fetchADUsers(searchQuery).then((result) => {
-      // const filtered =
-      //   result?.data?.map((u) => {
-      //     const { givenName, sn, displayName, mail } = u;
-      //     return {
-      //       ...u,
-      //       // value: u.sAMAccountName,
-      //       label: `${givenName && sn ? `${givenName} ${sn}` : displayName}-${
-      //         u.sAMAccountName
-      //       }\n\t(${mail})  `,
-      //     };
-      //   }) || [];
-      // filtered.sort(function (a, b) {
-      //   const conditionA = a.givenName || a.displayName;
-      //   const conditionB = b.givenName || b.displayName;
-      //   if (conditionA < conditionB) {
-      //     return -1;
-      //   }
-      //   if (conditionA > conditionB) {
-      //     return 1;
-      //   }
-      //   return 0;
-      // });
       if (result.status === 1) {
         console.log("testing");
         if (result?.data?.length === 0) {
           setUserNotExists(true);
         } else if (result?.data?.length > 0) {
-          setSelectedUser(result?.data?.[0]);
+          // setSelectedUser(result?.data?.[0]);
           setUserAlreadyExists(true);
         }
       }
@@ -351,17 +329,18 @@ const AddUser = () => {
     // }, 500);
   };
   const searchUserInfo = (e) => {
-    console.log(e);
     if (e) {
       getUserList();
     }
   };
 
   const handleInput = (e) => {
-    console.log(e?.target?.value);
     const query = e?.target?.value;
     if (e?.keyCode === 13) {
       searchUserInfo(true);
+    } else if (e?.keyCode === 8 || e?.keyCode === 46) {
+      setUserNotExists(false);
+      setUserAlreadyExists(false);
     } else if (query) {
       setSearchQuery(query);
     } else if (query === "") {
@@ -778,7 +757,7 @@ const AddUser = () => {
                         id="search-employee"
                         label="Employee ID"
                         className="search-box-employee"
-                        placeholder="Search by Employee ID"
+                        placeholder="Search by employee ID"
                         attribute="Search by Employee ID"
                         error={isUserNotExists || isuserAlreadyExists}
                         helperText={
@@ -793,74 +772,6 @@ const AddUser = () => {
                           clearSearchInput(e);
                         }}
                       />
-                      {/* <AutocompleteV2
-                        id="highligh-autocomplete"
-                        matchFrom="any"
-                        size="small"
-                        fullWidth
-                        error={emailExist}
-                        helperText={emailExist && "User already in system"}
-                        forcePopupIcon
-                        onMouseEnter={() => {
-                          setShowToolTip(true);
-                        }}
-                        onMouseLeave={() => {
-                          setShowToolTip(false);
-                        }}
-                        onFocus={() => setIsInFocus(true)}
-                        onBlur={() => {
-                          setSearchQuery("");
-                          setUserList([]);
-                          setIsInFocus(false);
-                        }}
-                        popupIcon={
-                          selectedUser ? (
-                            <Close
-                              onClick={cancelSelectedUser}
-                              fontSize="extraSmall"
-                            />
-                          ) : (
-                            <SearchIcon
-                              onClick={(e) => searchUserInfo(true)}
-                              fontSize="extraSmall"
-                            />
-                          )
-                        }
-                        source={userList}
-                        label="Employee ID"
-                        placeholder="Search by UID or QID"
-                        value={selectedUser}
-                        onKeyUp={(e) => {
-                          handleInput(e);
-                        }}
-                        noOptionsText={
-                          fetchStatus === "loading" ? (
-                            <div className="flex-center flex justify-center">
-                              <ApolloProgress />
-                            </div>
-                          ) : (
-                            <>
-                              {searchQuery && userList?.length === 0 ? (
-                                <div className="flex-center flex justify-center">
-                                  No user found
-                                </div>
-                              ) : (
-                                "No options"
-                              )}
-                            </>
-                          )
-                        }
-                        inlineMenu
-                        onChange={(e, v, r) => {
-                          updateChanges();
-                          setSelectedUser(v);
-                          compareInputLength(
-                            v?.label,
-                            e.currentTarget.clientWidth - 10
-                          );
-                        }}
-                        enableVirtualization
-                      /> */}
                     </div>
                     {selectedUser && (
                       <div>
