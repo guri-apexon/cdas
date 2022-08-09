@@ -435,6 +435,15 @@ exports.getADUsers = async (req, res) => {
   const { query = "" } = data;
   const users = await userHelper.getUsersFromAD(query);
   if (users) {
+    // const newList = users?.filter(async (res) => {
+    //   // if (res?.userAccountControl === "512") {
+    //   // const userExists = await userHelper.isUserExists(res?.mail);
+    //   return {
+    //     ...res,
+    //     // isUserExistsinCDAS: userExists?.isActive ? true  :  false,
+    //   };
+    //   // }
+    // });
     return apiResponse.successResponseWithData(
       res,
       "AD Users retrieved successfully",

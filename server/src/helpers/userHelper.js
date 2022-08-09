@@ -348,6 +348,7 @@ exports.getUsersFromAD = async (query = "") => {
       "userPrincipalName",
       "employeeID",
       "sAMAccountName",
+      "userAccountControl",
     ],
   };
 
