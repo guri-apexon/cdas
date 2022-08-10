@@ -630,10 +630,9 @@ exports.getUserStudyAndRoles = async function (req, res) {
       and study_asgn_typ is null
       ) MAIN
       left join study s1 on s1.prot_id = MAIN.prot_id
-      join "user" u on (main.usr_id=u.usr_id)
+      join "user" u on (MAIN.usr_id=u.usr_id)
       left join role r1 on r1.role_id = MAIN.role_id
-      WHERE (u.usr_stat ='Active' and r1.role_stat = 1 and main.act_flg=1) or (u.usr_stat !='Active');`;
-
+      WHERE (u.usr_stat ='Active' and r1.role_stat = 1) or (u.usr_stat !='Active');`;
     const userStudies = await DB.executeQuery(userStudyQuery).then(
       (response) => {
         return response.rows;
