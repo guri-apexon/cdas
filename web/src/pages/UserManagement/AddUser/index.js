@@ -316,9 +316,11 @@ const AddUser = () => {
         console.log("testing");
         if (result?.data?.length === 0) {
           setUserNotExists(true);
+          setSelectedUser(null);
         } else if (result?.data?.length > 0) {
-          // setSelectedUser(result?.data?.[0]);
-          setUserAlreadyExists(true);
+          setSelectedUser(result?.data?.[0]);
+          setUserNotExists(false);
+          // setUserAlreadyExists(true);
         }
       }
       setLoading(false);
@@ -354,7 +356,7 @@ const AddUser = () => {
       setSearchQuery("");
       setEmailExist(false);
       setSelectedUser(null);
-      // setUserList([]);
+      setUserList([]);
       setUserNotExists(false);
       setUserAlreadyExists(false);
     }
