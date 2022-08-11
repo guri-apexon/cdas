@@ -744,7 +744,12 @@ const AddUser = () => {
                     />
                     <Typography variant="body2" className="mt-4" gutterBottom>
                       Return to&nbsp;
-                      <Link onClick={() => switchUserType(false)}>
+                      <Link
+                        onClick={() => {
+                          switchUserType(false);
+                          setSaveDisabled(true);
+                        }}
+                      >
                         add new user from list
                       </Link>
                     </Typography>
@@ -832,7 +837,12 @@ const AddUser = () => {
                     {!searchQuery && (
                       <Typography variant="body2" className="mt-4" gutterBottom>
                         User not in the list?&nbsp;
-                        <Link onClick={() => switchUserType(true)}>
+                        <Link
+                          onClick={() => {
+                            switchUserType(true);
+                            setSaveDisabled(false);
+                          }}
+                        >
                           Invite new user
                         </Link>
                       </Typography>
