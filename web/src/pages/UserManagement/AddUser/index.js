@@ -158,6 +158,7 @@ const AddUser = () => {
   const [isUserNotExists, setUserNotExists] = useState(false);
   const [isuserAlreadyExists, setUserAlreadyExists] = useState(false);
   const [showEmailTooTip, setEmailTooTip] = useState(false);
+  const [isSaveDisable, setSaveDisabled] = useState(false);
 
   const breadcrumpItems = [
     { href: "", onClick: () => history.push("/launchpad") },
@@ -313,14 +314,23 @@ const AddUser = () => {
 
     fetchADUsers(searchQuery).then((result) => {
       if (result.status === 1) {
-        console.log("testing");
         if (result?.data?.length === 0) {
           setUserNotExists(true);
+          setUserAlreadyExists(false);
           setSelectedUser(null);
+          setSaveDisabled(true);
         } else if (result?.data?.length > 0) {
-          setSelectedUser(result?.data?.[0]);
-          setUserNotExists(false);
-          // setUserAlreadyExists(true);
+          if (result?.data?.[0]?.isUserExistsinCDAS) {
+            setUserAlreadyExists(true);
+            setUserNotExists(false);
+            setSelectedUser(null);
+            setSaveDisabled(true);
+          } else {
+            setSelectedUser(result?.data?.[0]);
+            setUserAlreadyExists(false);
+            setUserNotExists(false);
+            setSaveDisabled(false);
+          }
         }
       }
       setLoading(false);
@@ -344,21 +354,21 @@ const AddUser = () => {
       setUserNotExists(false);
       setUserAlreadyExists(false);
     } else if (query) {
-      setSearchQuery(query);
+      setSearchQuery(query.trim());
     } else if (query === "") {
       setEmailExist(false);
     }
   };
 
   const clearSearchInput = (e) => {
-    console.log(e.target.value);
     if (e?.target?.value === "") {
       setSearchQuery("");
       setEmailExist(false);
       setSelectedUser(null);
-      setUserList([]);
+      // setUserList([]);
       setUserNotExists(false);
       setUserAlreadyExists(false);
+      setSaveDisabled(false);
     }
   };
 
@@ -647,6 +657,8 @@ const AddUser = () => {
                         {
                           label: "Save",
                           size: "small",
+                          disabled: isSaveDisable,
+
                           // disabled: emailExist,
                           // disabled:
                           //   loading ||
