@@ -158,7 +158,7 @@ const AddUser = () => {
   const [isUserNotExists, setUserNotExists] = useState(false);
   const [isuserAlreadyExists, setUserAlreadyExists] = useState(false);
   const [showEmailTooTip, setEmailTooTip] = useState(false);
-  const [isSaveDisable, setSaveDisabled] = useState(false);
+  const [isSaveDisable, setSaveDisabled] = useState(true);
 
   const breadcrumpItems = [
     { href: "", onClick: () => history.push("/launchpad") },
@@ -368,7 +368,7 @@ const AddUser = () => {
       // setUserList([]);
       setUserNotExists(false);
       setUserAlreadyExists(false);
-      setSaveDisabled(false);
+      setSaveDisabled(true);
     }
   };
 
