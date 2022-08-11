@@ -438,10 +438,7 @@ exports.getADUsers = async (req, res) => {
     let newList = [];
     for (let index in users) {
       console.log(users[index]);
-      if (
-        users[index]?.userAccountControl === "512" ||
-        users[index]?.userAccountControl === "514"
-      ) {
+      if (users[index]?.userAccountControl === "512") {
         let userExists = await userHelper.isUserExists(users[index]?.mail);
         let newobj = {};
         let isUserExistsinCDAS = userExists?.usr_id ? true : false;
