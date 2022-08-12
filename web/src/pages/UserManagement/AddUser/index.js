@@ -158,7 +158,6 @@ const AddUser = () => {
   const [isUserNotExists, setUserNotExists] = useState(false);
   const [isuserAlreadyExists, setUserAlreadyExists] = useState(false);
   const [showEmailTooTip, setEmailTooTip] = useState(false);
-  const [isSaveDisable, setSaveDisabled] = useState(true);
 
   const breadcrumpItems = [
     { href: "", onClick: () => history.push("/launchpad") },
@@ -318,18 +317,15 @@ const AddUser = () => {
           setUserNotExists(true);
           setUserAlreadyExists(false);
           setSelectedUser(null);
-          setSaveDisabled(true);
         } else if (result?.data?.length > 0) {
           if (result?.data?.[0]?.isUserExistsinCDAS) {
             setUserAlreadyExists(true);
             setUserNotExists(false);
             setSelectedUser(null);
-            setSaveDisabled(true);
           } else {
             setSelectedUser(result?.data?.[0]);
             setUserAlreadyExists(false);
             setUserNotExists(false);
-            setSaveDisabled(false);
           }
         }
       }
@@ -368,7 +364,6 @@ const AddUser = () => {
       // setUserList([]);
       setUserNotExists(false);
       setUserAlreadyExists(false);
-      setSaveDisabled(true);
     }
   };
 
@@ -519,7 +514,7 @@ const AddUser = () => {
       return false;
     }
     if (!selectedUser && !isNewUser) {
-      toast.showErrorMessage("Name is required");
+      toast.showErrorMessage("Employee ID is required");
       return false;
     }
     if (selectedUser && emailExist && !isNewUser) {
@@ -657,7 +652,6 @@ const AddUser = () => {
                         {
                           label: "Save",
                           size: "small",
-                          disabled: isSaveDisable,
 
                           // disabled: emailExist,
                           // disabled:
@@ -744,7 +738,11 @@ const AddUser = () => {
                     />
                     <Typography variant="body2" className="mt-4" gutterBottom>
                       Return to&nbsp;
-                      <Link onClick={() => switchUserType(false)}>
+                      <Link
+                        onClick={() => {
+                          switchUserType(false);
+                        }}
+                      >
                         add new user from list
                       </Link>
                     </Typography>
@@ -832,7 +830,11 @@ const AddUser = () => {
                     {!searchQuery && (
                       <Typography variant="body2" className="mt-4" gutterBottom>
                         User not in the list?&nbsp;
-                        <Link onClick={() => switchUserType(true)}>
+                        <Link
+                          onClick={() => {
+                            switchUserType(true);
+                          }}
+                        >
                           Invite new user
                         </Link>
                       </Typography>
