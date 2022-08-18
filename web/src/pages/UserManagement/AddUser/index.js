@@ -313,12 +313,20 @@ const AddUser = () => {
 
     fetchADUsers(searchQuery).then((result) => {
       if (result.status === 1) {
-        console.log("testing");
         if (result?.data?.length === 0) {
           setUserNotExists(true);
+          setUserAlreadyExists(false);
+          setSelectedUser(null);
         } else if (result?.data?.length > 0) {
-          // setSelectedUser(result?.data?.[0]);
-          setUserAlreadyExists(true);
+          if (result?.data?.[0]?.isUserExistsinCDAS) {
+            setUserAlreadyExists(true);
+            setUserNotExists(false);
+            setSelectedUser(null);
+          } else {
+            setSelectedUser(result?.data?.[0]);
+            setUserAlreadyExists(false);
+            setUserNotExists(false);
+          }
         }
       }
       setLoading(false);
@@ -342,14 +350,13 @@ const AddUser = () => {
       setUserNotExists(false);
       setUserAlreadyExists(false);
     } else if (query) {
-      setSearchQuery(query);
+      setSearchQuery(query.trim());
     } else if (query === "") {
       setEmailExist(false);
     }
   };
 
   const clearSearchInput = (e) => {
-    console.log(e.target.value);
     if (e?.target?.value === "") {
       setSearchQuery("");
       setEmailExist(false);
@@ -507,7 +514,7 @@ const AddUser = () => {
       return false;
     }
     if (!selectedUser && !isNewUser) {
-      toast.showErrorMessage("Name is required");
+      toast.showErrorMessage("Employee ID is required");
       return false;
     }
     if (selectedUser && emailExist && !isNewUser) {
@@ -645,6 +652,7 @@ const AddUser = () => {
                         {
                           label: "Save",
                           size: "small",
+
                           // disabled: emailExist,
                           // disabled:
                           //   loading ||
@@ -730,7 +738,11 @@ const AddUser = () => {
                     />
                     <Typography variant="body2" className="mt-4" gutterBottom>
                       Return to&nbsp;
-                      <Link onClick={() => switchUserType(false)}>
+                      <Link
+                        onClick={() => {
+                          switchUserType(false);
+                        }}
+                      >
                         add new user from list
                       </Link>
                     </Typography>
@@ -818,7 +830,11 @@ const AddUser = () => {
                     {!searchQuery && (
                       <Typography variant="body2" className="mt-4" gutterBottom>
                         User not in the list?&nbsp;
-                        <Link onClick={() => switchUserType(true)}>
+                        <Link
+                          onClick={() => {
+                            switchUserType(true);
+                          }}
+                        >
                           Invite new user
                         </Link>
                       </Typography>

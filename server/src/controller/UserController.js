@@ -435,10 +435,21 @@ exports.getADUsers = async (req, res) => {
   const { query = "" } = data;
   const users = await userHelper.getUsersFromAD(query);
   if (users) {
+    let newList = [];
+    for (let index in users) {
+      console.log(users[index]);
+      if (users[index]?.userAccountControl === "512") {
+        let userExists = await userHelper.isUserExists(users[index]?.mail);
+        let newobj = {};
+        let isUserExistsinCDAS = userExists?.usr_id ? true : false;
+        newobj = { ...users[index], isUserExistsinCDAS: isUserExistsinCDAS };
+        newList.push(newobj);
+      }
+    }
     return apiResponse.successResponseWithData(
       res,
       "AD Users retrieved successfully",
-      users
+      newList
     );
   }
   return apiResponse.ErrorResponse(

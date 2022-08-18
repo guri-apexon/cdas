@@ -125,7 +125,7 @@ const AppHeader = ({ history, setLoggedIn }) => {
         LogOut();
         return false;
       }
-      console.log(">>> all permissions", data);
+      console.log(">>>> all permissions", data);
       if (data.message === "Something went wrong") {
         messageContext.showErrorMessage(
           `There was an issue authorizing your login information. Please contact your Administrator.`
