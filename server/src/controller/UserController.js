@@ -564,8 +564,8 @@ exports.deleteNewUser = async (req, res) => {
                     "FSR Revoke internal API Failed "
                   );
                 }
-              } else { 
-                fsr_status  = true;
+              } else {
+                fsr_status = true;
               }
             }
 
@@ -763,6 +763,7 @@ exports.updateUserStatus = async (req, res) => {
   } = req.body;
   console.log(req.body);
   const newReq = { ...req, returnBool: true };
+
   Logger.info({ message: "changeStatus - begin" });
 
   const userStatus = newReq.body["changed_to"];
@@ -774,8 +775,8 @@ exports.updateUserStatus = async (req, res) => {
       if (!newReq?.body?.tenant_id) {
         const tenant = await tenantHelper.getFirstTenant();
         newReq.body["tenant_id"] = tenant.tenant_id;
+        newReq.body["updated_by"] = updatedBy;
       }
-
       const response = await this.deleteNewUser(newReq, res);
     } else if (userStatus === "Active") {
       const data = {
@@ -842,9 +843,15 @@ exports.updateUserStatus = async (req, res) => {
                 `update ${schemaName}.study_user set act_flg=1 , insrt_tm='${createdOn}' WHERE prot_id='${prtId}' and usr_id='${user_id}'`
               );
 
+              const updateRole = await DB.executeQuery(
+                `update ${schemaName}.study_user_role set act_flg=1, updated_by='${updatedBy}', updated_on='${createdOn}' 
+                WHERE prot_id='${prtId}' and usr_id='${user_id}'`
+              );
+
               const { rows: roleId } = await DB.executeQuery(
                 `SELECT role_id from ${schemaName}.study_user_role WHERE prot_id='${prtId}' and usr_id='${user_id}'`
               );
+
               const studyRoles = [];
               for (let key of roleId.map(({ role_id }) => role_id)) {
                 const {
