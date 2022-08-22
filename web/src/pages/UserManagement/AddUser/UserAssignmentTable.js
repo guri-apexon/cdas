@@ -102,7 +102,7 @@ const UserAssignmentTable = ({
         .map((study) => {
           return {
             ...study,
-            label: `${study.prot_nbr_stnd}`,
+            label: `${study.protocolnumber}`,
           };
         }) || [];
     filtered.sort(function (a, b) {

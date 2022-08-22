@@ -159,7 +159,7 @@ const UserAssignmentTable = ({
         .map((study) => {
           return {
             ...study,
-            label: `${study.prot_nbr_stnd}`,
+            label: `${study.protocolnumber}`,
           };
         }) || [];
     filtered.sort(function (a, b) {
@@ -186,7 +186,7 @@ const UserAssignmentTable = ({
     if (protId === STUDY_IDS.NO_STUDY) {
       return <div className={isEdit}>{STUDY_LABELS.NO_STUDY}</div>;
     }
-    return <div className={isEdit}>{row?.prot_nbr_stnd || ""}</div>;
+    return <div className={isEdit}>{row?.prot_nbr || ""}</div>;
   };
   const showToolTip = {};
   const RolesSelected = ({ row, roles }) => {

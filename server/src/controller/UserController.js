@@ -623,7 +623,7 @@ exports.secureApi = async (req, res) => {
 exports.getUserStudyAndRoles = async function (req, res) {
   try {
     const userId = req.query.userId;
-    const userStudyQuery = `select MAIN.prot_id,MAIN.usr_id,MAIN.role_id, r1.role_nm, s1.prot_nbr_stnd from ( select study_asgn_typ prot_id,usr_id,role_id,act_flg
+    const userStudyQuery = `select MAIN.prot_id,MAIN.usr_id,MAIN.role_id, r1.role_nm, s1.prot_nbr, s1.prot_nbr_stnd from ( select study_asgn_typ prot_id,usr_id,role_id,act_flg
       from ${schemaName}.study_user_role where usr_id = '${userId}' and study_asgn_typ is not null
       group by study_asgn_typ,usr_id,role_id,act_flg
       union all
@@ -641,7 +641,7 @@ exports.getUserStudyAndRoles = async function (req, res) {
       }
     );
     const finalUserStudies = userStudies.reduce((acc, s) => {
-      const { role_id, role_nm, prot_id, prot_nbr_stnd } = s;
+      const { role_id, role_nm, prot_id, prot_nbr, prot_nbr_stnd } = s;
       let protId = prot_id;
       if (protId === STUDY_LABELS.ALL_STUDY) {
         protId = STUDY_IDS.ALL_STUDY;
@@ -651,6 +651,7 @@ exports.getUserStudyAndRoles = async function (req, res) {
       if (!acc[protId]) {
         acc[protId] = {
           prot_id: protId,
+          prot_nbr: prot_nbr,
           prot_nbr_stnd,
           roles: [{ label: role_nm, value: role_id }],
         };
