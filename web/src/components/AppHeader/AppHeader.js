@@ -216,7 +216,7 @@ const AppHeader = ({ history, setLoggedIn }) => {
           featureName: "System Admin",
           text: "Vendor Admin",
           pathname: "/vendor/list",
-          haveAccess: checkAccess("System management"),
+          haveAccess: checkAccess("Vendor Management"),
         },
       ],
     },
