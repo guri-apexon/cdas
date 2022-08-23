@@ -34,6 +34,7 @@ import {
   createStringArrayIncludedFilter,
   numberSearchFilter,
   dateFilterCustom,
+  createAutocompleteFilter,
 } from "../../utils/index";
 import { updateSelectedStudy } from "../../store/actions/StudyBoardAction";
 import usePermission, {
@@ -177,10 +178,29 @@ export default function StudyTable({ studyData, studyboardData, refreshData }) {
       accessor: "therapeuticarea",
       sortFunction: compareStrings,
       filterFunction: createStringArrayIncludedFilter("therapeuticarea"),
-      filterComponent: createSelectFilterComponent(thbtcArea, {
-        size: "small",
-        multiple: true,
-      }),
+      // filterComponent: createSelectFilterComponent(thbtcArea, {
+      //   size: "small",
+      //   multiple: true,
+      // }),
+      filterComponent: createAutocompleteFilter(
+        Array.from(
+          new Set(
+            thbtcArea.map((r) => ({ label: r })).map((item) => item.label)
+          )
+        )
+          .map((label) => {
+            return { label };
+          })
+          .sort((a, b) => {
+            if (a.label < b.label) {
+              return -1;
+            }
+            if (a.label > b.label) {
+              return 1;
+            }
+            return 0;
+          })
+      ),
     },
     {
       header: "Project Code",
@@ -211,10 +231,27 @@ export default function StudyTable({ studyData, studyboardData, refreshData }) {
       sortFunction: compareStrings,
       customCell: PhaseCell,
       filterFunction: createStringArrayIncludedFilter("phase"),
-      filterComponent: createSelectFilterComponent(phases, {
-        size: "small",
-        multiple: true,
-      }),
+      // filterComponent: createSelectFilterComponent(phases, {
+      //   size: "small",
+      //   multiple: true,
+      // }),
+      filterComponent: createAutocompleteFilter(
+        Array.from(
+          new Set(phases.map((r) => ({ label: r })).map((item) => item.label))
+        )
+          .map((label) => {
+            return { label };
+          })
+          .sort((a, b) => {
+            if (a.label < b.label) {
+              return -1;
+            }
+            if (a.label > b.label) {
+              return 1;
+            }
+            return 0;
+          })
+      ),
     },
     {
       header: "Study status",
@@ -222,10 +259,27 @@ export default function StudyTable({ studyData, studyboardData, refreshData }) {
       sortFunction: compareStrings,
       customCell: Statuscell,
       filterFunction: createStringArrayIncludedFilter("protocolstatus"),
-      filterComponent: createSelectFilterComponent(status, {
-        size: "small",
-        multiple: true,
-      }),
+      // filterComponent: createSelectFilterComponent(status, {
+      //   size: "small",
+      //   multiple: true,
+      // }),
+      filterComponent: createAutocompleteFilter(
+        Array.from(
+          new Set(status.map((r) => ({ label: r })).map((item) => item.label))
+        )
+          .map((label) => {
+            return { label };
+          })
+          .sort((a, b) => {
+            if (a.label < b.label) {
+              return -1;
+            }
+            if (a.label > b.label) {
+              return 1;
+            }
+            return 0;
+          })
+      ),
     },
     {
       header: "Date Added",
@@ -249,10 +303,27 @@ export default function StudyTable({ studyData, studyboardData, refreshData }) {
       customCell: SelectiveCell,
       sortFunction: compareStrings,
       filterFunction: createStringArrayIncludedFilter("onboardingprogress"),
-      filterComponent: createSelectFilterComponent(obs, {
-        size: "small",
-        multiple: true,
-      }),
+      // filterComponent: createSelectFilterComponent(obs, {
+      //   size: "small",
+      //   multiple: true,
+      // }),
+      filterComponent: createAutocompleteFilter(
+        Array.from(
+          new Set(obs.map((r) => ({ label: r })).map((item) => item.label))
+        )
+          .map((label) => {
+            return { label };
+          })
+          .sort((a, b) => {
+            if (a.label < b.label) {
+              return -1;
+            }
+            if (a.label > b.label) {
+              return 1;
+            }
+            return 0;
+          })
+      ),
     },
     {
       header: "Assignment Count",
