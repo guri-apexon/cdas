@@ -366,7 +366,8 @@ exports.createVendor = async (req, res) => {
           rows: [DataFlowCountForVendor],
         } = await DB.executeQuery(dfVendorList, [updatedID]);
 
-        if (DataFlowCountForVendor.count != 0 && !ExternalId) {
+        // if (DataFlowCountForVendor.count != 0 && !ExternalId) {
+        if (DataFlowCountForVendor.count != 0) {
           return apiResponse.validationErrorWithData(
             res,
             "Operation failed",
