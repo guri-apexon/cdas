@@ -370,7 +370,7 @@ export const getAssignedUsers = async (protId) => {
           resolve(res.data);
         })
         .catch((err) => {
-          reject(err.response.data);
+          reject(err?.response?.data);
         });
     });
   } catch (err) {
