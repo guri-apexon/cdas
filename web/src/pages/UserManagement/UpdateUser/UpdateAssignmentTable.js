@@ -79,6 +79,7 @@ const UserAssignmentTable = ({
       prot_nbr_stnd: "",
       prot_id: "",
       roles: [],
+      isEdit: false,
     };
   };
 
@@ -354,19 +355,19 @@ const UserAssignmentTable = ({
       editRowFn(rowIndex, editMode);
     } else {
       editRowFn(rowIndex, editMode);
-      setlastEditedRecordData(null);
-      setEditMode(undefined);
+      // setlastEditedRecordData(null);
+      // setEditMode(undefined);
       unblockRouter();
       // dispatch(formComponentInActive());
       // dispatch(hideAppSwitcher());
     }
   };
 
-  useEffect(() => {
-    if (isEditMode === false) {
-      updateEditMode(lastEditedRecordIndex, false);
-    }
-  }, [isEditMode]);
+  // useEffect(() => {
+  //   if (isEditMode === false) {
+  //     updateEditMode(lastEditedRecordIndex, false);
+  //   }
+  // }, [isEditMode]);
 
   const onVieweStudyDelete = async (rowIndex) => {
     const email = targetUser.usr_mail_id;
@@ -473,8 +474,9 @@ const UserAssignmentTable = ({
 
     const saveEdit = async (viewRow) => {
       updateInProgress(false);
-      setParentLoading(true);
+      setParentLoading(false);
       setLocalSave(true);
+      setLoad(true);
 
       const allStudyNoStudyError = validateAllStudyNoStudy(viewRow);
 
@@ -600,7 +602,11 @@ const UserAssignmentTable = ({
   const getUserStudyRoles = async () => {
     const userStudy = await getUserStudyAndRoles(userId);
     if (userStudy.status) {
-      const userSutdyRes = userStudy.data.map((e, i) => ({ ...e, index: i }));
+      const userSutdyRes = userStudy.data.map((e, i) => ({
+        ...e,
+        index: i,
+        isEdit: false,
+      }));
       let allUsersRolesFlat = [];
       userSutdyRes.map((e) => {
         e.roles.map((r) => {
@@ -644,17 +650,19 @@ const UserAssignmentTable = ({
   const CustomButtonHeader = ({ toggleFilters }) => {
     return (
       <div>
-        {(
+        {
           <>
-            {targetUser?.usr_stat === "Active" && canUpdate && <Button
-              size="small"
-              variant="secondary"
-              icon={<PlusIcon size="small" />}
-              disabled={userUpdating}
-              onClick={() => setUserAssignmentModal(true)}
-            >
-              Add user assignment
-            </Button>}
+            {targetUser?.usr_stat === "Active" && canUpdate && (
+              <Button
+                size="small"
+                variant="secondary"
+                icon={<PlusIcon size="small" />}
+                disabled={userUpdating}
+                onClick={() => setUserAssignmentModal(true)}
+              >
+                Add user assignment
+              </Button>
+            )}
 
             <Button
               size="small"
@@ -668,7 +676,7 @@ const UserAssignmentTable = ({
               Filter
             </Button>
           </>
-        )}
+        }
       </div>
     );
   };
