@@ -102,3 +102,50 @@ exports.getJWTokenFromHeader = (req) => {
   }
   return authToken;
 };
+
+// check for roles while creating user
+exports.checkProtocolRoles = (protocols) => {
+  if (!protocols) return false;
+
+  let isValid = true;
+  // checking roles field in protocols
+  protocols?.forEach((protocol) => {
+    if (!protocol.roles || protocol?.roles?.length === 0) {
+      isValid = false;
+    }
+
+    // check if roles is passed as string
+    if (isValid) {
+      protocol?.roles?.forEach((role) => {
+        if (!(typeof role === "number")) {
+          isValid = false;
+        }
+      });
+    }
+  });
+
+  return isValid;
+};
+
+exports.checkProtocolRoleIds = (protocols) => {
+  if (!protocols) return false;
+
+  let isValid = true;
+  // checking roleIds field in protocols
+  protocols?.forEach((protocol) => {
+    if (!protocol.roleIds || protocol?.roleIds?.length === 0) {
+      isValid = false;
+    }
+
+    // check if roleIds is passed as string
+    if (isValid) {
+      protocol?.roleIds?.forEach((role) => {
+        if (!(typeof role === "number")) {
+          isValid = false;
+        }
+      });
+    }
+  });
+
+  return isValid;
+};

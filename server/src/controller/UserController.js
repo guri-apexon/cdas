@@ -220,7 +220,7 @@ exports.isUserExists = async (req, res) => {
 };
 
 exports.inviteExternalUser = async (req, res) => {
-  const newReq = { ...req, returnBool: true };
+  const newReq = { ...req, returnBool: false };
   newReq.body["userType"] = "external";
   Logger.info({ message: "inviteExternalUser - begin" });
 
@@ -255,7 +255,7 @@ exports.inviteExternalUser = async (req, res) => {
 };
 exports.inviteInternalUser = async (req, res) => {
   // { , , firstName, lastName, email, uid, employeeId }
-  const newReq = { ...req, returnBool: true };
+  const newReq = { ...req, returnBool: false };
   newReq.body["userType"] = "internal";
   Logger.info({ message: "inviteInternalUser - begin" });
 
