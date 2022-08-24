@@ -196,7 +196,9 @@ const UserAssignmentTable = ({
     const uRoles = roles.length
       ? roles
           .map((e) => e.label)
-          .sort()
+          .sort((a, b) => {
+            return a.localeCompare(b, undefined, { sensitivity: "base" });
+          })
           .join(", ")
       : "";
     const charLimit = getInnerElOverflLimit(
