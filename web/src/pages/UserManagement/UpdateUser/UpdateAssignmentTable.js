@@ -54,6 +54,8 @@ const UserAssignmentTable = ({
   setEditMode,
   isEditMode,
   unblockRouter,
+  setAddNewModalClick,
+  cancelEditMode,
 }) => {
   const toast = useContext(MessageContext);
   const dispatch = useDispatch();
@@ -336,6 +338,7 @@ const UserAssignmentTable = ({
 
   const editRowFn = (rowIndex, editMode) => {
     const prevTableStudies = [...tableStudies];
+    prevTableStudies[rowIndex] = { ...prevTableStudies[rowIndex] };
     prevTableStudies[rowIndex].isEdit = editMode;
     prevTableStudies[rowIndex].roles = prevTableStudies[rowIndex]?.roles?.sort(
       (a, b) => a?.label?.localeCompare(b?.label)
@@ -641,20 +644,46 @@ const UserAssignmentTable = ({
     getRoles();
   }, []);
 
+  const setUserAssignmentCstmBtn = () => {
+    if (isEditMode) {
+      setAddNewModalClick(true);
+    } else {
+      setUserAssignmentModal(true);
+    }
+  };
+
+  useEffect(() => {
+    if (cancelEditMode) {
+      setUserAssignmentModal(true);
+      const prevTableStudies = [...tableStudies];
+      for (let [i, value] of prevTableStudies.entries()) {
+        prevTableStudies[i].isEdit = false;
+        prevTableStudies[i].roles = prevTableStudies[i]?.roles?.sort((a, b) =>
+          a?.label?.localeCompare(b?.label)
+        );
+      }
+      setTableStudies([...prevTableStudies]);
+    }
+    setEditMode(false);
+    setAddNewModalClick(false);
+  }, [cancelEditMode]);
+
   const CustomButtonHeader = ({ toggleFilters }) => {
     return (
       <div>
-        {(
+        {
           <>
-            {targetUser?.usr_stat === "Active" && canUpdate && <Button
-              size="small"
-              variant="secondary"
-              icon={<PlusIcon size="small" />}
-              disabled={userUpdating}
-              onClick={() => setUserAssignmentModal(true)}
-            >
-              Add user assignment
-            </Button>}
+            {targetUser?.usr_stat === "Active" && canUpdate && (
+              <Button
+                size="small"
+                variant="secondary"
+                icon={<PlusIcon size="small" />}
+                disabled={userUpdating}
+                onClick={() => setUserAssignmentCstmBtn()}
+              >
+                Add user assignment
+              </Button>
+            )}
 
             <Button
               size="small"
@@ -668,7 +697,7 @@ const UserAssignmentTable = ({
               Filter
             </Button>
           </>
-        )}
+        }
       </div>
     );
   };
