@@ -271,6 +271,7 @@ exports.inviteInternalUser = async (req, res) => {
   if (response) {
     newReq.body["createdBy"] = newReq.body.updatedBy;
     newReq.body["createdOn"] = getCurrentTime();
+    newReq.returnBool = true;
     const assignmentResponse = AssignmentController.assignmentUpdate(
       newReq,
       res
@@ -423,9 +424,8 @@ exports.createNewUser = async (req, res) => {
           res,
           "An error occured while entering user and tenant detail"
         );
-  return returnBool
-    ? true
-    : apiResponse.successResponseWithData(res, "User successfully created");
+
+  return true;
 };
 
 exports.getADUsers = async (req, res) => {

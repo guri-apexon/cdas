@@ -567,6 +567,7 @@ const AddUser = () => {
               unblockRouter={unblockRouter}
               setAddNewModalClick={setAddNewModalClick}
               cancelEditMode={cancelEditMode}
+              setCancelEditMode={setCancelEditMode}
             />
           </Grid>
         </Grid>
