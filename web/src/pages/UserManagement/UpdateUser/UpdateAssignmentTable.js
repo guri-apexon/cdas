@@ -526,9 +526,25 @@ const UserAssignmentTable = ({
             isValid: true,
           }))
           .filter((e) => e.id);
+
+        // filter edited row and non-edited rows
+        const finalData = newFormattedRows.map((prot) => {
+          if (prot.id === viewRow.prot_id) {
+            return prot;
+          }
+          let updatedProt = { ...prot };
+          if (initialTableRoles[prot.id]) {
+            updatedProt.roles = initialTableRoles[prot.id].map(
+              (role) => role.value
+            );
+            updatedProt.roleIds = updatedProt.roles;
+          }
+          return updatedProt;
+        });
+
         const insertUserStudy = {
           email,
-          protocols: newFormattedRows,
+          protocols: finalData,
           // removedProtocols,
         };
         let payload = {};
