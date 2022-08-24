@@ -363,7 +363,15 @@ const UserAssignmentTable = ({
       editRowFn(rowIndex, editMode);
       // setlastEditedRecordData(null);
       // setEditMode(undefined);
-      unblockRouter();
+      let isEditOpen = false;
+      tableStudies?.forEach((study) => {
+        if (!isEditOpen && study?.isEdit === true) {
+          isEditOpen = true;
+        }
+      });
+      if (!isEditOpen) {
+        unblockRouter();
+      }
       // dispatch(formComponentInActive());
       // dispatch(hideAppSwitcher());
     }
@@ -562,9 +570,21 @@ const UserAssignmentTable = ({
         };
         const response = await updateUserAssignments(payload);
         if (response.status) {
-          setEditMode(false);
-          dispatch(formComponentInActive());
-          dispatch(hideAppSwitcher());
+          let isEditOpen = false;
+          tableStudies?.forEach((study) => {
+            if (
+              !isEditOpen &&
+              study?.isEdit === true &&
+              study?.prot_id !== viewRow.prot_id
+            ) {
+              isEditOpen = true;
+            }
+          });
+          if (!isEditOpen) {
+            setEditMode(false);
+            dispatch(formComponentInActive());
+            dispatch(hideAppSwitcher());
+          }
           updateEditMode(rowIndex, false);
           toast.showSuccessMessage(response.message || "Updated Successfully!");
         } else {
