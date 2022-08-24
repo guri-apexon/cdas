@@ -220,7 +220,7 @@ exports.isUserExists = async (req, res) => {
 };
 
 exports.inviteExternalUser = async (req, res) => {
-  const newReq = { ...req, returnBool: true };
+  const newReq = { ...req, returnBool: false };
   newReq.body["userType"] = "external";
   Logger.info({ message: "inviteExternalUser - begin" });
 
@@ -255,7 +255,7 @@ exports.inviteExternalUser = async (req, res) => {
 };
 exports.inviteInternalUser = async (req, res) => {
   // { , , firstName, lastName, email, uid, employeeId }
-  const newReq = { ...req, returnBool: true };
+  const newReq = { ...req, returnBool: false };
   newReq.body["userType"] = "internal";
   Logger.info({ message: "inviteInternalUser - begin" });
 
@@ -624,16 +624,27 @@ exports.getUserStudyAndRoles = async function (req, res) {
   try {
     const userId = req.query.userId;
     const userStudyQuery = `select MAIN.prot_id,MAIN.usr_id,MAIN.role_id, r1.role_nm, s1.prot_nbr_stnd from ( select study_asgn_typ prot_id,usr_id,role_id,act_flg
-      from ${schemaName}.study_user_role where usr_id = '${userId}' and study_asgn_typ is not null
+
+      from ${schemaName}.study_user_role where usr_id = '${userId}' and study_asgn_typ is not null and act_flg=1
+
       group by study_asgn_typ,usr_id,role_id,act_flg
+
       union all
+
       select prot_id,usr_id,role_id,act_flg
+
       from ${schemaName}.study_user_role where usr_id = '${userId}'
-      and study_asgn_typ is null
+
+      and study_asgn_typ is null and act_flg=1
+
       ) MAIN
+
       left join study s1 on s1.prot_id = MAIN.prot_id
+
       join "user" u on (MAIN.usr_id=u.usr_id)
+
       left join role r1 on r1.role_id = MAIN.role_id
+
       WHERE (u.usr_stat ='Active' and r1.role_stat = 1) or (u.usr_stat !='Active');`;
     const userStudies = await DB.executeQuery(userStudyQuery).then(
       (response) => {

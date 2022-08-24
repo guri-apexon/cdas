@@ -133,6 +133,7 @@ const ExistingUsers = () => {
   const [isShowAlertBox, setShowAlertBox] = useState(false);
   const [rowsBeingEdited, setRowsBeingEdited] = useState([]);
   const [editedRowBeingCancelled, setEditedRowBeingCancelled] = useState(null);
+  const [isAddNewModalClick, setAddNewModalClick] = useState(false);
   const unblockRouter = () => {
     dispatch(formComponentInActive());
     dispatch(hideAlert());
@@ -399,6 +400,13 @@ const ExistingUsers = () => {
     },
   ];
 
+  const addNewUserCstmBtnClick = () => {
+    if (rowsBeingEdited?.length) {
+      setAddNewModalClick(true);
+    } else {
+      setAddStudyOpen(!addStudyOpen);
+    }
+  };
   const CustomHeader = ({ toggleFilters }) => {
     return (
       <>
@@ -407,7 +415,7 @@ const ExistingUsers = () => {
             size="small"
             variant="secondary"
             icon={PlusIcon}
-            onClick={() => setAddStudyOpen(!addStudyOpen)}
+            onClick={() => addNewUserCstmBtnClick()}
             style={{ marginRight: 16 }}
           >
             Add new users
@@ -450,6 +458,7 @@ const ExistingUsers = () => {
   };
 
   const keepEditingBtn = () => {
+    setAddNewModalClick(false);
     dispatch(hideAlert());
     setShowAlertBox(false);
   };
@@ -459,6 +468,13 @@ const ExistingUsers = () => {
     const index = rbe.findIndex(({ uniqueId: uid }) => uid === uniqueId);
     rbe.splice(index, 1);
     setRowsBeingEdited(rbe);
+  };
+
+  const leavePageBtnForAddUser = () => {
+    setRowsBeingEdited([]);
+    dispatch(formComponentInActive());
+    setAddNewModalClick(false);
+    setAddStudyOpen(true);
   };
 
   const leavePageBtn = () => {
@@ -520,6 +536,10 @@ const ExistingUsers = () => {
           style={{ height: 64, zIndex: 10 }}
         />
       </div>
+      {isAddNewModalClick && (
+        <AlertBox cancel={keepEditingBtn} submit={leavePageBtnForAddUser} />
+      )}
+
       {isShowAlertBox && (
         <AlertBox cancel={keepEditingBtn} submit={leavePageBtn} />
       )}

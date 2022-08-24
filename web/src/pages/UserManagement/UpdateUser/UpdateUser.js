@@ -141,6 +141,8 @@ const AddUser = () => {
   const routerHandle = useRef();
   const [targetRoute, setTargetRoute] = useState("");
   const [toggleStatus, setToggleStatus] = useState(false);
+  const [isAddNewModalClick, setAddNewModalClick] = useState(false);
+  const [cancelEditMode, setCancelEditMode] = useState(false);
 
   const unblockRouter = () => {
     dispatch(formComponentInActive());
@@ -340,6 +342,11 @@ const AddUser = () => {
     setIsUpdateInprogress(flag);
   };
 
+  const setUserAssignmentModal = () => {
+    setCancelEditMode(true);
+    setAddNewModalClick(false);
+  };
+
   /* eslint-disable */
   useEffect(() => {
     if (isEditMode) {
@@ -359,6 +366,12 @@ const AddUser = () => {
 
   return (
     <div className="create-user-wrapper">
+      {isAddNewModalClick && (
+        <AlertBox
+          cancel={() => setAddNewModalClick(false)}
+          submit={setUserAssignmentModal}
+        />
+      )}
       {isShowAlertBox && (
         <AlertBox cancel={keepEditingBtn} submit={leavePageBtn} />
       )}
@@ -528,7 +541,9 @@ const AddUser = () => {
                   Employee ID
                   <div className="ml-3">
                     <div className="user-update-font-500">
-                      { targetUser?.usr_typ?.toLowerCase() === "internal" ? targetUser?.usr_id : targetUser?.extrnl_emp_id}
+                      {targetUser?.usr_typ?.toLowerCase() === "internal"
+                        ? targetUser?.usr_id
+                        : targetUser?.extrnl_emp_id}
                     </div>
                   </div>
                 </Typography>
@@ -536,21 +551,23 @@ const AddUser = () => {
             </Box>
           </Grid>
           <Grid item xs={9} className="contacts-wrapper">
-              <UserAssignmentTable
-                userId={userId}
-                targetUser={targetUser}
-                updateChanges={updateChanges}
-                updateInProgress={updateInProgress}
-                showRolePopup={showRolePopup}
-                // setShowRolePopup={setShowRolePopup}
-                userUpdating={loading}
-                readOnly={readOnly}
-                canUpdate={canUpdate}
-                setParentLoading={setLoading}
-                setEditMode={setEditMode}
-                isEditMode={isEditMode}
-                unblockRouter={unblockRouter}
-              />
+            <UserAssignmentTable
+              userId={userId}
+              targetUser={targetUser}
+              updateChanges={updateChanges}
+              updateInProgress={updateInProgress}
+              showRolePopup={showRolePopup}
+              // setShowRolePopup={setShowRolePopup}
+              userUpdating={loading}
+              readOnly={readOnly}
+              canUpdate={canUpdate}
+              setParentLoading={setLoading}
+              setEditMode={setEditMode}
+              isEditMode={isEditMode}
+              unblockRouter={unblockRouter}
+              setAddNewModalClick={setAddNewModalClick}
+              cancelEditMode={cancelEditMode}
+            />
           </Grid>
         </Grid>
       </div>
