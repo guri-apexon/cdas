@@ -233,9 +233,10 @@ exports.inviteExternalUser = async (req, res) => {
   }
 
   const response = await this.createNewUser(newReq, res);
-  if (response) {
+  if (response === true) {
     newReq.body["createdBy"] = newReq.body.updatedBy;
     newReq.body["createdOn"] = getCurrentTime();
+    newReq.returnBool = true;
     const assignmentResponse = AssignmentController.assignmentUpdate(
       newReq,
       res
@@ -250,7 +251,8 @@ exports.inviteExternalUser = async (req, res) => {
 
   return apiResponse.ErrorResponse(
     res,
-    "Unable to add new user – please try again or report problem to the system administrator"
+    response ||
+      "Unable to add new user – please try again or report problem to the system administrator"
   );
 };
 exports.inviteInternalUser = async (req, res) => {
@@ -268,7 +270,7 @@ exports.inviteInternalUser = async (req, res) => {
   }
 
   const response = await this.createNewUser(newReq, res);
-  if (response) {
+  if (response === true) {
     newReq.body["createdBy"] = newReq.body.updatedBy;
     newReq.body["createdOn"] = getCurrentTime();
     newReq.returnBool = true;
@@ -285,7 +287,8 @@ exports.inviteInternalUser = async (req, res) => {
   }
   return apiResponse.ErrorResponse(
     res,
-    "Unable to add new user – please try again or report problem to the system administrator"
+    response ||
+      "Unable to add new user – please try again or report problem to the system administrator"
   );
 };
 
@@ -326,37 +329,25 @@ exports.createNewUser = async (req, res) => {
 
   // validate data
   const validate = await userHelper.validateCreateUserData(data);
-  if (validate.success === false)
-    return returnBool
-      ? false
-      : apiResponse.ErrorResponse(res, validate.message);
+  if (validate.success === false) return returnBool ? false : validate.message;
 
   const createdById = await userHelper.findByUserId(data.createdBy);
   if (data.createdBy && !createdById)
-    return returnBool
-      ? false
-      : apiResponse.ErrorResponse(res, "Created by Id does not exists");
+    return returnBool ? false : "Created by Id does not exists";
 
   if (data.createdOn && !commonHelper.isValidDate(data.createdOn))
-    return returnBool
-      ? false
-      : apiResponse.ErrorResponse(res, "Created on date is not valid");
+    return returnBool ? false : "Created on date is not valid";
 
   // validate tenant
   const tenant_id = await tenantHelper.findByName(data.tenant);
-  if (!tenant_id)
-    return returnBool
-      ? false
-      : apiResponse.ErrorResponse(res, "Tenant does not exists");
+  if (!tenant_id) return returnBool ? false : "Tenant does not exists";
 
   // provision into SDA and save
   const user = await userHelper.findByEmail(data.email);
   let usr_id = (user && user.usr_id) || "";
 
   if (user && !user.isInactive)
-    return returnBool
-      ? false
-      : apiResponse.ErrorResponse(res, "User already exists in the database");
+    return returnBool ? false : "User already exists in the database";
 
   if (data.userType === "internal") {
     const provision_response = await userHelper.provisionInternalUser(data);
@@ -375,10 +366,7 @@ exports.createNewUser = async (req, res) => {
     } else {
       return returnBool
         ? false
-        : apiResponse.ErrorResponse(
-            res,
-            "An error occured while provisioning internal user"
-          );
+        : "An error occured while provisioning internal user";
     }
   } else {
     const provision_response = await userHelper.provisionExternalUser(data);
@@ -402,28 +390,17 @@ exports.createNewUser = async (req, res) => {
     } else {
       return returnBool
         ? false
-        : apiResponse.ErrorResponse(
-            res,
-            "An error occured while provisioning external user"
-          );
+        : "An error occured while provisioning external user";
     }
   }
   if (!usr_id)
-    return returnBool
-      ? false
-      : apiResponse.ErrorResponse(
-          res,
-          "An error occured while inserting the user"
-        );
+    return returnBool ? false : "An error occured while inserting the user";
 
   if (usr_id && tenant_id) tenantHelper.insertTenantUser(usr_id, tenant_id);
   else
     return returnBool
       ? false
-      : apiResponse.ErrorResponse(
-          res,
-          "An error occured while entering user and tenant detail"
-        );
+      : "An error occured while entering user and tenant detail";
 
   return true;
 };
