@@ -56,6 +56,7 @@ const UserAssignmentTable = ({
   unblockRouter,
   setAddNewModalClick,
   cancelEditMode,
+  setCancelEditMode,
 }) => {
   const toast = useContext(MessageContext);
   const dispatch = useDispatch();
@@ -666,14 +667,24 @@ const UserAssignmentTable = ({
       const prevTableStudies = [...tableStudies];
       for (let [i, value] of prevTableStudies.entries()) {
         prevTableStudies[i].isEdit = false;
-        prevTableStudies[i].roles = prevTableStudies[i]?.roles?.sort((a, b) =>
-          a?.label?.localeCompare(b?.label)
-        );
+        if (initialTableRoles.hasOwnProperty(prevTableStudies[i]?.prot_id)) {
+          let rolesData = initialTableRoles[prevTableStudies[i]?.prot_id];
+          console.log(rolesData);
+          prevTableStudies[i].roles = rolesData?.sort((a, b) =>
+            a?.label?.localeCompare(b?.label)
+          );
+        } else {
+          prevTableStudies[i].roles = prevTableStudies[i]?.roles?.sort((a, b) =>
+            a?.label?.localeCompare(b?.label)
+          );
+        }
       }
       setTableStudies([...prevTableStudies]);
+      setEditMode(false);
+      setAddNewModalClick(false);
+      setlastEditedRecordData(null);
+      setCancelEditMode(false);
     }
-    setEditMode(false);
-    setAddNewModalClick(false);
   }, [cancelEditMode]);
 
   const CustomButtonHeader = ({ toggleFilters }) => {
