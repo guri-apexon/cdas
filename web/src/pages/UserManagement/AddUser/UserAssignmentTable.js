@@ -22,7 +22,7 @@ import {
 } from "../helper";
 
 const UserAssignmentTable = ({
-  updateChanges,
+  // updateChanges,
   pingParent,
   updateUserAssign,
   setCheckUserAssignmentTableData,
@@ -129,7 +129,7 @@ const UserAssignmentTable = ({
   }, [studyData]);
 
   const editRow = (e, value, reason, index, key) => {
-    updateChanges();
+    // updateChanges();
     let alreadyExist;
     if (value) {
       setInitialRender(true);
