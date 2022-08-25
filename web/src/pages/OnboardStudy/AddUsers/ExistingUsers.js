@@ -469,8 +469,23 @@ const ExistingUsers = () => {
     rbe.splice(index, 1);
     setRowsBeingEdited(rbe);
   };
-
+  /* eslint-disable */
   const leavePageBtnForAddUser = () => {
+    console.log(rowsBeingEdited);
+    const revertedData = rowsBeingEdited.reduce((acc, obj) => {
+      /* eslint-disable */
+      return acc.map((row) => {
+        if (row.uniqueId === obj.uniqueId) {
+          return {
+            ...row,
+            roles: obj.roles,
+          };
+        } else {
+          return row;
+        }
+      });
+    }, tableUsers);
+    setTableUsers(revertedData);
     setRowsBeingEdited([]);
     dispatch(formComponentInActive());
     setAddNewModalClick(false);
@@ -480,6 +495,7 @@ const ExistingUsers = () => {
   const leavePageBtn = () => {
     const checkVariable = alertStore?.showAlertBox !== true;
     if (editedRowBeingCancelled && checkVariable) {
+      console.log(editedRowBeingCancelled);
       if (editedRowBeingCancelled?.roles) {
         setTableUsers((rows) =>
           rows.map((row) => {

@@ -56,6 +56,7 @@ const UserAssignmentTable = ({
   unblockRouter,
   setAddNewModalClick,
   cancelEditMode,
+  setCancelEditMode,
 }) => {
   const toast = useContext(MessageContext);
   const dispatch = useDispatch();
@@ -362,7 +363,15 @@ const UserAssignmentTable = ({
       editRowFn(rowIndex, editMode);
       // setlastEditedRecordData(null);
       // setEditMode(undefined);
-      unblockRouter();
+      let isEditOpen = false;
+      tableStudies?.forEach((study) => {
+        if (!isEditOpen && study?.isEdit === true) {
+          isEditOpen = true;
+        }
+      });
+      if (!isEditOpen) {
+        unblockRouter();
+      }
       // dispatch(formComponentInActive());
       // dispatch(hideAppSwitcher());
     }
@@ -549,9 +558,25 @@ const UserAssignmentTable = ({
             isValid: true,
           }))
           .filter((e) => e.id);
+
+        // filter edited row and non-edited rows
+        const finalData = newFormattedRows.map((prot) => {
+          if (prot.id === viewRow.prot_id) {
+            return prot;
+          }
+          let updatedProt = { ...prot };
+          if (initialTableRoles[prot.id]) {
+            updatedProt.roles = initialTableRoles[prot.id].map(
+              (role) => role.value
+            );
+            updatedProt.roleIds = updatedProt.roles;
+          }
+          return updatedProt;
+        });
+
         const insertUserStudy = {
           email,
-          protocols: newFormattedRows,
+          protocols: finalData,
           // removedProtocols,
         };
         let payload = {};
@@ -568,9 +593,21 @@ const UserAssignmentTable = ({
         };
         const response = await updateUserAssignments(payload);
         if (response.status) {
-          setEditMode(false);
-          dispatch(formComponentInActive());
-          dispatch(hideAppSwitcher());
+          let isEditOpen = false;
+          tableStudies?.forEach((study) => {
+            if (
+              !isEditOpen &&
+              study?.isEdit === true &&
+              study?.prot_id !== viewRow.prot_id
+            ) {
+              isEditOpen = true;
+            }
+          });
+          if (!isEditOpen) {
+            setEditMode(false);
+            dispatch(formComponentInActive());
+            dispatch(hideAppSwitcher());
+          }
           updateEditMode(rowIndex, false);
           toast.showSuccessMessage(response.message || "Updated Successfully!");
         } else {
@@ -689,14 +726,24 @@ const UserAssignmentTable = ({
       const prevTableStudies = [...tableStudies];
       for (let [i, value] of prevTableStudies.entries()) {
         prevTableStudies[i].isEdit = false;
-        prevTableStudies[i].roles = prevTableStudies[i]?.roles?.sort((a, b) =>
-          a?.label?.localeCompare(b?.label)
-        );
+        if (initialTableRoles.hasOwnProperty(prevTableStudies[i]?.prot_id)) {
+          let rolesData = initialTableRoles[prevTableStudies[i]?.prot_id];
+          console.log(rolesData);
+          prevTableStudies[i].roles = rolesData?.sort((a, b) =>
+            a?.label?.localeCompare(b?.label)
+          );
+        } else {
+          prevTableStudies[i].roles = prevTableStudies[i]?.roles?.sort((a, b) =>
+            a?.label?.localeCompare(b?.label)
+          );
+        }
       }
       setTableStudies([...prevTableStudies]);
+      setEditMode(false);
+      setAddNewModalClick(false);
+      setlastEditedRecordData(null);
+      setCancelEditMode(false);
     }
-    setEditMode(false);
-    setAddNewModalClick(false);
   }, [cancelEditMode]);
 
   const CustomButtonHeader = ({ toggleFilters }) => {
