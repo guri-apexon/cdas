@@ -4,7 +4,7 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 /* eslint-disable no-useless-escape */
 
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useHistory } from "react-router";
 import ApolloProgress from "apollo-react/components/ApolloProgress";
@@ -38,6 +38,8 @@ import {
   formComponentActive,
   hideAlert,
   showAppSwitcher,
+  formComponentInActive,
+  hideAppSwitcher,
 } from "../../../store/actions/AlertActions";
 import AlertBox from "../../AlertBox/AlertBox";
 import UserAssignmentTable from "./UserAssignmentTable";
@@ -139,6 +141,7 @@ const AddUser = () => {
   const [loading, setLoading] = useState(false);
   const [confirm, setConfirm] = useState(false);
   const [isAnyUpdate, setIsAnyUpdate] = useState(false);
+  // const [isConfirmModal , setConfirmModal] = useState(false);
   const [isShowAlertBox, setShowAlertBox] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedUserError, setSelectedUserError] = useState(null);
@@ -158,6 +161,8 @@ const AddUser = () => {
   const [isUserNotExists, setUserNotExists] = useState(false);
   const [isuserAlreadyExists, setUserAlreadyExists] = useState(false);
   const [showEmailTooTip, setEmailTooTip] = useState(false);
+  const routerHandle = useRef();
+  const [targetRoute, setTargetRoute] = useState("");
 
   const breadcrumpItems = [
     { href: "", onClick: () => history.push("/launchpad") },
@@ -169,6 +174,17 @@ const AddUser = () => {
       title: isEditPage ? selectedUser : "Add New User",
     },
   ];
+
+  const unblockRouter = () => {
+    dispatch(formComponentInActive());
+    dispatch(hideAlert());
+    dispatch(hideAppSwitcher());
+    // setShowAlertBox(false);
+    if (routerHandle) {
+      routerHandle.current = history.block(() => {});
+      routerHandle.current();
+    }
+  };
 
   const keepEditingBtn = () => {
     dispatch(hideAlert());
@@ -187,19 +203,26 @@ const AddUser = () => {
     }
   }, [alertStore]);
 
-  const updateChanges = () => {
-    if (!isAnyUpdate) {
-      setIsAnyUpdate(true);
-    }
-  };
+  // const updateChanges = () => {
+  //   if (!isAnyUpdate) {
+  //     setIsAnyUpdate(true);
+  //   }
+  // };
   const handleActive = (e, checked) => {
     setActive(checked);
-    updateChanges();
+    // updateChanges();
   };
   const cancelEdit = () => {
-    // unbFckRouter();
+    unblockRouter();
     setConfirm(false);
-    history.push(userListURL);
+    setIsAnyUpdate(false);
+    if (targetRoute === "") {
+      history.push(userListURL);
+    } else {
+      // setConfirm(false);
+      // setIsAnyUpdate(false);
+      history.push(targetRoute);
+    }
   };
 
   const stayHere = () => {
@@ -208,11 +231,12 @@ const AddUser = () => {
 
   const handleCancel = () => {
     // unblockRouter();
-    if (isAnyUpdate) {
-      setConfirm(true);
-    } else {
-      history.push(userListURL);
-    }
+    // if (isAnyUpdate) {
+    //   setConfirm(true);
+    // } else {
+    unblockRouter();
+    history.push(userListURL);
+    // }
   };
 
   const compareInputLength = (val = "", inputWidth) => {
@@ -291,7 +315,7 @@ const AddUser = () => {
   const handleChange = (e) => {
     const val = e.target.value;
     const key = e.target.id;
-    updateChanges();
+    // updateChanges();
     // if (key !== "usr_mail_id") {
     validateField(e, undefined, val);
     // }
@@ -500,6 +524,12 @@ const AddUser = () => {
     setLoading(false);
     const msg = response.message;
     if (response.status === 1) {
+      console.log("test");
+      console.log(isAnyUpdate);
+      console.log(confirm);
+      // setIsAnyUpdate(false);
+      // setConfirm(false);
+      unblockRouter();
       toast.showSuccessMessage(msg);
       history.push("/user-management");
     } else {
@@ -577,6 +607,23 @@ const AddUser = () => {
       if (email) validateUserEmail(email);
     }
   }, [selectedUser]);
+
+  useEffect(() => {
+    routerHandle.current = history.block((tr) => {
+      setTargetRoute(tr?.pathname);
+      setIsAnyUpdate(true);
+      setConfirm(true);
+      // setConfirmObj(cancelModalObj);
+      return false;
+    });
+
+    return function () {
+      /* eslint-disable */
+      routerHandle.current = history.block(() => {});
+      // routerHandle.current.current && routerHandle.current.current();
+      routerHandle.current();
+    };
+  });
 
   return (
     <div className="create-user-wrapper">
@@ -851,7 +898,7 @@ const AddUser = () => {
                 isNewUser={isNewUser}
                 loading={loading}
                 setLoading={setLoading}
-                updateChanges={updateChanges}
+                // updateChanges={updateChanges}
                 pingParent={pingParent}
                 updateUserAssign={(e) => updateUserAssign(e)}
                 setCheckUserAssignmentTableData={
