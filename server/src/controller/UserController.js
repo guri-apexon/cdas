@@ -899,7 +899,7 @@ exports.checkInvitedStatus = async () => {
     const query = `SELECT usr_id as uid, usr_mail_id as email, 
     extrnl_emp_id as employee_id, 
     usr_typ as user_type, sda_usr_key as user_key, 
-    usr_stat as status from ${schemaName}.user where (usr_stat = 'invited')`;
+    usr_stat as status from ${schemaName}.user where (usr_stat = 'Invited') AND (extrnl_emp_id = '')`;
     const result = await DB.executeQuery(query);
     if (!result) return false;
 
@@ -918,20 +918,22 @@ exports.checkInvitedStatus = async () => {
           employee_id: employeeId = "",
           uid,
         } = invitedUser;
-        console.log(invitedUser);
+        // console.log(invitedUser);
 
         if (status === "Invited") {
           const SDAStatus = await userHelper.getSDAUserStatus(userKey, email);
+          const externalSDAUserDetails =
+            await userHelper?.getSDAuserDataByEmail(email);
           if (SDAStatus) {
             console.log(`*mariking invited ${email} as active`);
-            userHelper.makeUserActive(uid, employeeId);
+            userHelper.makeUserActive(uid, externalSDAUserDetails?.userId);
           } else {
             const user = activeUsers.find(
               (u) => u.email.toUpperCase() === email.toUpperCase()
             );
             if (user) {
               console.log(`-mariking invited ${email} as active`);
-              userHelper.makeUserActive(uid, employeeId);
+              userHelper.makeUserActive(uid, externalSDAUserDetails?.userId);
             }
           }
         } else {

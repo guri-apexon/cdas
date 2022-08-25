@@ -764,8 +764,8 @@ exports.deleteStudyAssign = async (req, res) => {
       return apiResponse.ErrorResponse(res, "Something went wrong");
     }
 
-    const userDeleteQuery = `UPDATE ${schemaName}.study_user SET act_flg =0,updt_tm=$3 WHERE prot_id =$1 and usr_id = $2`;
-    const roleDeleteQuery = `UPDATE ${schemaName}.study_user_role SET act_flg =0,updated_by=$3,updated_on=$4 WHERE prot_id =$1 and usr_id =$2 RETURNING *;`;
+    const userDeleteQuery = `UPDATE ${schemaName}.study_user SET act_flg =0,updt_tm=$3 WHERE prot_id =$1 and LOWER(usr_id) = $2`;
+    const roleDeleteQuery = `UPDATE ${schemaName}.study_user_role SET act_flg =0,updated_by=$3,updated_on=$4 WHERE prot_id =$1 and LOWER(usr_id) =$2 RETURNING *;`;
     const studyUpdate = `UPDATE ${schemaName}.study SET updt_tm=$2 WHERE prot_id =$1`;
     Logger.info({ message: "deleteStudyAssign" });
 
@@ -806,9 +806,7 @@ exports.deleteStudyAssign = async (req, res) => {
               loginId
             );
 
-            const {
-              rows: [protUsrRoleId],
-            } = await DB.executeQuery(roleDeleteQuery, [
+            const deletedData = await DB.executeQuery(roleDeleteQuery, [
               protocol,
               studyUserId,
               loginId,
@@ -817,7 +815,7 @@ exports.deleteStudyAssign = async (req, res) => {
 
             // // Study roll user audit table audit log entry
             const studyUserAudit = CommonController.studyUserAudit(
-              protUsrRoleId.prot_usr_role_id,
+              deletedData?.rows?.prot_usr_role_id,
               "act_flg",
               1,
               0,
@@ -829,7 +827,7 @@ exports.deleteStudyAssign = async (req, res) => {
               "User deleted successfully"
             );
           } catch (err) {
-            console.log(err);
+            return apiResponse.ErrorResponse(res, "Delete Assignement Failed");
           }
         });
       })
