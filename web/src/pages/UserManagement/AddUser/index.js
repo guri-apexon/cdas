@@ -181,7 +181,7 @@ const AddUser = () => {
     dispatch(hideAppSwitcher());
     // setShowAlertBox(false);
     if (routerHandle) {
-      routerHandle.current = history.block(() => {});
+      // routerHandle.current = history.block(() => {});
       routerHandle.current();
     }
   };
@@ -524,13 +524,8 @@ const AddUser = () => {
     setLoading(false);
     const msg = response.message;
     if (response.status === 1) {
-      console.log("test");
-      console.log(isAnyUpdate);
-      console.log(confirm);
-      // setIsAnyUpdate(false);
-      // setConfirm(false);
-      unblockRouter();
       toast.showSuccessMessage(msg);
+      unblockRouter();
       history.push("/user-management");
     } else {
       toast.showErrorMessage(msg);
@@ -613,14 +608,12 @@ const AddUser = () => {
       setTargetRoute(tr?.pathname);
       setIsAnyUpdate(true);
       setConfirm(true);
-      // setConfirmObj(cancelModalObj);
       return false;
     });
 
     return function () {
       /* eslint-disable */
       routerHandle.current = history.block(() => {});
-      // routerHandle.current.current && routerHandle.current.current();
       routerHandle.current();
     };
   });
