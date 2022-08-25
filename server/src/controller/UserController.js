@@ -600,7 +600,7 @@ exports.secureApi = async (req, res) => {
 exports.getUserStudyAndRoles = async function (req, res) {
   try {
     const userId = req.query.userId;
-    const userStudyQuery = `select MAIN.prot_id,MAIN.usr_id,MAIN.role_id, r1.role_nm, s1.prot_nbr_stnd from ( select study_asgn_typ prot_id,usr_id,role_id,act_flg
+    const userStudyQuery = `select MAIN.prot_id,MAIN.usr_id,MAIN.role_id, r1.role_nm, s1.prot_nbr, s1.prot_nbr_stnd from ( select study_asgn_typ prot_id,usr_id,role_id,act_flg
 
       from ${schemaName}.study_user_role where usr_id = '${userId}' and study_asgn_typ is not null and act_flg=1
 
@@ -645,6 +645,7 @@ exports.getUserStudyAndRoles = async function (req, res) {
         };
       } else {
         acc[protId].roles.push({ label: role_nm, value: role_id });
+        // acc.prot_nbr = prot_nbr;
       }
       return acc;
     }, {});
