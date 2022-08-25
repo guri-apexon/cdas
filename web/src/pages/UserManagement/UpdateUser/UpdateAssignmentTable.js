@@ -163,7 +163,7 @@ const UserAssignmentTable = ({
         .map((study) => {
           return {
             ...study,
-            label: `${study.prot_nbr_stnd}`,
+            label: `${study.protocolnumber}`,
           };
         }) || [];
     filtered.sort(function (a, b) {
@@ -190,7 +190,7 @@ const UserAssignmentTable = ({
     if (protId === STUDY_IDS.NO_STUDY) {
       return <div className={isEdit}>{STUDY_LABELS.NO_STUDY}</div>;
     }
-    return <div className={isEdit}>{row?.prot_nbr_stnd || ""}</div>;
+    return <div className={isEdit}>{row?.prot_nbr || ""}</div>;
   };
   const showToolTip = {};
   const RolesSelected = ({ row, roles }) => {
@@ -467,6 +467,29 @@ const UserAssignmentTable = ({
     const rowIndex = tableStudies.findIndex((e) => e.prot_id === row.prot_id);
     const handleMenuClick = (label) => () => {
       if (label === "edit") {
+        // Edit Single Row
+        // console.log("tableStudies?.filter(x=>x.isEdit)", tableStudies?.findIndex(x=>x.isEdit));
+        // tableStudies?.filter(x=>x.isEdit).every(x=>{
+        //   console.log("x.index", x);
+        //   // updateEditMode(1, false);
+        // });
+        // setTableStudies(prev=>prev.map(x=>{
+        //   if(x.isEdit){
+        //     return {
+        //       ...x, 
+        //       isEdit : false,
+        //       roles : prev[x.index]?.roles?.sort(
+        //         (a, b) => a?.label?.localeCompare(b?.label)
+        //       )
+        //     }
+        //   }
+        //   return x;
+        // }));
+        // setTimeout(()=>{
+        // console.log("initialTableRoles", tableStudies, rowIndex);
+        // },1000);
+
+
         updateInProgress(true);
         setInitialTableRoles({
           ...initialTableRoles,

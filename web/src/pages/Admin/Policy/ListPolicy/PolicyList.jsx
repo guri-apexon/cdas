@@ -104,6 +104,9 @@ const PolicyList = () => {
     if (permissions.length > 0) {
       filterMethod(permissions);
     }
+    return () => {
+      dispatch(getPolicyList([]));
+    };
   }, []);
 
   // trigger whenever permissions are fetched
