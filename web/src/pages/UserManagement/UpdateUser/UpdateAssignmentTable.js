@@ -63,6 +63,7 @@ const UserAssignmentTable = ({
   const studyData = useSelector((state) => state.studyBoard);
 
   const [load, setLoad] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [studyList, setStudyList] = useState([]);
   const [tableStudies, setTableStudies] = useState([]);
   const [initialTableRoles, setInitialTableRoles] = useState({});
@@ -510,6 +511,7 @@ const UserAssignmentTable = ({
       setParentLoading(false);
       setLocalSave(true);
       setLoad(true);
+      setLoading(true);
 
       const allStudyNoStudyError = validateAllStudyNoStudy(viewRow);
 
@@ -588,6 +590,7 @@ const UserAssignmentTable = ({
           ...insertUserStudy,
         };
         const response = await updateUserAssignments(payload);
+        setLoading(false);
         if (response.status) {
           let isEditOpen = false;
           tableStudies?.forEach((study) => {
@@ -1330,7 +1333,7 @@ const UserAssignmentTable = ({
           />
         )}
         <Table
-          isLoading={!load}
+          isLoading={!load || loading}
           title="User Assignments"
           columns={columns}
           rows={tableStudies.filter((e) => e.prot_id)}
@@ -1349,6 +1352,7 @@ const UserAssignmentTable = ({
     [
       tableStudies,
       load,
+      loading,
       showRolePopup,
       showUserAssignmentModal,
       targetUser,
