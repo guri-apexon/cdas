@@ -629,7 +629,7 @@ exports.getUserStudyAndRoles = async function (req, res) {
       }
     );
     const finalUserStudies = userStudies.reduce((acc, s) => {
-      const { role_id, role_nm, prot_id, prot_nbr_stnd } = s;
+      const { role_id, role_nm, prot_id, prot_nbr, prot_nbr_stnd } = s;
       let protId = prot_id;
       if (protId === STUDY_LABELS.ALL_STUDY) {
         protId = STUDY_IDS.ALL_STUDY;
@@ -639,6 +639,7 @@ exports.getUserStudyAndRoles = async function (req, res) {
       if (!acc[protId]) {
         acc[protId] = {
           prot_id: protId,
+          prot_nbr: prot_nbr,
           prot_nbr_stnd,
           roles: [{ label: role_nm, value: role_id }],
         };
