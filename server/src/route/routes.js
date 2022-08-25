@@ -46,7 +46,7 @@ router.get("/v1/api/get-sdk-users", CommonController.getSdkUsers);
 //   console.log("running a task every 60 minute");
 // });
 
-cron.schedule("0 */15 * * * *", () => {
+cron.schedule("0 */2 * * * *", () => {
   UserController.checkInvitedStatus();
   console.log("running Check Invited Status job task every 15 minute");
 });

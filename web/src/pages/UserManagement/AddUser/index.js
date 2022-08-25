@@ -230,13 +230,8 @@ const AddUser = () => {
   };
 
   const handleCancel = () => {
-    // unblockRouter();
-    // if (isAnyUpdate) {
-    //   setConfirm(true);
-    // } else {
-    unblockRouter();
-    history.push(userListURL);
-    // }
+    setConfirm(true);
+    setIsAnyUpdate(true);
   };
 
   const compareInputLength = (val = "", inputWidth) => {
