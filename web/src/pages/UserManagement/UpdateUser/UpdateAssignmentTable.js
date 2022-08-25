@@ -54,6 +54,9 @@ const UserAssignmentTable = ({
   setEditMode,
   isEditMode,
   unblockRouter,
+  setAddNewModalClick,
+  cancelEditMode,
+  setCancelEditMode,
 }) => {
   const toast = useContext(MessageContext);
   const dispatch = useDispatch();
@@ -194,7 +197,9 @@ const UserAssignmentTable = ({
     const uRoles = roles.length
       ? roles
           .map((e) => e.label)
-          .sort()
+          .sort((a, b) => {
+            return a.localeCompare(b, undefined, { sensitivity: "base" });
+          })
           .join(", ")
       : "";
     const charLimit = getInnerElOverflLimit(
@@ -337,6 +342,7 @@ const UserAssignmentTable = ({
 
   const editRowFn = (rowIndex, editMode) => {
     const prevTableStudies = [...tableStudies];
+    prevTableStudies[rowIndex] = { ...prevTableStudies[rowIndex] };
     prevTableStudies[rowIndex].isEdit = editMode;
     prevTableStudies[rowIndex].roles = prevTableStudies[rowIndex]?.roles?.sort(
       (a, b) => a?.label?.localeCompare(b?.label)
@@ -357,7 +363,15 @@ const UserAssignmentTable = ({
       editRowFn(rowIndex, editMode);
       // setlastEditedRecordData(null);
       // setEditMode(undefined);
-      unblockRouter();
+      let isEditOpen = false;
+      tableStudies?.forEach((study) => {
+        if (!isEditOpen && study?.isEdit === true) {
+          isEditOpen = true;
+        }
+      });
+      if (!isEditOpen) {
+        unblockRouter();
+      }
       // dispatch(formComponentInActive());
       // dispatch(hideAppSwitcher());
     }
@@ -453,6 +467,29 @@ const UserAssignmentTable = ({
     const rowIndex = tableStudies.findIndex((e) => e.prot_id === row.prot_id);
     const handleMenuClick = (label) => () => {
       if (label === "edit") {
+        // Edit Single Row
+        // console.log("tableStudies?.filter(x=>x.isEdit)", tableStudies?.findIndex(x=>x.isEdit));
+        // tableStudies?.filter(x=>x.isEdit).every(x=>{
+        //   console.log("x.index", x);
+        //   // updateEditMode(1, false);
+        // });
+        // setTableStudies(prev=>prev.map(x=>{
+        //   if(x.isEdit){
+        //     return {
+        //       ...x, 
+        //       isEdit : false,
+        //       roles : prev[x.index]?.roles?.sort(
+        //         (a, b) => a?.label?.localeCompare(b?.label)
+        //       )
+        //     }
+        //   }
+        //   return x;
+        // }));
+        // setTimeout(()=>{
+        // console.log("initialTableRoles", tableStudies, rowIndex);
+        // },1000);
+
+
         updateInProgress(true);
         setInitialTableRoles({
           ...initialTableRoles,
@@ -521,9 +558,25 @@ const UserAssignmentTable = ({
             isValid: true,
           }))
           .filter((e) => e.id);
+
+        // filter edited row and non-edited rows
+        const finalData = newFormattedRows.map((prot) => {
+          if (prot.id === viewRow.prot_id) {
+            return prot;
+          }
+          let updatedProt = { ...prot };
+          if (initialTableRoles[prot.id]) {
+            updatedProt.roles = initialTableRoles[prot.id].map(
+              (role) => role.value
+            );
+            updatedProt.roleIds = updatedProt.roles;
+          }
+          return updatedProt;
+        });
+
         const insertUserStudy = {
           email,
-          protocols: newFormattedRows,
+          protocols: finalData,
           // removedProtocols,
         };
         let payload = {};
@@ -540,9 +593,21 @@ const UserAssignmentTable = ({
         };
         const response = await updateUserAssignments(payload);
         if (response.status) {
-          setEditMode(false);
-          dispatch(formComponentInActive());
-          dispatch(hideAppSwitcher());
+          let isEditOpen = false;
+          tableStudies?.forEach((study) => {
+            if (
+              !isEditOpen &&
+              study?.isEdit === true &&
+              study?.prot_id !== viewRow.prot_id
+            ) {
+              isEditOpen = true;
+            }
+          });
+          if (!isEditOpen) {
+            setEditMode(false);
+            dispatch(formComponentInActive());
+            dispatch(hideAppSwitcher());
+          }
           updateEditMode(rowIndex, false);
           toast.showSuccessMessage(response.message || "Updated Successfully!");
         } else {
@@ -647,6 +712,40 @@ const UserAssignmentTable = ({
     getRoles();
   }, []);
 
+  const setUserAssignmentCstmBtn = () => {
+    if (isEditMode) {
+      setAddNewModalClick(true);
+    } else {
+      setUserAssignmentModal(true);
+    }
+  };
+
+  useEffect(() => {
+    if (cancelEditMode) {
+      setUserAssignmentModal(true);
+      const prevTableStudies = [...tableStudies];
+      for (let [i, value] of prevTableStudies.entries()) {
+        prevTableStudies[i].isEdit = false;
+        if (initialTableRoles.hasOwnProperty(prevTableStudies[i]?.prot_id)) {
+          let rolesData = initialTableRoles[prevTableStudies[i]?.prot_id];
+          console.log(rolesData);
+          prevTableStudies[i].roles = rolesData?.sort((a, b) =>
+            a?.label?.localeCompare(b?.label)
+          );
+        } else {
+          prevTableStudies[i].roles = prevTableStudies[i]?.roles?.sort((a, b) =>
+            a?.label?.localeCompare(b?.label)
+          );
+        }
+      }
+      setTableStudies([...prevTableStudies]);
+      setEditMode(false);
+      setAddNewModalClick(false);
+      setlastEditedRecordData(null);
+      setCancelEditMode(false);
+    }
+  }, [cancelEditMode]);
+
   const CustomButtonHeader = ({ toggleFilters }) => {
     return (
       <div>
@@ -658,7 +757,7 @@ const UserAssignmentTable = ({
                 variant="secondary"
                 icon={<PlusIcon size="small" />}
                 disabled={userUpdating}
-                onClick={() => setUserAssignmentModal(true)}
+                onClick={() => setUserAssignmentCstmBtn()}
               >
                 Add user assignment
               </Button>

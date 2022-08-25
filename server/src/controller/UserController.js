@@ -220,7 +220,7 @@ exports.isUserExists = async (req, res) => {
 };
 
 exports.inviteExternalUser = async (req, res) => {
-  const newReq = { ...req, returnBool: true };
+  const newReq = { ...req, returnBool: false };
   newReq.body["userType"] = "external";
   Logger.info({ message: "inviteExternalUser - begin" });
 
@@ -233,9 +233,10 @@ exports.inviteExternalUser = async (req, res) => {
   }
 
   const response = await this.createNewUser(newReq, res);
-  if (response) {
+  if (response === true) {
     newReq.body["createdBy"] = newReq.body.updatedBy;
     newReq.body["createdOn"] = getCurrentTime();
+    newReq.returnBool = true;
     const assignmentResponse = AssignmentController.assignmentUpdate(
       newReq,
       res
@@ -250,12 +251,13 @@ exports.inviteExternalUser = async (req, res) => {
 
   return apiResponse.ErrorResponse(
     res,
-    "Unable to add new user – please try again or report problem to the system administrator"
+    response ||
+      "Unable to add new user – please try again or report problem to the system administrator"
   );
 };
 exports.inviteInternalUser = async (req, res) => {
   // { , , firstName, lastName, email, uid, employeeId }
-  const newReq = { ...req, returnBool: true };
+  const newReq = { ...req, returnBool: false };
   newReq.body["userType"] = "internal";
   Logger.info({ message: "inviteInternalUser - begin" });
 
@@ -268,9 +270,10 @@ exports.inviteInternalUser = async (req, res) => {
   }
 
   const response = await this.createNewUser(newReq, res);
-  if (response) {
+  if (response === true) {
     newReq.body["createdBy"] = newReq.body.updatedBy;
     newReq.body["createdOn"] = getCurrentTime();
+    newReq.returnBool = true;
     const assignmentResponse = AssignmentController.assignmentUpdate(
       newReq,
       res
@@ -284,7 +287,8 @@ exports.inviteInternalUser = async (req, res) => {
   }
   return apiResponse.ErrorResponse(
     res,
-    "Unable to add new user – please try again or report problem to the system administrator"
+    response ||
+      "Unable to add new user – please try again or report problem to the system administrator"
   );
 };
 
@@ -325,37 +329,25 @@ exports.createNewUser = async (req, res) => {
 
   // validate data
   const validate = await userHelper.validateCreateUserData(data);
-  if (validate.success === false)
-    return returnBool
-      ? false
-      : apiResponse.ErrorResponse(res, validate.message);
+  if (validate.success === false) return returnBool ? false : validate.message;
 
   const createdById = await userHelper.findByUserId(data.createdBy);
   if (data.createdBy && !createdById)
-    return returnBool
-      ? false
-      : apiResponse.ErrorResponse(res, "Created by Id does not exists");
+    return returnBool ? false : "Created by Id does not exists";
 
   if (data.createdOn && !commonHelper.isValidDate(data.createdOn))
-    return returnBool
-      ? false
-      : apiResponse.ErrorResponse(res, "Created on date is not valid");
+    return returnBool ? false : "Created on date is not valid";
 
   // validate tenant
   const tenant_id = await tenantHelper.findByName(data.tenant);
-  if (!tenant_id)
-    return returnBool
-      ? false
-      : apiResponse.ErrorResponse(res, "Tenant does not exists");
+  if (!tenant_id) return returnBool ? false : "Tenant does not exists";
 
   // provision into SDA and save
   const user = await userHelper.findByEmail(data.email);
   let usr_id = (user && user.usr_id) || "";
 
   if (user && !user.isInactive)
-    return returnBool
-      ? false
-      : apiResponse.ErrorResponse(res, "User already exists in the database");
+    return returnBool ? false : "User already exists in the database";
 
   if (data.userType === "internal") {
     const provision_response = await userHelper.provisionInternalUser(data);
@@ -374,10 +366,7 @@ exports.createNewUser = async (req, res) => {
     } else {
       return returnBool
         ? false
-        : apiResponse.ErrorResponse(
-            res,
-            "An error occured while provisioning internal user"
-          );
+        : "An error occured while provisioning internal user";
     }
   } else {
     const provision_response = await userHelper.provisionExternalUser(data);
@@ -401,31 +390,19 @@ exports.createNewUser = async (req, res) => {
     } else {
       return returnBool
         ? false
-        : apiResponse.ErrorResponse(
-            res,
-            "An error occured while provisioning external user"
-          );
+        : "An error occured while provisioning external user";
     }
   }
   if (!usr_id)
-    return returnBool
-      ? false
-      : apiResponse.ErrorResponse(
-          res,
-          "An error occured while inserting the user"
-        );
+    return returnBool ? false : "An error occured while inserting the user";
 
   if (usr_id && tenant_id) tenantHelper.insertTenantUser(usr_id, tenant_id);
   else
     return returnBool
       ? false
-      : apiResponse.ErrorResponse(
-          res,
-          "An error occured while entering user and tenant detail"
-        );
-  return returnBool
-    ? true
-    : apiResponse.successResponseWithData(res, "User successfully created");
+      : "An error occured while entering user and tenant detail";
+
+  return true;
 };
 
 exports.getADUsers = async (req, res) => {
@@ -624,16 +601,27 @@ exports.getUserStudyAndRoles = async function (req, res) {
   try {
     const userId = req.query.userId;
     const userStudyQuery = `select MAIN.prot_id,MAIN.usr_id,MAIN.role_id, r1.role_nm, s1.prot_nbr_stnd from ( select study_asgn_typ prot_id,usr_id,role_id,act_flg
-      from ${schemaName}.study_user_role where usr_id = '${userId}' and study_asgn_typ is not null
+
+      from ${schemaName}.study_user_role where usr_id = '${userId}' and study_asgn_typ is not null and act_flg=1
+
       group by study_asgn_typ,usr_id,role_id,act_flg
+
       union all
+
       select prot_id,usr_id,role_id,act_flg
+
       from ${schemaName}.study_user_role where usr_id = '${userId}'
-      and study_asgn_typ is null
+
+      and study_asgn_typ is null and act_flg=1
+
       ) MAIN
+
       left join study s1 on s1.prot_id = MAIN.prot_id
+
       join "user" u on (MAIN.usr_id=u.usr_id)
+
       left join role r1 on r1.role_id = MAIN.role_id
+
       WHERE (u.usr_stat ='Active' and r1.role_stat = 1) or (u.usr_stat !='Active');`;
     const userStudies = await DB.executeQuery(userStudyQuery).then(
       (response) => {

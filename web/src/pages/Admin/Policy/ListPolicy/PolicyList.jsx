@@ -106,6 +106,13 @@ const PolicyList = () => {
     }
   }, []);
 
+  // trigger whenever permissions are fetched
+  useEffect(() => {
+    if (permissions.length > 0) {
+      filterMethod(permissions);
+    }
+  }, [permissions]);
+
   useEffect(() => {
     const { policyList, loading, uniqueProducts } = policyAdmin;
     setPolicyLists(policyList);
@@ -343,7 +350,7 @@ const PolicyList = () => {
         />
       </>
     ),
-    [tableRows, load]
+    [tableRows, load, readPermission]
   );
 
   return (

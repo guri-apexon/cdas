@@ -371,7 +371,8 @@ exports.listPermission = function (req, res) {
     left outer join ${schemaName}.category c on (c.ctgy_id=pp.ctgy_id and c.act_flg = 1)
     left outer join ${schemaName}.feature f on (f.feat_id=pp.feat_id and f.act_flg = 1)
     left outer join ${schemaName}."permission" p on (p.permsn_id=pp.permsn_id and p.act_flg = 1)
-    left outer join ${schemaName}.product p2 on (p2.prod_id=pp.prod_id and p2.act_flg = 1)) oprd;`;
+    left outer join ${schemaName}.product p2 on (p2.prod_id=pp.prod_id and p2.act_flg = 1)
+    where f.act_flg=1) oprd;`;
     DB.executeQuery(searchQuery).then(async (response) => {
       const permissions = response?.rows || [];
       if (policyId) {

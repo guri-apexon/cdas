@@ -3,7 +3,12 @@ const { result } = require("lodash");
 const ActiveDirectory = require("activedirectory2").promiseWrapper;
 const DB = require("../config/db");
 const { data } = require("../config/logger");
-const { getCurrentTime, validateEmail } = require("./customFunctions");
+const {
+  getCurrentTime,
+  validateEmail,
+  checkProtocolRoles,
+  checkProtocolRoleIds,
+} = require("./customFunctions");
 const Logger = require("../config/logger");
 const constants = require("../config/constants");
 const assert = require("assert");
@@ -241,8 +246,16 @@ exports.validateAddUserData = async (data) => {
  * @returns {Promise<object>} success as true on success false other wise
  */
 exports.validateCreateUserData = async (data) => {
-  const { tenant, userType, firstName, lastName, email, uid, employeeId } =
-    data;
+  const {
+    tenant,
+    userType,
+    firstName,
+    lastName,
+    email,
+    uid,
+    employeeId,
+    protocols,
+  } = data;
 
   if (!data) {
     return { success: false, message: "data not provided" };
@@ -257,6 +270,10 @@ exports.validateCreateUserData = async (data) => {
   if (!(userType === "internal" || userType === "external"))
     return { success: false, message: "invalid user type" };
 
+  if (userType === "internal" && !uid) {
+    return { success: false, message: "Employee ID is required" };
+  }
+
   if (!(firstName && firstName.trim()))
     return { success: false, message: "First Name is required field" };
 
@@ -269,10 +286,20 @@ exports.validateCreateUserData = async (data) => {
   if (!validateEmail(email))
     return { success: false, message: "Email id invalid" };
 
+  if (!protocols) {
+    return { success: false, message: "Select a protocol" };
+  }
+
+  if (!checkProtocolRoles(protocols))
+    return { success: false, message: "Roles is required" };
+
+  if (!checkProtocolRoleIds(protocols))
+    return { success: false, message: "Roles is required" };
+
   try {
     const isUserAlreadyProvisioned = await this.isUserAlreadyProvisioned(email);
     if (isUserAlreadyProvisioned) {
-      return { success: false, message: "User already Provisioned" };
+      return { success: false, message: "User already in system" };
     }
   } catch (error) {}
 
@@ -359,7 +386,7 @@ exports.getUsersFromAD = async (query = "") => {
     console.log("error: getUsersFromAD", err);
     return false;
   }
-};;
+};
 
 exports.getSDAuserDataByEmail = async (email) => {
   try {

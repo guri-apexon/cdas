@@ -133,6 +133,7 @@ const ExistingUsers = () => {
   const [isShowAlertBox, setShowAlertBox] = useState(false);
   const [rowsBeingEdited, setRowsBeingEdited] = useState([]);
   const [editedRowBeingCancelled, setEditedRowBeingCancelled] = useState(null);
+  const [isAddNewModalClick, setAddNewModalClick] = useState(false);
   const unblockRouter = () => {
     dispatch(formComponentInActive());
     dispatch(hideAlert());
@@ -399,6 +400,13 @@ const ExistingUsers = () => {
     },
   ];
 
+  const addNewUserCstmBtnClick = () => {
+    if (rowsBeingEdited?.length) {
+      setAddNewModalClick(true);
+    } else {
+      setAddStudyOpen(!addStudyOpen);
+    }
+  };
   const CustomHeader = ({ toggleFilters }) => {
     return (
       <>
@@ -407,7 +415,7 @@ const ExistingUsers = () => {
             size="small"
             variant="secondary"
             icon={PlusIcon}
-            onClick={() => setAddStudyOpen(!addStudyOpen)}
+            onClick={() => addNewUserCstmBtnClick()}
             style={{ marginRight: 16 }}
           >
             Add new users
@@ -450,6 +458,7 @@ const ExistingUsers = () => {
   };
 
   const keepEditingBtn = () => {
+    setAddNewModalClick(false);
     dispatch(hideAlert());
     setShowAlertBox(false);
   };
@@ -460,10 +469,33 @@ const ExistingUsers = () => {
     rbe.splice(index, 1);
     setRowsBeingEdited(rbe);
   };
+  /* eslint-disable */
+  const leavePageBtnForAddUser = () => {
+    console.log(rowsBeingEdited);
+    const revertedData = rowsBeingEdited.reduce((acc, obj) => {
+      /* eslint-disable */
+      return acc.map((row) => {
+        if (row.uniqueId === obj.uniqueId) {
+          return {
+            ...row,
+            roles: obj.roles,
+          };
+        } else {
+          return row;
+        }
+      });
+    }, tableUsers);
+    setTableUsers(revertedData);
+    setRowsBeingEdited([]);
+    dispatch(formComponentInActive());
+    setAddNewModalClick(false);
+    setAddStudyOpen(true);
+  };
 
   const leavePageBtn = () => {
     const checkVariable = alertStore?.showAlertBox !== true;
     if (editedRowBeingCancelled && checkVariable) {
+      console.log(editedRowBeingCancelled);
       if (editedRowBeingCancelled?.roles) {
         setTableUsers((rows) =>
           rows.map((row) => {
@@ -520,6 +552,10 @@ const ExistingUsers = () => {
           style={{ height: 64, zIndex: 10 }}
         />
       </div>
+      {isAddNewModalClick && (
+        <AlertBox cancel={keepEditingBtn} submit={leavePageBtnForAddUser} />
+      )}
+
       {isShowAlertBox && (
         <AlertBox cancel={keepEditingBtn} submit={leavePageBtn} />
       )}
