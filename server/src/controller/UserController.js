@@ -600,7 +600,7 @@ exports.secureApi = async (req, res) => {
 exports.getUserStudyAndRoles = async function (req, res) {
   try {
     const userId = req.query.userId;
-    const userStudyQuery = `select MAIN.prot_id,MAIN.usr_id,MAIN.role_id, r1.role_nm, s1.prot_nbr_stnd from ( select study_asgn_typ prot_id,usr_id,role_id,act_flg
+    const userStudyQuery = `select MAIN.prot_id,MAIN.usr_id,MAIN.role_id, r1.role_nm, s1.prot_nbr, s1.prot_nbr_stnd from ( select study_asgn_typ prot_id,usr_id,role_id,act_flg
 
       from ${schemaName}.study_user_role where usr_id = '${userId}' and study_asgn_typ is not null and act_flg=1
 
@@ -645,6 +645,7 @@ exports.getUserStudyAndRoles = async function (req, res) {
         };
       } else {
         acc[protId].roles.push({ label: role_nm, value: role_id });
+        // acc.prot_nbr = prot_nbr;
       }
       return acc;
     }, {});
@@ -900,7 +901,7 @@ exports.checkInvitedStatus = async () => {
     const query = `SELECT usr_id as uid, usr_mail_id as email, 
     extrnl_emp_id as employee_id, 
     usr_typ as user_type, sda_usr_key as user_key, 
-    usr_stat as status from ${schemaName}.user where (usr_stat = 'invited')`;
+    usr_stat as status from ${schemaName}.user where (usr_stat = 'Invited') AND (extrnl_emp_id = '')`;
     const result = await DB.executeQuery(query);
     if (!result) return false;
 
@@ -919,20 +920,22 @@ exports.checkInvitedStatus = async () => {
           employee_id: employeeId = "",
           uid,
         } = invitedUser;
-        console.log(invitedUser);
+        // console.log(invitedUser);
 
         if (status === "Invited") {
           const SDAStatus = await userHelper.getSDAUserStatus(userKey, email);
+          const externalSDAUserDetails =
+            await userHelper?.getSDAuserDataByEmail(email);
           if (SDAStatus) {
             console.log(`*mariking invited ${email} as active`);
-            userHelper.makeUserActive(uid, employeeId);
+            userHelper.makeUserActive(uid, externalSDAUserDetails?.userId);
           } else {
             const user = activeUsers.find(
               (u) => u.email.toUpperCase() === email.toUpperCase()
             );
             if (user) {
               console.log(`-mariking invited ${email} as active`);
-              userHelper.makeUserActive(uid, employeeId);
+              userHelper.makeUserActive(uid, externalSDAUserDetails?.userId);
             }
           }
         } else {

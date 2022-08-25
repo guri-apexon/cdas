@@ -468,34 +468,30 @@ const UserAssignmentTable = ({
     const handleMenuClick = (label) => () => {
       if (label === "edit") {
         // Edit Single Row
-        // console.log("tableStudies?.filter(x=>x.isEdit)", tableStudies?.findIndex(x=>x.isEdit));
-        // tableStudies?.filter(x=>x.isEdit).every(x=>{
-        //   console.log("x.index", x);
-        //   // updateEditMode(1, false);
-        // });
-        // setTableStudies(prev=>prev.map(x=>{
-        //   if(x.isEdit){
-        //     return {
-        //       ...x, 
-        //       isEdit : false,
-        //       roles : prev[x.index]?.roles?.sort(
-        //         (a, b) => a?.label?.localeCompare(b?.label)
-        //       )
-        //     }
-        //   }
-        //   return x;
-        // }));
-        // setTimeout(()=>{
-        // console.log("initialTableRoles", tableStudies, rowIndex);
-        // },1000);
-
+        setTableStudies(prev=>prev.map(x=>{
+          if(x.isEdit){
+            const roles = initialTableRoles[x.prot_id] || x.roles;
+            return {
+              ...x, 
+              isEdit : false,
+              roles : roles
+            }
+          }else if (x.index === rowIndex){
+            return {
+              ...x,
+              isEdit : true,
+            }
+          }
+          return x;
+        }));
+        // Edit Single Row end
 
         updateInProgress(true);
         setInitialTableRoles({
           ...initialTableRoles,
           [tableStudies[rowIndex].prot_id]: tableStudies[rowIndex].roles,
         });
-        updateEditMode(rowIndex, true);
+        // updateEditMode(rowIndex, true); Commented For edit single row
       } else {
         onVieweStudyDelete(rowIndex);
       }

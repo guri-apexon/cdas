@@ -418,10 +418,10 @@ export const deleteAssignUser = async (reqBody) => {
       axios
         .post(`${baseURL}/${ASSIGN_BASE}/delete`, reqBody)
         .then((res) => {
-          resolve(res.data);
+          resolve(res?.data);
         })
         .catch((err) => {
-          reject(err.response.data);
+          reject(err?.response?.data);
         });
     });
   } catch (err) {
