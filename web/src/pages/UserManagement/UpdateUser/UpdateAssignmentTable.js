@@ -362,8 +362,8 @@ const UserAssignmentTable = ({
       editRowFn(rowIndex, editMode);
     } else {
       editRowFn(rowIndex, editMode);
-      // setlastEditedRecordData(null);
-      // setEditMode(undefined);
+      setlastEditedRecordData(null);
+      setEditMode(undefined);
       let isEditOpen = false;
       tableStudies?.forEach((study) => {
         if (!isEditOpen && study?.isEdit === true) {
@@ -378,11 +378,11 @@ const UserAssignmentTable = ({
     }
   };
 
-  // useEffect(() => {
-  //   if (isEditMode === false) {
-  //     updateEditMode(lastEditedRecordIndex, false);
-  //   }
-  // }, [isEditMode]);
+  useEffect(() => {
+    if (isEditMode === false) {
+      updateEditMode(lastEditedRecordIndex, false);
+    }
+  }, [isEditMode]);
 
   const onVieweStudyDelete = async (rowIndex) => {
     const email = targetUser.usr_mail_id;
@@ -469,22 +469,24 @@ const UserAssignmentTable = ({
     const handleMenuClick = (label) => () => {
       if (label === "edit") {
         // Edit Single Row
-        setTableStudies(prev=>prev.map(x=>{
-          if(x.isEdit){
-            const roles = initialTableRoles[x.prot_id] || x.roles;
-            return {
-              ...x, 
-              isEdit : false,
-              roles : roles
+        setTableStudies((prev) =>
+          prev.map((x) => {
+            if (x.isEdit) {
+              const roles = initialTableRoles[x.prot_id] || x.roles;
+              return {
+                ...x,
+                isEdit: false,
+                roles: roles,
+              };
+            } else if (x.index === rowIndex) {
+              return {
+                ...x,
+                isEdit: true,
+              };
             }
-          }else if (x.index === rowIndex){
-            return {
-              ...x,
-              isEdit : true,
-            }
-          }
-          return x;
-        }));
+            return x;
+          })
+        );
         // Edit Single Row end
 
         updateInProgress(true);
@@ -493,6 +495,9 @@ const UserAssignmentTable = ({
           [tableStudies[rowIndex].prot_id]: tableStudies[rowIndex].roles,
         });
         // updateEditMode(rowIndex, true); Commented For edit single row
+        setlastEditedRecordData(rowIndex);
+        setEditMode(true);
+        dispatch(formComponentActive());
       } else {
         onVieweStudyDelete(rowIndex);
       }
@@ -504,6 +509,7 @@ const UserAssignmentTable = ({
         initialTableRoles[tableStudies[rowIndex].prot_id];
       setTableStudies([...tableStudies]);
       updateEditMode(rowIndex, false);
+      dispatch(formComponentInActive());
     };
 
     const saveEdit = async (viewRow) => {
