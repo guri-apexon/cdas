@@ -245,7 +245,7 @@ exports.validateAddUserData = async (data) => {
  * @param {object} data = { tenant, userType, firstName, lastName, email, uid, employeeId }
  * @returns {Promise<object>} success as true on success false other wise
  */
-exports.validateCreateUserData = async (data) => {
+exports.validateCreateUserData = async (data, checkProtocol = false) => {
   const {
     tenant,
     userType,
@@ -286,15 +286,17 @@ exports.validateCreateUserData = async (data) => {
   if (!validateEmail(email))
     return { success: false, message: "Email id invalid" };
 
-  if (!protocols) {
-    return { success: false, message: "Select a protocol" };
+  if (checkProtocol) {
+    if (!protocols) {
+      return { success: false, message: "Select a protocol" };
+    }
+    
+    if (!checkProtocolRoles(protocols))
+      return { success: false, message: "Roles is required" };
+
+    if (!checkProtocolRoleIds(protocols))
+      return { success: false, message: "Roles is required" };
   }
-
-  if (!checkProtocolRoles(protocols))
-    return { success: false, message: "Roles is required" };
-
-  if (!checkProtocolRoleIds(protocols))
-    return { success: false, message: "Roles is required" };
 
   try {
     const isUserAlreadyProvisioned = await this.isUserAlreadyProvisioned(email);
