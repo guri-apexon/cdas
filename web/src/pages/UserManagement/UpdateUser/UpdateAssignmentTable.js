@@ -39,6 +39,7 @@ import {
   formComponentInActive,
   hideAppSwitcher,
 } from "../../../store/actions/AlertActions";
+import AlertBox from "../../AlertBox/AlertBox";
 
 const UserAssignmentTable = ({
   updateChanges,
@@ -73,6 +74,9 @@ const UserAssignmentTable = ({
   const [initialFilterRole, setInitialFilterRole] = useState([]);
   const [lastEditedRecordIndex, setlastEditedRecordData] = useState(null);
   const [showEmptyTable, setShowEmptyTable] = useState(false);
+
+  const [showCancelRowModal, setShowCancelRowModal] = useState(false);
+  const [localRowIndex, setLocalRowIndex] = useState(null);
 
   const [showUserAssignmentModal, setUserAssignmentModal] = useState(false);
   const tableRef = useRef(null);
@@ -384,6 +388,17 @@ const UserAssignmentTable = ({
     }
   }, [isEditMode]);
 
+  // cancel row button
+  const cancelRowButton = () => {
+    updateInProgress(false);
+    tableStudies[localRowIndex].roles =
+      initialTableRoles[tableStudies[localRowIndex].prot_id];
+    setTableStudies([...tableStudies]);
+    updateEditMode(localRowIndex, false);
+    dispatch(formComponentInActive());
+    setShowCancelRowModal(false);
+  };
+
   const onVieweStudyDelete = async (rowIndex) => {
     const email = targetUser.usr_mail_id;
     const uid = targetUser?.sAMAccountName;
@@ -503,13 +518,18 @@ const UserAssignmentTable = ({
       }
     };
 
-    const cancelEdit = () => {
-      updateInProgress(false);
-      tableStudies[rowIndex].roles =
-        initialTableRoles[tableStudies[rowIndex].prot_id];
-      setTableStudies([...tableStudies]);
-      updateEditMode(rowIndex, false);
-      dispatch(formComponentInActive());
+    const cancelEdit = (fromModal = false) => {
+      if (!fromModal) {
+        setShowCancelRowModal(true);
+        setLocalRowIndex(rowIndex);
+      } else if (fromModal) {
+        updateInProgress(false);
+        tableStudies[rowIndex].roles =
+          initialTableRoles[tableStudies[rowIndex].prot_id];
+        setTableStudies([...tableStudies]);
+        updateEditMode(rowIndex, false);
+        dispatch(formComponentInActive());
+      }
     };
 
     const saveEdit = async (viewRow) => {
@@ -1339,6 +1359,12 @@ const UserAssignmentTable = ({
             loading={false}
           />
         )}
+        {showCancelRowModal && (
+          <AlertBox
+            cancel={() => setShowCancelRowModal(false)}
+            submit={() => cancelRowButton()}
+          />
+        )}
         <Table
           isLoading={!load || loading}
           title="User Assignments"
@@ -1366,6 +1392,7 @@ const UserAssignmentTable = ({
       studyList,
       initialFilterRole,
       showEmptyTable,
+      showCancelRowModal,
     ]
   );
   return getUserAssignmentTable;
