@@ -318,9 +318,13 @@ const ExistingUsers = () => {
   };
 
   const onRowEdit = async (uniqueId) => {
-    const rbe = [...rowsBeingEdited];
-    rbe.push(tableUsers[uniqueId - 1]);
-    setRowsBeingEdited(rbe);
+    const currentRow = tableUsers[uniqueId - 1];
+    // Single Edit
+    setRowsBeingEdited([currentRow]);
+    // Single Edit end and Commented below for single edit
+    // const rbe = [...rowsBeingEdited];
+    // rbe.push(currentRow);
+    // setRowsBeingEdited(rbe);
     dispatch(formComponentActive());
   };
 

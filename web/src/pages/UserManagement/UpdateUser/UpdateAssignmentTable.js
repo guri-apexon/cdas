@@ -608,6 +608,7 @@ const UserAssignmentTable = ({
             dispatch(hideAppSwitcher());
           }
           updateEditMode(rowIndex, false);
+          getUserStudyRoles();
           toast.showSuccessMessage(response.message || "Updated Successfully!");
         } else {
           toast.showErrorMessage(response.message || "Error in update!");
