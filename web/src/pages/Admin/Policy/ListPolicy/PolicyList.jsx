@@ -18,6 +18,7 @@ import Switch from "apollo-react/components/Switch";
 import Typography from "apollo-react/components/Typography";
 import Progress from "../../../../components/Progress";
 import { AppContext } from "../../../../components/Providers/AppProvider";
+import { MessageContext } from "../../../../components/Providers/MessageProvider";
 import {
   getPolicyList,
   updateStatus,
@@ -136,8 +137,13 @@ const PolicyList = () => {
     setTableRows(uniquePolicies);
   }, [policyLists]);
 
-  // const messageContext = useContext(MessageContext);
+  const messageContext = useContext(MessageContext);
 
+  useEffect(() => {
+    if (policyAdmin.errmsg !== "")
+      messageContext.showErrorMessage(policyAdmin.errmsg);
+  }, [policyAdmin.errmsg]);
+  
   const goToPolicy = (e, id) => {
     if (readPermission) {
       e.preventDefault();

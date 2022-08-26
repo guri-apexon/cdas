@@ -14,6 +14,7 @@ export const initialState = {
   roles: [],
   uniqueProducts: [],
   loading: false,
+  errmsg: "",
 };
 
 const roleReducer = (state = initialState, action) =>
@@ -38,7 +39,8 @@ const roleReducer = (state = initialState, action) =>
         break;
 
       case UPDATE_ROLE_STATUS_FAILURE:
-        newState.loading = true;
+        newState.loading = false;
+        newState.errmsg = action.message;
         break;
 
       case ROLE_LIST_FAILURE:

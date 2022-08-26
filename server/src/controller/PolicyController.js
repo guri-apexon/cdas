@@ -479,6 +479,25 @@ exports.updateStatus = async (req, res) => {
   try {
     const { userId, policyStatus, policyId, updated_on } = req.body;
     const policyValues = [policyStatus, userId, updated_on, policyId];
+    const PermissionCount = await DB.executeQuery(
+      `SELECT plcy_prod_permsn_id from ${schemaName}.policy_product_permission
+
+      WHERE plcy_id = '${policyId}' and act_flg=1 `
+    );
+
+    const plocyPermissionCount = PermissionCount.rows?.length;
+
+    // console.log("plocyPermissionCount", plocyPermissionCount);
+
+    if (policyStatus === "Active") {
+      if (!plocyPermissionCount) {
+        return apiResponse.ErrorResponse(
+          res,
+
+          "This policy requires at least one permission to be made active"
+        );
+      }
+    }
     let response = await DB.executeQuery(
       `UPDATE ${schemaName}.policy set plcy_stat=$1, updated_by=$2, updated_on=$3 WHERE plcy_id=$4 RETURNING *`,
       policyValues

@@ -44,6 +44,9 @@ export function* updatePolicyStatus(params) {
       response: fetchData.data.data.updatedPolicy,
     });
   } catch (e) {
-    yield put({ type: UPDATE_POLICY_STATUS_FAILURE, message: e.message });
+    yield put({
+      type: UPDATE_POLICY_STATUS_FAILURE,
+      message: e.response.data.message,
+    });
   }
 }
