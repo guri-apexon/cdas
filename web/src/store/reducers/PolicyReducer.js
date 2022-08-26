@@ -22,6 +22,7 @@ const PolicyReducer = (state = initialState, action) =>
     switch (action.type) {
       case POLICY_LIST:
         newState.loading = true;
+        newState.errmsg = "";
         break;
 
       case POLICY_LIST_SUCCESS:

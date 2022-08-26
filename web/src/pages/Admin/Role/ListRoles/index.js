@@ -80,6 +80,9 @@ const ListRoles = () => {
       filterMethod(permissions);
     }
     fetchData();
+    return () => {
+      dispatch(fetchRoles([]));
+    };
   }, []);
 
   useEffect(() => {

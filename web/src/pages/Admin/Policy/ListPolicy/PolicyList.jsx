@@ -140,10 +140,11 @@ const PolicyList = () => {
   const messageContext = useContext(MessageContext);
 
   useEffect(() => {
-    if (policyAdmin.errmsg !== "")
+    if (policyAdmin.errmsg !== "") {
       messageContext.showErrorMessage(policyAdmin.errmsg);
+    }
   }, [policyAdmin.errmsg]);
-  
+
   const goToPolicy = (e, id) => {
     if (readPermission) {
       e.preventDefault();

@@ -22,6 +22,7 @@ const roleReducer = (state = initialState, action) =>
     switch (action.type) {
       case ROLE_LIST_FETCH:
         newState.loading = true;
+        newState.errmsg = "";
         break;
 
       case ROLE_LIST_SUCCESS:
