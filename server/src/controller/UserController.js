@@ -1012,7 +1012,7 @@ exports.checkInvitedStatus = async () => {
     const query = `SELECT usr_id as uid, usr_mail_id as email, 
     extrnl_emp_id as employee_id, 
     usr_typ as user_type, sda_usr_key as user_key, 
-    usr_stat as status from ${schemaName}.user where (usr_stat = 'Invited') AND (extrnl_emp_id = '')`;
+    usr_stat as status from ${schemaName}.user where (usr_stat = 'Invited')`;
     const result = await DB.executeQuery(query);
     if (!result) return false;
 
@@ -1020,7 +1020,7 @@ exports.checkInvitedStatus = async () => {
     if (!invitedUsers.length) return false;
 
     // Get Active Users from SDA API
-    const activeUsers = await userHelper.getSDAUsers();
+    // const activeUsers = await userHelper.getSDAUsers();
 
     await Promise.all(
       invitedUsers.map(async (invitedUser) => {
@@ -1037,18 +1037,21 @@ exports.checkInvitedStatus = async () => {
           const SDAStatus = await userHelper.getSDAUserStatus(userKey, email);
           const externalSDAUserDetails =
             await userHelper?.getSDAuserDataByEmail(email);
-          if (SDAStatus) {
+          if (SDAStatus && externalSDAUserDetails) {
             console.log(`*mariking invited ${email} as active`);
             userHelper.makeUserActive(uid, externalSDAUserDetails?.userId);
           } else {
-            const user = activeUsers.find(
-              (u) => u.email.toUpperCase() === email.toUpperCase()
-            );
-            if (user) {
-              console.log(`-mariking invited ${email} as active`);
-              userHelper.makeUserActive(uid, externalSDAUserDetails?.userId);
-            }
+            console.log("Error, In Activting invited user.");
           }
+          // else {
+          //   const user = activeUsers.find(
+          //     (u) => u.email.toUpperCase() === email.toUpperCase()
+          //   );
+          //   if (user) {
+          //     console.log(`-mariking invited ${email} as active`);
+          //     userHelper.makeUserActive(uid, externalSDAUserDetails?.userId);
+          //   }
+          // }
         } else {
           console.log("Error, received user who is not invited.", invitedUser);
         }
