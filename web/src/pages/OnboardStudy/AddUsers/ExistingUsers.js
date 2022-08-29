@@ -52,6 +52,11 @@ import {
 } from "../../../store/actions/AlertActions";
 import AlertBox from "../../AlertBox/AlertBox";
 
+import usePermission, {
+  Categories,
+  Features,
+} from "../../../components/Common/usePermission";
+
 const ActionCell = ({ row }) => {
   const { uniqueId, onRowEdit, onRowSave, editMode, onCancel, onRowDelete } =
     row;
@@ -134,6 +139,10 @@ const ExistingUsers = () => {
   const [rowsBeingEdited, setRowsBeingEdited] = useState([]);
   const [editedRowBeingCancelled, setEditedRowBeingCancelled] = useState(null);
   const [isAddNewModalClick, setAddNewModalClick] = useState(false);
+  const { canCreate } = usePermission(
+    Categories.STUDIES,
+    Features.STUDY_ASSIGNMENTS
+  );
   const unblockRouter = () => {
     dispatch(formComponentInActive());
     dispatch(hideAlert());
@@ -412,7 +421,7 @@ const ExistingUsers = () => {
     },
     {
       accessor: "action",
-      customCell: ActionCell,
+      customCell: canCreate && ActionCell,
       align: "right",
     },
   ];
@@ -428,15 +437,17 @@ const ExistingUsers = () => {
     return (
       <>
         <div>
-          <Button
-            size="small"
-            variant="secondary"
-            icon={PlusIcon}
-            onClick={() => addNewUserCstmBtnClick()}
-            style={{ marginRight: 16 }}
-          >
-            Add new users
-          </Button>
+          {canCreate && (
+            <Button
+              size="small"
+              variant="secondary"
+              icon={PlusIcon}
+              onClick={() => addNewUserCstmBtnClick()}
+              style={{ marginRight: 16 }}
+            >
+              Add new users
+            </Button>
+          )}
           <Button
             size="small"
             variant="secondary"
