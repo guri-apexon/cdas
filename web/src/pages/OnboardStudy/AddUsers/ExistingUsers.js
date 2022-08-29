@@ -320,6 +320,19 @@ const ExistingUsers = () => {
   const onRowEdit = async (uniqueId) => {
     const currentRow = tableUsers[uniqueId - 1];
     // Single Edit
+    if (rowsBeingEdited?.length && rowsBeingEdited[0]?.roles) {
+      setTableUsers((rows) =>
+        rows.map((row) => {
+          if (row.uniqueId === rowsBeingEdited[0]?.uniqueId) {
+            return {
+              ...row,
+              roles: rowsBeingEdited[0]?.roles,
+            };
+          }
+          return row;
+        })
+      );
+    }
     setRowsBeingEdited([currentRow]);
     // Single Edit end and Commented below for single edit
     // const rbe = [...rowsBeingEdited];
