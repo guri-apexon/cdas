@@ -35,6 +35,9 @@ export function* updateRoleStatus(params) {
       response: fetchData.data,
     });
   } catch (e) {
-    yield put({ type: UPDATE_ROLE_STATUS_FAILURE, message: e.message });
+    yield put({
+      type: UPDATE_ROLE_STATUS_FAILURE,
+      message: e.response.data.message,
+    });
   }
 }

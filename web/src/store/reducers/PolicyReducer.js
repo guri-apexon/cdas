@@ -14,6 +14,7 @@ export const initialState = {
   policyList: [],
   uniqueProducts: [],
   loading: false,
+  errmsg: "",
 };
 
 const PolicyReducer = (state = initialState, action) =>
@@ -21,6 +22,7 @@ const PolicyReducer = (state = initialState, action) =>
     switch (action.type) {
       case POLICY_LIST:
         newState.loading = true;
+        newState.errmsg = "";
         break;
 
       case POLICY_LIST_SUCCESS:
@@ -46,7 +48,8 @@ const PolicyReducer = (state = initialState, action) =>
         break;
 
       case UPDATE_POLICY_STATUS_FAILURE:
-        newState.loading = true;
+        newState.loading = false;
+        newState.errmsg = action.message;
         break;
       default:
         break;

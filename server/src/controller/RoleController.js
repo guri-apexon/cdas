@@ -213,6 +213,27 @@ exports.updateStatus = async (req, res) => {
   try {
     const { role_id, role_stat, userId, updated_on } = req.body;
     const oldValue = role_stat === 1 ? 0 : 1;
+
+    const rolePolicyCount = await DB.executeQuery(
+      `SELECT role_plcy_id from ${dbSchema}.role_policy
+
+      WHERE role_id = '${role_id}' and act_flg=1 `
+    );
+
+    const roleCount = rolePolicyCount.rows?.length;
+
+    // console.log("roleCount", roleCount);
+
+    if (role_stat) {
+      if (roleCount === 0) {
+        return apiResponse.ErrorResponse(
+          res,
+
+          "This role requires at least one policy to be made active"
+        );
+      }
+    }
+    
     let query = `update ${dbSchema}.role set role_stat = '${role_stat}', updated_by = '${userId}', updated_on = '${updated_on}' where role_id = ${role_id}`;
     await DB.executeQuery(query);
     await DB.executeQuery(logQuery, [
