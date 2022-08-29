@@ -48,7 +48,7 @@ router.get("/v1/api/get-sdk-users", CommonController.getSdkUsers);
 
 cron.schedule("0 */2 * * * *", () => {
   UserController.checkInvitedStatus();
-  console.log("running Check Invited Status job task every 15 minute");
+  console.log("running Check Invited Status job task every 2 minute");
 });
 
 module.exports = router;

@@ -232,7 +232,7 @@ exports.inviteExternalUser = async (req, res) => {
     return apiResponse.ErrorResponse(res, "Unable to fetch tenant");
   }
 
-  const response = await this.createNewUser(newReq, res);
+  const response = await this.createNewUserUI(newReq, res);
   if (response === true) {
     newReq.body["createdBy"] = newReq.body.updatedBy;
     newReq.body["createdOn"] = getCurrentTime();
@@ -269,7 +269,7 @@ exports.inviteInternalUser = async (req, res) => {
     return apiResponse.ErrorResponse(res, "Unable to fetch tenant");
   }
 
-  const response = await this.createNewUser(newReq, res);
+  const response = await this.createNewUserUI(newReq, res);
   if (response === true) {
     newReq.body["createdBy"] = newReq.body.updatedBy;
     newReq.body["createdOn"] = getCurrentTime();
@@ -321,14 +321,14 @@ exports.sendInvite = async (req, res) => {
   );
 };
 
-exports.createNewUser = async (req, res) => {
+exports.createNewUserUI = async (req, res) => {
   const data = req.body;
   const { returnBool } = req;
 
   Logger.info({ message: "create user - begin" });
 
   // validate data
-  const validate = await userHelper.validateCreateUserData(data);
+  const validate = await userHelper.validateCreateUserData(data, true);
   if (validate.success === false) return returnBool ? false : validate.message;
 
   const createdById = await userHelper.findByUserId(data.createdBy);
@@ -403,6 +403,117 @@ exports.createNewUser = async (req, res) => {
       : "An error occured while entering user and tenant detail";
 
   return true;
+};
+
+exports.createNewUser = async (req, res) => {
+  const data = req.body;
+  const { returnBool } = req;
+
+  Logger.info({ message: "create user - begin" });
+
+  // validate data
+  const validate = await userHelper.validateCreateUserData(data);
+  if (validate.success === false)
+    return returnBool
+      ? false
+      : apiResponse.ErrorResponse(res, validate.message);
+
+  const createdById = await userHelper.findByUserId(data.createdBy);
+  if (data.createdBy && !createdById)
+    return returnBool
+      ? false
+      : apiResponse.ErrorResponse(res, "Created by Id does not exists");
+
+  if (data.createdOn && !commonHelper.isValidDate(data.createdOn))
+    return returnBool
+      ? false
+      : apiResponse.ErrorResponse(res, "Created on date is not valid");
+
+  // validate tenant
+  const tenant_id = await tenantHelper.findByName(data.tenant);
+  if (!tenant_id)
+    return returnBool
+      ? false
+      : apiResponse.ErrorResponse(res, "Tenant does not exists");
+
+  // provision into SDA and save
+  const user = await userHelper.findByEmail(data.email);
+  let usr_id = (user && user.usr_id) || "";
+
+  if (user && !user.isInactive)
+    return returnBool
+      ? false
+      : apiResponse.ErrorResponse(res, "User already exists in the database");
+
+  if (data.userType === "internal") {
+    const provision_response = await userHelper.provisionInternalUser(data);
+    if (provision_response) {
+      if (user && user.isInactive)
+        usr_id = await userHelper.makeUserActive(usr_id, usr_id);
+      else if (!user)
+        usr_id = await userHelper.insertUserInDb({
+          ...data,
+          invt_sent_tm: null,
+          insrt_tm: data.insrt_tm || getCurrentTime(),
+          updt_tm: data.updt_tm || getCurrentTime(),
+          status: "Active",
+          externalId: null,
+        });
+    } else {
+      return returnBool
+        ? false
+        : apiResponse.ErrorResponse(
+            res,
+            "An error occured while provisioning internal user"
+          );
+    }
+  } else {
+    const provision_response = await userHelper.provisionExternalUser(data);
+    if (provision_response) {
+      if (user && user.isInactive)
+        usr_id = await userHelper.makeUserActive(
+          usr_id,
+          provision_response.data
+        );
+      else if (!user)
+        usr_id = await userHelper.insertUserInDb({
+          ...data,
+          invt_sent_tm: data.invt_sent_tm || getCurrentTime(),
+          insrt_tm: data.insrt_tm || getCurrentTime(),
+          updt_tm: data.updt_tm || getCurrentTime(),
+          status: "Invited",
+          uid: "",
+          externalId: data?.employeeId,
+          userKey: provision_response.data,
+        });
+    } else {
+      return returnBool
+        ? false
+        : apiResponse.ErrorResponse(
+            res,
+            "An error occured while provisioning external user"
+          );
+    }
+  }
+  if (!usr_id)
+    return returnBool
+      ? false
+      : apiResponse.ErrorResponse(
+          res,
+          "An error occured while inserting the user"
+        );
+
+  if (usr_id && tenant_id) tenantHelper.insertTenantUser(usr_id, tenant_id);
+  else
+    return returnBool
+      ? false
+      : apiResponse.ErrorResponse(
+          res,
+          "An error occured while entering user and tenant detail"
+        );
+  return returnBool
+    ? true
+    : apiResponse.successResponseWithData(res, "User successfully created");
 };
 
 exports.getADUsers = async (req, res) => {
@@ -901,7 +1012,7 @@ exports.checkInvitedStatus = async () => {
     const query = `SELECT usr_id as uid, usr_mail_id as email, 
     extrnl_emp_id as employee_id, 
     usr_typ as user_type, sda_usr_key as user_key, 
-    usr_stat as status from ${schemaName}.user where (usr_stat = 'Invited') AND (extrnl_emp_id = '')`;
+    usr_stat as status from ${schemaName}.user where (usr_stat = 'Invited')`;
     const result = await DB.executeQuery(query);
     if (!result) return false;
 
@@ -909,7 +1020,7 @@ exports.checkInvitedStatus = async () => {
     if (!invitedUsers.length) return false;
 
     // Get Active Users from SDA API
-    const activeUsers = await userHelper.getSDAUsers();
+    // const activeUsers = await userHelper.getSDAUsers();
 
     await Promise.all(
       invitedUsers.map(async (invitedUser) => {
@@ -926,18 +1037,21 @@ exports.checkInvitedStatus = async () => {
           const SDAStatus = await userHelper.getSDAUserStatus(userKey, email);
           const externalSDAUserDetails =
             await userHelper?.getSDAuserDataByEmail(email);
-          if (SDAStatus) {
+          if (SDAStatus && externalSDAUserDetails) {
             console.log(`*mariking invited ${email} as active`);
             userHelper.makeUserActive(uid, externalSDAUserDetails?.userId);
           } else {
-            const user = activeUsers.find(
-              (u) => u.email.toUpperCase() === email.toUpperCase()
-            );
-            if (user) {
-              console.log(`-mariking invited ${email} as active`);
-              userHelper.makeUserActive(uid, externalSDAUserDetails?.userId);
-            }
+            console.log("Error, In Activting invited user.");
           }
+          // else {
+          //   const user = activeUsers.find(
+          //     (u) => u.email.toUpperCase() === email.toUpperCase()
+          //   );
+          //   if (user) {
+          //     console.log(`-mariking invited ${email} as active`);
+          //     userHelper.makeUserActive(uid, externalSDAUserDetails?.userId);
+          //   }
+          // }
         } else {
           console.log("Error, received user who is not invited.", invitedUser);
         }
