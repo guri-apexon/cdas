@@ -163,6 +163,7 @@ const PolicyList = () => {
         updated_on: new Date().toISOString(),
       };
       await dispatch(updateStatus(payload));
+      await dispatch(getPolicyList());
     } catch (error) {
       console.log("error", error);
     }
