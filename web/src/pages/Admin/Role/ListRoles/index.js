@@ -30,6 +30,7 @@ import {
   updateStatus,
 } from "../../../../store/actions/RolesActions";
 import { AppContext } from "../../../../components/Providers/AppProvider";
+import { MessageContext } from "../../../../components/Providers/MessageProvider";
 
 const ProductsCell = ({ row, column: { accessor } }) => {
   const rowValue = row[accessor].split(",").sort().join(", ");
@@ -79,6 +80,9 @@ const ListRoles = () => {
       filterMethod(permissions);
     }
     fetchData();
+    return () => {
+      dispatch(fetchRoles([]));
+    };
   }, []);
 
   useEffect(() => {
@@ -87,6 +91,11 @@ const ListRoles = () => {
     setProducts(uniqueProducts);
     setLoad(loading);
   }, [Roles]);
+
+  const messageContext = useContext(MessageContext);
+  useEffect(() => {
+    if (Roles.errmsg !== "") messageContext.showErrorMessage(Roles.errmsg);
+  }, [Roles.errmsg]);
 
   const goToRole = (e, id) => {
     if (readRolePermission) {
