@@ -1020,50 +1020,51 @@ exports.checkInvitedStatus = async () => {
     if (!invitedUsers.length) return false;
 
     // Get Active Users from SDA API
-    // const activeUsers = await userHelper.getSDAUsers();
+    let sda_all_users = await userHelper.getSDAUsers();
 
-    await Promise.all(
-      invitedUsers.map(async (invitedUser) => {
-        const {
-          email,
-          status,
-          user_key: userKey,
-          employee_id: employeeId = "",
-          uid,
-        } = invitedUser;
-        // console.log(invitedUser);
+    if (sda_all_users && invitedUsers) {
+      await Promise.all(
+        invitedUsers.map(async (invitedUser) => {
+          const {
+            email,
+            status,
+            user_key: userKey,
+            employee_id: employeeId = "",
+            uid,
+          } = invitedUser;
+          // console.log(invitedUser);
 
-        if (status === "Invited") {
-          const SDAStatus = await userHelper.getSDAUserStatus(userKey, email);
-          const externalSDAUserDetails =
-            await userHelper?.getSDAuserDataByEmail(email);
-          if (SDAStatus && externalSDAUserDetails) {
-            console.log(`*mariking invited ${email} as active`);
-            userHelper.makeUserActive(uid, externalSDAUserDetails?.userId);
+          if (status == "Invited") {
+            const SDAStatus = await userHelper.getSDAUserStatus(userKey, email);
+            const externalSDAUserDetails = commonHelper?.filterDataByDynamicKey(
+              sda_all_users,
+              "email",
+              email
+            );
+            if (SDAStatus && externalSDAUserDetails) {
+              console.log(`*mariking invited ${email} as active`);
+              userHelper.makeUserActive(uid, externalSDAUserDetails?.userId);
+            }
           } else {
-            console.log("Error, In Activting invited user.");
+            console.log(
+              "Error, received user who is not invited.",
+              invitedUser
+            );
           }
-          // else {
-          //   const user = activeUsers.find(
-          //     (u) => u.email.toUpperCase() === email.toUpperCase()
-          //   );
-          //   if (user) {
-          //     console.log(`-mariking invited ${email} as active`);
-          //     userHelper.makeUserActive(uid, externalSDAUserDetails?.userId);
-          //   }
-          // }
-        } else {
-          console.log("Error, received user who is not invited.", invitedUser);
-        }
-        return Promise.resolve(true);
-      })
-    );
+          return Promise.resolve(true);
+        })
+      );
 
-    Logger.info({
-      message: "checkInvitedStatusCronFinished",
-    });
+      Logger.info({
+        message: "checkInvitedStatusCronFinished",
+      });
 
-    return true;
+      return true;
+    } else {
+      console.log("SDA error list");
+      return false;
+    }
+
   } catch (err) {
     Logger.error(err);
     return false;

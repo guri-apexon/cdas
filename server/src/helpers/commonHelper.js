@@ -28,3 +28,8 @@ exports.isValidDate = (dateObject) =>
   new Date(dateObject).toString() !== "Invalid Date";
 
 exports.isFutureDate = (dateObject) => new Date(dateObject) > new Date();
+
+
+exports.filterDataByDynamicKey = (data, dataKey, value) => {
+  return data?.find((e) => e[dataKey] === value);
+};
