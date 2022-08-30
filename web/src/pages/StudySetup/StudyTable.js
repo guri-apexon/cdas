@@ -332,7 +332,7 @@ export default function StudyTable({ studyData, studyboardData, refreshData }) {
       header: "Assignment Count",
       accessor: "assignmentcount",
       sortFunction: compareNumbers,
-      customCell: canUpdate ? LinkCell : null,
+      customCell: canRead || canCreate || canUpdate ? LinkCell : null,
       filterFunction: numberSearchFilter("assignmentcount"),
       filterComponent: IntegerFilter,
     },

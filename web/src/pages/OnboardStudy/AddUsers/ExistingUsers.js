@@ -139,7 +139,7 @@ const ExistingUsers = () => {
   const [rowsBeingEdited, setRowsBeingEdited] = useState([]);
   const [editedRowBeingCancelled, setEditedRowBeingCancelled] = useState(null);
   const [isAddNewModalClick, setAddNewModalClick] = useState(false);
-  const { canCreate } = usePermission(
+  const { canCreate, canUpdate, canDownload } = usePermission(
     Categories.STUDIES,
     Features.STUDY_ASSIGNMENTS
   );
@@ -421,7 +421,7 @@ const ExistingUsers = () => {
     },
     {
       accessor: "action",
-      customCell: canCreate && ActionCell,
+      customCell: canUpdate && ActionCell,
       align: "right",
     },
   ];
