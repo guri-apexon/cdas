@@ -151,16 +151,19 @@ export default function StudyTable({ studyData, studyboardData, refreshData }) {
 
   const CustomButtonHeader = ({ downloadFile, toggleFilters, rows }) => (
     <div>
-      <Button
-        size="small"
-        variant="secondary"
-        icon={DownloadIcon}
-        onClick={downloadFile}
-        disabled={rows.length <= 0}
-        style={{ marginRight: "8px", border: "none", boxShadow: "none" }}
-      >
-        Download
-      </Button>
+      {canDownload && (
+        <Button
+          size="small"
+          variant="secondary"
+          icon={DownloadIcon}
+          onClick={downloadFile}
+          disabled={rows.length <= 0}
+          style={{ marginRight: "8px", border: "none", boxShadow: "none" }}
+        >
+          Download
+        </Button>
+      )}
+
       <Button
         size="small"
         variant="secondary"
@@ -329,7 +332,7 @@ export default function StudyTable({ studyData, studyboardData, refreshData }) {
       header: "Assignment Count",
       accessor: "assignmentcount",
       sortFunction: compareNumbers,
-      customCell: canUpdate ? LinkCell : null,
+      customCell: canRead || canCreate || canUpdate ? LinkCell : null,
       filterFunction: numberSearchFilter("assignmentcount"),
       filterComponent: IntegerFilter,
     },
