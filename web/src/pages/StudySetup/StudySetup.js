@@ -31,7 +31,10 @@ const StudySetup = () => {
     dispatch(getNotOnBordedStatus());
     setSelectedFilter("");
   };
-  const { canCreate } = usePermission(Categories.STUDIES, Features.STUDY_SETUP);
+  const { canCreate, canDownload } = usePermission(
+    Categories.STUDIES,
+    Features.STUDY_SETUP
+  );
   const selectedStatus = (val) => {
     setSelectedFilter(val);
   };
