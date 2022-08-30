@@ -713,7 +713,7 @@ exports.getUserStudyAndRoles = async function (req, res) {
     const userId = req.query.userId;
     const userStudyQuery = `select MAIN.prot_id,MAIN.usr_id,MAIN.role_id, r1.role_nm, s1.prot_nbr, s1.prot_nbr_stnd from ( select study_asgn_typ prot_id,usr_id,role_id,act_flg
 
-      from ${schemaName}.study_user_role where usr_id = '${userId}' and study_asgn_typ is not null and act_flg=1
+      from ${schemaName}.study_user_role where usr_id = '${userId}' and study_asgn_typ is not null
 
       group by study_asgn_typ,usr_id,role_id,act_flg
 
@@ -723,7 +723,7 @@ exports.getUserStudyAndRoles = async function (req, res) {
 
       from ${schemaName}.study_user_role where usr_id = '${userId}'
 
-      and study_asgn_typ is null and act_flg=1
+      and study_asgn_typ is null
 
       ) MAIN
 
@@ -1064,7 +1064,6 @@ exports.checkInvitedStatus = async () => {
       console.log("SDA error list");
       return false;
     }
-
   } catch (err) {
     Logger.error(err);
     return false;
