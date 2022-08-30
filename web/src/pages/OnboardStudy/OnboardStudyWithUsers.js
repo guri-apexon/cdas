@@ -254,7 +254,9 @@ const ImportWithUsers = () => {
       if (usersRows.find((x) => x.user == null)) {
         setInitialRender(!initialRender);
         setTableUsers([...tableUsers]);
-        toast.showErrorMessage("Please fill user or remove blank rows");
+        toast.showErrorMessage(
+          "This assignment is incomplete. Please select a user and role to continue."
+        );
         return false;
       }
       if (usersRows.find((x) => x.alreadyExist)) {
