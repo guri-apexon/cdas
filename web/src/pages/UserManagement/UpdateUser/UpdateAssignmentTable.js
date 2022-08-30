@@ -537,7 +537,6 @@ const UserAssignmentTable = ({
       setParentLoading(false);
       setLocalSave(true);
       setLoad(true);
-      setLoading(true);
 
       const allStudyNoStudyError = validateAllStudyNoStudy(viewRow);
 
@@ -546,6 +545,7 @@ const UserAssignmentTable = ({
       } else if (allStudyNoStudyError.length) {
         toast.showErrorMessage(allStudyNoStudyError);
       } else {
+        setLoading(true);
         // const removedRoles = initialTableRoles[viewRow.prot_id].filter(
         //   (e) => viewRow.roles.map((r) => r.value).indexOf(e.value) === -1
         // );
