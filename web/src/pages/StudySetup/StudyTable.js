@@ -392,7 +392,7 @@ export default function StudyTable({ studyData, studyboardData, refreshData }) {
         filteredRows = filteredRows.filter((row) => {
           return column.filterFunction(row, filts);
         });
-        if (column.sortFunction) {
+        if (column.sortFunction && column.accessor === sortedColumnValue) {
           filteredRows.sort(
             column.sortFunction(sortedColumnValue, sortOrderValue)
           );
