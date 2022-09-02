@@ -380,6 +380,9 @@ const UpdatePolicy = () => {
                     rows="18"
                     value={policyDesc}
                     multiline={true}
+                    inputProps={{
+                      maxLength: 3000,
+                    }}
                     minHeight={150}
                     sizeAdjustable
                     onChange={handleChange}

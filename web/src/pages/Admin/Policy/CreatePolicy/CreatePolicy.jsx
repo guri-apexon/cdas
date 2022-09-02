@@ -319,6 +319,9 @@ const CreatePolicy = () => {
                 rows="18"
                 multiline={true}
                 minHeight={150}
+                inputProps={{
+                  maxLength: 3000,
+                }}
                 sizeAdjustable
                 onChange={handleChange}
               />
