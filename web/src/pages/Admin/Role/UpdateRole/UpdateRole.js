@@ -457,6 +457,9 @@ const UpdateRole = () => {
                     label="Role Name"
                     placeholder="Name your role"
                     onChange={handleChange}
+                    inputProps={{
+                      maxLength: 255,
+                    }}
                   />
                   <TextField
                     id="roleDesc"
