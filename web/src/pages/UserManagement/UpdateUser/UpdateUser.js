@@ -145,7 +145,7 @@ const AddUser = () => {
   const [cancelEditMode, setCancelEditMode] = useState(false);
 
   const unblockRouter = () => {
-    dispatch(formComponentInActive());
+    if (!isEditMode) dispatch(formComponentInActive());
     dispatch(hideAlert());
     dispatch(hideAppSwitcher());
     setShowAlertBox(false);
@@ -368,7 +368,12 @@ const AddUser = () => {
     <div className="create-user-wrapper">
       {isAddNewModalClick && (
         <AlertBox
-          cancel={() => setAddNewModalClick(false)}
+          cancel={() => {
+            setAddNewModalClick(false);
+            setEditMode(false);
+            dispatch(formComponentInActive());
+            dispatch(hideAppSwitcher());
+          }}
           submit={setUserAssignmentModal}
         />
       )}
