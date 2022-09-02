@@ -664,11 +664,17 @@ const UserAssignmentTable = ({
           </div>
         ) : (
           <div className="flex flex-end w-100">
-            <Tooltip title="Actions" disableFocusListener>
-              <IconMenuButton id="actions-2" menuItems={menuItems} size="small">
-                <EllipsisVertical className="cursor-pointer" />
-              </IconMenuButton>
-            </Tooltip>
+            {canUpdate && (
+              <Tooltip title="Actions" disableFocusListener>
+                <IconMenuButton
+                  id="actions-2"
+                  menuItems={menuItems}
+                  size="small"
+                >
+                  <EllipsisVertical className="cursor-pointer" />
+                </IconMenuButton>
+              </Tooltip>
+            )}
           </div>
         )}
       </>

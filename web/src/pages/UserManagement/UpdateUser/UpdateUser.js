@@ -446,7 +446,7 @@ const AddUser = () => {
             >
               Back to User Management List
             </Button>
-            {!readOnly && targetUser?.formatted_stat !== "Invited" ? (
+            {canUpdate && targetUser?.formatted_stat !== "Invited" ? (
               <Switch
                 label="Active"
                 className="inline-checkbox"
