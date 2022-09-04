@@ -110,6 +110,7 @@ const CreateVendor = () => {
   const vendor = useSelector((state) => state.vendor);
   const [targetRoute, setTargetRoute] = useState("");
   const { isEditPage, isCreatePage, selectedVendor, ensList } = vendor;
+  const [canEditFields, setCanEditFields] = useState(false);
   const { canRead, canCreate, canUpdate, readOnly } = usePermission(
     Categories.SYS_ADMIN,
     Features.VENDOR_MANAGEMENT
@@ -168,6 +169,14 @@ const CreateVendor = () => {
     }
     // console.log("inside update");
   }, [isEditPage, isCreatePage, params]);
+
+  useEffect(() => {
+    if (params.id) {
+      setCanEditFields(canUpdate);
+    } else {
+      setCanEditFields(canCreate);
+    }
+  }, [canUpdate, canCreate]);
 
   const updateChanges = () => {
     if (!isAnyUpdate) {
@@ -370,7 +379,7 @@ const CreateVendor = () => {
             </span>
           </div>
           <div className="flex top-actions">
-            {!readOnly && (
+            {canEditFields && (
               <Switch
                 label="Active"
                 className="inline-checkbox"
@@ -382,7 +391,7 @@ const CreateVendor = () => {
             <ButtonGroup
               alignItems="right"
               buttonProps={
-                readOnly
+                !canEditFields
                   ? [
                       {
                         label: "Cancel",
@@ -419,7 +428,7 @@ const CreateVendor = () => {
                 {isEditPage ? vName : "New Vendor"}
               </Typography>
               <br />
-              {readOnly ? (
+              {!canEditFields ? (
                 <>
                   <Typography>
                     <Label>Vendor Name</Label>
@@ -442,7 +451,7 @@ const CreateVendor = () => {
                     placeholder="Name your vendor"
                     onChange={handleChange}
                     error={initialRender === false && !vName ? true : false}
-                    disabled={readOnly}
+                    disabled={!canEditFields}
                   />
                   <Select
                     size="small"
@@ -453,7 +462,7 @@ const CreateVendor = () => {
                     canDeselect={false}
                     onChange={(e) => handleSelection(e)}
                     error={initialRender === false && !vESName ? true : false}
-                    disabled={readOnly}
+                    disabled={!canEditFields}
                   >
                     {vENSOptions.map((option) => (
                       <MenuItem key={option} value={option}>
@@ -472,7 +481,7 @@ const CreateVendor = () => {
                     minHeight={150}
                     sizeAdjustable
                     onChange={handleChange}
-                    disabled={readOnly}
+                    disabled={!canEditFields}
                   />
                 </>
               )}
@@ -486,7 +495,7 @@ const CreateVendor = () => {
             <TableEditableAll
               deleteAContact={deleteAContact}
               updateData={updateData}
-              disabled={readOnly}
+              disabled={!canEditFields}
             />
           </div>
         </Grid>

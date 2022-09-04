@@ -361,8 +361,10 @@ const UserAssignmentTable = ({
     } else if (typeof lastEditedRecordIndex !== "number") {
       /* eslint-disable */
       setlastEditedRecordData(rowIndex);
-      setEditMode(true);
-      dispatch(formComponentActive());
+      if (editMode) {
+        setEditMode(true);
+        dispatch(formComponentActive());
+      }
       editRowFn(rowIndex, editMode);
     } else {
       editRowFn(rowIndex, editMode);
@@ -513,6 +515,7 @@ const UserAssignmentTable = ({
         setlastEditedRecordData(rowIndex);
         setEditMode(true);
         dispatch(formComponentActive());
+        dispatch(hideAppSwitcher());
       } else {
         onVieweStudyDelete(rowIndex);
       }
@@ -664,11 +667,17 @@ const UserAssignmentTable = ({
           </div>
         ) : (
           <div className="flex flex-end w-100">
-            <Tooltip title="Actions" disableFocusListener>
-              <IconMenuButton id="actions-2" menuItems={menuItems} size="small">
-                <EllipsisVertical className="cursor-pointer" />
-              </IconMenuButton>
-            </Tooltip>
+            {canUpdate && (
+              <Tooltip title="Actions" disableFocusListener>
+                <IconMenuButton
+                  id="actions-2"
+                  menuItems={menuItems}
+                  size="small"
+                >
+                  <EllipsisVertical className="cursor-pointer" />
+                </IconMenuButton>
+              </Tooltip>
+            )}
           </div>
         )}
       </>
@@ -1340,7 +1349,11 @@ const UserAssignmentTable = ({
         {showUserAssignmentModal && (
           <UserAssignmentModal
             open={true}
-            cancel={() => setUserAssignmentModal(false)}
+            cancel={() => {
+              setUserAssignmentModal(false);
+              dispatch(formComponentInActive());
+              dispatch(hideAppSwitcher());
+            }}
             loading={false}
           />
         )}
