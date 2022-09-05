@@ -100,7 +100,6 @@ exports.authHandler = async (req, res) => {
     if (last_login_tm) {
       lastLoginTime = moment(last_login_tm).unix();
     }
-    console.log(response.expires_in);
     const loginDetails = {
       usrId: resp.data.userid,
       logout_tm: moment().add(response.expires_in, "seconds").utc(),
