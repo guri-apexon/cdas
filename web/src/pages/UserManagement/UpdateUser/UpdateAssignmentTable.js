@@ -397,7 +397,6 @@ const UserAssignmentTable = ({
       initialTableRoles[tableStudies[localRowIndex].prot_id];
     setTableStudies([...tableStudies]);
     updateEditMode(localRowIndex, false);
-    dispatch(formComponentInActive());
     setShowCancelRowModal(false);
   };
 

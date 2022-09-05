@@ -370,8 +370,6 @@ const AddUser = () => {
         <AlertBox
           cancel={() => {
             setAddNewModalClick(false);
-            setEditMode(false);
-            dispatch(formComponentInActive());
             dispatch(hideAppSwitcher());
           }}
           submit={setUserAssignmentModal}
