@@ -149,30 +149,6 @@ exports.authHandler = async (req, res) => {
   }
 };
 
-// exports.logoutHandler = async (req, res) => {
-//   try {
-//     const SSO_URL = process.env.SDA_SSO_URL;
-//     //const authStr = "Bearer ".concat(response.access_token);
-//     const ssologoutUrl = `https://${SSO_URL}/oidc/logout`;
-//     const resp = await axios.get(ssologoutUrl, {
-//       //headers: { Authorization: authStr },
-//     });
-//     Logger.info({
-//       message: "LogOut",
-//     });
-//     const ok = resp.status > 199 && resp.status < 400;
-//     if (!ok) {
-//       return res.status(resp.status).json(false);
-//     } else {
-//       return res.status(200).json(true);
-//     }
-//   } catch (e) {
-//     // console.error(e);
-//     Logger.error(e);
-//     return apiResponse.ErrorResponse(res, e);
-//   }
-// };
-
 exports.logoutHandler = async (req, res) => {
   try {
     const SSO_URL = process.env.SDA_SSO_URL;
