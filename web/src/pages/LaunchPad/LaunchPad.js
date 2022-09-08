@@ -112,7 +112,7 @@ const LaunchPad = () => {
           </Typography>
           {/* )} */}
           <h2>Harness the power of your clinical data</h2>
-          {havingCoreAccess && checkAccess("Study Setup ") && (
+          {checkAccess("Study Setup ") && (
             <>
               <Button
                 variant="secondary"
